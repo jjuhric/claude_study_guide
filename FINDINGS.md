@@ -21,11 +21,22 @@ content**, not just run as a solo offline toy.
 ## Status
 
 Architecture decided: **Supabase** (auth + Postgres) · **GitHub Pages** (hosting)
-· **content extracted to versioned JSON**. Implementation not started.
+· **content extracted to versioned JSON**.
 
-Fixed on 2026-08-10 (see §0, §1.3, §3.1): cert codes, fabricated exam facts,
-state-migration hardening, official target-audience blurbs.
-Still open: multi-user implementation, content sourcing, question-bank size.
+Done on 2026-08-10:
+
+- Cert codes corrected to `CCAR-F` / `CCAR-P` (§1.3), blurbs matched to the
+  official target audiences, prices verified
+- All fabricated exam facts removed (§0)
+- State-migration hardening (§3.1) and the shuffle's 4-option assumption (§3.3)
+- Hosting live at https://jjuhric.github.io/claude_study_guide/
+- Content extracted to `data/*.json`; `index.html` 193KB → 39KB
+- `test/smoke.js` added — 62 checks, dependency-free
+
+Still open: Supabase auth + progress sync (needs an account created by the
+owner), content validation against the official blueprints (§0, blocked on
+Partner Academy access), question-bank size (§2), and the empty-content guard
+(§3.2).
 
 ---
 
@@ -152,7 +163,7 @@ unreachable today — but if a 5th cert (or a real-content migration) ever
 ships with an empty bank mid-rollout, these will throw a `TypeError` instead
 of showing a friendly "no content yet" state.
 
-### 3.3 Hardcoded 4-option assumption in the answer shuffle
+### 3.3 Hardcoded 4-option assumption in the answer shuffle — FIXED
 The final `<script>` block (index.html:1389-1396) shuffles each question's
 options and correctly remaps the answer index — but it hardcodes
 `idx=[0,1,2,3]` (line 1391), assuming exactly 4 options. Safe for all 99
@@ -217,10 +228,14 @@ A full cross-reference of the file found:
 4. ~~Harden the state-load backfill.~~ **Done** — `S_DEFAULTS` + `migrate()`
    with a schema version; every field is shape-checked on load. Covered by a
    Node test exercising missing/NaN/wrong-type saved state.
-5. **Implement the chosen architecture**: extract questions/lessons to JSON,
-   publish to GitHub Pages, then layer in Supabase auth and progress sync.
-   Note that JSON extraction requires HTTP hosting — `fetch()` is blocked on
-   `file://`, so Pages must land before or with the extraction.
+5. **Implement the chosen architecture.** Hosting and JSON extraction are
+   **done** — the app is live and loads `data/*.json` at runtime, verified
+   end-to-end against the deployed site. Remaining: **Supabase auth and
+   progress sync**, which is blocked until the owner creates a Supabase
+   project (account creation can't be delegated). Once the project URL and
+   `anon` public key exist, the work is: schema + row-level security policies,
+   an auth flow, and swapping the `store` object in `index.html` from
+   `localStorage` to a synced backend with an offline fallback.
 6. **Grow the question banks** (currently 24–25 per cert; `ccap` has 24). Now
    that the invented "60 questions" claim is gone the app is no longer
    self-contradictory, but the pool is still small enough that a learner
