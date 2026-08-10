@@ -1,0 +1,391 @@
+{
+  "id": "ccao",
+  "code": "CCAO-F",
+  "questions": [
+    {
+      "d": 0,
+      "q": "A marketing manager asks Claude to 'write something about our product.' The output is generic. What is the MOST effective first improvement?",
+      "opts": [
+        "Ask Claude to try again",
+        "Add specific context: audience, tone, format, and key product details",
+        "Switch to a larger model",
+        "Shorten the prompt so Claude focuses better"
+      ],
+      "a": 1,
+      "exp": "Vague prompts produce vague output. Adding role, audience, tone, format, and concrete details is the highest-leverage fix before changing models or retrying."
+    },
+    {
+      "d": 0,
+      "q": "Which prompting technique is BEST when you need Claude to follow a precise output structure every time?",
+      "opts": [
+        "Asking politely and repeating the request",
+        "Providing an explicit template or example of the desired output",
+        "Using all caps for important words",
+        "Keeping the prompt under one sentence"
+      ],
+      "a": 1,
+      "exp": "Showing an example or template (few-shot / output scaffolding) is the most reliable way to get consistent structure."
+    },
+    {
+      "d": 0,
+      "q": "You want Claude to reason carefully through a complex analysis before answering. What should you do?",
+      "opts": [
+        "Ask it to answer as fast as possible",
+        "Ask it to think step by step / work through the problem before giving conclusions",
+        "Split the request into 20 separate chats",
+        "Tell it the answer you expect"
+      ],
+      "a": 1,
+      "exp": "Instructing Claude to reason step by step (or using extended thinking) improves accuracy on complex analytical tasks."
+    },
+    {
+      "d": 0,
+      "q": "When giving Claude a long document plus instructions, best practice is to:",
+      "opts": [
+        "Put instructions before and reference the document clearly, e.g. with delimiters or tags",
+        "Mix instructions randomly throughout the document",
+        "Paste the document with no explanation",
+        "Summarize the document yourself first, always"
+      ],
+      "a": 0,
+      "exp": "Clear separation of instructions and source material — using delimiters, XML-style tags, or clear headers — helps Claude apply instructions to the right content."
+    },
+    {
+      "d": 1,
+      "q": "Claude produces a confident summary citing a statistic you can't find in the source document. What should you do?",
+      "opts": [
+        "Trust it — Claude is usually right",
+        "Verify against the source; treat unsupported claims as potential hallucinations",
+        "Ask Claude if it is sure, and accept its answer",
+        "Publish with a disclaimer"
+      ],
+      "a": 1,
+      "exp": "Output evaluation is a core CCAO-F skill: always verify facts against sources. Confidence is not accuracy."
+    },
+    {
+      "d": 1,
+      "q": "Which is the BEST routine practice for evaluating Claude's output on high-stakes work?",
+      "opts": [
+        "Spot-check every fifth response",
+        "Human review of facts, logic, and tone before use, especially for external audiences",
+        "Run the same prompt twice and use the longer answer",
+        "Rely on Claude's self-assessment"
+      ],
+      "a": 1,
+      "exp": "Human review before external or high-stakes use is the expected governance-aligned evaluation practice."
+    },
+    {
+      "d": 1,
+      "q": "Claude gives you a plausible-looking legal citation. The safest assumption is:",
+      "opts": [
+        "Citations are always real",
+        "It may be fabricated and must be independently verified",
+        "Only page numbers can be wrong",
+        "It's real if it appears twice"
+      ],
+      "a": 1,
+      "exp": "Generated citations can be hallucinated. Verify any citation before relying on it — a classic exam theme."
+    },
+    {
+      "d": 1,
+      "q": "A good technique to make Claude's outputs easier to verify is to ask it to:",
+      "opts": [
+        "Be more confident",
+        "Quote or cite the specific source passages it relied on",
+        "Use more technical jargon",
+        "Avoid mentioning sources to save tokens"
+      ],
+      "a": 1,
+      "exp": "Asking for quotes/citations grounded in provided material makes verification fast and surfaces unsupported claims."
+    },
+    {
+      "d": 2,
+      "q": "For a quick, high-volume task like classifying thousands of short support tickets, which model choice is most appropriate?",
+      "opts": [
+        "The largest, most capable model always",
+        "A fast, cost-efficient model like Haiku",
+        "Whichever model is newest",
+        "Run all models and compare"
+      ],
+      "a": 1,
+      "exp": "Model selection weighs capability vs. cost/speed. High-volume simple tasks fit smaller, faster models like Haiku."
+    },
+    {
+      "d": 2,
+      "q": "When would you choose the most capable model tier (e.g., Opus-class) despite higher cost?",
+      "opts": [
+        "For every task, to be safe",
+        "For complex reasoning, nuanced writing, or high-stakes analysis where quality matters most",
+        "Only for short prompts",
+        "When you need faster responses"
+      ],
+      "a": 1,
+      "exp": "Top-tier models are justified when task complexity and stakes demand maximum capability."
+    },
+    {
+      "d": 2,
+      "q": "A colleague asks which Claude feature lets it search current information beyond its training data. You point to:",
+      "opts": [
+        "Extended thinking",
+        "Web search",
+        "Larger context window",
+        "Temperature settings"
+      ],
+      "a": 1,
+      "exp": "Web search retrieves current information; training data has a cutoff. Knowing feature-to-need mapping is part of Model Selection."
+    },
+    {
+      "d": 3,
+      "q": "Your team wants Claude to help with a recurring weekly report drawing on the same background files. The BEST setup is:",
+      "opts": [
+        "Paste the files into a new chat every week",
+        "Create a Project with the files as project knowledge and a reusable instruction set",
+        "Email the files to support",
+        "Use a different account per report"
+      ],
+      "a": 1,
+      "exp": "Projects with persistent knowledge and instructions are designed exactly for recurring workflows."
+    },
+    {
+      "d": 3,
+      "q": "Which is the strongest sign a workflow step should stay with a human rather than Claude?",
+      "opts": [
+        "It involves reading long documents",
+        "It requires final accountability, judgment calls, or legally binding decisions",
+        "It happens weekly",
+        "It involves writing drafts"
+      ],
+      "a": 1,
+      "exp": "Claude augments workflows; accountability and binding judgment stay with humans. Recognizing escalation points is tested."
+    },
+    {
+      "d": 3,
+      "q": "To integrate Claude output into a spreadsheet-based process with least friction, you should ask Claude to:",
+      "opts": [
+        "Respond in prose paragraphs",
+        "Produce output in a structured format like CSV or a table matching your columns",
+        "Describe the data verbally",
+        "Use creative formatting"
+      ],
+      "a": 1,
+      "exp": "Matching Claude's output format to the downstream tool (structured/tabular) makes integration seamless."
+    },
+    {
+      "d": 4,
+      "q": "What is the main benefit of adding curated documents to a Project's knowledge?",
+      "opts": [
+        "It trains the underlying model permanently",
+        "Claude grounds responses in your specific, relevant content across conversations",
+        "It removes the context limit",
+        "It makes responses faster"
+      ],
+      "a": 1,
+      "exp": "Project knowledge grounds answers in your documents per-conversation; it does not retrain the model."
+    },
+    {
+      "d": 4,
+      "q": "Your Project knowledge contains an outdated policy doc and Claude keeps citing it. Best fix?",
+      "opts": [
+        "Ask Claude to ignore old things",
+        "Remove or replace the outdated document in the knowledge source",
+        "Start using a bigger model",
+        "Repeat the question until the answer changes"
+      ],
+      "a": 1,
+      "exp": "Knowledge management means curating sources: stale documents in, stale answers out."
+    },
+    {
+      "d": 5,
+      "q": "A teammate wants to paste customers' personal data into Claude to draft emails. The FIRST consideration is:",
+      "opts": [
+        "Whether the prompt is well-written",
+        "Your organization's data-handling policy and whether that data is approved for the tool",
+        "Which model is cheapest",
+        "How fast Claude responds"
+      ],
+      "a": 1,
+      "exp": "Governance & Risk: data classification and organizational policy come before convenience."
+    },
+    {
+      "d": 5,
+      "q": "Which practice BEST reflects responsible AI use at work?",
+      "opts": [
+        "Presenting Claude's work as entirely your own analysis without review",
+        "Disclosing AI assistance where required and reviewing outputs before use",
+        "Letting Claude auto-send external emails",
+        "Using AI only in secret"
+      ],
+      "a": 1,
+      "exp": "Responsible use pairs transparency (where policy requires) with human review before outputs are used."
+    },
+    {
+      "d": 5,
+      "q": "Claude declines a request related to your security research. The appropriate response is:",
+      "opts": [
+        "Rephrase to trick it",
+        "Provide legitimate context, and if still declined, escalate through appropriate channels",
+        "Threaten it",
+        "Assume the feature is broken"
+      ],
+      "a": 1,
+      "exp": "Adding legitimate context is fine; attempting to bypass safety guardrails is not. Escalate via proper channels if needed."
+    },
+    {
+      "d": 6,
+      "q": "Claude's answers get noticeably worse late in a very long conversation. Likely cause and fix?",
+      "opts": [
+        "The model got tired — wait an hour",
+        "Accumulated context is diluting focus — start a fresh conversation with a summary of key points",
+        "Your account is throttled",
+        "The model was downgraded mid-chat"
+      ],
+      "a": 1,
+      "exp": "Long conversations accumulate noise. Starting fresh with a distilled summary is the standard troubleshooting move."
+    },
+    {
+      "d": 6,
+      "q": "Claude keeps ignoring one of your five instructions. A good troubleshooting step is to:",
+      "opts": [
+        "Add ten more instructions",
+        "Restructure the prompt: make the ignored instruction explicit, prominent, and possibly give an example",
+        "Use more exclamation marks",
+        "Report a bug immediately"
+      ],
+      "a": 1,
+      "exp": "Prominence, clarity, and examples fix instruction-following issues far better than volume."
+    },
+    {
+      "d": 6,
+      "q": "You get a refusal on a clearly benign request. Best first move?",
+      "opts": [
+        "Rephrase the request with clearer intent and context",
+        "Create a new account",
+        "Ask the same words repeatedly",
+        "Give up"
+      ],
+      "a": 0,
+      "exp": "Ambiguous phrasing can trigger cautious refusals; clarifying legitimate intent usually resolves it."
+    },
+    {
+      "d": 1,
+      "q": "Which output-quality risk is MOST characteristic of large language models?",
+      "opts": [
+        "They always refuse to answer",
+        "Fluent, confident text that can contain factual errors",
+        "Output limited to 100 words",
+        "Inability to write code"
+      ],
+      "a": 1,
+      "exp": "The signature risk: fluency masks errors. This is why Output Evaluation is the largest CCAO-F domain."
+    },
+    {
+      "d": 3,
+      "q": "Which task is the BEST fit to delegate to Claude in a workflow?",
+      "opts": [
+        "Approving invoices for payment",
+        "First-draft synthesis of research notes into a structured brief",
+        "Signing contracts",
+        "Deciding employee compensation"
+      ],
+      "a": 1,
+      "exp": "Drafting/synthesis is ideal delegation; approval, signing, and compensation decisions need human authority."
+    },
+    {
+      "d": 0,
+      "q": "Assigning Claude a role ('You are an experienced financial analyst reviewing...') primarily helps by:",
+      "opts": [
+        "Unlocking hidden model features",
+        "Framing tone, perspective, and domain conventions of the response",
+        "Increasing the context window",
+        "Making responses shorter"
+      ],
+      "a": 1,
+      "exp": "Role prompting shapes perspective, vocabulary, and conventions — a core Prompting-domain technique."
+    }
+  ],
+  "cards": [
+    {
+      "f": "What CCAO-F study domains does this app use?",
+      "b": "Prompting · Output Evaluation · Model Selection · Workflow Integration · Knowledge Management · Governance & Risk · Troubleshooting. These are this app's study groupings — the official domain list and weightings are in the Partner Academy exam guide."
+    },
+    {
+      "f": "What does CCAO-F cost?",
+      "b": "$99 USD (confirmed on Anthropic's Pearson VUE page). Question count, time limit, and passing score are published only in the official exam guide — this app has no verified figures for them."
+    },
+    {
+      "f": "Hallucination",
+      "b": "Fluent, confident output containing fabricated or unsupported claims. Mitigate by grounding in sources, asking for citations, and verifying before use."
+    },
+    {
+      "f": "When should a human stay in the loop?",
+      "b": "Final accountability, legal/binding decisions, high-stakes external communication, and anything requiring judgment your org assigns to people."
+    },
+    {
+      "f": "Projects (Claude feature)",
+      "b": "Persistent workspaces with custom instructions + knowledge files, so recurring workflows don't need re-pasting context every chat."
+    },
+    {
+      "f": "Role prompting",
+      "b": "Assigning Claude a persona/expertise ('You are a...') to shape tone, perspective, and domain conventions."
+    },
+    {
+      "f": "Few-shot prompting",
+      "b": "Including 1+ worked examples of input → desired output so Claude mimics the pattern and format."
+    },
+    {
+      "f": "Haiku vs Sonnet vs Opus — quick rule",
+      "b": "Haiku: fast/cheap, high-volume simple tasks. Sonnet: balanced default. Opus-class: hardest reasoning and highest-stakes quality."
+    },
+    {
+      "f": "Web search vs training data",
+      "b": "Training data has a cutoff date; web search fetches current info. Use search for anything time-sensitive."
+    },
+    {
+      "f": "Fix for degraded answers in a long chat",
+      "b": "Context has accumulated noise — start a fresh conversation seeded with a concise summary of the key points."
+    },
+    {
+      "f": "Data governance first question",
+      "b": "Before pasting data into any AI tool: is this data class approved by org policy for this tool?"
+    },
+    {
+      "f": "Making outputs verifiable",
+      "b": "Ask Claude to quote source passages / cite where each claim comes from — unsupported claims become visible instantly."
+    }
+  ],
+  "lessons": [
+    {
+      "h": "Start Here: Foundations",
+      "b": "<p>Welcome — this lesson assumes zero prior knowledge. By the end you'll have the vocabulary and mental model you need before any of the exam domains will make sense.</p><h4>What is Claude?</h4><p>Claude is a <b>large language model (LLM)</b> made by Anthropic — a computer program trained on enormous amounts of text that learned to predict, very well, what text should come next given some input. When you type a message, Claude reads it and generates a response one small chunk of text at a time. It doesn't 'look things up' the way a search engine does by default — it generates each response fresh, based on patterns learned during training, unless it's specifically given a tool like web search.</p><p>That single fact — Claude generates plausible text rather than retrieving verified facts — is the root of almost everything in the Output Evaluation domain later in this guide. Keep it in mind.</p><div class='diagram-box'><svg viewBox='0 0 560 130' xmlns='http://www.w3.org/2000/svg'><rect x='20' y='40' width='160' height='50' rx='10' fill='#fff' stroke='#5b7fa6' stroke-width='2'/><text x='100' y='70' text-anchor='middle' font-size='11' fill='#5b7fa6' font-weight='700'>You type a message</text><line x1='180' y1='65' x2='220' y2='65' stroke='#8a8073' stroke-width='2' marker-end='url(#arrowf0)'/><rect x='220' y='40' width='120' height='50' rx='10' fill='#d97757'/><text x='280' y='70' text-anchor='middle' font-size='11' fill='#fff' font-weight='700'>Claude predicts a reply</text><line x1='340' y1='65' x2='380' y2='65' stroke='#8a8073' stroke-width='2' marker-end='url(#arrowf0)'/><rect x='380' y='40' width='160' height='50' rx='10' fill='#fff' stroke='#5a9e6f' stroke-width='2'/><text x='460' y='70' text-anchor='middle' font-size='11' fill='#5a9e6f' font-weight='700'>You read, reply again</text><defs><marker id='arrowf0' markerWidth='8' markerHeight='8' refX='6' refY='3' orient='auto'><path d='M0,0 L6,3 L0,6 Z' fill='#8a8073'/></marker></defs></svg><div class='diagram-cap'>A conversation is just this loop, repeated — nothing more mysterious than that.</div></div><h4>A short glossary you'll see everywhere</h4><ul><li><b>Prompt:</b> the text you send Claude — your question, instruction, or request</li><li><b>Token:</b> a chunk of text (roughly ¾ of a word on average) that Claude reads and generates in. Costs and limits are usually measured in tokens, not words or characters</li><li><b>Context window:</b> the total amount of text (your messages, any documents, and Claude's replies) that Claude can 'see' at once, measured in tokens. Once a conversation exceeds it, the oldest content starts falling out of view</li><li><b>Model:</b> a specific version of Claude (e.g. a fast one, a balanced one, a top-capability one) — see the Model Selection lesson</li><li><b>System prompt:</b> background instructions set once (often by whoever built the tool you're using) that shape how Claude behaves for the whole conversation, separate from what you type</li><li><b>Hallucination:</b> when Claude states something fabricated or wrong with the same fluent confidence as something true — this is the single most important risk to understand before using any LLM for real work</li><li><b>Project:</b> a persistent workspace in Claude with its own instructions and reference documents, so you don't retype context every conversation</li></ul><h4>Why certification, and why this one first?</h4><p>Anthropic's four certifications build on each other: <b>Associate (this one)</b> is for anyone using Claude as a daily work tool — no coding required. <b>Developer</b> is for engineers integrating Claude via API and code. <b>Architect Foundations</b> and <b>Architect Professional</b> are for people designing multi-step, tool-using agentic systems. If you're new to all of this, mastering the seven domains ahead — Prompting, Output Evaluation, Model Selection, Workflow Integration, Knowledge Management, Governance & Risk, and Troubleshooting — is the right on-ramp before touching the more technical certs.</p><div class='vbox'><div class='lbl'>📺 Watch first</div><a href='https://www.youtube.com/watch?v=LPZh9BOjkQs' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Large Language Models explained briefly</span><span class='vdesc'>A short, clear primer on what an LLM actually is and how it generates text — watch this before anything else if the term 'LLM' is new to you.</span></span></a><a href='https://www.youtube.com/watch?v=T9aRN5JkmL8' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>AI prompt engineering: a deep dive (Anthropic)</span><span class='vdesc'>Anthropic's own prompt engineering team walks through how they think about getting good results from Claude — useful context for the whole Associate track.</span></span></a></div><div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>Claude generates plausible text; it doesn't 'know' facts are true the way a database does.</li><li>Tokens, context window, and system prompt are the vocabulary everything else builds on.</li><li>This cert has no coding prerequisite — it's about using Claude well as a work tool.</li></ul></div>",
+      "foundation": true
+    },
+    {
+      "h": "Prompting",
+      "b": "<p>Prompting is how you turn a vague request into output you can actually use. A weak prompt ('write something about our product') forces Claude to guess at audience, tone, length, and purpose — so it defaults to generic, safe, forgettable text. A strong prompt supplies that context up front so Claude doesn't have to guess.</p><h4>The five core levers</h4><ul><li><b>Context:</b> who is this for, what's it for, what does Claude need to know that isn't obvious from the request alone</li><li><b>Role:</b> assigning a persona ('You are an experienced financial analyst...') shapes vocabulary, tone, and the domain conventions Claude applies</li><li><b>Format:</b> tell Claude the shape you want — bullet list, table, email, three short paragraphs — rather than hoping it guesses</li><li><b>Examples (few-shot):</b> one worked example of input → desired output is often worth paragraphs of description</li><li><b>Step-by-step reasoning:</b> for anything analytical, explicitly asking Claude to reason through the problem before concluding improves accuracy</li></ul><div class='diagram-box'><svg viewBox='0 0 620 190' xmlns='http://www.w3.org/2000/svg'><rect x='10' y='20' width='280' height='150' rx='12' fill='#fff' stroke='#c65b4e' stroke-width='2'/><text x='150' y='42' text-anchor='middle' font-size='12' font-weight='700' fill='#c65b4e'>WEAK PROMPT</text><text x='26' y='65' font-size='11.5' fill='#2b2620'>\"Write something about</text><text x='26' y='81' font-size='11.5' fill='#2b2620'>our product.\"</text><text x='26' y='108' font-size='10.5' fill='#8a8073'>No audience. No tone.</text><text x='26' y='124' font-size='10.5' fill='#8a8073'>No format. No length.</text><text x='26' y='140' font-size='10.5' fill='#8a8073'>→ generic, forgettable copy</text><rect x='330' y='20' width='280' height='150' rx='12' fill='#fff' stroke='#5a9e6f' stroke-width='2'/><text x='470' y='42' text-anchor='middle' font-size='12' font-weight='700' fill='#5a9e6f'>STRONG PROMPT</text><text x='346' y='63' font-size='10.5' fill='#2b2620'>Role: senior product marketer</text><text x='346' y='79' font-size='10.5' fill='#2b2620'>Audience: enterprise IT buyers</text><text x='346' y='95' font-size='10.5' fill='#2b2620'>Format: 3 bullet value props</text><text x='346' y='111' font-size='10.5' fill='#2b2620'>Example: [shows one bullet]</text><text x='346' y='127' font-size='10.5' fill='#2b2620'>Tone: confident, no hype</text><text x='346' y='148' font-size='10.5' fill='#8a8073'>→ usable on the first try</text><line x1='295' y1='95' x2='325' y2='95' stroke='#8a8073' stroke-width='2' marker-end='url(#arrowp1)'/><defs><marker id='arrowp1' markerWidth='8' markerHeight='8' refX='6' refY='3' orient='auto'><path d='M0,0 L6,3 L0,6 Z' fill='#8a8073'/></marker></defs></svg><div class='diagram-cap'>Same request, two prompts — the difference is entirely in the missing levers.</div></div><div class='exbox'><div class='lbl'>Worked example</div>Instead of: <pre>Write a customer email about our price increase.</pre>Try: <pre>You are a customer success manager. Write a short email (under 120 words) to a loyal customer telling them our subscription price is rising 8% starting next quarter. Tone: warm, direct, no corporate jargon. End with one sentence reaffirming their value to us. Format: plain email, no subject line needed.</pre>The second version fixes role, audience, length, tone, and format in one pass — no back-and-forth needed.</div><h4>Why this works: a mental model</h4><p>Think of Claude as an extremely well-read collaborator who has never met you and can't read your mind — everything it knows about your specific situation is whatever you put in the prompt, plus anything in the system prompt or Project knowledge behind the scenes. Every missing piece of context is a guess Claude has to fill in on its own, and it will fill it in with something plausible rather than leaving it blank. That's why 'be more specific' so reliably fixes weak output: you're replacing guesses with facts.</p><p>Two more levers worth knowing by name: <b>negative instructions</b> (telling Claude what to avoid, e.g. \"don't use marketing buzzwords\") and <b>constraints</b> (hard limits like word count or a required structure). Both reduce the space of plausible-but-wrong answers Claude might otherwise pick.</p><div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>Vague in → vague out. The fix is always more context, not a different model.</li><li>Role, format, and examples are the highest-leverage additions.</li><li>Ask for step-by-step reasoning on anything analytical or multi-part.</li></ul></div><div class='vbox'><div class='lbl'>📺 Watch</div><a href='https://www.youtube.com/watch?v=FMWRfZ_VNdw' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Anthropic: Prompting 101</span><span class='vdesc'>An Anthropic-produced walkthrough of core prompting technique, aimed at exactly this level.</span></span></a><a href='https://www.youtube.com/watch?v=pQ6G9TQfGIA' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Anthropic's free 24-minute prompt engineering workshop</span><span class='vdesc'>A compact workshop covering role prompting, examples, and structure in under half an hour.</span></span></a></div>"
+    },
+    {
+      "h": "Output Evaluation",
+      "b": "<p>This is one of the most important skills in the whole programme, because it's what keeps AI-assisted work safe: knowing when to trust an output and when to check it.</p><p><b>Why this matters:</b> Claude produces fluent, confident-sounding text whether or not the underlying facts are correct. Fluency is not a signal of accuracy — this is the core idea to internalize, and the exam tests it repeatedly with scenarios where a wrong answer 'sounds right.'</p><h4>A simple verification funnel</h4><div class='diagram-box'><svg viewBox='0 0 600 200' xmlns='http://www.w3.org/2000/svg'><rect x='20' y='15' width='560' height='36' rx='10' fill='#d97757'/><text x='300' y='38' text-anchor='middle' font-size='12.5' fill='#fff' font-weight='700'>Claude produces an output</text><line x1='300' y1='51' x2='300' y2='68' stroke='#8a8073' stroke-width='2' marker-end='url(#arrowe1)'/><rect x='60' y='68' width='480' height='36' rx='10' fill='#fff' stroke='#8a8073' stroke-width='2'/><text x='300' y='91' text-anchor='middle' font-size='12' fill='#2b2620'>Does it contain facts, numbers, quotes, or citations?</text><line x1='170' y1='104' x2='140' y2='122' stroke='#8a8073' stroke-width='2' marker-end='url(#arrowe1)'/><line x1='430' y1='104' x2='460' y2='122' stroke='#8a8073' stroke-width='2' marker-end='url(#arrowe1)'/><text x='120' y='116' font-size='10' fill='#8a8073'>yes</text><text x='470' y='116' font-size='10' fill='#8a8073'>no</text><rect x='20' y='124' width='240' height='60' rx='10' fill='#fff' stroke='#c65b4e' stroke-width='2'/><text x='140' y='145' text-anchor='middle' font-size='11' fill='#c65b4e' font-weight='700'>Verify against the source</text><text x='140' y='163' text-anchor='middle' font-size='10' fill='#2b2620'>Never trust a generated</text><text x='140' y='176' text-anchor='middle' font-size='10' fill='#2b2620'>citation or stat as-is</text><rect x='340' y='124' width='240' height='60' rx='10' fill='#fff' stroke='#5a9e6f' stroke-width='2'/><text x='460' y='145' text-anchor='middle' font-size='11' fill='#5a9e6f' font-weight='700'>Scale scrutiny to stakes</text><text x='460' y='163' text-anchor='middle' font-size='10' fill='#2b2620'>External / high-stakes →</text><text x='460' y='176' text-anchor='middle' font-size='10' fill='#2b2620'>full human review</text><defs><marker id='arrowe1' markerWidth='8' markerHeight='8' refX='6' refY='3' orient='auto'><path d='M0,0 L6,3 L0,6 Z' fill='#8a8073'/></marker></defs></svg><div class='diagram-cap'>Route every output through this check before it goes anywhere important.</div></div><h4>Practical evaluation habits</h4><ul><li>Verify specific facts, numbers, and citations against the original source — never take a generated statistic or citation at face value</li><li>Ask Claude to quote or point to the exact passage it drew a claim from; this makes unsupported claims visible immediately</li><li>Apply more scrutiny as stakes rise — a first-draft brainstorm needs less verification than a client-facing report or anything with legal/financial consequences</li><li>Don't ask Claude 'are you sure?' and treat the reply as evidence — self-assessment isn't a substitute for checking the source</li></ul><div class='exbox'><div class='lbl'>Worked example</div>Claude summarizes a market report: \"According to the report, adoption grew 340% year-over-year.\" You skim the source PDF and the actual figure is 34%. This is exactly the failure mode this domain tests for — a single fluent, confident sentence with one wrong digit. The fix isn't skepticism about AI in general, it's the habit of checking any specific number against its source before it goes in a deck.</div><div class='pitbox'><div class='lbl'>Common mistake</div>Treating a well-formatted, professional-sounding answer as evidence of accuracy. Formatting quality and factual accuracy are unrelated — the exam will present polished-looking wrong answers specifically to test this.</div><h4>Why hallucinations happen</h4><p>Claude generates text by predicting the most statistically plausible next chunk of text, not by querying a verified fact database. Most of the time those predictions line up with reality because Claude was trained on huge amounts of accurate text — but when a question sits outside what it can reliably reconstruct (an obscure statistic, a specific citation, a very recent event), it can still produce a fluent, confident-sounding answer that is simply wrong. Nothing about the tone or polish of the sentence changes based on whether it's actually correct — which is exactly why this domain is weighted so heavily.</p><div class='vbox'><div class='lbl'>📺 Watch</div><a href='https://www.youtube.com/watch?v=005JLRt3gXI' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Why do AI models hallucinate?</span><span class='vdesc'>A clear explanation of why fluent, confident-sounding answers can still be wrong, and how to spot it.</span></span></a></div>"
+    },
+    {
+      "h": "Model Selection",
+      "b": "<p>Anthropic offers models along a capability/cost/speed spectrum. Picking the right one for the job is a distinct, testable skill — using the biggest model for everything is not 'safe,' it's wasteful and often slower than necessary.</p><div class='diagram-box'><svg viewBox='0 0 600 170' xmlns='http://www.w3.org/2000/svg'><text x='300' y='20' text-anchor='middle' font-size='11' fill='#8a8073'>speed / cost-efficiency →</text><rect x='20' y='40' width='170' height='90' rx='10' fill='#fff' stroke='#5a9e6f' stroke-width='2'/><text x='105' y='62' text-anchor='middle' font-size='12' font-weight='700' fill='#5a9e6f'>Haiku tier</text><text x='105' y='82' text-anchor='middle' font-size='10' fill='#2b2620'>fast · cheap</text><text x='105' y='98' text-anchor='middle' font-size='10' fill='#2b2620'>high-volume,</text><text x='105' y='113' text-anchor='middle' font-size='10' fill='#2b2620'>simple tasks</text><rect x='215' y='40' width='170' height='90' rx='10' fill='#fff' stroke='#5b7fa6' stroke-width='2'/><text x='300' y='62' text-anchor='middle' font-size='12' font-weight='700' fill='#5b7fa6'>Sonnet tier</text><text x='300' y='82' text-anchor='middle' font-size='10' fill='#2b2620'>balanced</text><text x='300' y='98' text-anchor='middle' font-size='10' fill='#2b2620'>everyday default</text><text x='300' y='113' text-anchor='middle' font-size='10' fill='#2b2620'>work</text><rect x='410' y='40' width='170' height='90' rx='10' fill='#fff' stroke='#8a6fae' stroke-width='2'/><text x='495' y='62' text-anchor='middle' font-size='12' font-weight='700' fill='#8a6fae'>Opus tier</text><text x='495' y='82' text-anchor='middle' font-size='10' fill='#2b2620'>max capability</text><text x='495' y='98' text-anchor='middle' font-size='10' fill='#2b2620'>complex, high-stakes</text><text x='495' y='113' text-anchor='middle' font-size='10' fill='#2b2620'>reasoning</text><line x1='20' y1='150' x2='580' y2='150' stroke='#8a8073' stroke-width='1.5' marker-end='url(#arrowm1)'/><text x='300' y='166' text-anchor='middle' font-size='10' fill='#8a8073'>reasoning depth / stakes →</text><defs><marker id='arrowm1' markerWidth='8' markerHeight='8' refX='6' refY='3' orient='auto'><path d='M0,0 L6,3 L0,6 Z' fill='#8a8073'/></marker></defs></svg><div class='diagram-cap'>Pick the cheapest tier that still meets the quality bar for the task.</div></div><h4>Rule of thumb</h4><ul><li><b>Fast, cheap models (Haiku tier):</b> high-volume, simple, well-defined tasks — classification, short replies, simple extraction</li><li><b>Balanced models (Sonnet tier):</b> the default for most everyday work — good reasoning at reasonable cost</li><li><b>Top-tier models (Opus tier):</b> complex reasoning, nuanced writing, or high-stakes analysis where quality matters more than cost or speed</li></ul><p><b>Feature awareness:</b> know what unlocks what — web search retrieves current information beyond the training cutoff; extended thinking helps with hard multi-step reasoning; a larger context window lets you include more source material at once. Matching feature to need (not just 'use everything') is what's tested.</p><div class='exbox'><div class='lbl'>Worked example</div>A support team triages 5,000 incoming tickets a day into 6 categories (billing, bug, feature request, etc). This is high-volume and well-defined → Haiku tier. The same team's quarterly board narrative summarizing performance and strategy is low-volume and high-stakes → Opus tier is the better fit, even though it costs more per call.</div><p>A useful habit: start a new type of task on the balanced (Sonnet) tier by default. If the output is consistently good enough and the task is high-volume, step down to the fast tier to save time and cost. If the output is consistently missing nuance on a hard task, step up to the top tier. Let the actual quality of results guide the choice rather than picking the biggest model reflexively 'just in case.'</p><div class='vbox'><div class='lbl'>📺 Watch</div><a href='https://www.youtube.com/watch?v=EstrsAlmxd4' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Haiku vs Sonnet vs Opus: Which Claude model should you use?</span><span class='vdesc'>28 real-world examples showing which tier fits which kind of task.</span></span></a></div>"
+    },
+    {
+      "h": "Workflow Integration",
+      "b": "<p>This domain is about weaving Claude into how work actually gets done, not just chatting with it ad hoc.</p><div class='diagram-box'><svg viewBox='0 0 600 160' xmlns='http://www.w3.org/2000/svg'><rect x='20' y='50' width='150' height='60' rx='10' fill='#fff' stroke='#d97757' stroke-width='2'/><text x='95' y='75' text-anchor='middle' font-size='11' font-weight='700' fill='#d97757'>Human</text><text x='95' y='92' text-anchor='middle' font-size='9.5' fill='#2b2620'>frames the task,</text><text x='95' y='104' text-anchor='middle' font-size='9.5' fill='#2b2620'>supplies context</text><line x1='170' y1='80' x2='215' y2='80' stroke='#8a8073' stroke-width='2' marker-end='url(#arroww1)'/><rect x='215' y='50' width='170' height='60' rx='10' fill='#fff' stroke='#5b7fa6' stroke-width='2'/><text x='300' y='75' text-anchor='middle' font-size='11' font-weight='700' fill='#5b7fa6'>Claude</text><text x='300' y='92' text-anchor='middle' font-size='9.5' fill='#2b2620'>drafts, synthesizes,</text><text x='300' y='104' text-anchor='middle' font-size='9.5' fill='#2b2620'>first-pass analysis</text><line x1='385' y1='80' x2='430' y2='80' stroke='#8a8073' stroke-width='2' marker-end='url(#arroww1)'/><rect x='430' y='50' width='150' height='60' rx='10' fill='#fff' stroke='#5a9e6f' stroke-width='2'/><text x='505' y='75' text-anchor='middle' font-size='11' font-weight='700' fill='#5a9e6f'>Human</text><text x='505' y='92' text-anchor='middle' font-size='9.5' fill='#2b2620'>reviews, decides,</text><text x='505' y='104' text-anchor='middle' font-size='9.5' fill='#2b2620'>is accountable</text><defs><marker id='arroww1' markerWidth='8' markerHeight='8' refX='6' refY='3' orient='auto'><path d='M0,0 L6,3 L0,6 Z' fill='#8a8073'/></marker></defs></svg><div class='diagram-cap'>The healthy pattern: human frames it, Claude accelerates the middle, human owns the outcome.</div></div><h4>Key ideas</h4><ul><li><b>Projects:</b> a persistent workspace holding reusable instructions plus knowledge files, so recurring work (weekly reports, standard analyses) doesn't require re-explaining context every time</li><li><b>Matching output format to the destination:</b> if the next step is a spreadsheet, ask for CSV/tabular output; if it's an email, ask for email format — friction-free integration means Claude's output slots directly into the next tool</li><li><b>Knowing what to delegate:</b> drafting, synthesis, first-pass analysis, and research summarization are strong fits; final approval, binding decisions, and anything requiring personal accountability should stay with a human</li></ul><p><b>Exam pattern:</b> given a recurring task or a task with legal/financial weight, identify the correctly-scoped role for Claude versus the human.</p><div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>Projects remove repeated context-setting for recurring workflows.</li><li>Format the ask around where the output lands next.</li><li>Delegate drafting and synthesis; keep approval and accountability human.</li></ul></div><div class='vbox'><div class='lbl'>📺 Watch</div><a href='https://www.youtube.com/watch?v=GJ5jTgcbRHA' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Getting started with Projects in Claude.ai</span><span class='vdesc'>Shows exactly how to set up a Project with instructions and knowledge files for a recurring workflow.</span></span></a></div>"
+    },
+    {
+      "h": "Knowledge Management",
+      "b": "<p>Claude can be grounded in your organization's own content — but only as well as that content is curated.</p><h4>What to know</h4><ul><li>Project knowledge sources ground Claude's answers in specific documents you provide, across every conversation in that Project</li><li>Adding a document does not retrain the underlying model — it's added as reference context for that Project, not permanent model knowledge</li><li>Stale or outdated documents produce stale or outdated answers — if Claude keeps citing an old policy, the fix is to update or remove that source document, not to 'ask it to ignore old things'</li><li>Curate for relevance and recency the same way you would a shared team wiki</li></ul><div class='exbox'><div class='lbl'>Worked example</div>A Project's knowledge folder still has the 2023 vacation policy alongside the current 2026 version. Claude, given both, may blend or cite the wrong one. The correct fix is archiving the 2023 file out of the Project — not adding an instruction like 'always use the newest policy,' which is fragile and easy to get wrong when documents aren't dated clearly.</div><div class='pitbox'><div class='lbl'>Common mistake</div>Assuming that once you upload a document, Claude 'knows' it permanently and everywhere. Knowledge sources are scoped to that Project/conversation, not baked into the model — a new chat outside the Project won't have it.</div><p>Under the hood, when a Project has a lot of source material, Claude often uses a form of retrieval to pull in the most relevant passages for your specific question rather than rereading every document in full each time. You don't need to manage this yourself, but it explains why a well-organized, clearly-titled set of documents tends to produce better answers than one giant dumping-ground file — clear structure makes the right passage easier to find.</p><div class='vbox'><div class='lbl'>📺 Watch</div><a href='https://www.youtube.com/watch?v=MBDiJAWx8xk' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>What is RAG? Retrieval Augmented Generation explained</span><span class='vdesc'>The retrieval mechanism behind grounded, document-aware answers — the 'why' behind why curated knowledge sources work so well.</span></span></a></div>"
+    },
+    {
+      "h": "Governance & Risk",
+      "b": "<p>Using Claude well at work means using it responsibly, not just effectively.</p><div class='diagram-box'><svg viewBox='0 0 600 150' xmlns='http://www.w3.org/2000/svg'><rect x='20' y='20' width='260' height='50' rx='10' fill='#fff' stroke='#8a8073' stroke-width='2'/><text x='150' y='42' text-anchor='middle' font-size='11' fill='#2b2620'>Data you're about to paste in</text><text x='150' y='58' text-anchor='middle' font-size='9.5' fill='#8a8073'>(customer PII, financials, etc.)</text><line x1='280' y1='45' x2='320' y2='45' stroke='#8a8073' stroke-width='2' marker-end='url(#arrowg1)'/><rect x='320' y='20' width='260' height='50' rx='10' fill='#e8b448'/><text x='450' y='42' text-anchor='middle' font-size='11' font-weight='700' fill='#2b2620'>Is this data class approved</text><text x='450' y='58' text-anchor='middle' font-size='11' font-weight='700' fill='#2b2620'>by org policy for this tool?</text><line x1='450' y1='70' x2='450' y2='95' stroke='#8a8073' stroke-width='2' marker-end='url(#arrowg1)'/><text x='470' y='88' font-size='10' fill='#8a8073'>only then</text><rect x='320' y='95' width='260' height='45' rx='10' fill='#fff' stroke='#5a9e6f' stroke-width='2'/><text x='450' y='122' text-anchor='middle' font-size='11' fill='#5a9e6f' font-weight='700'>Write the prompt</text><defs><marker id='arrowg1' markerWidth='8' markerHeight='8' refX='6' refY='3' orient='auto'><path d='M0,0 L6,3 L0,6 Z' fill='#8a8073'/></marker></defs></svg><div class='diagram-cap'>Policy check comes before prompt quality, every time.</div></div><h4>Core principles</h4><ul><li><b>Data handling comes first:</b> before pasting any data into an AI tool, the operative question is whether your organization's policy allows that class of data (customer PII, financial data, etc.) in that tool — not how well-written the prompt is</li><li><b>Transparency:</b> disclose AI assistance where policy or context requires it, and review outputs before they go out under your name</li><li><b>Respecting guardrails:</b> if Claude declines a request, the appropriate response is to add legitimate context or escalate through proper channels — not to try to trick or pressure the model into complying</li><li><b>Accountability:</b> AI-assisted work is still your responsibility; presenting Claude's unreviewed output as your own vetted analysis is a governance failure</li></ul><p>Anthropic also publishes its own Usage Policy governing what Claude can be asked to do, separate from your organization's internal policy — both apply at once. Your org's policy governs what data and use cases are appropriate for your business context; Anthropic's policy governs what Claude will do regardless of who's asking. Understanding that these are two independent layers helps explain why a request can be perfectly fine under company policy and still declined by Claude, or vice versa.</p><div class='vbox'><div class='lbl'>📺 Watch</div><a href='https://www.youtube.com/watch?v=_U_B7V_8c6s' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>What is responsible AI?</span><span class='vdesc'>Covers the core principles — fairness, privacy, transparency, accountability — behind using AI tools responsibly at work.</span></span></a></div>"
+    },
+    {
+      "h": "Troubleshooting",
+      "b": "<p>When Claude's output quality drops, the exam wants you to reach for structural fixes, not superstition.</p><h4>Common problems and correct fixes</h4><ul><li><b>Quality degrades in a long conversation:</b> accumulated context is diluting focus — start a fresh conversation seeded with a concise summary of what matters, rather than continuing indefinitely</li><li><b>An instruction keeps getting ignored:</b> make it more prominent and explicit, and consider adding an example — instruction-following problems are usually clarity problems</li><li><b>Claude refuses a benign-seeming request:</b> rephrase with clearer legitimate context; ambiguous phrasing can trigger unnecessary caution</li><li><b>What NOT to do:</b> repeating the identical prompt, using more emphasis/caps, or assuming a 'bug' — these rarely fix root causes</li></ul><div class='exbox'><div class='lbl'>Worked example</div>Fifty messages into a chat, Claude starts contradicting an instruction you gave near the start. Rather than repeating \"remember what I said earlier!\", open a fresh conversation and open with a 4-line summary: goal, constraints, decisions made so far, and what's needed next. This consistently outperforms continuing to scroll a bloated thread.</div><div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>Degraded long-chat quality → summarize and restart, don't just push through.</li><li>Ignored instructions → make them louder and give an example.</li><li>Unexpected refusals → add legitimate context before assuming something is broken.</li></ul></div><p>One more diagnostic habit worth building: when output is subtly off, ask yourself whether the problem is really about Claude, or about the prompt. In the large majority of cases across all seven domains in this guide, the fastest fix is improving what you send, not fighting with what comes back.</p>"
+    }
+  ]
+}

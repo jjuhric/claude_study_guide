@@ -1,0 +1,383 @@
+{
+  "id": "ccaf",
+  "code": "CCAR-F",
+  "questions": [
+    {
+      "d": 0,
+      "q": "A support-resolution agent must look up orders, check policy, and draft refunds. Requests follow a predictable sequence. Best architecture?",
+      "opts": [
+        "Fully autonomous agent with 30 tools",
+        "Prompt chaining / fixed workflow with tool calls at defined steps",
+        "Ten parallel agents voting",
+        "One giant prompt with all data inline"
+      ],
+      "a": 1,
+      "exp": "Predictable sequence → workflow, not autonomy. The exam repeatedly rewards choosing the simplest sufficient pattern."
+    },
+    {
+      "d": 0,
+      "q": "When is an orchestrator-workers (multi-agent) pattern justified over a single agent?",
+      "opts": [
+        "Always — more agents, more power",
+        "When subtasks are separable, benefit from isolated contexts, or can run in parallel (e.g., broad research)",
+        "When latency must be minimal",
+        "When you want to save tokens"
+      ],
+      "a": 1,
+      "exp": "Multi-agent adds cost and coordination overhead; it pays off for parallelizable, context-heavy, separable work."
+    },
+    {
+      "d": 0,
+      "q": "Your agent loop occasionally spirals, repeating the same failing tool call. The architectural fix is:",
+      "opts": [
+        "Bigger model",
+        "Loop guards: max iterations, repeated-failure detection, and an escalation/fallback path",
+        "Remove the tool",
+        "Retry forever silently"
+      ],
+      "a": 1,
+      "exp": "Reliability requires bounded loops with detection of no-progress states and graceful escalation — a core orchestration topic."
+    },
+    {
+      "d": 0,
+      "q": "In a routing architecture, an initial classifier sends queries to specialized handlers. The main benefit is:",
+      "opts": [
+        "It eliminates hallucinations",
+        "Each handler gets a focused prompt/tools for its category, improving quality and cost per query type",
+        "It avoids using the API",
+        "Users see more options"
+      ],
+      "a": 1,
+      "exp": "Routing = separation of concerns: cheap triage, then specialized focused handling."
+    },
+    {
+      "d": 0,
+      "q": "An agent must decide between acting autonomously vs. asking the user. Sensitive irreversible actions (deleting data, sending emails) should:",
+      "opts": [
+        "Be fully autonomous for speed",
+        "Require human confirmation / approval gates",
+        "Be silently logged only",
+        "Be disabled entirely always"
+      ],
+      "a": 1,
+      "exp": "Checkpoint irreversible or high-blast-radius actions with human-in-the-loop approval."
+    },
+    {
+      "d": 1,
+      "q": "Your team wants consistent Claude Code behavior across all engineers on a repo. Best mechanism?",
+      "opts": [
+        "Verbal team norms",
+        "A checked-in CLAUDE.md with conventions, commands, and guardrails",
+        "Each dev's private notes",
+        "Longer chat sessions"
+      ],
+      "a": 1,
+      "exp": "CLAUDE.md in the repo gives every session the same project context — the canonical Claude Code workflow answer."
+    },
+    {
+      "d": 1,
+      "q": "For a large refactor, the recommended Claude Code workflow is:",
+      "opts": [
+        "One giant 'refactor everything' prompt",
+        "Plan first (explore/plan mode), review the plan, then execute in steps with verification (tests) between",
+        "Disable tests to go faster",
+        "Let it run unattended overnight"
+      ],
+      "a": 1,
+      "exp": "Explore → plan → execute → verify. Plan-then-act with test checkpoints is the tested best practice."
+    },
+    {
+      "d": 1,
+      "q": "Claude Code subagents are useful primarily because they:",
+      "opts": [
+        "Are cheaper per token",
+        "Run tasks in separate context windows, keeping the main session focused and enabling parallel work",
+        "Have different training data",
+        "Skip permissions"
+      ],
+      "a": 1,
+      "exp": "Subagents isolate context per task — the main thread stays clean and work can fan out."
+    },
+    {
+      "d": 1,
+      "q": "To let Claude Code run repository tests automatically before declaring work done, you would:",
+      "opts": [
+        "Trust it remembers",
+        "Encode the requirement in CLAUDE.md and/or use hooks to run tests on completion",
+        "Run tests manually a week later",
+        "Avoid tests in agentic workflows"
+      ],
+      "a": 1,
+      "exp": "Instructions in CLAUDE.md plus hooks make verification systematic instead of hopeful."
+    },
+    {
+      "d": 2,
+      "q": "An extraction pipeline needs machine-parseable output with exact fields. The architect's choice:",
+      "opts": [
+        "Free-form text and a regex parser",
+        "Schema-constrained structured output (or a tool with strict input schema), validated downstream",
+        "Ask for 'mostly JSON'",
+        "Markdown tables"
+      ],
+      "a": 1,
+      "exp": "Contract-first: define the schema, constrain generation to it, validate anyway. Prompt Engineering & Structured Output is a CCAR-F domain."
+    },
+    {
+      "d": 2,
+      "q": "A prompt performs well on easy inputs but fails on edge cases. Best improvement strategy?",
+      "opts": [
+        "Add few-shot examples covering the failing edge cases and explicit rules for them",
+        "Make the prompt shorter",
+        "Raise temperature",
+        "Switch providers"
+      ],
+      "a": 0,
+      "exp": "Targeted examples of hard cases are the highest-leverage prompt fix — they teach the boundary behavior."
+    },
+    {
+      "d": 2,
+      "q": "For a multi-pass review loop (draft → critique → revise), the main architectural benefit is:",
+      "opts": [
+        "Fewer tokens used",
+        "Quality gains from self-review catching errors a single pass misses",
+        "It removes the need for tests",
+        "Faster responses"
+      ],
+      "a": 1,
+      "exp": "Evaluator/reviser loops trade tokens for quality — appropriate when output quality justifies the cost."
+    },
+    {
+      "d": 2,
+      "q": "Why prefill or constrain the start of Claude's response (e.g., forcing it to begin with '{')?",
+      "opts": [
+        "Style preference",
+        "It locks the output into the intended format from the first token",
+        "It reduces cost",
+        "The API requires it"
+      ],
+      "a": 1,
+      "exp": "Prefilling steers format deterministically — a classic structured-output technique."
+    },
+    {
+      "d": 3,
+      "q": "You're designing tools for an agent. Which principle applies?",
+      "opts": [
+        "Many overlapping micro-tools are best",
+        "Few, well-named, clearly documented tools with distinct purposes and strict schemas",
+        "Tools should share one generic 'do_anything' endpoint",
+        "Descriptions waste tokens"
+      ],
+      "a": 1,
+      "exp": "Overlapping or vague tools cause wrong selections. Distinct, well-documented tools are an exam staple."
+    },
+    {
+      "d": 3,
+      "q": "A tool can return 10,000 rows. The agent only ever needs a handful. Design the tool to:",
+      "opts": [
+        "Return everything for completeness",
+        "Support filtering/pagination and return concise, relevant results to protect the context window",
+        "Return a file path only",
+        "Fail if results exceed 100"
+      ],
+      "a": 1,
+      "exp": "Token-efficient tool responses are an architectural responsibility — context is a scarce resource."
+    },
+    {
+      "d": 3,
+      "q": "When should you wrap a capability as an MCP server instead of a bespoke in-app tool?",
+      "opts": [
+        "Never — MCP is only for Anthropic products",
+        "When multiple clients/agents should reuse it through a standard interface",
+        "Only for databases",
+        "When you need lower latency than function calls"
+      ],
+      "a": 1,
+      "exp": "MCP shines for reuse and interoperability across clients; bespoke tools are fine for single-app needs."
+    },
+    {
+      "d": 3,
+      "q": "An MCP server exposes a 'run_sql' tool for analytics. The safest design is:",
+      "opts": [
+        "Full read-write on production",
+        "Read-only access to a replica, query allowlists/limits, and audit logging",
+        "Root credentials for flexibility",
+        "No limits — the model is careful"
+      ],
+      "a": 1,
+      "exp": "Least privilege + read-only replicas + auditability: tool design is security design."
+    },
+    {
+      "d": 4,
+      "q": "A long-running agent gradually forgets early constraints. Architectural mitigation?",
+      "opts": [
+        "Hope for the best",
+        "Compaction: periodically summarize state/decisions into a durable note re-injected into context",
+        "Restart and lose everything",
+        "Raise temperature"
+      ],
+      "a": 1,
+      "exp": "Context compaction / structured note-taking preserves critical state past window limits — core Context Management material."
+    },
+    {
+      "d": 4,
+      "q": "Which is a signal you should retrieve context just-in-time rather than preload everything?",
+      "opts": [
+        "Corpus far exceeds the context window and most content is irrelevant per query",
+        "The corpus is 2 pages",
+        "Latency doesn't matter",
+        "You enjoy large bills"
+      ],
+      "a": 0,
+      "exp": "Just-in-time retrieval (search/RAG, agentic file exploration) beats exhaustive preloading for large corpora."
+    },
+    {
+      "d": 4,
+      "q": "To make an agent pipeline resilient to a model outage or degraded responses, an architect plans:",
+      "opts": [
+        "Nothing — outages are rare",
+        "Fallbacks: retries with backoff, model fallback tiers, circuit breakers, and graceful degradation paths",
+        "A status page",
+        "Blaming the vendor"
+      ],
+      "a": 1,
+      "exp": "Reliability domain: design for failure with retries, fallbacks, and degradation modes."
+    },
+    {
+      "d": 4,
+      "q": "Where should deterministic logic (date math, exact totals, ID validation) live in an agentic system?",
+      "opts": [
+        "In the model's prompt as instructions",
+        "In code/tools — let the model orchestrate, let code compute",
+        "In the model's memory",
+        "Nowhere"
+      ],
+      "a": 1,
+      "exp": "Models orchestrate and interpret; deterministic computation belongs in code for correctness — a recurring architecture principle."
+    },
+    {
+      "d": 0,
+      "q": "Two agents in your system communicate by passing entire conversation histories to each other. Costs explode. Better pattern?",
+      "opts": [
+        "Pass distilled, structured summaries/artifacts between agents instead of raw transcripts",
+        "Bigger context windows",
+        "Compress with zip",
+        "Merge into one agent with double context"
+      ],
+      "a": 0,
+      "exp": "Inter-agent handoffs should exchange minimal structured state, not full transcripts."
+    },
+    {
+      "d": 2,
+      "q": "You need consistent tone/policy across 40 different prompts in a product. The maintainable approach is:",
+      "opts": [
+        "Copy-paste the policy into each prompt",
+        "A shared, versioned system-prompt component included by all prompts",
+        "Trust each author",
+        "Fine-tune per prompt"
+      ],
+      "a": 1,
+      "exp": "Treat prompts like code: shared components, versioning, and review keep 40 prompts coherent."
+    },
+    {
+      "d": 1,
+      "q": "A CI pipeline uses Claude Code headlessly to fix lint errors on PRs. Critical safeguard?",
+      "opts": [
+        "No safeguards; speed matters",
+        "Scoped permissions, no push to main, changes land as PR diffs a human reviews",
+        "Auto-merge everything green",
+        "Run as repo admin"
+      ],
+      "a": 1,
+      "exp": "Headless agent + CI = least privilege and human review of diffs. Claude Code for CI is one of the six exam scenarios."
+    },
+    {
+      "d": 3,
+      "q": "Claude keeps calling a search tool when it should use the calculator. First fix to try?",
+      "opts": [
+        "Delete the search tool",
+        "Sharpen both tool descriptions to state exactly when each should (and shouldn't) be used",
+        "Fine-tune the model",
+        "Add a third tool"
+      ],
+      "a": 1,
+      "exp": "Tool-selection errors usually trace to ambiguous descriptions — clarify boundaries and add usage notes."
+    }
+  ],
+  "cards": [
+    {
+      "f": "What CCAR-F study domains does this app use?",
+      "b": "Agentic Architecture & Orchestration · Claude Code Workflows · Prompt Eng & Structured Output · Tool Design & MCP · Context Mgmt & Reliability. These are this app's study groupings — official weightings are in the Partner Academy exam guide."
+    },
+    {
+      "f": "What does CCAR-F cost?",
+      "b": "$125 USD (confirmed on Anthropic's Pearson VUE page). Question count, time limit, scenario structure, and passing score are published only in the official exam guide."
+    },
+    {
+      "f": "Solution scenarios worth practising",
+      "b": "Customer Support Agent · Code Gen with Claude Code · Multi-Agent Research · Developer Productivity · Claude Code for CI · Structured Data Extraction. Useful practice contexts for architect-level thinking — not a verified list of exam scenarios."
+    },
+    {
+      "f": "Golden rule of agent design",
+      "b": "Use the simplest pattern that works: prompt → workflow → single agent → multi-agent. Escalate complexity only when the task demands it."
+    },
+    {
+      "f": "Common workflow patterns",
+      "b": "Prompt chaining · Routing · Parallelization (sectioning/voting) · Orchestrator-workers · Evaluator-optimizer"
+    },
+    {
+      "f": "Loop guards",
+      "b": "Max iterations, repeated-failure detection, budget caps, and escalation paths — how agents avoid spiraling."
+    },
+    {
+      "f": "Compaction",
+      "b": "Summarizing conversation/agent state into a durable structured note when nearing context limits, then continuing with the summary."
+    },
+    {
+      "f": "Subagents (Claude Code)",
+      "b": "Delegated tasks running in separate context windows — isolation keeps the main thread clean; enables parallelism."
+    },
+    {
+      "f": "Hooks (Claude Code)",
+      "b": "Scripted actions that fire at lifecycle points (e.g., after edits, before completion) — enforce tests/lint deterministically."
+    },
+    {
+      "f": "Tool design checklist",
+      "b": "Distinct purpose · precise description with when-to-use · strict input schema · concise token-efficient output · safe failure messages"
+    },
+    {
+      "f": "Approval gates",
+      "b": "Human confirmation required before irreversible/high-impact actions (deletes, sends, payments, prod changes)."
+    },
+    {
+      "f": "Models orchestrate, code computes",
+      "b": "Deterministic logic (math, validation, exact lookups) belongs in tools/code; the model decides and interprets."
+    }
+  ],
+  "lessons": [
+    {
+      "h": "Start Here: Foundations",
+      "b": "<p>Architect Foundations assumes you're comfortable with everything in the Developer cert — the Messages API, tool use, the basic agent loop, and MCP at a conceptual level. If those feel shaky, it's worth a detour through the Developer study guide first. What's new here is the shift in vantage point: instead of 'how do I write the code for one agent,' the question becomes 'given a business problem, what's the right shape of system, and why.'</p><h4>The architect's core question</h4><p>Every scenario in this cert is really asking the same thing in different clothes: <b>what is the simplest system that reliably solves this problem, and where exactly does it become unreliable?</b> Architecture is fundamentally about trade-offs — more orchestration buys capability but costs latency, money, and new failure modes; less orchestration is cheap and fast but breaks on anything the fixed path didn't anticipate. Good architects can articulate exactly where that line sits for a given problem, not just default to 'more agents' or 'fewer agents.'</p><h4>A note on scenario-based study</h4><p>Architect-level questions tend to arrive wrapped in a business scenario — customer support agents, code generation with Claude Code, multi-agent research, developer productivity, CI pipelines, structured data extraction. The same underlying knowledge — orchestration patterns, tool design, context management — gets tested through different business framings, so learning the patterns deeply matters far more than memorizing any one scenario. For the actual exam format, see the official exam guide in Partner Academy.</p><div class='vbox'><div class='lbl'>📺 Watch first</div><a href='https://www.youtube.com/watch?v=uhJJgc-0iTQ' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Building more effective AI agents (Anthropic)</span><span class='vdesc'>Alex Albert and Erik from Anthropic discuss the thinking behind the 'Building Effective Agents' guide this whole domain is built on.</span></span></a><a href='https://www.youtube.com/watch?v=D7_ipDqhtwk' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>How We Build Effective Agents — Barry Zhang, Anthropic</span><span class='vdesc'>A conference talk covering the same territory with more live Q&A depth.</span></span></a></div><div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>This cert assumes Developer-level fluency with the API, tools, and basic agents.</li><li>Every scenario reduces to: what's the simplest reliable architecture, and where does it break?</li><li>The same core patterns repeat across all 6 possible exam scenarios — learn patterns, not scenarios.</li></ul></div>",
+      "foundation": true
+    },
+    {
+      "h": "Agentic Architecture & Orchestration",
+      "b": "<p>This is about choosing the right shape of system for the job, and Anthropic's own guidance is explicit: <b>use the simplest pattern that works</b>, and escalate complexity only when the task demands it. Every extra layer of orchestration adds cost, latency, and failure surface.</p><div class='diagram-box'><svg viewBox='0 0 600 130' xmlns='http://www.w3.org/2000/svg'><rect x='10' y='45' width='90' height='40' rx='8' fill='#5a9e6f'/><text x='55' y='70' text-anchor='middle' font-size='9.5' fill='#fff'>Single prompt</text><rect x='115' y='45' width='90' height='40' rx='8' fill='#5a9e6f'/><text x='160' y='63' text-anchor='middle' font-size='9' fill='#fff'>Prompt</text><text x='160' y='75' text-anchor='middle' font-size='9' fill='#fff'>chaining</text><rect x='220' y='45' width='90' height='40' rx='8' fill='#e8b448'/><text x='265' y='70' text-anchor='middle' font-size='9.5' fill='#2b2620'>Routing</text><rect x='325' y='45' width='90' height='40' rx='8' fill='#e8b448'/><text x='370' y='63' text-anchor='middle' font-size='9' fill='#2b2620'>Parallel-</text><text x='370' y='75' text-anchor='middle' font-size='9' fill='#2b2620'>ization</text><rect x='430' y='45' width='75' height='40' rx='8' fill='#c65b4e'/><text x='467' y='63' text-anchor='middle' font-size='8.5' fill='#fff'>Orchestrator</text><text x='467' y='75' text-anchor='middle' font-size='8.5' fill='#fff'>-workers</text><rect x='515' y='45' width='75' height='40' rx='8' fill='#c65b4e'/><text x='552' y='63' text-anchor='middle' font-size='8.5' fill='#fff'>Evaluator-</text><text x='552' y='75' text-anchor='middle' font-size='8.5' fill='#fff'>optimizer</text><line x1='10' y1='100' x2='590' y2='100' stroke='#8a8073' stroke-width='1.5' marker-end='url(#arrowlad1)'/><text x='300' y='118' text-anchor='middle' font-size='10' fill='#8a8073'>rising complexity, cost & failure surface →</text><defs><marker id='arrowlad1' markerWidth='8' markerHeight='8' refX='6' refY='3' orient='auto'><path d='M0,0 L6,3 L0,6 Z' fill='#8a8073'/></marker></defs></svg><div class='diagram-cap'>Climb this ladder only as far as the task actually requires.</div></div><h4>The pattern ladder</h4><ul><li><b>Single prompt</b> — one-shot, no orchestration needed</li><li><b>Prompt chaining / fixed workflow</b> — a predictable sequence of steps, each a focused call, ideal when the process itself is well-defined</li><li><b>Routing</b> — a cheap classifier sends each request to a specialized handler with its own focused prompt/tools</li><li><b>Parallelization</b> — sectioning (split work, run concurrently) or voting (run multiple times, aggregate) when tasks are independent</li><li><b>Orchestrator-workers</b> — a coordinator decomposes work across specialized sub-agents, useful when subtasks are separable, context-heavy, or parallelizable (e.g. broad research)</li><li><b>Evaluator-optimizer</b> — a draft → critique → revise loop when output quality benefits from self-review</li></ul><div class='diagram-box'><svg viewBox='0 0 600 150' xmlns='http://www.w3.org/2000/svg'><rect x='250' y='10' width='100' height='36' rx='8' fill='#c65b4e'/><text x='300' y='32' text-anchor='middle' font-size='10' fill='#fff' font-weight='700'>Orchestrator</text><line x1='280' y1='46' x2='120' y2='90' stroke='#8a8073' stroke-width='1.5' marker-end='url(#arroworch1)'/><line x1='300' y1='46' x2='300' y2='90' stroke='#8a8073' stroke-width='1.5' marker-end='url(#arroworch1)'/><line x1='320' y1='46' x2='480' y2='90' stroke='#8a8073' stroke-width='1.5' marker-end='url(#arroworch1)'/><rect x='60' y='90' width='120' height='40' rx='8' fill='#fff' stroke='#5b7fa6' stroke-width='2'/><text x='120' y='114' text-anchor='middle' font-size='9.5' fill='#5b7fa6'>Worker: subtopic A</text><rect x='240' y='90' width='120' height='40' rx='8' fill='#fff' stroke='#5b7fa6' stroke-width='2'/><text x='300' y='114' text-anchor='middle' font-size='9.5' fill='#5b7fa6'>Worker: subtopic B</text><rect x='420' y='90' width='120' height='40' rx='8' fill='#fff' stroke='#5b7fa6' stroke-width='2'/><text x='480' y='114' text-anchor='middle' font-size='9.5' fill='#5b7fa6'>Worker: subtopic C</text><defs><marker id='arroworch1' markerWidth='8' markerHeight='8' refX='6' refY='3' orient='auto'><path d='M0,0 L6,3 L0,6 Z' fill='#8a8073'/></marker></defs></svg><div class='diagram-cap'>Orchestrator-workers: the coordinator decomposes and later synthesizes; workers run in isolated contexts.</div></div><p><b>Reliability guardrails:</b> bound every agent loop with max iterations and repeated-failure detection so it can't spiral on a broken tool call; require human approval before irreversible, high-blast-radius actions.</p><div class='exbox'><div class='lbl'>Worked example</div>A customer support bot needs to: classify the ticket, look up the order, and draft a response. That's a fixed, predictable sequence → prompt chaining, not a full multi-agent system. A research tool asked to \"compare pricing strategies across 8 competitors\" has genuinely independent, parallelizable subtasks → orchestrator-workers is justified there.</div><h4>Routing and parallelization, in more depth</h4><p><b>Routing</b> works well when your inputs naturally cluster into distinct categories that benefit from different handling — a support system that routes billing questions to a handler with billing tools and refund questions to a handler with refund tools, instead of giving one agent both toolsets and hoping it always picks correctly. The router itself should usually be cheap and fast (a small model or even a simple classifier), since its only job is picking a lane.</p><p><b>Parallelization</b> comes in two flavors worth distinguishing: <i>sectioning</i> splits a task into independent pieces that are combined afterward (e.g., reviewing different sections of a long document simultaneously), while <i>voting</i> runs the same task multiple times and aggregates the results (e.g., three independent attempts at classifying a hard edge case, taking the majority answer) to improve reliability on tasks where a single pass is noisy.</p><div class='vbox'><div class='lbl'>📺 Watch</div><a href='https://www.youtube.com/watch?v=LP5OCa20Zpg' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Tips for building AI agents (Anthropic)</span><span class='vdesc'>Common pitfalls across these patterns, straight from Anthropic's applied AI team.</span></span></a><a href='https://www.youtube.com/watch?v=kL97Xmuy3vg' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Anthropic: Building Multi-Agent AI Research Systems</span><span class='vdesc'>A concrete case study of orchestrator-workers in production, including what went wrong along the way.</span></span></a></div>"
+    },
+    {
+      "h": "Claude Code Workflows",
+      "b": "<p>This domain tests how to structure agentic coding work for consistency and safety, not just 'how to prompt Claude Code.'</p><div class='diagram-box'><svg viewBox='0 0 600 110' xmlns='http://www.w3.org/2000/svg'><rect x='10' y='30' width='130' height='50' rx='9' fill='#fff' stroke='#8a6fae' stroke-width='2'/><text x='75' y='58' text-anchor='middle' font-size='10.5' fill='#8a6fae' font-weight='700'>Explore</text><line x1='140' y1='55' x2='175' y2='55' stroke='#8a8073' stroke-width='2' marker-end='url(#arrowcc1)'/><rect x='175' y='30' width='130' height='50' rx='9' fill='#fff' stroke='#5b7fa6' stroke-width='2'/><text x='240' y='51' text-anchor='middle' font-size='10.5' fill='#5b7fa6' font-weight='700'>Plan</text><text x='240' y='67' text-anchor='middle' font-size='8.5' fill='#2b2620'>(human reviews)</text><line x1='305' y1='55' x2='340' y2='55' stroke='#8a8073' stroke-width='2' marker-end='url(#arrowcc1)'/><rect x='340' y='30' width='130' height='50' rx='9' fill='#fff' stroke='#d97757' stroke-width='2'/><text x='405' y='58' text-anchor='middle' font-size='10.5' fill='#d97757' font-weight='700'>Execute</text><line x1='470' y1='55' x2='505' y2='55' stroke='#8a8073' stroke-width='2' marker-end='url(#arrowcc1)'/><rect x='505' y='30' width='90' height='50' rx='9' fill='#fff' stroke='#5a9e6f' stroke-width='2'/><text x='550' y='58' text-anchor='middle' font-size='10.5' fill='#5a9e6f' font-weight='700'>Verify</text><defs><marker id='arrowcc1' markerWidth='8' markerHeight='8' refX='6' refY='3' orient='auto'><path d='M0,0 L6,3 L0,6 Z' fill='#8a8073'/></marker></defs></svg><div class='diagram-cap'>The recommended Claude Code loop for non-trivial changes — verify gates every execute step.</div></div><p><b>CLAUDE.md</b> checked into the repo gives every engineer's session the same project conventions, commands, and guardrails — the standard mechanism for team-wide consistency.</p><p><b>The recommended workflow for non-trivial work:</b> explore/plan first, get the plan reviewed, then execute in steps with verification (tests) as checkpoints between steps — rather than one giant 'do everything' prompt or letting it run unattended overnight.</p><p><b>Subagents</b> run delegated tasks in separate context windows, keeping the main session focused and enabling parallel work streams.</p><p><b>Hooks</b> are scripted actions that fire at lifecycle points (after an edit, before marking a task complete) — the mechanism for making verification (tests, lint) systematic and automatic rather than relying on the model remembering.</p><p><b>CI usage:</b> when Claude Code runs headlessly in a pipeline, scope its permissions tightly, never let it push directly to main, and route its changes through a PR a human reviews.</p><div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>Plan before you execute on anything non-trivial; get the plan reviewed.</li><li>CLAUDE.md + hooks turn 'please remember to test' into something enforced.</li><li>Headless/CI usage always needs scoped permissions and human-reviewed diffs.</li></ul></div><h4>Why 'plan first' works so well</h4><p>The plan step matters more than it looks. When Claude Code explores a codebase and produces a written plan before touching any files, you get a cheap, fast checkpoint to catch a misunderstanding — a wrong assumption about the codebase, a missed edge case, an approach that technically works but violates a convention — before any code has been written. Catching that in a two-paragraph plan takes seconds; catching it after 300 lines of generated code takes much longer and often means starting over. This is the same principle as code review, just moved earlier in the loop.</p><div class='vbox'><div class='lbl'>📺 Watch</div><a href='https://www.youtube.com/watch?v=AOfogJZ70OQ' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Mastering Claude Code in 30 Minutes (Anthropic)</span><span class='vdesc'>An Anthropic engineer's own walkthrough of the plan-then-execute workflow, CLAUDE.md, and subagents.</span></span></a></div>"
+    },
+    {
+      "h": "Prompt Engineering & Structured Output",
+      "b": "<p>At the architect level, prompting is treated as a designed contract, not improvisation.</p><p><b>Structured output:</b> when a downstream system needs machine-parseable results with exact fields, constrain generation to a schema (a tool with a strict input schema, or explicit format constraints) and validate the result downstream anyway — never rely on free-form text plus a regex parser.</p><div class='exbox'><div class='lbl'>Worked example — prefilling</div>To force strict JSON, define a schema-constrained tool AND, if using free text, prefill the response start:<pre>assistant turn prefilled with: \"{\"</pre>This forces generation to continue as JSON rather than starting with \"Sure, here's the data:\" — a small trick with an outsized reliability payoff.</div><p><b>Fixing edge-case failures:</b> when a prompt handles easy cases but fails on edge cases, the highest-leverage fix is adding few-shot examples that specifically cover those edge cases and explicit rules for handling them.</p><div class='diagram-box'><svg viewBox='0 0 600 130' xmlns='http://www.w3.org/2000/svg'><rect x='20' y='20' width='140' height='40' rx='9' fill='#fff' stroke='#8a8073' stroke-width='2'/><text x='90' y='45' text-anchor='middle' font-size='10' fill='#2b2620'>Draft</text><line x1='160' y1='40' x2='210' y2='40' stroke='#8a8073' stroke-width='2' marker-end='url(#arroweo1)'/><rect x='210' y='20' width='170' height='40' rx='9' fill='#fff' stroke='#e8b448' stroke-width='2'/><text x='295' y='45' text-anchor='middle' font-size='10' fill='#b8860b'>Critique against criteria</text><line x1='380' y1='40' x2='430' y2='40' stroke='#8a8073' stroke-width='2' marker-end='url(#arroweo1)'/><rect x='430' y='20' width='150' height='40' rx='9' fill='#fff' stroke='#5a9e6f' stroke-width='2'/><text x='505' y='45' text-anchor='middle' font-size='10' fill='#5a9e6f'>Revise</text><path d='M505,60 C505,100 90,100 90,60' fill='none' stroke='#8a8073' stroke-width='1.5' marker-end='url(#arroweo1)' stroke-dasharray='4 3'/><text x='300' y='108' text-anchor='middle' font-size='9.5' fill='#8a8073'>repeat until quality bar is met</text><defs><marker id='arroweo1' markerWidth='8' markerHeight='8' refX='6' refY='3' orient='auto'><path d='M0,0 L6,3 L0,6 Z' fill='#8a8073'/></marker></defs></svg><div class='diagram-cap'>Evaluator-optimizer loop — trades tokens for quality, use where it's worth it.</div></div><p><b>Multi-pass review (evaluator-optimizer):</b> a draft → critique → revise loop trades extra tokens for quality — appropriate when the value of catching errors outweighs the added cost/latency.</p><p><b>Scaling prompts across a product:</b> treat prompts like code — a shared, versioned system-prompt component included across many prompts keeps policy and tone coherent instead of copy-pasted and drifting.</p><p>A useful test for whether a prompt is architecturally sound: could someone else on your team modify it without breaking the parts they don't understand? If a prompt is one giant undifferentiated block of instructions, the answer is usually no — small changes ripple unpredictably. Structuring prompts into clearly labeled sections (role, task, constraints, output format, examples) makes them reviewable and maintainable the same way clear function boundaries make code maintainable.</p><div class='vbox'><div class='lbl'>📺 Watch</div><a href='https://www.youtube.com/watch?v=T9aRN5JkmL8' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>AI prompt engineering: a deep dive (Anthropic)</span><span class='vdesc'>Anthropic's prompting team on structuring and maintaining prompts at scale.</span></span></a></div>"
+    },
+    {
+      "h": "Tool Design & MCP Integration",
+      "b": "<p>Tool design is architecture, not an afterthought — bad tool design is the most common root cause of agent misbehavior.</p><h4>Design principles</h4><ul><li>Prefer a small number of well-named, clearly documented tools with distinct, non-overlapping purposes over many overlapping micro-tools — overlap causes wrong selections</li><li>Write descriptions that state precisely when a tool should (and shouldn't) be used — tool-selection errors usually trace back to ambiguous descriptions</li><li>Keep tool responses concise and token-efficient (support filtering/pagination) — context is a scarce, shared resource, not a place to dump 10,000 rows</li><li>Use strict input schemas so arguments are validated, not guessed</li></ul><div class='diagram-box'><svg viewBox='0 0 600 130' xmlns='http://www.w3.org/2000/svg'><rect x='20' y='15' width='260' height='100' rx='10' fill='#fff' stroke='#c65b4e' stroke-width='2'/><text x='150' y='36' text-anchor='middle' font-size='11' font-weight='700' fill='#c65b4e'>Bad: overlapping tools</text><text x='34' y='58' font-size='9.5' fill='#2b2620'>search_orders, find_order,</text><text x='34' y='74' font-size='9.5' fill='#2b2620'>lookup_order_by_id ...</text><text x='34' y='96' font-size='9.5' fill='#8a8073'>→ model guesses wrong one</text><rect x='320' y='15' width='260' height='100' rx='10' fill='#fff' stroke='#5a9e6f' stroke-width='2'/><text x='450' y='36' text-anchor='middle' font-size='11' font-weight='700' fill='#5a9e6f'>Good: one clear tool</text><text x='334' y='58' font-size='9.5' fill='#2b2620'>get_order(order_id)</text><text x='334' y='76' font-size='9.5' fill='#2b2620'>description states exact</text><text x='334' y='92' font-size='9.5' fill='#2b2620'>scope + when to use it</text></svg><div class='diagram-cap'>Fewer, sharper tools beat many overlapping ones.</div></div><p><b>When to reach for MCP</b> specifically: when a capability should be reusable across multiple clients/agents through a standard interface, not just inside one app.</p><p><b>Security in tool/MCP design:</b> least privilege (e.g., read-only access to a database replica, not production write access), query limits/allowlists, and audit logging — tool design and security design are the same exercise.</p><div class='pitbox'><div class='lbl'>Common mistake</div>Giving an agent one generic 'do_anything' tool that takes arbitrary code or SQL 'for flexibility.' This maximizes both misuse risk and the model's chance of picking a wrong or dangerous action — the opposite of good tool design.</div><p>Think of a tool's description as documentation aimed at a very literal-minded reader who will act on it immediately. Vague verbs ('handles orders'), missing boundary conditions (what happens with an invalid ID?), and undocumented side effects (does calling this actually change data, or just read it?) are exactly the gaps that produce wrong tool calls in production even when they never showed up in testing — because testing rarely covers every ambiguous edge case a live model will eventually hit.</p><div class='vbox'><div class='lbl'>📺 Watch</div><a href='https://www.youtube.com/watch?v=7j_NE6Pjv-E' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Model Context Protocol, clearly explained</span><span class='vdesc'>Grounds the tool-design principles in MCP's actual tools/resources/prompts model.</span></span></a></div>"
+    },
+    {
+      "h": "Context Management & Reliability",
+      "b": "<p>Long-running or complex agentic systems fail in specific, recognizable ways — this domain tests recognizing and preventing them.</p><div class='diagram-box'><svg viewBox='0 0 600 140' xmlns='http://www.w3.org/2000/svg'><text x='20' y='20' font-size='10.5' fill='#8a8073'>Context window fill over a long-running task</text><rect x='20' y='30' width='560' height='30' rx='6' fill='#fff' stroke='#8a8073' stroke-width='1.5'/><rect x='20' y='30' width='420' height='30' fill='#e8b448' opacity='0.5'/><rect x='20' y='30' width='560' height='30' fill='none' stroke='#8a8073' stroke-width='1.5'/><text x='230' y='50' text-anchor='middle' font-size='9.5' fill='#2b2620'>early constraints risk getting diluted →</text><line x1='440' y1='60' x2='440' y2='85' stroke='#c65b4e' stroke-width='2' marker-end='url(#arrowcx1)'/><rect x='330' y='85' width='220' height='42' rx='8' fill='#fff' stroke='#5a9e6f' stroke-width='2'/><text x='440' y='104' text-anchor='middle' font-size='9.5' fill='#5a9e6f' font-weight='700'>Compaction checkpoint</text><text x='440' y='119' text-anchor='middle' font-size='8.5' fill='#2b2620'>summarize state → durable note</text><defs><marker id='arrowcx1' markerWidth='8' markerHeight='8' refX='6' refY='3' orient='auto'><path d='M0,0 L6,3 L0,6 Z' fill='#c65b4e'/></marker></defs></svg><div class='diagram-cap'>Compact before context erosion causes forgotten constraints, not after.</div></div><p><b>Context erosion:</b> in long-running agents, early constraints get diluted or forgotten as context fills up. The mitigation is <b>compaction</b> — periodically summarizing state/decisions into a durable structured note that gets re-injected, rather than hoping everything stays in the window.</p><p><b>Retrieval strategy:</b> when a corpus far exceeds the context window and most of it is irrelevant to any given query, retrieve just-in-time (search, agentic file exploration) rather than preloading everything.</p><p><b>Failure resilience:</b> plan for model outages or degraded responses with retries (backoff), fallback model tiers, circuit breakers, and graceful degradation — not just hope.</p><p><b>Division of labor:</b> deterministic logic (exact math, date calculations, ID validation) belongs in code/tools, not in model-generated text — let the model orchestrate and interpret, let code compute precisely.</p><div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>Compact proactively on a schedule, don't wait for visible failures.</li><li>Just-in-time retrieval scales; preloading everything doesn't.</li><li>Math and exact lookups belong in tools, not model text generation.</li></ul></div><p>A practical compaction trigger to design around: rather than waiting for the context window to fill completely, pick a threshold (say, 70-80% utilization) and compact proactively at that point. This leaves headroom for the summarization step itself and for whatever the agent needs to do immediately after — waiting until the window is nearly full leaves no room to maneuver and often forces an abrupt, lossy truncation instead of a deliberate summary.</p><div class='vbox'><div class='lbl'>📺 Watch</div><a href='https://www.youtube.com/watch?v=-uW5-TaVXu4' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Most devs don't understand how context windows work</span><span class='vdesc'>Directly relevant to designing compaction and retrieval strategy for long-running agents.</span></span></a></div>"
+    }
+  ]
+}

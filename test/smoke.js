@@ -1,78 +1,95 @@
 /*
- * Smoke test for index.html. No dependencies — run with:  node test/smoke.js
+ * Smoke test for index.html + data/*.json. No dependencies:
  *
- * Boots the real app in a VM with a minimal DOM shim, the way a browser would
- * (each <script> block evaluated in order in one shared global), then renders
+ *     node test/smoke.js
+ *
+ * Boots the real app in a VM with a minimal DOM shim and a fetch() shim that
+ * serves data/*.json off disk, so the actual loader path runs — then renders
  * every screen for every certification.
  *
- * Guards three things that have bitten this project before:
+ * Guards four things that have bitten this project before:
  *   1. Saved state of the wrong shape crashing or silently going NaN.
  *   2. Unverified exam claims (domain weightings, question counts, pass marks)
  *      creeping back into content. Only facts confirmed on Anthropic's public
  *      pages may be stated as fact — see FINDINGS.md §0.
  *   3. A screen throwing at render for some certification.
+ *   4. Content files going missing, malformed, or empty.
  */
 const fs = require("fs");
 const vm = require("vm");
 const path = require("path");
 
-const INDEX = path.join(__dirname, "..", "index.html");
-const html = fs.readFileSync(INDEX, "utf8");
+const ROOT = path.join(__dirname, "..");
+const html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
 const blocks = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]);
 
 let fails = 0;
 const check = (cond, label) => { if (cond) console.log(`  ok    ${label}`); else { console.log(`  FAIL  ${label}`); fails++; } };
 
-/* ---------- 1. every script block parses ---------- */
-console.log(`script blocks: ${blocks.length}`);
+/* ---------- 1. scripts parse ---------- */
+check(blocks.length === 2, `index.html has 2 script blocks (found ${blocks.length})`);
 blocks.forEach((src, i) => {
   try { new Function(src); check(true, `block ${i} parses (${src.length} chars)`); }
   catch (e) { check(false, `block ${i} SYNTAX ERROR: ${e.message}`); }
 });
 
-/* ---------- 2. migrate() repairs hostile saved state ---------- */
-const start = html.indexOf("const S_DEFAULTS");
-const end = html.indexOf("let S = migrate(store.get());");
-if (start < 0 || end < 0) { check(false, "migrate() source located"); }
+/* ---------- 2. content files are present and well-formed ---------- */
+const IDS = ["ccao", "ccdv", "ccaf", "ccap"];
+const data = {};
+for (const id of IDS) {
+  const f = path.join(ROOT, "data", `${id}.json`);
+  if (!fs.existsSync(f)) { check(false, `data/${id}.json exists`); continue; }
+  let d;
+  try { d = JSON.parse(fs.readFileSync(f, "utf8")); }
+  catch (e) { check(false, `data/${id}.json parses: ${e.message}`); continue; }
+  data[id] = d;
+  const qOk = Array.isArray(d.questions) && d.questions.length > 0
+    && d.questions.every(q => q.q && Array.isArray(q.opts) && q.opts.length >= 2
+      && Number.isInteger(q.a) && q.a >= 0 && q.a < q.opts.length && Number.isInteger(q.d));
+  const cOk = Array.isArray(d.cards) && d.cards.length > 0 && d.cards.every(c => c.f && c.b);
+  const lOk = Array.isArray(d.lessons) && d.lessons.length > 0 && d.lessons.every(l => l.h && l.b);
+  check(qOk, `data/${id}.json: ${d.questions.length} questions, all with valid answer index`);
+  check(cOk, `data/${id}.json: ${d.cards.length} cards well-formed`);
+  check(lOk, `data/${id}.json: ${d.lessons.length} lessons well-formed`);
+}
+
+/* ---------- 3. migrate() repairs hostile saved state ---------- */
+const mStart = html.indexOf("const S_DEFAULTS");
+const mEnd = html.indexOf("let S = migrate(store.get());");
+if (mStart < 0 || mEnd < 0) check(false, "migrate() source located");
 else {
-  const migrate = new Function(html.slice(start, end) + "; return migrate;")();
+  const migrate = new Function(html.slice(mStart, mEnd) + "; return migrate;")();
   const cases = {
-    "null (fresh user)": null,
-    "empty object": {},
-    "missing badges": { xp: 50, answered: {} },
-    "missing answered": { xp: 50, badges: [] },
-    "xp is NaN": { xp: NaN },
-    "xp is a string": { xp: "120" },
-    "badges is an object": { badges: {} },
-    "answered is an array": { answered: [] },
+    "null (fresh user)": null, "empty object": {},
+    "missing badges": { xp: 50, answered: {} }, "missing answered": { xp: 50, badges: [] },
+    "xp is NaN": { xp: NaN }, "xp is a string": { xp: "120" },
+    "badges is an object": { badges: {} }, "answered is an array": { answered: [] },
     "cardsSeen undefined": { cardsSeen: undefined },
   };
   for (const [label, input] of Object.entries(cases)) {
     const s = migrate(input);
-    const ok = Array.isArray(s.badges) && Array.isArray(s.seenCerts) && Array.isArray(s.days)
+    check(Array.isArray(s.badges) && Array.isArray(s.seenCerts) && Array.isArray(s.days)
       && typeof s.xp === "number" && isFinite(s.xp)
       && typeof s.cardsSeen === "number" && isFinite(s.cardsSeen)
       && s.answered && typeof s.answered === "object" && !Array.isArray(s.answered)
-      && s.domStats && s.mocks && s.lessonsRead && s.v === 1;
-    check(ok, `migrate: ${label}`);
+      && s.domStats && s.mocks && s.lessonsRead && s.v === 1, `migrate: ${label}`);
   }
   const kept = migrate({ xp: 300, badges: ["first"], cardsSeen: 7 });
   check(kept.xp === 300 && kept.badges[0] === "first" && kept.cardsSeen === 7, "migrate: valid values preserved");
 }
 
-/* ---------- 3. boot the app and render every screen ---------- */
+/* ---------- 4. boot through the real loader ---------- */
 const els = {};
 const mkEl = id => ({
   id, innerHTML: "", textContent: "", style: {}, className: "",
-  classList: { _s: new Set(), add(c) { this._s.add(c); }, remove(c) { this._s.delete(c); }, contains(c) { return this._s.has(c); } },
+  classList: { add() {}, remove() {}, contains: () => false },
   appendChild() {}, remove() {}, addEventListener() {},
 });
 for (const id of ["hdr", "app", "toast"]) els[id] = mkEl(id);
 
-let domReady = null;
 const storage = {};
 const sandbox = {
-  console, Math, Date, JSON, Object, Array, String, Number, isFinite, parseInt, parseFloat,
+  console,
   setTimeout: () => 0, clearTimeout: () => {}, setInterval: () => 0, clearInterval: () => {},
   confirm: () => false, alert: () => {},
   localStorage: { getItem: k => (k in storage ? storage[k] : null), setItem: (k, v) => { storage[k] = String(v); } },
@@ -80,55 +97,72 @@ const sandbox = {
     getElementById: id => els[id] || (els[id] = mkEl(id)),
     createElement: () => mkEl("tmp"),
     body: { appendChild() {} },
-    addEventListener: (ev, fn) => { if (ev === "DOMContentLoaded") domReady = fn; },
+    addEventListener() {},
   },
-  addEventListener: (ev, fn) => { if (ev === "DOMContentLoaded" || ev === "load") domReady = fn; },
+  addEventListener() {},
+  // Serve data/*.json off disk, mimicking the browser fetch the loader uses.
+  fetch: url => {
+    const f = path.join(ROOT, String(url).split("?")[0]);
+    if (!fs.existsSync(f)) return Promise.resolve({ ok: false, status: 404 });
+    return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(fs.readFileSync(f, "utf8"))) });
+  },
 };
 sandbox.window = sandbox;
 vm.createContext(sandbox);
 
-for (let i = 0; i < blocks.length; i++) {
-  try { vm.runInContext(blocks[i], sandbox, { timeout: 15000 }); }
-  catch (e) { check(false, `block ${i} threw at load: ${e.message}`); process.exit(1); }
-}
-if (!domReady) { check(false, "DOMContentLoaded handler registered"); process.exit(1); }
-try { domReady(); check(true, "app boots without throwing"); }
-catch (e) { check(false, `boot threw: ${e.message}`); process.exit(1); }
-
-const evalIn = expr => vm.runInContext(expr, sandbox, { timeout: 15000 });
-const call = (fn, ...args) => evalIn(`${fn}(${args.map(a => JSON.stringify(a)).join(",")})`);
-const CERTS = evalIn("CERTS");
-
-check(/Claude Certified Associate/.test(els.app.innerHTML), "home screen renders cert cards");
-check(/Level/.test(els.hdr.innerHTML), "header renders");
-
-for (const c of CERTS) {
-  check(c.questions.length > 0 && c.cards.length > 0 && (c.lessons || []).length > 0,
-    `${c.code}: ${c.questions.length}q / ${c.cards.length} cards / ${(c.lessons || []).length} lessons`);
-  for (const [fn, label] of [["certView", "cert view"], ["learnList", "study guide"], ["startQuiz", "quiz"], ["startCards", "flashcards"], ["startMock", "mock exam"]]) {
-    try { call(fn, c.id); check(els.app.innerHTML.length > 200, `${c.code}: ${label} renders`); }
-    catch (e) { check(false, `${c.code}: ${label} threw -> ${e.message}`); }
+(async function run() {
+  for (let i = 0; i < blocks.length; i++) {
+    try { vm.runInContext(blocks[i], sandbox, { timeout: 15000 }); }
+    catch (e) { check(false, `block ${i} threw at load: ${e.message}`); process.exit(1); }
   }
-  try { call("lessonView", c.id, 0); check(els.app.innerHTML.length > 200, `${c.code}: lesson 0 renders`); }
-  catch (e) { check(false, `${c.code}: lessonView threw -> ${e.message}`); }
-}
+  // let the loader's promise chain settle
+  for (let i = 0; i < 10; i++) await new Promise(r => setImmediate(r));
 
-/* ---------- 4. no unverified exam claims (FINDINGS.md §0) ---------- */
-const allText = JSON.stringify(CERTS);
-call("certView", "ccaf");
-const certHeader = els.app.innerHTML;
+  const evalIn = expr => vm.runInContext(expr, sandbox, { timeout: 15000 });
+  const call = (fn, ...args) => evalIn(`${fn}(${args.map(a => JSON.stringify(a)).join(",")})`);
+  const CERTS = evalIn("CERTS");
 
-check(/CCAR-F/.test(certHeader), "cert header uses official code CCAR-F");
-check(CERTS.every(c => !/^CCA-[FP]$/.test(c.code)), "no stale CCA-F / CCA-P codes");
-check(!/heaviest/i.test(allText) && !/\(\d{1,2}%\)/.test(allText), "no domain weightings or 'heaviest domain' rankings");
-check(!/60 questions|120 min|pass 720\/1000/.test(certHeader + allText), "no unverified question count / time limit / pass mark");
-check(!/The real CCA[R]?-[FP] exam/.test(allText), "no fabricated 'the real exam' claims");
-check(!/The 6 exam scenarios/.test(allText), "no invented exam-scenario list");
+  check(!/Could not load study content/.test(els.app.innerHTML), "loader did not fall into its error state");
+  check(/Claude Certified Associate/.test(els.app.innerHTML), "home screen renders cert cards after load");
+  check(/Level/.test(els.hdr.innerHTML), "header renders");
 
-/* ---------- 5. answer shuffle actually spreads correct answers ---------- */
-const spread = {};
-for (const c of CERTS) for (const q of c.questions) spread[q.a] = (spread[q.a] || 0) + 1;
-check(Object.keys(spread).length === 4, `answer shuffle covers all 4 positions: ${JSON.stringify(spread)}`);
+  for (const c of CERTS) {
+    check(c.questions.length > 0 && c.cards.length > 0 && (c.lessons || []).length > 0,
+      `${c.code}: ${c.questions.length}q / ${c.cards.length} cards / ${(c.lessons || []).length} lessons loaded`);
+    for (const [fn, label] of [["certView", "cert view"], ["learnList", "study guide"], ["startQuiz", "quiz"], ["startCards", "flashcards"], ["startMock", "mock exam"]]) {
+      try { call(fn, c.id); check(els.app.innerHTML.length > 200, `${c.code}: ${label} renders`); }
+      catch (e) { check(false, `${c.code}: ${label} threw -> ${e.message}`); }
+    }
+    try { call("lessonView", c.id, 0); check(els.app.innerHTML.length > 200, `${c.code}: lesson 0 renders`); }
+    catch (e) { check(false, `${c.code}: lessonView threw -> ${e.message}`); }
+  }
 
-console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
-process.exitCode = fails ? 1 : 0;
+  /* ---------- 5. no unverified exam claims (FINDINGS.md §0) ---------- */
+  const allText = JSON.stringify(CERTS) + JSON.stringify(data) + html;
+  call("certView", "ccaf");
+  const certHeader = els.app.innerHTML;
+
+  check(/CCAR-F/.test(certHeader), "cert header uses official code CCAR-F");
+  check(CERTS.every(c => !/^CCA-[FP]$/.test(c.code)), "no stale CCA-F / CCA-P codes");
+  check(!/heaviest/i.test(allText) && !/\(\d{1,2}%\)/.test(allText), "no domain weightings or 'heaviest domain' rankings");
+  check(!/60 questions|120 min|pass 720\/1000/.test(allText), "no unverified question count / time limit / pass mark");
+  check(!/The real CCA[R]?-[FP] exam/.test(allText), "no fabricated 'the real exam' claims");
+  check(!/The 6 exam scenarios/.test(allText), "no invented exam-scenario list");
+
+  /* ---------- 6. answer shuffle spreads correct answers ---------- */
+  const spread = {};
+  for (const c of CERTS) for (const q of c.questions) spread[q.a] = (spread[q.a] || 0) + 1;
+  check(Object.keys(spread).length === 4, `answer shuffle covers all 4 positions: ${JSON.stringify(spread)}`);
+
+  // and the shuffle must not corrupt the mapping: every correct option text
+  // must still be the one the source file marked correct
+  let mismatches = 0;
+  for (const c of CERTS) {
+    const src = data[c.id];
+    c.questions.forEach((q, i) => { if (q.opts[q.a] !== src.questions[i].opts[src.questions[i].a]) mismatches++; });
+  }
+  check(mismatches === 0, `shuffle preserves the correct answer for all questions (${mismatches} mismatches)`);
+
+  console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
+  process.exitCode = fails ? 1 : 0;
+})();
