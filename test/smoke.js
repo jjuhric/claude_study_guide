@@ -154,7 +154,27 @@ vm.createContext(sandbox);
   check(/CCAR-F/.test(certHeader), "cert header uses official code CCAR-F");
   check(CERTS.every(c => !/^CCA-[FP]$/.test(c.code)), "no stale CCA-F / CCA-P codes");
   check(!/heaviest/i.test(allText) && !/\(\d{1,2}%\)/.test(allText), "no domain weightings or 'heaviest domain' rankings");
-  check(!/60 questions|120 min|pass 720\/1000/.test(allText), "no unverified question count / time limit / pass mark");
+  // Exam format figures (question count, time limit, pass mark) are not confirmed by
+  // Anthropic — only corroborated by third-party study sites. They may appear only
+  // alongside an explicit hedge, so a reader always sees the evidence tier.
+  const FIGURE = /\b720\b|100[–-]1000|\d+\s*(exam\s*)?questions\b|120\s*min/i;
+  const EXAM_CONTEXT = /exam|pass(ing)?\s*(mark|score)|scaled score|blueprint/i;
+  const HEDGE = /unconfirmed|widely report|official exam guide|practice benchmark|not a verified/i;
+  const unhedged = [];
+  for (const [id, d] of Object.entries(data)) {
+    const fields = [
+      ...d.cards.map((c, i) => [`${id} card[${i}]`, `${c.f} ${c.b}`]),
+      ...d.lessons.map((l, i) => [`${id} lesson[${i}]`, l.b]),
+      ...d.questions.map((q, i) => [`${id} question[${i}]`, `${q.q} ${q.exp || ""}`]),
+    ];
+    for (const [where, text] of fields) {
+      // Only a figure stated in an exam-format context needs the hedge; "20 minutes
+      // with a primer" is not a claim about the exam.
+      if (FIGURE.test(text) && EXAM_CONTEXT.test(text) && !HEDGE.test(text)) unhedged.push(where);
+    }
+  }
+  check(unhedged.length === 0, `exam format figures always carry a hedge (${unhedged.slice(0, 3).join(", ") || "none unhedged"})`);
+  check(!/60 questions|pass 720\/1000/.test(html), "index.html states no unverified exam format");
   check(!/The real CCA[R]?-[FP] exam/.test(allText), "no fabricated 'the real exam' claims");
   check(!/The 6 exam scenarios/.test(allText), "no invented exam-scenario list");
 
