@@ -35,8 +35,7 @@ Done on 2026-08-10:
 
 Still open: Supabase auth + progress sync (needs an account created by the
 owner), content validation against the official blueprints (§0, blocked on
-Partner Academy access), question-bank size (§2), and the empty-content guard
-(§3.2).
+Partner Academy access), and question-bank size (§2).
 
 ---
 
@@ -156,7 +155,7 @@ shipped schema exists so far) but will bite the first time the data model
 changes under users who already have saved progress — worth hardening
 *before* multiple people start relying on it.
 
-### 3.2 No empty-state guard for quiz/flashcard/mock
+### 3.2 No empty-state guard for quiz/flashcard/mock — FIXED
 `startQuiz`/`quizQ`, `startCards`/`cardView`, and `startMock`/`mockQ` assume
 `c.questions`/`c.cards` are non-empty. Currently true for all 4 certs, so
 unreachable today — but if a 5th cert (or a real-content migration) ever
