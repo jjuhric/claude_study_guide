@@ -137,7 +137,16 @@ vm.createContext(sandbox);
     catch (e) { check(false, `${c.code}: lessonView threw -> ${e.message}`); }
   }
 
-  /* ---------- 5. no unverified exam claims (FINDINGS.md §0) ---------- */
+  /* ---------- 5. a truncated data file explains itself, never throws ---------- */
+  evalIn(`(function(){const c=CERTS.find(x=>x.id==="ccao"); c.__q=c.questions; c.__c=c.cards; c.questions=[]; c.cards=[];})()`);
+  for (const [fn, label] of [["startQuiz", "quiz"], ["startCards", "flashcards"], ["startMock", "mock exam"]]) {
+    try { call(fn, "ccao"); check(/available yet/.test(els.app.innerHTML), `empty content: ${label} explains instead of throwing`); }
+    catch (e) { check(false, `empty content: ${label} threw -> ${e.message}`); }
+  }
+  evalIn(`(function(){const c=CERTS.find(x=>x.id==="ccao"); c.questions=c.__q; c.cards=c.__c; delete c.__q; delete c.__c;})()`);
+  check(evalIn(`CERTS.find(x=>x.id==="ccao").questions.length`) === data.ccao.questions.length, "content restored after guard test");
+
+  /* ---------- 6. no unverified exam claims (FINDINGS.md §0) ---------- */
   const allText = JSON.stringify(CERTS) + JSON.stringify(data) + html;
   call("certView", "ccaf");
   const certHeader = els.app.innerHTML;

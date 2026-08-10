@@ -449,6 +449,13 @@ function markRead(id,i,goNext){
 
 /* ================= QUIZ ================= */
 let Q={};
+/* Content arrives from data/*.json at runtime, so a missing or truncated file
+   can leave a mode with nothing to show. Explain it rather than throwing. */
+function noContent(c,kind){
+  $("app").innerHTML='<button class="back" onclick="certView(\''+c.id+'\')">← Back to '+esc(c.code)+'</button>'
+   +'<div class="panel"><h2 style="font-size:17px;">No '+esc(kind)+' available yet</h2>'
+   +'<p style="font-size:13.5px; color:var(--muted); line-height:1.6; margin-top:8px;">Nothing was loaded for this certification. If other sections work, <code>data/'+esc(c.id)+'.json</code> is likely incomplete.</p></div>';
+}
 function pickQuestions(c,n){
   const ans=S.answered[c.id]||{};
   const unseen=c.questions.map((q,i)=>i).filter(i=>!(i in ans));
@@ -460,6 +467,7 @@ function pickQuestions(c,n){
 }
 function startQuiz(id){
   const c=CERTS.find(x=>x.id===id);
+  if(!c.questions.length) return noContent(c,"practice questions");
   Q={cert:c, idxs:pickQuestions(c,10), i:0, correct:0, combo:0, mode:"quiz"};
   quizQ();
 }
@@ -527,6 +535,7 @@ function nextQ(){
 let F={};
 function startCards(id){
   const c=CERTS.find(x=>x.id===id);
+  if(!c.cards.length) return noContent(c,"flashcards");
   const idxs=c.cards.map((_,i)=>i);
   for(let i=idxs.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idxs[i],idxs[j]]=[idxs[j],idxs[i]];}
   F={cert:c, idxs, i:0, knew:0};
@@ -565,6 +574,7 @@ function gradeCard(knew){
 let M={};
 function startMock(id){
   const c=CERTS.find(x=>x.id===id);
+  if(!c.questions.length) return noContent(c,"mock exam questions");
   const n=Math.min(20,c.questions.length);
   const idxs=c.questions.map((_,i)=>i);
   for(let i=idxs.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idxs[i],idxs[j]]=[idxs[j],idxs[i]];}
