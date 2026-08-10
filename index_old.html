@@ -163,16 +163,6 @@
   .pitbox .lbl{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--red); margin-bottom:6px;}
   .lesson-toc{display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 2px;}
   .lesson-toc span{font-size:10.5px; background:var(--border); color:var(--muted); padding:3px 9px; border-radius:7px;}
-  .lesson-row.found{border-color:var(--gold); background:rgba(232,180,72,.06);}
-  .lesson-row.found .lchk{background:var(--gold); color:#fff;}
-  .vbox{border-left:4px solid #c4302b; background:rgba(196,48,43,.06); border-radius:0 12px 12px 0; padding:13px 16px; margin:14px 0;}
-  .vbox .lbl{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#c4302b; margin-bottom:8px;}
-  .vbox a{display:flex; align-items:flex-start; gap:8px; text-decoration:none; color:var(--ink); font-size:13px; margin-bottom:8px; line-height:1.4;}
-  .vbox a:last-child{margin-bottom:0;}
-  .vbox a:hover .vtitle{text-decoration:underline;}
-  .vbox .vicon{flex-shrink:0; font-size:15px; margin-top:1px;}
-  .vbox .vtitle{color:#c4302b; font-weight:600;}
-  .vbox .vdesc{display:block; font-size:11.5px; color:var(--muted); font-weight:400;}
 </style>
 </head>
 <body>
@@ -371,10 +361,6 @@ function certView(id){
 
 /* ================= STUDY GUIDE ================= */
 function startLearn(id){ learnList(id); }
-function lessonLabel(c,i){
-  const les=c.lessons[i];
-  return les.foundation ? "🌱 Start here" : "Domain "+i+" of "+c.domains.length;
-}
 function learnList(id){
   const c=CERTS.find(x=>x.id===id);
   const read=S.lessonsRead[c.id]||[];
@@ -383,9 +369,9 @@ function learnList(id){
   let rows='';
   c.lessons.forEach((les,i)=>{
     const done=!!read[i];
-    rows+='<div class="lesson-row'+(done?" done":"")+(les.foundation?" found":"")+'" onclick="lessonView(\''+id+'\','+i+')">'
-      +'<div class="lchk">'+(done?"✓":(les.foundation?"🌱":i))+'</div>'
-      +'<div class="ltext"><div class="ltitle">'+esc(les.h)+'</div><div class="lnum">'+lessonLabel(c,i)+'</div></div>'
+    rows+='<div class="lesson-row'+(done?" done":"")+'" onclick="lessonView(\''+id+'\','+i+')">'
+      +'<div class="lchk">'+(done?"✓":(i+1))+'</div>'
+      +'<div class="ltext"><div class="ltitle">'+esc(les.h)+'</div><div class="lnum">Domain '+(i+1)+' of '+c.lessons.length+'</div></div>'
       +'<div class="larrow">→</div></div>';
   });
   $("app").innerHTML =
@@ -403,7 +389,7 @@ function lessonView(id,i){
   const nextBtn=i<c.lessons.length-1?'<button class="btn sm" onclick="markRead(\''+id+'\','+i+',true)">Mark read & next →</button>':'<button class="btn sm" onclick="markRead(\''+id+'\','+i+',false)">Mark read & finish 🏁</button>';
   $("app").innerHTML =
    '<button class="back" onclick="learnList(\''+id+'\')">← All lessons</button>'
-   +'<div class="panel"><div class="lesson-hdr"><span class="ltag">'+lessonLabel(c,i)+' · '+c.code+'</span></div>'
+   +'<div class="panel"><div class="lesson-hdr"><span class="ltag">Domain '+(i+1)+'/'+c.lessons.length+' · '+c.code+'</span></div>'
    +'<h2 style="font-size:19px; margin-bottom:12px;">'+esc(les.h)+'</h2>'
    +'<div class="lesson-body">'+les.b+'</div>'
    +'<div class="rowbtns">'+prevBtn+nextBtn+'</div></div>';
@@ -801,32 +787,6 @@ c.cards=[
 /* ====== TEACHING CONTENT (Study Guide) — one lesson per domain, in domain order ====== */
 (function(){const c=CERTS.find(x=>x.id==="ccao");
 c.lessons=[
-{h:"Start Here: Foundations",foundation:true,b:"<p>Welcome — this lesson assumes zero prior knowledge. By the end you'll have the vocabulary and mental model you need before any of the exam domains will make sense.</p>"
-+"<h4>What is Claude?</h4><p>Claude is a <b>large language model (LLM)</b> made by Anthropic — a computer program trained on enormous amounts of text that learned to predict, very well, what text should come next given some input. When you type a message, Claude reads it and generates a response one small chunk of text at a time. It doesn't 'look things up' the way a search engine does by default — it generates each response fresh, based on patterns learned during training, unless it's specifically given a tool like web search.</p>"
-+"<p>That single fact — Claude generates plausible text rather than retrieving verified facts — is the root of almost everything in the Output Evaluation domain later in this guide. Keep it in mind.</p>"
-+"<div class='diagram-box'><svg viewBox='0 0 560 130' xmlns='http://www.w3.org/2000/svg'>"
-+"<rect x='20' y='40' width='160' height='50' rx='10' fill='#fff' stroke='#5b7fa6' stroke-width='2'/><text x='100' y='70' text-anchor='middle' font-size='11' fill='#5b7fa6' font-weight='700'>You type a message</text>"
-+"<line x1='180' y1='65' x2='220' y2='65' stroke='#8a8073' stroke-width='2' marker-end='url(#arrowf0)'/>"
-+"<rect x='220' y='40' width='120' height='50' rx='10' fill='#d97757'/><text x='280' y='70' text-anchor='middle' font-size='11' fill='#fff' font-weight='700'>Claude predicts a reply</text>"
-+"<line x1='340' y1='65' x2='380' y2='65' stroke='#8a8073' stroke-width='2' marker-end='url(#arrowf0)'/>"
-+"<rect x='380' y='40' width='160' height='50' rx='10' fill='#fff' stroke='#5a9e6f' stroke-width='2'/><text x='460' y='70' text-anchor='middle' font-size='11' fill='#5a9e6f' font-weight='700'>You read, reply again</text>"
-+"<defs><marker id='arrowf0' markerWidth='8' markerHeight='8' refX='6' refY='3' orient='auto'><path d='M0,0 L6,3 L0,6 Z' fill='#8a8073'/></marker></defs>"
-+"</svg><div class='diagram-cap'>A conversation is just this loop, repeated — nothing more mysterious than that.</div></div>"
-+"<h4>A short glossary you'll see everywhere</h4><ul>"
-+"<li><b>Prompt:</b> the text you send Claude — your question, instruction, or request</li>"
-+"<li><b>Token:</b> a chunk of text (roughly ¾ of a word on average) that Claude reads and generates in. Costs and limits are usually measured in tokens, not words or characters</li>"
-+"<li><b>Context window:</b> the total amount of text (your messages, any documents, and Claude's replies) that Claude can 'see' at once, measured in tokens. Once a conversation exceeds it, the oldest content starts falling out of view</li>"
-+"<li><b>Model:</b> a specific version of Claude (e.g. a fast one, a balanced one, a top-capability one) — see the Model Selection lesson</li>"
-+"<li><b>System prompt:</b> background instructions set once (often by whoever built the tool you're using) that shape how Claude behaves for the whole conversation, separate from what you type</li>"
-+"<li><b>Hallucination:</b> when Claude states something fabricated or wrong with the same fluent confidence as something true — this is the single most important risk to understand before using any LLM for real work</li>"
-+"<li><b>Project:</b> a persistent workspace in Claude with its own instructions and reference documents, so you don't retype context every conversation</li>"
-+"</ul>"
-+"<h4>Why certification, and why this one first?</h4><p>Anthropic's four certifications build on each other: <b>Associate (this one)</b> is for anyone using Claude as a daily work tool — no coding required. <b>Developer</b> is for engineers integrating Claude via API and code. <b>Architect Foundations</b> and <b>Architect Professional</b> are for people designing multi-step, tool-using agentic systems. If you're new to all of this, mastering the seven domains ahead — Prompting, Output Evaluation, Model Selection, Workflow Integration, Knowledge Management, Governance & Risk, and Troubleshooting — is the right on-ramp before touching the more technical certs.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch first</div>"
-+"<a href='https://www.youtube.com/watch?v=LPZh9BOjkQs' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Large Language Models explained briefly</span><span class='vdesc'>A short, clear primer on what an LLM actually is and how it generates text — watch this before anything else if the term 'LLM' is new to you.</span></span></a>"
-+"<a href='https://www.youtube.com/watch?v=T9aRN5JkmL8' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>AI prompt engineering: a deep dive (Anthropic)</span><span class='vdesc'>Anthropic's own prompt engineering team walks through how they think about getting good results from Claude — useful context for the whole Associate track.</span></span></a>"
-+"</div>"
-+"<div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>Claude generates plausible text; it doesn't 'know' facts are true the way a database does.</li><li>Tokens, context window, and system prompt are the vocabulary everything else builds on.</li><li>This cert has no coding prerequisite — it's about using Claude well as a work tool.</li></ul></div>"},
 {h:"Prompting",b:"<p>Prompting is how you turn a vague request into output you can actually use. A weak prompt ('write something about our product') forces Claude to guess at audience, tone, length, and purpose — so it defaults to generic, safe, forgettable text. A strong prompt supplies that context up front so Claude doesn't have to guess.</p>"
 +"<h4>The five core levers</h4><ul>"
 +"<li><b>Context:</b> who is this for, what's it for, what does Claude need to know that isn't obvious from the request alone</li>"
@@ -855,13 +815,7 @@ c.lessons=[
 +"<defs><marker id='arrowp1' markerWidth='8' markerHeight='8' refX='6' refY='3' orient='auto'><path d='M0,0 L6,3 L0,6 Z' fill='#8a8073'/></marker></defs>"
 +"</svg><div class='diagram-cap'>Same request, two prompts — the difference is entirely in the missing levers.</div></div>"
 +"<div class='exbox'><div class='lbl'>Worked example</div>Instead of: <pre>Write a customer email about our price increase.</pre>Try: <pre>You are a customer success manager. Write a short email (under 120 words) to a loyal customer telling them our subscription price is rising 8% starting next quarter. Tone: warm, direct, no corporate jargon. End with one sentence reaffirming their value to us. Format: plain email, no subject line needed.</pre>The second version fixes role, audience, length, tone, and format in one pass — no back-and-forth needed.</div>"
-+"<h4>Why this works: a mental model</h4><p>Think of Claude as an extremely well-read collaborator who has never met you and can't read your mind — everything it knows about your specific situation is whatever you put in the prompt, plus anything in the system prompt or Project knowledge behind the scenes. Every missing piece of context is a guess Claude has to fill in on its own, and it will fill it in with something plausible rather than leaving it blank. That's why 'be more specific' so reliably fixes weak output: you're replacing guesses with facts.</p>"
-+"<p>Two more levers worth knowing by name: <b>negative instructions</b> (telling Claude what to avoid, e.g. \"don't use marketing buzzwords\") and <b>constraints</b> (hard limits like word count or a required structure). Both reduce the space of plausible-but-wrong answers Claude might otherwise pick.</p>"
-+"<div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>Vague in → vague out. The fix is always more context, not a different model.</li><li>Role, format, and examples are the highest-leverage additions.</li><li>Ask for step-by-step reasoning on anything analytical or multi-part.</li></ul></div>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=FMWRfZ_VNdw' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Anthropic: Prompting 101</span><span class='vdesc'>An Anthropic-produced walkthrough of core prompting technique, aimed at exactly this level.</span></span></a>"
-+"<a href='https://www.youtube.com/watch?v=pQ6G9TQfGIA' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Anthropic's free 24-minute prompt engineering workshop</span><span class='vdesc'>A compact workshop covering role prompting, examples, and structure in under half an hour.</span></span></a>"
-+"</div>"},
++"<div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>Vague in → vague out. The fix is always more context, not a different model.</li><li>Role, format, and examples are the highest-leverage additions.</li><li>Ask for step-by-step reasoning on anything analytical or multi-part.</li></ul></div>"},
 {h:"Output Evaluation",b:"<p>This is the single heaviest domain (21%) because it's the skill that keeps AI-assisted work safe: knowing when to trust an output and when to check it.</p>"
 +"<p><b>Why this matters:</b> Claude produces fluent, confident-sounding text whether or not the underlying facts are correct. Fluency is not a signal of accuracy — this is the core idea to internalize, and the exam tests it repeatedly with scenarios where a wrong answer 'sounds right.'</p>"
 +"<h4>A simple verification funnel</h4>"
@@ -883,11 +837,7 @@ c.lessons=[
 +"<li>Don't ask Claude 'are you sure?' and treat the reply as evidence — self-assessment isn't a substitute for checking the source</li>"
 +"</ul>"
 +"<div class='exbox'><div class='lbl'>Worked example</div>Claude summarizes a market report: \"According to the report, adoption grew 340% year-over-year.\" You skim the source PDF and the actual figure is 34%. This is exactly the failure mode this domain tests for — a single fluent, confident sentence with one wrong digit. The fix isn't skepticism about AI in general, it's the habit of checking any specific number against its source before it goes in a deck.</div>"
-+"<div class='pitbox'><div class='lbl'>Common mistake</div>Treating a well-formatted, professional-sounding answer as evidence of accuracy. Formatting quality and factual accuracy are unrelated — the exam will present polished-looking wrong answers specifically to test this.</div>"
-+"<h4>Why hallucinations happen</h4><p>Claude generates text by predicting the most statistically plausible next chunk of text, not by querying a verified fact database. Most of the time those predictions line up with reality because Claude was trained on huge amounts of accurate text — but when a question sits outside what it can reliably reconstruct (an obscure statistic, a specific citation, a very recent event), it can still produce a fluent, confident-sounding answer that is simply wrong. Nothing about the tone or polish of the sentence changes based on whether it's actually correct — which is exactly why this domain is weighted so heavily.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=005JLRt3gXI' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Why do AI models hallucinate?</span><span class='vdesc'>A clear explanation of why fluent, confident-sounding answers can still be wrong, and how to spot it.</span></span></a>"
-+"</div>"},
++"<div class='pitbox'><div class='lbl'>Common mistake</div>Treating a well-formatted, professional-sounding answer as evidence of accuracy. Formatting quality and factual accuracy are unrelated — the exam will present polished-looking wrong answers specifically to test this.</div>"},
 {h:"Model Selection",b:"<p>Anthropic offers models along a capability/cost/speed spectrum. Picking the right one for the job is a distinct, testable skill — using the biggest model for everything is not 'safe,' it's wasteful and often slower than necessary.</p>"
 +"<div class='diagram-box'><svg viewBox='0 0 600 170' xmlns='http://www.w3.org/2000/svg'>"
 +"<text x='300' y='20' text-anchor='middle' font-size='11' fill='#8a8073'>speed / cost-efficiency →</text>"
@@ -902,11 +852,7 @@ c.lessons=[
 +"<li><b>Balanced models (Sonnet tier):</b> the default for most everyday work — good reasoning at reasonable cost</li>"
 +"<li><b>Top-tier models (Opus tier):</b> complex reasoning, nuanced writing, or high-stakes analysis where quality matters more than cost or speed</li>"
 +"</ul><p><b>Feature awareness:</b> know what unlocks what — web search retrieves current information beyond the training cutoff; extended thinking helps with hard multi-step reasoning; a larger context window lets you include more source material at once. Matching feature to need (not just 'use everything') is what's tested.</p>"
-+"<div class='exbox'><div class='lbl'>Worked example</div>A support team triages 5,000 incoming tickets a day into 6 categories (billing, bug, feature request, etc). This is high-volume and well-defined → Haiku tier. The same team's quarterly board narrative summarizing performance and strategy is low-volume and high-stakes → Opus tier is the better fit, even though it costs more per call.</div>"
-+"<p>A useful habit: start a new type of task on the balanced (Sonnet) tier by default. If the output is consistently good enough and the task is high-volume, step down to the fast tier to save time and cost. If the output is consistently missing nuance on a hard task, step up to the top tier. Let the actual quality of results guide the choice rather than picking the biggest model reflexively 'just in case.'</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=EstrsAlmxd4' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Haiku vs Sonnet vs Opus: Which Claude model should you use?</span><span class='vdesc'>28 real-world examples showing which tier fits which kind of task.</span></span></a>"
-+"</div>"},
++"<div class='exbox'><div class='lbl'>Worked example</div>A support team triages 5,000 incoming tickets a day into 6 categories (billing, bug, feature request, etc). This is high-volume and well-defined → Haiku tier. The same team's quarterly board narrative summarizing performance and strategy is low-volume and high-stakes → Opus tier is the better fit, even though it costs more per call.</div>"},
 {h:"Workflow Integration",b:"<p>This domain is about weaving Claude into how work actually gets done, not just chatting with it ad hoc.</p>"
 +"<div class='diagram-box'><svg viewBox='0 0 600 160' xmlns='http://www.w3.org/2000/svg'>"
 +"<rect x='20' y='50' width='150' height='60' rx='10' fill='#fff' stroke='#d97757' stroke-width='2'/><text x='95' y='75' text-anchor='middle' font-size='11' font-weight='700' fill='#d97757'>Human</text><text x='95' y='92' text-anchor='middle' font-size='9.5' fill='#2b2620'>frames the task,</text><text x='95' y='104' text-anchor='middle' font-size='9.5' fill='#2b2620'>supplies context</text>"
@@ -921,10 +867,7 @@ c.lessons=[
 +"<li><b>Matching output format to the destination:</b> if the next step is a spreadsheet, ask for CSV/tabular output; if it's an email, ask for email format — friction-free integration means Claude's output slots directly into the next tool</li>"
 +"<li><b>Knowing what to delegate:</b> drafting, synthesis, first-pass analysis, and research summarization are strong fits; final approval, binding decisions, and anything requiring personal accountability should stay with a human</li>"
 +"</ul><p><b>Exam pattern:</b> given a recurring task or a task with legal/financial weight, identify the correctly-scoped role for Claude versus the human.</p>"
-+"<div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>Projects remove repeated context-setting for recurring workflows.</li><li>Format the ask around where the output lands next.</li><li>Delegate drafting and synthesis; keep approval and accountability human.</li></ul></div>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=GJ5jTgcbRHA' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Getting started with Projects in Claude.ai</span><span class='vdesc'>Shows exactly how to set up a Project with instructions and knowledge files for a recurring workflow.</span></span></a>"
-+"</div>"},
++"<div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>Projects remove repeated context-setting for recurring workflows.</li><li>Format the ask around where the output lands next.</li><li>Delegate drafting and synthesis; keep approval and accountability human.</li></ul></div>"},
 {h:"Knowledge Management",b:"<p>Claude can be grounded in your organization's own content — but only as well as that content is curated.</p>"
 +"<h4>What to know</h4><ul>"
 +"<li>Project knowledge sources ground Claude's answers in specific documents you provide, across every conversation in that Project</li>"
@@ -933,11 +876,7 @@ c.lessons=[
 +"<li>Curate for relevance and recency the same way you would a shared team wiki</li>"
 +"</ul>"
 +"<div class='exbox'><div class='lbl'>Worked example</div>A Project's knowledge folder still has the 2023 vacation policy alongside the current 2026 version. Claude, given both, may blend or cite the wrong one. The correct fix is archiving the 2023 file out of the Project — not adding an instruction like 'always use the newest policy,' which is fragile and easy to get wrong when documents aren't dated clearly.</div>"
-+"<div class='pitbox'><div class='lbl'>Common mistake</div>Assuming that once you upload a document, Claude 'knows' it permanently and everywhere. Knowledge sources are scoped to that Project/conversation, not baked into the model — a new chat outside the Project won't have it.</div>"
-+"<p>Under the hood, when a Project has a lot of source material, Claude often uses a form of retrieval to pull in the most relevant passages for your specific question rather than rereading every document in full each time. You don't need to manage this yourself, but it explains why a well-organized, clearly-titled set of documents tends to produce better answers than one giant dumping-ground file — clear structure makes the right passage easier to find.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=MBDiJAWx8xk' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>What is RAG? Retrieval Augmented Generation explained</span><span class='vdesc'>The retrieval mechanism behind grounded, document-aware answers — the 'why' behind why curated knowledge sources work so well.</span></span></a>"
-+"</div>"},
++"<div class='pitbox'><div class='lbl'>Common mistake</div>Assuming that once you upload a document, Claude 'knows' it permanently and everywhere. Knowledge sources are scoped to that Project/conversation, not baked into the model — a new chat outside the Project won't have it.</div>"},
 {h:"Governance & Risk",b:"<p>The second-heaviest domain (15%) — using Claude well at work means using it responsibly, not just effectively.</p>"
 +"<div class='diagram-box'><svg viewBox='0 0 600 150' xmlns='http://www.w3.org/2000/svg'>"
 +"<rect x='20' y='20' width='260' height='50' rx='10' fill='#fff' stroke='#8a8073' stroke-width='2'/><text x='150' y='42' text-anchor='middle' font-size='11' fill='#2b2620'>Data you're about to paste in</text><text x='150' y='58' text-anchor='middle' font-size='9.5' fill='#8a8073'>(customer PII, financials, etc.)</text>"
@@ -953,11 +892,7 @@ c.lessons=[
 +"<li><b>Transparency:</b> disclose AI assistance where policy or context requires it, and review outputs before they go out under your name</li>"
 +"<li><b>Respecting guardrails:</b> if Claude declines a request, the appropriate response is to add legitimate context or escalate through proper channels — not to try to trick or pressure the model into complying</li>"
 +"<li><b>Accountability:</b> AI-assisted work is still your responsibility; presenting Claude's unreviewed output as your own vetted analysis is a governance failure</li>"
-+"</ul>"
-+"<p>Anthropic also publishes its own Usage Policy governing what Claude can be asked to do, separate from your organization's internal policy — both apply at once. Your org's policy governs what data and use cases are appropriate for your business context; Anthropic's policy governs what Claude will do regardless of who's asking. Understanding that these are two independent layers helps explain why a request can be perfectly fine under company policy and still declined by Claude, or vice versa.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=_U_B7V_8c6s' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>What is responsible AI?</span><span class='vdesc'>Covers the core principles — fairness, privacy, transparency, accountability — behind using AI tools responsibly at work.</span></span></a>"
-+"</div>"},
++"</ul>"},
 {h:"Troubleshooting",b:"<p>When Claude's output quality drops, the exam wants you to reach for structural fixes, not superstition.</p>"
 +"<h4>Common problems and correct fixes</h4><ul>"
 +"<li><b>Quality degrades in a long conversation:</b> accumulated context is diluting focus — start a fresh conversation seeded with a concise summary of what matters, rather than continuing indefinitely</li>"
@@ -966,26 +901,10 @@ c.lessons=[
 +"<li><b>What NOT to do:</b> repeating the identical prompt, using more emphasis/caps, or assuming a 'bug' — these rarely fix root causes</li>"
 +"</ul>"
 +"<div class='exbox'><div class='lbl'>Worked example</div>Fifty messages into a chat, Claude starts contradicting an instruction you gave near the start. Rather than repeating \"remember what I said earlier!\", open a fresh conversation and open with a 4-line summary: goal, constraints, decisions made so far, and what's needed next. This consistently outperforms continuing to scroll a bloated thread.</div>"
-+"<div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>Degraded long-chat quality → summarize and restart, don't just push through.</li><li>Ignored instructions → make them louder and give an example.</li><li>Unexpected refusals → add legitimate context before assuming something is broken.</li></ul></div>"
-+"<p>One more diagnostic habit worth building: when output is subtly off, ask yourself whether the problem is really about Claude, or about the prompt. In the large majority of cases across all seven domains in this guide, the fastest fix is improving what you send, not fighting with what comes back.</p>"}
++"<div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>Degraded long-chat quality → summarize and restart, don't just push through.</li><li>Ignored instructions → make them louder and give an example.</li><li>Unexpected refusals → add legitimate context before assuming something is broken.</li></ul></div>"}
 ];})();
 (function(){const c=CERTS.find(x=>x.id==="ccdv");
 c.lessons=[
-{h:"Start Here: Foundations",foundation:true,b:"<p>This cert assumes you can write basic code and are comfortable with concepts like variables, functions, and JSON — but it does <b>not</b> assume you've used an LLM API before. This lesson fills that gap.</p>"
-+"<h4>What you're actually building</h4><p>When you 'use the Claude API,' you're writing code that sends an HTTP request containing text (and instructions) to Anthropic's servers, and gets back a response containing more text. That's the whole shape of it — everything else in this cert (tools, agents, MCP, streaming) is refinement on top of that basic request/response exchange.</p>"
-+"<h4>Terms this cert assumes you know, defined quickly</h4><ul>"
-+"<li><b>REST API:</b> a way for programs to talk to a server over HTTP using standard verbs (mostly POST here) and structured data — you'll send JSON, you'll get JSON back</li>"
-+"<li><b>JSON:</b> the text format (<code>{\"key\": \"value\"}</code>) almost everything in this cert is expressed in — requests, responses, tool schemas, all of it</li>"
-+"<li><b>SDK:</b> a language-specific software package (Anthropic publishes ones for Python, TypeScript, and others) that wraps the raw HTTP calls in convenient functions, so you're rarely constructing requests by hand</li>"
-+"<li><b>Token:</b> the unit Claude reads and writes in (~¾ of a word on average) and the unit you're billed by — <code>max_tokens</code> caps how long a response can be</li>"
-+"<li><b>Latency:</b> how long a request takes to get a response — matters a lot for interactive features, less for background batch jobs</li>"
-+"</ul>"
-+"<p>If any of REST, JSON, or environment variables are genuinely new to you, it's worth spending 20 minutes with a general web-development primer before diving into the API Mechanics lesson — this cert moves fast on the assumption those are already comfortable.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch first</div>"
-+"<a href='https://www.youtube.com/watch?v=tUjr7vnyxjI' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Getting Started with Anthropic's Claude API: Build a Research Paper Summarizer</span><span class='vdesc'>A hands-on first project that shows the request/response cycle end to end.</span></span></a>"
-+"<a href='https://www.youtube.com/watch?v=T9aRN5JkmL8' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>AI prompt engineering: a deep dive (Anthropic)</span><span class='vdesc'>Anthropic's own team on how they think about prompting — directly useful once you're calling the API programmatically too.</span></span></a>"
-+"</div>"
-+"<div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>The API is just HTTP request in, HTTP response out — everything else builds on that.</li><li>You'll work mostly through an SDK, not raw HTTP, but understanding the underlying shape matters for debugging.</li><li>Comfort with JSON and basic REST concepts is assumed going forward.</li></ul></div>"},
 {h:"API Mechanics",b:"<p>The Messages API is the foundation everything else in this cert builds on. It's a simple request/response HTTP API — the complexity comes from what you build around it, not the wire protocol itself.</p>"
 +"<p><b>Required request fields:</b> <code>model</code>, <code>max_tokens</code>, and a <code>messages</code> array of alternating user/assistant turns. <code>system</code>, <code>tools</code>, and <code>temperature</code> are optional.</p>"
 +"<div class='diagram-box'><svg viewBox='0 0 600 210' xmlns='http://www.w3.org/2000/svg'>"
@@ -1017,12 +936,7 @@ c.lessons=[
 +"<li><code>tool_use</code> — Claude wants to call a tool; your code must execute it and return the result</li>"
 +"<li><code>stop_sequence</code> — a custom stop string you configured was hit</li>"
 +"</ul><p><b>Reliability basics:</b> handle HTTP 429 (rate limit) with exponential backoff and respect rate-limit headers; use streaming (server-sent events) for chat UIs so tokens render incrementally instead of the user waiting for the full response.</p>"
-+"<div class='exbox'><div class='lbl'>Worked example</div>A 3-turn chat means your 3rd request resends turns 1 and 2 in full: <pre>messages: [\n  {role:\"user\", content:\"What's the capital of France?\"},\n  {role:\"assistant\", content:\"Paris.\"},\n  {role:\"user\", content:\"And its population?\"}\n]</pre>Forget to resend history and Claude has no idea \"its\" refers to Paris.</div>"
-+"<h4>Why statelessness is a feature, not a limitation</h4><p>It feels like extra work at first, but a stateless API is exactly what lets you build flexible applications on top of it: you can edit history before resending (to fix a mistake, redact something, or summarize older turns), branch a conversation into two directions, or persist history in your own database instead of trusting a vendor's session store. The trade-off is that your application is now responsible for something a stateful system would have handled for you — which is why token-cost-aware history management (only resending what's needed) becomes its own skill as conversations grow.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=tUjr7vnyxjI' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Getting Started with Anthropic's Claude API</span><span class='vdesc'>Builds a real project against the Messages API from scratch, showing requests, responses, and stop reasons in practice.</span></span></a>"
-+"<a href='https://www.youtube.com/watch?v=-uW5-TaVXu4' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Most devs don't understand how context windows work</span><span class='vdesc'>A deeper look at what's actually happening to your token budget as conversation history grows.</span></span></a>"
-+"</div>"},
++"<div class='exbox'><div class='lbl'>Worked example</div>A 3-turn chat means your 3rd request resends turns 1 and 2 in full: <pre>messages: [\n  {role:\"user\", content:\"What's the capital of France?\"},\n  {role:\"assistant\", content:\"Paris.\"},\n  {role:\"user\", content:\"And its population?\"}\n]</pre>Forget to resend history and Claude has no idea \"its\" refers to Paris.</div>"},
 {h:"Tool Use & Structured Output",b:"<p>Tool use is how Claude takes real-world action instead of just generating text — looking up a record, running a calculation, calling an internal API.</p>"
 +"<div class='diagram-box'><svg viewBox='0 0 600 230' xmlns='http://www.w3.org/2000/svg'>"
 +"<rect x='40' y='15' width='150' height='40' rx='9' fill='#fff' stroke='#2b2620' stroke-width='1.5'/><text x='115' y='39' text-anchor='middle' font-size='10.5' fill='#2b2620'>Your app</text>"
@@ -1038,12 +952,7 @@ c.lessons=[
 +"<p><b>What drives accuracy:</b> tool descriptions function as part of the prompt — clear, specific descriptions of what a tool does and when to use it, plus a strict, well-typed input schema, are what make Claude pick the right tool with the right arguments.</p>"
 +"<div class='exbox'><div class='lbl'>Worked example — tool definition</div><pre>{\n  \"name\": \"get_order_status\",\n  \"description\": \"Look up the current shipping status for one order by its order ID. Use this whenever a customer asks where their order is, NOT for cancellations or refunds.\",\n  \"input_schema\": {\n    \"type\": \"object\",\n    \"properties\": {\"order_id\": {\"type\": \"string\"}},\n    \"required\": [\"order_id\"]\n  }\n}</pre>Notice the description says what it does <i>and</i> what it's not for — that boundary language is what prevents mis-routed calls.</div>"
 +"<p><b>Structured output:</b> when you need guaranteed-parseable output (JSON matching a schema), constrain generation to a schema (via a tool or explicit output format) rather than asking nicely in prose and hoping to regex-parse the result.</p>"
-+"<p><b>Resilience:</b> if a tool call fails (network error, bad input), feed the error back to Claude as the tool_result so it can adapt or retry intelligently, rather than crashing the whole loop.</p>"
-+"<p>One subtlety worth internalizing early: Claude can request <b>multiple tool calls in a single turn</b> when they're independent of each other (e.g., looking up two different order IDs at once), and your application should execute those in parallel where possible rather than serially — it's a meaningful latency win once you're chaining several tool round-trips together.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=VNB51OsiTVk' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Claude Tool Use Tutorial: Function Calling with the Anthropic API</span><span class='vdesc'>Walks through defining a tool, handling tool_use, and returning tool_result end to end.</span></span></a>"
-+"<a href='https://www.youtube.com/watch?v=cmtkdhlpBJ0' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Tool/function use deep-dive with 10 examples</span><span class='vdesc'>Broader coverage across many tool-use patterns, useful once the basics click.</span></span></a>"
-+"</div>"},
++"<p><b>Resilience:</b> if a tool call fails (network error, bad input), feed the error back to Claude as the tool_result so it can adapt or retry intelligently, rather than crashing the whole loop.</p>"},
 {h:"Agents & SDK",b:"<p>An <b>agent</b> is different from a single API call: it's a loop where the model chooses actions (tool calls), observes results, and iterates toward a goal, rather than mapping one input to one output.</p>"
 +"<div class='diagram-box'><svg viewBox='0 0 420 300' xmlns='http://www.w3.org/2000/svg'>"
 +"<circle cx='210' cy='150' r='115' fill='none' stroke='#eee5d8' stroke-width='2'/>"
@@ -1059,12 +968,7 @@ c.lessons=[
 +"</svg><div class='diagram-cap'>The agent loop repeats until the goal is reached or a stop condition fires.</div></div>"
 +"<p>The <b>Claude Agent SDK</b> is the packaged version of the agent harness that also powers Claude Code — it gives you the loop, tool execution, context/permission management, so you're not rebuilding that plumbing yourself.</p>"
 +"<p><b>When to use an agent vs. a simpler workflow:</b> if the task is predictable and follows fixed steps, a plain workflow (prompt chaining, fixed tool sequence) is cheaper, faster, and more reliable. Reserve open-ended autonomous agent loops for tasks that are genuinely unpredictable or exploratory.</p>"
-+"<p><b>Claude Code specifics:</b> <code>CLAUDE.md</code> is a project file Claude Code automatically loads for persistent, project-specific instructions and context — conventions, common commands, architecture notes — so you don't re-explain your codebase every session.</p>"
-+"<p>It helps to see the agent loop as a state machine with exactly three places anything can go: the <b>model</b> decides what to do next, <b>tools</b> execute an action in the real world, and <b>context</b> accumulates the running record of what's happened so far. Every agent bug you'll debug traces back to one of those three: the model picked the wrong action, a tool did the wrong thing or returned bad data, or the context got too bloated/stale for the model to reason well. Keeping that three-way split in mind makes debugging agents far less mysterious.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=LP5OCa20Zpg' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Tips for building AI agents (Anthropic)</span><span class='vdesc'>Anthropic's applied AI and research teams discuss common pitfalls when building agents.</span></span></a>"
-+"<a href='https://www.youtube.com/watch?v=TqC1qOfiVcQ' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Claude Agent SDK — full workshop (Anthropic)</span><span class='vdesc'>A complete walkthrough of building with the Agent SDK from an Anthropic engineer.</span></span></a>"
-+"</div>"},
++"<p><b>Claude Code specifics:</b> <code>CLAUDE.md</code> is a project file Claude Code automatically loads for persistent, project-specific instructions and context — conventions, common commands, architecture notes — so you don't re-explain your codebase every session.</p>"},
 {h:"Model Selection & Cost",b:"<p>Cost engineering is a first-class developer skill, not an afterthought — at production volume, the difference between a naive and an optimized pipeline can be an order of magnitude in spend.</p>"
 +"<div class='diagram-box'><svg viewBox='0 0 600 150' xmlns='http://www.w3.org/2000/svg'>"
 +"<text x='20' y='20' font-size='10.5' fill='#8a8073'>Relative $ per call (illustrative)</text>"
@@ -1078,11 +982,7 @@ c.lessons=[
 +"<li><b>Right-sized models:</b> route simple, high-volume work to smaller/faster models (Haiku tier); reserve top-tier models for tasks that truly need the extra reasoning quality</li>"
 +"<li><b>Prompt caching:</b> reuse a cached prefix (system prompt, reference documents, tool definitions) across many calls at a fraction of normal input-token cost — huge savings when the same large context repeats</li>"
 +"<li><b>Batches API:</b> asynchronous bulk processing at roughly 50% discount, ideal for non-urgent, high-volume workloads (e.g., nightly summarization of a million documents)</li>"
-+"</ul><p><b>Extended thinking</b> trades additional tokens/latency for better reasoning on hard problems — worth it selectively, not by default on every call.</p>"
-+"<p>A rough mental model for budgeting: estimate your monthly call volume per task type, multiply by average input+output tokens, and price each tier before committing. It's common to discover that a single high-volume, low-complexity step (e.g., a classification call made on every user message) dominates total spend — that's almost always the first thing to move to a cheaper model or cache aggressively, well before touching the rarer, higher-value calls.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=SWE0LV0xnZ4' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>How LLMs work: tokens, context windows, and API costs explained</span><span class='vdesc'>Connects token mechanics directly to the dollars-and-cents of running an LLM feature.</span></span></a>"
-+"</div>"},
++"</ul><p><b>Extended thinking</b> trades additional tokens/latency for better reasoning on hard problems — worth it selectively, not by default on every call.</p>"},
 {h:"Prompt & Context Engineering",b:"<p>Beyond basic prompting, developers need to manage large and structured contexts deliberately — context is a finite, costly resource, not an infinite scratchpad.</p>"
 +"<div class='diagram-box'><svg viewBox='0 0 600 150' xmlns='http://www.w3.org/2000/svg'>"
 +"<rect x='20' y='20' width='260' height='110' rx='10' fill='#fff' stroke='#c65b4e' stroke-width='2'/><text x='150' y='40' text-anchor='middle' font-size='11' font-weight='700' fill='#c65b4e'>Stuff everything</text>"
@@ -1092,11 +992,7 @@ c.lessons=[
 +"</svg><div class='diagram-cap'>Retrieval beats brute-force stuffing once the corpus outgrows a single prompt.</div></div>"
 +"<p><b>Long-context ordering:</b> put long reference documents near the top of the prompt and put your specific instructions/question at the end — this measurably improves accuracy versus the reverse order, because the task-focused text is freshest in context right before Claude answers.</p>"
 +"<p><b>Structure with delimiters:</b> XML-style tags (e.g. <code>&lt;document&gt;</code>, <code>&lt;instructions&gt;</code>) unambiguously separate content types so Claude doesn't blend source material with instructions — Claude is specifically trained to respect this kind of structure.</p>"
-+"<div class='exbox'><div class='lbl'>Worked example</div><pre>&lt;document&gt;\n[... 40 pages of contract text ...]\n&lt;/document&gt;\n\n&lt;instructions&gt;\nList every clause that references a termination date. Quote the exact sentence for each.\n&lt;/instructions&gt;</pre>Document first, instructions last, tags around each — this ordering is a direct, testable best practice.</div>"
-+"<p>It also helps to think of the context window as a budget you're actively managing rather than a container you fill and forget. Every extra token of boilerplate, irrelevant history, or redundant instructions competes for the model's attention with the content that actually matters to the current turn — trimming aggressively is a performance optimization, not just a cost one.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=MBDiJAWx8xk' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>What is RAG? Retrieval Augmented Generation explained</span><span class='vdesc'>The standard pattern for keeping large corpora out of the prompt until the relevant piece is actually needed.</span></span></a>"
-+"</div>"},
++"<div class='exbox'><div class='lbl'>Worked example</div><pre>&lt;document&gt;\n[... 40 pages of contract text ...]\n&lt;/document&gt;\n\n&lt;instructions&gt;\nList every clause that references a termination date. Quote the exact sentence for each.\n&lt;/instructions&gt;</pre>Document first, instructions last, tags around each — this ordering is a direct, testable best practice.</div>"},
 {h:"Security",b:"<p>Agentic and API-connected systems introduce security surface that simple chat use doesn't.</p>"
 +"<div class='diagram-box'><svg viewBox='0 0 600 160' xmlns='http://www.w3.org/2000/svg'>"
 +"<rect x='20' y='55' width='150' height='50' rx='10' fill='#fff' stroke='#8a8073' stroke-width='2'/><text x='95' y='76' text-anchor='middle' font-size='10' fill='#2b2620'>Untrusted content</text><text x='95' y='92' text-anchor='middle' font-size='9' fill='#8a8073'>(web page, email, doc)</text>"
@@ -1110,11 +1006,7 @@ c.lessons=[
 +"</svg><div class='diagram-cap'>Any agent that reads untrusted content and holds powerful tools has this exposure by default.</div></div>"
 +"<p><b>API key hygiene:</b> keys belong server-side only — in environment variables or a secrets manager — never embedded in frontend/client code or committed to a repo, where they'll be scraped and abused.</p>"
 +"<p><b>Prompt injection</b> is the signature agentic threat: untrusted content an agent reads (a fetched web page, an email, a document) can contain hidden instructions trying to hijack its behavior ('ignore previous instructions and...'). The mitigation is architectural: treat all fetched content as data, not instructions; sandbox and scope what the agent can do with untrusted input.</p>"
-+"<p><b>Least privilege:</b> give an agent only the tools and access scopes the task actually needs, and require explicit approval gates before destructive or irreversible actions (deleting data, sending communications, spending money).</p>"
-+"<p>Two more habits worth adopting from day one: validate and sanitize anything a tool returns before feeding it back to the model (a compromised or malfunctioning data source can inject instructions just as easily as a malicious web page can), and log every tool call your agent makes with enough detail to reconstruct what happened after the fact — you cannot debug or audit an incident in a system that didn't keep a record of its own actions.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=FdTCVfQU1gM' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Prompt Injection Explained: The Biggest AI Security Risk</span><span class='vdesc'>A focused walkthrough of how prompt injection works against agentic systems and how to defend against it.</span></span></a>"
-+"</div>"},
++"<p><b>Least privilege:</b> give an agent only the tools and access scopes the task actually needs, and require explicit approval gates before destructive or irreversible actions (deleting data, sending communications, spending money).</p>"},
 {h:"MCP",b:"<p>The <b>Model Context Protocol (MCP)</b> is an open standard for connecting AI applications to external tools and data sources — often described as 'USB-C for AI': one standard interface instead of a custom integration per data source.</p>"
 +"<div class='diagram-box'><svg viewBox='0 0 600 190' xmlns='http://www.w3.org/2000/svg'>"
 +"<rect x='230' y='20' width='140' height='50' rx='10' fill='#d97757'/><text x='300' y='50' text-anchor='middle' font-size='11' fill='#fff' font-weight='700'>Claude (MCP client)</text>"
@@ -1132,23 +1024,10 @@ c.lessons=[
 +"<li><b>Tools</b> — actions the model can invoke (run a query, send a message)</li>"
 +"<li><b>Resources</b> — data/context the client can read</li>"
 +"<li><b>Prompts</b> — reusable prompt templates the server provides</li>"
-+"</ul><p><b>Why it matters for developers:</b> rather than pasting an entire database or handing Claude raw credentials, you stand up (or connect to) an MCP server that wraps the data source in safe, well-scoped tools — Claude gets capability without direct access to secrets or raw systems.</p>"
-+"<p>Before MCP existed, every new data source meant writing a bespoke integration for every AI application that needed it — an M×N problem (M applications, N data sources, M×N integrations). MCP turns that into an M+N problem: each data source implements one MCP server, each application implements one MCP client, and any client can talk to any server. That combinatorial simplification is the actual reason MCP has spread so quickly, beyond the specific mechanics of tools/resources/prompts.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=7j_NE6Pjv-E' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Model Context Protocol, clearly explained</span><span class='vdesc'>Why MCP exists and the problem it solves, explained from first principles.</span></span></a>"
-+"<a href='https://www.youtube.com/watch?v=cGuyrANVi4A' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>How Model Context Protocol actually works</span><span class='vdesc'>A more mechanical look at the client/server exchange under the hood.</span></span></a>"
-+"</div>"}
++"</ul><p><b>Why it matters for developers:</b> rather than pasting an entire database or handing Claude raw credentials, you stand up (or connect to) an MCP server that wraps the data source in safe, well-scoped tools — Claude gets capability without direct access to secrets or raw systems.</p>"}
 ];})();
 (function(){const c=CERTS.find(x=>x.id==="ccaf");
 c.lessons=[
-{h:"Start Here: Foundations",foundation:true,b:"<p>Architect Foundations assumes you're comfortable with everything in the Developer cert — the Messages API, tool use, the basic agent loop, and MCP at a conceptual level. If those feel shaky, it's worth a detour through the Developer study guide first. What's new here is the shift in vantage point: instead of 'how do I write the code for one agent,' the question becomes 'given a business problem, what's the right shape of system, and why.'</p>"
-+"<h4>The architect's core question</h4><p>Every scenario in this cert is really asking the same thing in different clothes: <b>what is the simplest system that reliably solves this problem, and where exactly does it become unreliable?</b> Architecture is fundamentally about trade-offs — more orchestration buys capability but costs latency, money, and new failure modes; less orchestration is cheap and fast but breaks on anything the fixed path didn't anticipate. Good architects can articulate exactly where that line sits for a given problem, not just default to 'more agents' or 'fewer agents.'</p>"
-+"<h4>A note on the exam format</h4><p>The real CCA-F exam draws 4 of 6 possible scenarios (Customer Support Agent, Code Generation with Claude Code, Multi-Agent Research, Developer Productivity, Claude Code for CI, Structured Data Extraction), each anchoring about 15 questions. That means the same underlying knowledge — orchestration patterns, tool design, context management — gets tested repeatedly through different business framings. Learning the patterns deeply matters far more than memorizing any one scenario.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch first</div>"
-+"<a href='https://www.youtube.com/watch?v=uhJJgc-0iTQ' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Building more effective AI agents (Anthropic)</span><span class='vdesc'>Alex Albert and Erik from Anthropic discuss the thinking behind the 'Building Effective Agents' guide this whole domain is built on.</span></span></a>"
-+"<a href='https://www.youtube.com/watch?v=D7_ipDqhtwk' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>How We Build Effective Agents — Barry Zhang, Anthropic</span><span class='vdesc'>A conference talk covering the same territory with more live Q&A depth.</span></span></a>"
-+"</div>"
-+"<div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>This cert assumes Developer-level fluency with the API, tools, and basic agents.</li><li>Every scenario reduces to: what's the simplest reliable architecture, and where does it break?</li><li>The same core patterns repeat across all 6 possible exam scenarios — learn patterns, not scenarios.</li></ul></div>"},
 {h:"Agentic Architecture & Orchestration",b:"<p>The heaviest domain (27%) — this is about choosing the right shape of system for the job, and Anthropic's own guidance is explicit: <b>use the simplest pattern that works</b>, and escalate complexity only when the task demands it. Every extra layer of orchestration adds cost, latency, and failure surface.</p>"
 +"<div class='diagram-box'><svg viewBox='0 0 600 130' xmlns='http://www.w3.org/2000/svg'>"
 +"<rect x='10' y='45' width='90' height='40' rx='8' fill='#5a9e6f'/><text x='55' y='70' text-anchor='middle' font-size='9.5' fill='#fff'>Single prompt</text>"
@@ -1179,13 +1058,7 @@ c.lessons=[
 +"<defs><marker id='arroworch1' markerWidth='8' markerHeight='8' refX='6' refY='3' orient='auto'><path d='M0,0 L6,3 L0,6 Z' fill='#8a8073'/></marker></defs>"
 +"</svg><div class='diagram-cap'>Orchestrator-workers: the coordinator decomposes and later synthesizes; workers run in isolated contexts.</div></div>"
 +"<p><b>Reliability guardrails:</b> bound every agent loop with max iterations and repeated-failure detection so it can't spiral on a broken tool call; require human approval before irreversible, high-blast-radius actions.</p>"
-+"<div class='exbox'><div class='lbl'>Worked example</div>A customer support bot needs to: classify the ticket, look up the order, and draft a response. That's a fixed, predictable sequence → prompt chaining, not a full multi-agent system. A research tool asked to \"compare pricing strategies across 8 competitors\" has genuinely independent, parallelizable subtasks → orchestrator-workers is justified there.</div>"
-+"<h4>Routing and parallelization, in more depth</h4><p><b>Routing</b> works well when your inputs naturally cluster into distinct categories that benefit from different handling — a support system that routes billing questions to a handler with billing tools and refund questions to a handler with refund tools, instead of giving one agent both toolsets and hoping it always picks correctly. The router itself should usually be cheap and fast (a small model or even a simple classifier), since its only job is picking a lane.</p>"
-+"<p><b>Parallelization</b> comes in two flavors worth distinguishing: <i>sectioning</i> splits a task into independent pieces that are combined afterward (e.g., reviewing different sections of a long document simultaneously), while <i>voting</i> runs the same task multiple times and aggregates the results (e.g., three independent attempts at classifying a hard edge case, taking the majority answer) to improve reliability on tasks where a single pass is noisy.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=LP5OCa20Zpg' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Tips for building AI agents (Anthropic)</span><span class='vdesc'>Common pitfalls across these patterns, straight from Anthropic's applied AI team.</span></span></a>"
-+"<a href='https://www.youtube.com/watch?v=kL97Xmuy3vg' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Anthropic: Building Multi-Agent AI Research Systems</span><span class='vdesc'>A concrete case study of orchestrator-workers in production, including what went wrong along the way.</span></span></a>"
-+"</div>"},
++"<div class='exbox'><div class='lbl'>Worked example</div>A customer support bot needs to: classify the ticket, look up the order, and draft a response. That's a fixed, predictable sequence → prompt chaining, not a full multi-agent system. A research tool asked to \"compare pricing strategies across 8 competitors\" has genuinely independent, parallelizable subtasks → orchestrator-workers is justified there.</div>"},
 {h:"Claude Code Workflows",b:"<p>This domain (20%) tests how to structure agentic coding work for consistency and safety, not just 'how to prompt Claude Code.'</p>"
 +"<div class='diagram-box'><svg viewBox='0 0 600 110' xmlns='http://www.w3.org/2000/svg'>"
 +"<rect x='10' y='30' width='130' height='50' rx='9' fill='#fff' stroke='#8a6fae' stroke-width='2'/><text x='75' y='58' text-anchor='middle' font-size='10.5' fill='#8a6fae' font-weight='700'>Explore</text>"
@@ -1202,11 +1075,7 @@ c.lessons=[
 +"<p><b>Subagents</b> run delegated tasks in separate context windows, keeping the main session focused and enabling parallel work streams.</p>"
 +"<p><b>Hooks</b> are scripted actions that fire at lifecycle points (after an edit, before marking a task complete) — the mechanism for making verification (tests, lint) systematic and automatic rather than relying on the model remembering.</p>"
 +"<p><b>CI usage:</b> when Claude Code runs headlessly in a pipeline, scope its permissions tightly, never let it push directly to main, and route its changes through a PR a human reviews.</p>"
-+"<div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>Plan before you execute on anything non-trivial; get the plan reviewed.</li><li>CLAUDE.md + hooks turn 'please remember to test' into something enforced.</li><li>Headless/CI usage always needs scoped permissions and human-reviewed diffs.</li></ul></div>"
-+"<h4>Why 'plan first' works so well</h4><p>The plan step matters more than it looks. When Claude Code explores a codebase and produces a written plan before touching any files, you get a cheap, fast checkpoint to catch a misunderstanding — a wrong assumption about the codebase, a missed edge case, an approach that technically works but violates a convention — before any code has been written. Catching that in a two-paragraph plan takes seconds; catching it after 300 lines of generated code takes much longer and often means starting over. This is the same principle as code review, just moved earlier in the loop.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=AOfogJZ70OQ' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Mastering Claude Code in 30 Minutes (Anthropic)</span><span class='vdesc'>An Anthropic engineer's own walkthrough of the plan-then-execute workflow, CLAUDE.md, and subagents.</span></span></a>"
-+"</div>"},
++"<div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>Plan before you execute on anything non-trivial; get the plan reviewed.</li><li>CLAUDE.md + hooks turn 'please remember to test' into something enforced.</li><li>Headless/CI usage always needs scoped permissions and human-reviewed diffs.</li></ul></div>"},
 {h:"Prompt Engineering & Structured Output",b:"<p>At the architect level, prompting is treated as a designed contract, not improvisation.</p>"
 +"<p><b>Structured output:</b> when a downstream system needs machine-parseable results with exact fields, constrain generation to a schema (a tool with a strict input schema, or explicit format constraints) and validate the result downstream anyway — never rely on free-form text plus a regex parser.</p>"
 +"<div class='exbox'><div class='lbl'>Worked example — prefilling</div>To force strict JSON, define a schema-constrained tool AND, if using free text, prefill the response start:<pre>assistant turn prefilled with: \"{\"</pre>This forces generation to continue as JSON rather than starting with \"Sure, here's the data:\" — a small trick with an outsized reliability payoff.</div>"
@@ -1221,11 +1090,7 @@ c.lessons=[
 +"<defs><marker id='arroweo1' markerWidth='8' markerHeight='8' refX='6' refY='3' orient='auto'><path d='M0,0 L6,3 L0,6 Z' fill='#8a8073'/></marker></defs>"
 +"</svg><div class='diagram-cap'>Evaluator-optimizer loop — trades tokens for quality, use where it's worth it.</div></div>"
 +"<p><b>Multi-pass review (evaluator-optimizer):</b> a draft → critique → revise loop trades extra tokens for quality — appropriate when the value of catching errors outweighs the added cost/latency.</p>"
-+"<p><b>Scaling prompts across a product:</b> treat prompts like code — a shared, versioned system-prompt component included across many prompts keeps policy and tone coherent instead of copy-pasted and drifting.</p>"
-+"<p>A useful test for whether a prompt is architecturally sound: could someone else on your team modify it without breaking the parts they don't understand? If a prompt is one giant undifferentiated block of instructions, the answer is usually no — small changes ripple unpredictably. Structuring prompts into clearly labeled sections (role, task, constraints, output format, examples) makes them reviewable and maintainable the same way clear function boundaries make code maintainable.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=T9aRN5JkmL8' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>AI prompt engineering: a deep dive (Anthropic)</span><span class='vdesc'>Anthropic's prompting team on structuring and maintaining prompts at scale.</span></span></a>"
-+"</div>"},
++"<p><b>Scaling prompts across a product:</b> treat prompts like code — a shared, versioned system-prompt component included across many prompts keeps policy and tone coherent instead of copy-pasted and drifting.</p>"},
 {h:"Tool Design & MCP Integration",b:"<p>Tool design is architecture, not an afterthought — bad tool design is the most common root cause of agent misbehavior.</p>"
 +"<h4>Design principles</h4><ul>"
 +"<li>Prefer a small number of well-named, clearly documented tools with distinct, non-overlapping purposes over many overlapping micro-tools — overlap causes wrong selections</li>"
@@ -1239,11 +1104,7 @@ c.lessons=[
 +"</svg><div class='diagram-cap'>Fewer, sharper tools beat many overlapping ones.</div></div>"
 +"<p><b>When to reach for MCP</b> specifically: when a capability should be reusable across multiple clients/agents through a standard interface, not just inside one app.</p>"
 +"<p><b>Security in tool/MCP design:</b> least privilege (e.g., read-only access to a database replica, not production write access), query limits/allowlists, and audit logging — tool design and security design are the same exercise.</p>"
-+"<div class='pitbox'><div class='lbl'>Common mistake</div>Giving an agent one generic 'do_anything' tool that takes arbitrary code or SQL 'for flexibility.' This maximizes both misuse risk and the model's chance of picking a wrong or dangerous action — the opposite of good tool design.</div>"
-+"<p>Think of a tool's description as documentation aimed at a very literal-minded reader who will act on it immediately. Vague verbs ('handles orders'), missing boundary conditions (what happens with an invalid ID?), and undocumented side effects (does calling this actually change data, or just read it?) are exactly the gaps that produce wrong tool calls in production even when they never showed up in testing — because testing rarely covers every ambiguous edge case a live model will eventually hit.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=7j_NE6Pjv-E' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Model Context Protocol, clearly explained</span><span class='vdesc'>Grounds the tool-design principles in MCP's actual tools/resources/prompts model.</span></span></a>"
-+"</div>"},
++"<div class='pitbox'><div class='lbl'>Common mistake</div>Giving an agent one generic 'do_anything' tool that takes arbitrary code or SQL 'for flexibility.' This maximizes both misuse risk and the model's chance of picking a wrong or dangerous action — the opposite of good tool design.</div>"},
 {h:"Context Management & Reliability",b:"<p>Long-running or complex agentic systems fail in specific, recognizable ways — this domain tests recognizing and preventing them.</p>"
 +"<div class='diagram-box'><svg viewBox='0 0 600 140' xmlns='http://www.w3.org/2000/svg'>"
 +"<text x='20' y='20' font-size='10.5' fill='#8a8073'>Context window fill over a long-running task</text>"
@@ -1259,22 +1120,10 @@ c.lessons=[
 +"<p><b>Retrieval strategy:</b> when a corpus far exceeds the context window and most of it is irrelevant to any given query, retrieve just-in-time (search, agentic file exploration) rather than preloading everything.</p>"
 +"<p><b>Failure resilience:</b> plan for model outages or degraded responses with retries (backoff), fallback model tiers, circuit breakers, and graceful degradation — not just hope.</p>"
 +"<p><b>Division of labor:</b> deterministic logic (exact math, date calculations, ID validation) belongs in code/tools, not in model-generated text — let the model orchestrate and interpret, let code compute precisely.</p>"
-+"<div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>Compact proactively on a schedule, don't wait for visible failures.</li><li>Just-in-time retrieval scales; preloading everything doesn't.</li><li>Math and exact lookups belong in tools, not model text generation.</li></ul></div>"
-+"<p>A practical compaction trigger to design around: rather than waiting for the context window to fill completely, pick a threshold (say, 70-80% utilization) and compact proactively at that point. This leaves headroom for the summarization step itself and for whatever the agent needs to do immediately after — waiting until the window is nearly full leaves no room to maneuver and often forces an abrupt, lossy truncation instead of a deliberate summary.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=-uW5-TaVXu4' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Most devs don't understand how context windows work</span><span class='vdesc'>Directly relevant to designing compaction and retrieval strategy for long-running agents.</span></span></a>"
-+"</div>"}
++"<div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>Compact proactively on a schedule, don't wait for visible failures.</li><li>Just-in-time retrieval scales; preloading everything doesn't.</li><li>Math and exact lookups belong in tools, not model text generation.</li></ul></div>"}
 ];})();
 (function(){const c=CERTS.find(x=>x.id==="ccap");
 c.lessons=[
-{h:"Start Here: Foundations",foundation:true,b:"<p>Professional assumes everything in Architect Foundations — the orchestration pattern ladder, Claude Code workflows, tool/MCP design, context management — as settled knowledge. What's new at this level is scale and consequence: instead of designing one agent for one task, you're designing systems that run continuously, serve many users concurrently, cost real money at volume, and fail in front of customers if something goes wrong.</p>"
-+"<h4>The shift in mindset</h4><p>Foundations-level thinking asks 'does this architecture work?' Professional-level thinking asks 'does this architecture keep working at 100x the load, survive a bad model response, stay within budget, and produce an audit trail when something goes wrong?' Nearly every Professional domain is a Foundations concept re-examined under the added pressures of scale, cost, and accountability: orchestration becomes multi-agent fleet management, tool design becomes tool security and governance, context management becomes reliability engineering.</p>"
-+"<h4>How to study for this level</h4><p>Because Professional questions are scenario-based and assume you already know the Foundations material cold, the highest-leverage prep is: (1) make sure Foundations concepts are second nature, then (2) for each Professional domain, ask yourself 'what specifically breaks about the Foundations-level approach once this runs continuously, in production, at scale?' That question is essentially the exam.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch first</div>"
-+"<a href='https://www.youtube.com/watch?v=0HljLKVdtjo' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>How Anthropic Built a Multi-Agent AI Research System + Tips for Your Own</span><span class='vdesc'>A real production system that hits nearly every Professional-level theme: cost, reliability, orchestration at scale.</span></span></a>"
-+"<a href='https://www.youtube.com/watch?v=mR-WAvEPRwE' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Anthropic Workshop: Build Agents That Run for Hours</span><span class='vdesc'>Long-running agent design — directly relevant to reliability, checkpointing, and resumability.</span></span></a>"
-+"</div>"
-+"<div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>Professional = Foundations concepts re-examined under scale, cost, and accountability pressure.</li><li>For every domain, ask: what breaks about the simple approach at production scale?</li><li>Solid Foundations knowledge is a prerequisite, not a separate topic to relearn.</li></ul></div>"},
 {h:"Multi-Agent Systems at Scale",b:"<p>Professional-level architecture is about what changes when you go from one agent to a fleet.</p>"
 +"<div class='diagram-box'><svg viewBox='0 0 600 190' xmlns='http://www.w3.org/2000/svg'>"
 +"<rect x='230' y='10' width='140' height='40' rx='9' fill='#c65b4e'/><text x='300' y='34' text-anchor='middle' font-size='10.5' fill='#fff' font-weight='700'>Orchestrator</text>"
@@ -1294,11 +1143,7 @@ c.lessons=[
 +"<li><b>Specialization beats a mega-agent:</b> a router to several specialist agents, each with a focused ~10-tool set, produces fewer tool-selection errors and less context bloat than one agent juggling 40 tools</li>"
 +"<li><b>Resumability:</b> long-horizon agents need durable, externalized state (a task ledger/checkpoints) so a process restart resumes from the last known-good step instead of starting over</li>"
 +"</ul><p><b>When parallelization is worth the cost:</b> breadth-heavy, independently-explorable work (e.g., broad research) is where multi-agent parallelism's extra token cost (Anthropic's own research cites roughly 15x) pays for itself; it's a poor fit for simple or narrow tasks.</p>"
-+"<div class='exbox'><div class='lbl'>Worked example</div>A market-research system asked to profile 8 competitors dispatches one worker per competitor, each returning a 200-word structured summary with citations. The orchestrator synthesizes 8 summaries (~1,600 words) instead of 8 full research transcripts (~20,000+ words) — the same insight at a fraction of the context cost.</div>"
-+"<p>Anthropic's own published research on their multi-agent research system is worth internalizing in detail: they found token usage alone explains roughly 80% of the variance in performance across agent configurations, that multi-agent systems excel specifically at breadth-first queries where parallel exploration beats sequential depth, and that the coordination overhead of getting orchestration right (prompt engineering the orchestrator, preventing duplicate work, synthesizing cleanly) is nontrivial engineering effort in its own right — not a solved problem you get for free by adding more agents.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=0HljLKVdtjo' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>How Anthropic Built a Multi-Agent AI Research System</span><span class='vdesc'>The primary source for the token-usage and breadth-first findings referenced above.</span></span></a>"
-+"</div>"},
++"<div class='exbox'><div class='lbl'>Worked example</div>A market-research system asked to profile 8 competitors dispatches one worker per competitor, each returning a 200-word structured summary with citations. The orchestrator synthesizes 8 summaries (~1,600 words) instead of 8 full research transcripts (~20,000+ words) — the same insight at a fraction of the context cost.</div>"},
 {h:"Reliability & Error Recovery",b:"<p>Production agent systems are judged on how they fail, not just how they succeed.</p>"
 +"<div class='diagram-box'><svg viewBox='0 0 600 130' xmlns='http://www.w3.org/2000/svg'>"
 +"<rect x='10' y='40' width='120' height='44' rx='9' fill='#fff' stroke='#5b7fa6' stroke-width='2'/><text x='70' y='60' text-anchor='middle' font-size='9.5' fill='#5b7fa6' font-weight='700'>Retry</text><text x='70' y='74' text-anchor='middle' font-size='8' fill='#2b2620'>w/ backoff</text>"
@@ -1317,11 +1162,7 @@ c.lessons=[
 +"<li><b>Handling ambiguity:</b> in high-stakes workflows, an agent encountering ambiguous instructions should detect that and ask for clarification or escalate to a human — not silently guess and act</li>"
 +"<li><b>Partial delivery:</b> persist intermediate results as the agent works, so a failure at 95% still delivers 95% of the value instead of nothing</li>"
 +"</ul>"
-+"<div class='pitbox'><div class='lbl'>Common mistake</div>A single retry-or-fail branch with no fallback tier, no cached response, and no human path. One transient timeout then takes down the whole user-facing feature instead of degrading gracefully.</div>"
-+"<p>Reliability engineering for agents borrows heavily from classical distributed-systems practice, just applied to a probabilistic component instead of a deterministic one: circuit breakers stop hammering a failing dependency, timeouts prevent one slow call from blocking everything behind it, bulkheads isolate failures so one bad tenant or task type can't take down the whole system, and health checks decide when a fallback path should activate versus recover. The novelty with agents isn't the reliability patterns themselves — it's that the 'service' you're protecting against can fail in semantically weird ways (a technically successful response that's subtly wrong) that classical monitoring wasn't built to catch.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=mR-WAvEPRwE' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Anthropic Workshop: Build Agents That Run for Hours</span><span class='vdesc'>Long-running, failure-resilient agent design straight from Anthropic engineers.</span></span></a>"
-+"</div>"},
++"<div class='pitbox'><div class='lbl'>Common mistake</div>A single retry-or-fail branch with no fallback tier, no cached response, and no human path. One transient timeout then takes down the whole user-facing feature instead of degrading gracefully.</div>"},
 {h:"Cost, Latency & Model Strategy",b:"<p>At scale, cost and latency decisions are architecture decisions, made with evidence rather than intuition.</p>"
 +"<div class='diagram-box'><svg viewBox='0 0 600 150' xmlns='http://www.w3.org/2000/svg'>"
 +"<text x='20' y='18' font-size='10.5' fill='#8a8073'>Pipeline: classify → extract → draft → polish</text>"
@@ -1336,11 +1177,7 @@ c.lessons=[
 +"<li><b>Model tiering:</b> route each step of a pipeline to the cheapest model that meets that step's quality bar — verified with evals, not guessed — reserving top-tier models for the steps that actually need them (using Opus-class for trivial formatting is the textbook anti-pattern)</li>"
 +"<li><b>Prompt caching at volume:</b> for a large, stable system prompt/tool set called at high frequency, caching the stable prefix is the single biggest cost lever available</li>"
 +"<li><b>Matching inference settings to the step:</b> latency-sensitive interactive steps want a fast model (often streamed); quality-sensitive async/back-office steps can afford a stronger model, possibly with an extended-thinking budget</li>"
-+"</ul><p><b>Extended thinking budgets</b> should be set empirically, per task class, based on evals showing where the added reasoning actually improves outcomes — not maxed out everywhere by default.</p>"
-+"<p>At meaningful scale, cost strategy and reliability strategy start to overlap: a fallback model tier (used for graceful degradation) can double as a cost-saving default for lower-priority traffic, and caching (used for cost) also reduces latency, which improves the user-facing reliability of interactive steps. Professional-level architects design these levers together rather than optimizing cost and reliability as separate, uncoordinated efforts — the same infrastructure investment often pays off on both fronts at once.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=SWE0LV0xnZ4' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>How LLMs work: tokens, context windows, and API costs explained</span><span class='vdesc'>The token-level mechanics behind every cost lever discussed in this lesson.</span></span></a>"
-+"</div>"},
++"</ul><p><b>Extended thinking budgets</b> should be set empirically, per task class, based on evals showing where the added reasoning actually improves outcomes — not maxed out everywhere by default.</p>"},
 {h:"Evaluation & Observability",b:"<p>You can't manage what you can't measure — this domain is about building the feedback loops that let a production agent system improve safely.</p>"
 +"<div class='diagram-box'><svg viewBox='0 0 600 160' xmlns='http://www.w3.org/2000/svg'>"
 +"<rect x='20' y='20' width='170' height='110' rx='10' fill='#fff' stroke='#5b7fa6' stroke-width='2'/><text x='105' y='42' text-anchor='middle' font-size='10.5' fill='#5b7fa6' font-weight='700'>Step traces</text><text x='34' y='64' font-size='9' fill='#2b2620'>tool calls, inputs/</text><text x='34' y='79' font-size='9' fill='#2b2620'>outputs, tokens,</text><text x='34' y='94' font-size='9' fill='#2b2620'>latency</text>"
@@ -1352,12 +1189,7 @@ c.lessons=[
 +"<li><b>Eval-gated changes:</b> before shipping a prompt or model change to a production agent, run it against a versioned eval suite of representative and edge/failure cases and compare to the incumbent — 'it reads better to me' is not a regression strategy</li>"
 +"<li><b>What good eval sets look like:</b> built from real representative cases plus curated hard/edge cases and known past failures, refreshed over time — not synthetic easy questions or a single demo transcript</li>"
 +"<li><b>LLM-as-judge:</b> using a model to grade outputs at scale must be calibrated against human-labeled examples until agreement is acceptable before it's trusted as a gate — an uncalibrated judge is worse than no automated eval</li>"
-+"</ul><p><b>Responding to drift:</b> if quality metrics drop after a model version update, the professional response is to rerun the eval suite to localize which segments regressed, then patch prompts or pin/route model versions accordingly — not blanket panic-rollback or ignoring it.</p>"
-+"<p>A mature eval program usually has three layers running at different cadences: fast unit-style checks on every prompt/code change (does the output still parse, does it still pass basic sanity rules), a fuller eval suite run before any production deploy (the representative + edge-case set discussed above), and slower, ongoing production monitoring (sampled human review, outcome metrics, drift detection) that catches things the pre-deploy suite didn't anticipate. Relying on only one layer — especially only the pre-deploy suite — is a common gap; real-world traffic reliably surfaces cases no eval set fully covers.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=a3SMraZWNNs' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>How to Systematically Setup LLM Evals</span><span class='vdesc'>Covers metrics, unit tests, and LLM-as-a-judge — the layered eval approach in practice.</span></span></a>"
-+"<a href='https://www.youtube.com/watch?v=szJKSBFaMBs' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Don't Vibe Check Your LLMs</span><span class='vdesc'>Makes the case for real observability and evaluation over ad hoc spot-checking.</span></span></a>"
-+"</div>"},
++"</ul><p><b>Responding to drift:</b> if quality metrics drop after a model version update, the professional response is to rerun the eval suite to localize which segments regressed, then patch prompts or pin/route model versions accordingly — not blanket panic-rollback or ignoring it.</p>"},
 {h:"Security & Governance of Agents",b:"<p>The final domain covers what changes when agents have real permissions and touch real (often sensitive) data.</p>"
 +"<div class='diagram-box'><svg viewBox='0 0 600 150' xmlns='http://www.w3.org/2000/svg'>"
 +"<rect x='20' y='55' width='150' height='50' rx='10' fill='#fff' stroke='#8a8073' stroke-width='2'/><text x='95' y='76' text-anchor='middle' font-size='10' fill='#2b2620'>Untrusted content</text><text x='95' y='92' text-anchor='middle' font-size='9' fill='#8a8073'>web pages, emails</text>"
@@ -1374,12 +1206,7 @@ c.lessons=[
 +"<li><b>PII handling:</b> minimize what flows through the pipeline, mask/redact before model calls where feasible, control access to traces (traces are data too), and enforce retention limits — governance extends to your observability artifacts, not just the primary data</li>"
 +"<li><b>Prompts as production config:</b> treat system-prompt changes to a production agent like any other production code change — authorized roles, review, eval gates, versioned deploys, and a rollback plan</li>"
 +"</ul><p><b>Concurrency at scale:</b> scaling from one session to many concurrent agent sessions sharing tools and rate limits requires central concurrency management — queues, per-session budgets, and backpressure — so sessions degrade fairly under load instead of starving each other.</p>"
-+"<div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>Least privilege + approval gates + audit logs is the non-negotiable baseline for high-impact tools.</li><li>Untrusted content and powerful tools must never mix without an isolation boundary.</li><li>Prompts, like code, need change control once they're in production.</li></ul></div>"
-+"<p>It's worth naming the underlying tension explicitly: every capability you give an agent (browsing the web, writing to a database, sending communications, spending money) is simultaneously what makes it useful and what makes it dangerous if misdirected — by a bug, a bad prompt, or an injection attack. There's no configuration that eliminates this tension; governance is the discipline of consciously choosing, for each capability, how much value it's worth versus how much blast radius you're willing to accept, and building the guardrails (scoping, approval, audit) proportional to that choice rather than uniformly everywhere or nowhere.</p>"
-+"<div class='vbox'><div class='lbl'>📺 Watch</div>"
-+"<a href='https://www.youtube.com/watch?v=deskRemQCSw' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>What Is Prompt Injection? (And Why It's the #1 AI Security Risk)</span><span class='vdesc'>Ties the injection kill-chain directly to why governance and approval gates matter at the system level.</span></span></a>"
-+"<a href='https://www.youtube.com/watch?v=yh-3WU1FKrk' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>What is Responsible AI? A Guide to AI Governance</span><span class='vdesc'>Organization-level governance framing that applies directly to production agent fleets.</span></span></a>"
-+"</div>"}
++"<div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>Least privilege + approval gates + audit logs is the non-negotiable baseline for high-impact tools.</li><li>Untrusted content and powerful tools must never mix without an isolation boundary.</li><li>Prompts, like code, need change control once they're in production.</li></ul></div>"}
 ];})();
 
 </script>
