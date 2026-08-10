@@ -179,7 +179,7 @@
 <div class="wrap">
   <div class="hdr" id="hdr"></div>
   <div id="app"></div>
-  <div class="footer-note">Unofficial study companion. Question content is original practice material inspired by published exam blueprints — always check <b>anthropic.com</b> for official exam guides.</div>
+  <div class="footer-note">Unofficial study companion — not affiliated with or endorsed by Anthropic. Every question and lesson here is original practice material, <b>not</b> real exam content. Exam format, domain weightings, and passing scores are published only in the official exam guides in <b>Anthropic Partner Academy</b> — verify there before relying on anything shown here.</div>
 </div>
 <div id="toast"></div>
 
@@ -188,18 +188,18 @@
 /* ================= DATA ================= */
 const CERTS = [
  {id:"ccao", code:"CCAO-F", name:"Claude Certified Associate", sub:"Foundations", price:"$99", em:"🎯", color:"#5a9e6f",
-  blurb:"For professionals using Claude as a daily productivity tool.",
+  blurb:"For consultants, sellers, and delivery leads who guide customers toward the right Claude use cases.",
   domains:["Prompting","Output Evaluation","Model Selection","Workflow Integration","Knowledge Management","Governance & Risk","Troubleshooting"],
   questions:[], cards:[]},
  {id:"ccdv", code:"CCDV-F", name:"Claude Certified Developer", sub:"Foundations", price:"$125", em:"🛠️", color:"#5b7fa6",
-  blurb:"For engineers building and shipping Claude-powered applications.",
+  blurb:"For engineers who build with the Claude API, Claude Code, and Model Context Protocol.",
   domains:["API Mechanics","Tool Use & Structured Output","Agents & SDK","Model Selection & Cost","Prompt & Context Engineering","Security","MCP"],
   questions:[], cards:[]},
- {id:"ccaf", code:"CCA-F", name:"Claude Certified Architect", sub:"Foundations", price:"$125", em:"🏛️", em2:"🏛️", color:"#d97757",
-  blurb:"For designers of Claude-powered agentic systems.",
+ {id:"ccaf", code:"CCAR-F", name:"Claude Certified Architect", sub:"Foundations", price:"$125", em:"🏛️", color:"#d97757",
+  blurb:"For partners who design Claude solutions end to end — deployment platforms and agentic architectures.",
   domains:["Agentic Architecture & Orchestration","Claude Code Workflows","Prompt Engineering & Structured Output","Tool Design & MCP Integration","Context Management & Reliability"],
   questions:[], cards:[]},
- {id:"ccap", code:"CCA-P", name:"Claude Certified Architect", sub:"Professional", price:"$175", em:"👑", color:"#8a6fae",
+ {id:"ccap", code:"CCAR-P", name:"Claude Certified Architect", sub:"Professional", price:"$175", em:"👑", color:"#8a6fae",
   blurb:"Advanced, scenario-driven agentic system design at production scale.",
   domains:["Multi-Agent Systems at Scale","Reliability & Error Recovery","Cost, Latency & Model Strategy","Evaluation & Observability","Security & Governance of Agents"],
   questions:[], cards:[]}
@@ -215,15 +215,15 @@ const BADGES = [
  {id:"mock1", em:"⏱️", name:"Dress Rehearsal", desc:"Finish a mock exam"},
  {id:"pass_ccao", em:"🎯", name:"Associate Ace", desc:"Pass a CCAO-F mock (720+)"},
  {id:"pass_ccdv", em:"🛠️", name:"Developer Dynamo", desc:"Pass a CCDV-F mock (720+)"},
- {id:"pass_ccaf", em:"🏛️", name:"Architect Apprentice", desc:"Pass a CCA-F mock (720+)"},
- {id:"pass_ccap", em:"👑", name:"Grand Architect", desc:"Pass a CCA-P mock (720+)"},
+ {id:"pass_ccaf", em:"🏛️", name:"Architect Apprentice", desc:"Pass a CCAR-F mock (720+)"},
+ {id:"pass_ccap", em:"👑", name:"Grand Architect", desc:"Pass a CCAR-P mock (720+)"},
  {id:"allseen", em:"🗺️", name:"Cartographer", desc:"Try every certification"},
  {id:"perfect10", em:"💎", name:"Flawless", desc:"Perfect 10-question quiz round"},
  {id:"streak3", em:"📅", name:"Habit Forming", desc:"3-day study streak"},
  {id:"scholar_ccao", em:"📘", name:"Associate Scholar", desc:"Read every CCAO-F lesson"},
  {id:"scholar_ccdv", em:"📗", name:"Developer Scholar", desc:"Read every CCDV-F lesson"},
- {id:"scholar_ccaf", em:"📙", name:"Architect Scholar", desc:"Read every CCA-F lesson"},
- {id:"scholar_ccap", em:"📕", name:"Master Scholar", desc:"Read every CCA-P lesson"},
+ {id:"scholar_ccaf", em:"📙", name:"Architect Scholar", desc:"Read every CCAR-F lesson"},
+ {id:"scholar_ccap", em:"📕", name:"Master Scholar", desc:"Read every CCAR-P lesson"},
  {id:"polymath", em:"🎓", name:"Polymath", desc:"Complete the study guide for all 4 certifications"}
 ];
 
@@ -235,8 +235,24 @@ const store = {
   get(){ try{ return JSON.parse(localStorage.getItem("certquest")||"null"); }catch(e){ return mem.d||null; } },
   set(d){ try{ localStorage.setItem("certquest", JSON.stringify(d)); }catch(e){ mem.d=d; } }
 };
-let S = store.get() || {xp:0, badges:[], seenCerts:[], answered:{}, cardsSeen:0, days:[], mocks:{}, domStats:{}, lessonsRead:{}};
-S.domStats = S.domStats || {}; S.mocks = S.mocks || {}; S.days = S.days || []; S.lessonsRead = S.lessonsRead || {};
+const S_DEFAULTS = {v:1, xp:0, badges:[], seenCerts:[], answered:{}, cardsSeen:0, days:[], mocks:{}, domStats:{}, lessonsRead:{}};
+/* Repair any saved field with a missing or wrong-shaped value, so older or partial
+   saves can't throw (badges/answered) or silently go NaN (xp/cardsSeen). */
+function migrate(raw){
+  const s = Object.assign({}, S_DEFAULTS, raw||{});
+  for(const k of Object.keys(S_DEFAULTS)){
+    const def = S_DEFAULTS[k];
+    let ok;
+    if(Array.isArray(def)) ok = Array.isArray(s[k]);
+    else if(typeof def === "object") ok = !!s[k] && typeof s[k] === "object" && !Array.isArray(s[k]);
+    else if(typeof def === "number") ok = typeof s[k] === "number" && isFinite(s[k]);
+    else ok = typeof s[k] === typeof def;
+    if(!ok) s[k] = Array.isArray(def) ? [] : (typeof def === "object" ? {} : def);
+  }
+  s.v = S_DEFAULTS.v;
+  return s;
+}
+let S = migrate(store.get());
 (function(){ const t=new Date().toISOString().slice(0,10); if(!S.days.includes(t)){S.days.push(t); save();} checkDayStreak(); })();
 
 function save(){ store.set(S); }
@@ -325,7 +341,7 @@ function home(){
   $("app").innerHTML=h;
 }
 function resetConfirm(){
-  if(confirm("Reset all XP, badges, and progress?")){ S={xp:0,badges:[],seenCerts:[],answered:{},cardsSeen:0,days:[new Date().toISOString().slice(0,10)],mocks:{},domStats:{},lessonsRead:{}}; save(); home(); toast("Progress reset"); }
+  if(confirm("Reset all XP, badges, and progress?")){ S=migrate(null); S.days=[new Date().toISOString().slice(0,10)]; save(); home(); toast("Progress reset"); }
 }
 function badgesView(){
   renderHeader();
@@ -358,13 +374,13 @@ function certView(id){
   $("app").innerHTML =
    '<button class="back" onclick="home()">← All certifications</button>'
    +'<div class="panel"><div style="display:flex; gap:14px; align-items:center;"><div style="font-size:38px;">'+c.em+'</div>'
-   +'<div><h2 style="font-size:19px;">'+c.name+' – '+c.sub+'</h2><div class="code" style="color:var(--muted); font-size:12px;">'+c.code+' · '+c.price+' · 60 questions · 120 min · pass 720/1000</div>'
+   +'<div><h2 style="font-size:19px;">'+c.name+' – '+c.sub+'</h2><div class="code" style="color:var(--muted); font-size:12px;">'+c.code+' · '+c.price+' · see the official exam guide for format</div>'
    +'<div style="font-size:13px; margin-top:4px; color:var(--muted);">'+c.blurb+'</div></div></div>'
    +'<div class="modes">'
    +'<div class="mode" onclick="startLearn(\''+id+'\')"><div class="em">📖</div><h4>Study Guide</h4><p>Learn every domain before you drill it — '+lp.total+' lessons ('+lp.done+' read)</p></div>'
    +'<div class="mode" onclick="startQuiz(\''+id+'\')"><div class="em">⚔️</div><h4>Quiz Battle</h4><p>10 questions, instant feedback, combo XP</p></div>'
    +'<div class="mode" onclick="startCards(\''+id+'\')"><div class="em">🃏</div><h4>Flashcards</h4><p>Flip-card drills on key concepts</p></div>'
-   +'<div class="mode" onclick="startMock(\''+id+'\')"><div class="em">⏱️</div><h4>Mock Exam</h4><p>20 questions, 40 min, scaled score like the real thing</p></div>'
+   +'<div class="mode" onclick="startMock(\''+id+'\')"><div class="em">⏱️</div><h4>Mock Exam</h4><p>20 questions, 40 min, practice scoring</p></div>'
    +'</div></div>'
    +'<div class="panel"><h3 style="font-size:15px; margin-bottom:10px;">📊 Domain mastery</h3>'+doms+'</div>';
 }
@@ -611,8 +627,8 @@ function finishMock(){
   }
   $("app").innerHTML='<div class="panel center"><h2 style="font-size:20px;">'+c.code+' Mock Exam Results</h2>'
    +'<div class="bigscore" style="color:'+(pass?"var(--green)":"var(--red)")+'">'+scaled+'</div>'
-   +'<div class="verdict '+(pass?"pass":"fail")+'">'+(pass?"PASS — you cleared 720! 🎉":"Below 720 — keep drilling!")+'</div>'
-   +'<div class="subtext">'+correct+'/'+M.idxs.length+' correct · scaled to the real exam\'s 100–1000 range · pass mark 720</div>'
+   +'<div class="verdict '+(pass?"pass":"fail")+'">'+(pass?"Cleared the 720 practice benchmark! 🎉":"Below the 720 practice benchmark — keep drilling!")+'</div>'
+   +'<div class="subtext">'+correct+'/'+M.idxs.length+' correct · practice score on a 100–1000 scale · 720 is this app\'s own benchmark, not a verified official pass mark</div>'
    +missHtml
    +'<div class="rowbtns" style="justify-content:center;"><button class="btn" onclick="startMock(\''+c.id+'\')">⏱️ Retake mock</button>'
    +'<button class="btn ghost" onclick="certView(\''+c.id+'\')">Back to '+c.code+'</button></div></div>';
@@ -642,7 +658,7 @@ c.questions=[
 {d:3,q:"To integrate Claude output into a spreadsheet-based process with least friction, you should ask Claude to:",opts:["Respond in prose paragraphs","Produce output in a structured format like CSV or a table matching your columns","Describe the data verbally","Use creative formatting"],a:1,exp:"Matching Claude's output format to the downstream tool (structured/tabular) makes integration seamless."},
 {d:4,q:"What is the main benefit of adding curated documents to a Project's knowledge?",opts:["It trains the underlying model permanently","Claude grounds responses in your specific, relevant content across conversations","It removes the context limit","It makes responses faster"],a:1,exp:"Project knowledge grounds answers in your documents per-conversation; it does not retrain the model."},
 {d:4,q:"Your Project knowledge contains an outdated policy doc and Claude keeps citing it. Best fix?",opts:["Ask Claude to ignore old things","Remove or replace the outdated document in the knowledge source","Start using a bigger model","Repeat the question until the answer changes"],a:1,exp:"Knowledge management means curating sources: stale documents in, stale answers out."},
-{d:5,q:"A teammate wants to paste customers' personal data into Claude to draft emails. The FIRST consideration is:",opts:["Whether the prompt is well-written","Your organization's data-handling policy and whether that data is approved for the tool","Which model is cheapest","How fast Claude responds"],a:1,exp:"Governance & Risk (15% of the exam): data classification and organizational policy come before convenience."},
+{d:5,q:"A teammate wants to paste customers' personal data into Claude to draft emails. The FIRST consideration is:",opts:["Whether the prompt is well-written","Your organization's data-handling policy and whether that data is approved for the tool","Which model is cheapest","How fast Claude responds"],a:1,exp:"Governance & Risk: data classification and organizational policy come before convenience."},
 {d:5,q:"Which practice BEST reflects responsible AI use at work?",opts:["Presenting Claude's work as entirely your own analysis without review","Disclosing AI assistance where required and reviewing outputs before use","Letting Claude auto-send external emails","Using AI only in secret"],a:1,exp:"Responsible use pairs transparency (where policy requires) with human review before outputs are used."},
 {d:5,q:"Claude declines a request related to your security research. The appropriate response is:",opts:["Rephrase to trick it","Provide legitimate context, and if still declined, escalate through appropriate channels","Threaten it","Assume the feature is broken"],a:1,exp:"Adding legitimate context is fine; attempting to bypass safety guardrails is not. Escalate via proper channels if needed."},
 {d:6,q:"Claude's answers get noticeably worse late in a very long conversation. Likely cause and fix?",opts:["The model got tired — wait an hour","Accumulated context is diluting focus — start a fresh conversation with a summary of key points","Your account is throttled","The model was downgraded mid-chat"],a:1,exp:"Long conversations accumulate noise. Starting fresh with a distilled summary is the standard troubleshooting move."},
@@ -699,8 +715,8 @@ c.cards=[
 ];})();
 (function(){const c=CERTS.find(x=>x.id==="ccao");
 c.cards=[
-{f:"What are the 7 CCAO-F exam domains?",b:"Prompting · Output Evaluation (21%, heaviest) · Model Selection · Workflow Integration · Knowledge Management · Governance & Risk (15%) · Troubleshooting"},
-{f:"CCAO-F exam format?",b:"60 multiple-choice/multi-response questions · 120 minutes · scaled score 100–1000 · pass mark 720 · $99"},
+{f:"What CCAO-F study domains does this app use?",b:"Prompting · Output Evaluation · Model Selection · Workflow Integration · Knowledge Management · Governance & Risk · Troubleshooting. These are this app's study groupings — the official domain list and weightings are in the Partner Academy exam guide."},
+{f:"What does CCAO-F cost?",b:"$99 USD (confirmed on Anthropic's Pearson VUE page). Question count, time limit, and passing score are published only in the official exam guide — this app has no verified figures for them."},
 {f:"Hallucination",b:"Fluent, confident output containing fabricated or unsupported claims. Mitigate by grounding in sources, asking for citations, and verifying before use."},
 {f:"When should a human stay in the loop?",b:"Final accountability, legal/binding decisions, high-stakes external communication, and anything requiring judgment your org assigns to people."},
 {f:"Projects (Claude feature)",b:"Persistent workspaces with custom instructions + knowledge files, so recurring workflows don't need re-pasting context every chat."},
@@ -724,7 +740,7 @@ c.questions=[
 {d:1,q:"For a large refactor, the recommended Claude Code workflow is:",opts:["One giant 'refactor everything' prompt","Plan first (explore/plan mode), review the plan, then execute in steps with verification (tests) between","Disable tests to go faster","Let it run unattended overnight"],a:1,exp:"Explore → plan → execute → verify. Plan-then-act with test checkpoints is the tested best practice."},
 {d:1,q:"Claude Code subagents are useful primarily because they:",opts:["Are cheaper per token","Run tasks in separate context windows, keeping the main session focused and enabling parallel work","Have different training data","Skip permissions"],a:1,exp:"Subagents isolate context per task — the main thread stays clean and work can fan out."},
 {d:1,q:"To let Claude Code run repository tests automatically before declaring work done, you would:",opts:["Trust it remembers","Encode the requirement in CLAUDE.md and/or use hooks to run tests on completion","Run tests manually a week later","Avoid tests in agentic workflows"],a:1,exp:"Instructions in CLAUDE.md plus hooks make verification systematic instead of hopeful."},
-{d:2,q:"An extraction pipeline needs machine-parseable output with exact fields. The architect's choice:",opts:["Free-form text and a regex parser","Schema-constrained structured output (or a tool with strict input schema), validated downstream","Ask for 'mostly JSON'","Markdown tables"],a:1,exp:"Contract-first: define the schema, constrain generation to it, validate anyway. Prompt Engineering & Structured Output is 20% of CCA-F."},
+{d:2,q:"An extraction pipeline needs machine-parseable output with exact fields. The architect's choice:",opts:["Free-form text and a regex parser","Schema-constrained structured output (or a tool with strict input schema), validated downstream","Ask for 'mostly JSON'","Markdown tables"],a:1,exp:"Contract-first: define the schema, constrain generation to it, validate anyway. Prompt Engineering & Structured Output is a CCAR-F domain."},
 {d:2,q:"A prompt performs well on easy inputs but fails on edge cases. Best improvement strategy?",opts:["Add few-shot examples covering the failing edge cases and explicit rules for them","Make the prompt shorter","Raise temperature","Switch providers"],a:0,exp:"Targeted examples of hard cases are the highest-leverage prompt fix — they teach the boundary behavior."},
 {d:2,q:"For a multi-pass review loop (draft → critique → revise), the main architectural benefit is:",opts:["Fewer tokens used","Quality gains from self-review catching errors a single pass misses","It removes the need for tests","Faster responses"],a:1,exp:"Evaluator/reviser loops trade tokens for quality — appropriate when output quality justifies the cost."},
 {d:2,q:"Why prefill or constrain the start of Claude's response (e.g., forcing it to begin with '{')?",opts:["Style preference","It locks the output into the intended format from the first token","It reduces cost","The API requires it"],a:1,exp:"Prefilling steers format deterministically — a classic structured-output technique."},
@@ -742,9 +758,9 @@ c.questions=[
 {d:3,q:"Claude keeps calling a search tool when it should use the calculator. First fix to try?",opts:["Delete the search tool","Sharpen both tool descriptions to state exactly when each should (and shouldn't) be used","Fine-tune the model","Add a third tool"],a:1,exp:"Tool-selection errors usually trace to ambiguous descriptions — clarify boundaries and add usage notes."}
 ];
 c.cards=[
-{f:"CCA-F domains & weights",b:"Agentic Architecture & Orchestration 27% · Claude Code Workflows 20% · Prompt Eng & Structured Output 20% · Tool Design & MCP 18% · Context Mgmt & Reliability 15%"},
-{f:"CCA-F format",b:"60 scenario-based questions · 120 min · pass 720/1000 · you get 4 of 6 named scenarios, each framing ~15 questions"},
-{f:"The 6 exam scenarios",b:"Customer Support Agent · Code Gen with Claude Code · Multi-Agent Research · Developer Productivity · Claude Code for CI · Structured Data Extraction"},
+{f:"What CCAR-F study domains does this app use?",b:"Agentic Architecture & Orchestration · Claude Code Workflows · Prompt Eng & Structured Output · Tool Design & MCP · Context Mgmt & Reliability. These are this app's study groupings — official weightings are in the Partner Academy exam guide."},
+{f:"What does CCAR-F cost?",b:"$125 USD (confirmed on Anthropic's Pearson VUE page). Question count, time limit, scenario structure, and passing score are published only in the official exam guide."},
+{f:"Solution scenarios worth practising",b:"Customer Support Agent · Code Gen with Claude Code · Multi-Agent Research · Developer Productivity · Claude Code for CI · Structured Data Extraction. Useful practice contexts for architect-level thinking — not a verified list of exam scenarios."},
 {f:"Golden rule of agent design",b:"Use the simplest pattern that works: prompt → workflow → single agent → multi-agent. Escalate complexity only when the task demands it."},
 {f:"Common workflow patterns",b:"Prompt chaining · Routing · Parallelization (sectioning/voting) · Orchestrator-workers · Evaluator-optimizer"},
 {f:"Loop guards",b:"Max iterations, repeated-failure detection, budget caps, and escalation paths — how agents avoid spiraling."},
@@ -784,7 +800,7 @@ c.questions=[
 {d:3,q:"The best eval set for a support agent is built from:",opts:["Synthetic easy questions only","Representative real cases plus curated hard/edge cases and known past failures, refreshed over time","One demo transcript","Marketing copy"],a:1,exp:"Evals must mirror reality and stress boundaries; stale or easy-only suites give false confidence."}
 ];
 c.cards=[
-{f:"CCA-P vs CCA-F",b:"Professional assumes Foundations knowledge and tests production-scale judgment: fleets of agents, reliability engineering, cost strategy, evals, governance. $175."},
+{f:"CCAR-P vs CCAR-F",b:"Professional assumes Foundations knowledge and tests production-scale judgment: fleets of agents, reliability engineering, cost strategy, evals, governance. $175."},
 {f:"Orchestrator-workers at scale",b:"Orchestrator owns decomposition into disjoint subtasks; workers return compact structured artifacts; shared ledger prevents duplication."},
 {f:"Resumability",b:"Externalized durable state + idempotent checkpointed steps → any crash resumes from last known-good point."},
 {f:"Graceful degradation chain",b:"Retry w/ backoff → fallback model tier → cached/template response → human handoff. Log every step."},
@@ -862,7 +878,7 @@ c.lessons=[
 +"<a href='https://www.youtube.com/watch?v=FMWRfZ_VNdw' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Anthropic: Prompting 101</span><span class='vdesc'>An Anthropic-produced walkthrough of core prompting technique, aimed at exactly this level.</span></span></a>"
 +"<a href='https://www.youtube.com/watch?v=pQ6G9TQfGIA' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Anthropic's free 24-minute prompt engineering workshop</span><span class='vdesc'>A compact workshop covering role prompting, examples, and structure in under half an hour.</span></span></a>"
 +"</div>"},
-{h:"Output Evaluation",b:"<p>This is the single heaviest domain (21%) because it's the skill that keeps AI-assisted work safe: knowing when to trust an output and when to check it.</p>"
+{h:"Output Evaluation",b:"<p>This is one of the most important skills in the whole programme, because it's what keeps AI-assisted work safe: knowing when to trust an output and when to check it.</p>"
 +"<p><b>Why this matters:</b> Claude produces fluent, confident-sounding text whether or not the underlying facts are correct. Fluency is not a signal of accuracy — this is the core idea to internalize, and the exam tests it repeatedly with scenarios where a wrong answer 'sounds right.'</p>"
 +"<h4>A simple verification funnel</h4>"
 +"<div class='diagram-box'><svg viewBox='0 0 600 200' xmlns='http://www.w3.org/2000/svg'>"
@@ -1143,13 +1159,13 @@ c.lessons=[
 c.lessons=[
 {h:"Start Here: Foundations",foundation:true,b:"<p>Architect Foundations assumes you're comfortable with everything in the Developer cert — the Messages API, tool use, the basic agent loop, and MCP at a conceptual level. If those feel shaky, it's worth a detour through the Developer study guide first. What's new here is the shift in vantage point: instead of 'how do I write the code for one agent,' the question becomes 'given a business problem, what's the right shape of system, and why.'</p>"
 +"<h4>The architect's core question</h4><p>Every scenario in this cert is really asking the same thing in different clothes: <b>what is the simplest system that reliably solves this problem, and where exactly does it become unreliable?</b> Architecture is fundamentally about trade-offs — more orchestration buys capability but costs latency, money, and new failure modes; less orchestration is cheap and fast but breaks on anything the fixed path didn't anticipate. Good architects can articulate exactly where that line sits for a given problem, not just default to 'more agents' or 'fewer agents.'</p>"
-+"<h4>A note on the exam format</h4><p>The real CCA-F exam draws 4 of 6 possible scenarios (Customer Support Agent, Code Generation with Claude Code, Multi-Agent Research, Developer Productivity, Claude Code for CI, Structured Data Extraction), each anchoring about 15 questions. That means the same underlying knowledge — orchestration patterns, tool design, context management — gets tested repeatedly through different business framings. Learning the patterns deeply matters far more than memorizing any one scenario.</p>"
++"<h4>A note on scenario-based study</h4><p>Architect-level questions tend to arrive wrapped in a business scenario — customer support agents, code generation with Claude Code, multi-agent research, developer productivity, CI pipelines, structured data extraction. The same underlying knowledge — orchestration patterns, tool design, context management — gets tested through different business framings, so learning the patterns deeply matters far more than memorizing any one scenario. For the actual exam format, see the official exam guide in Partner Academy.</p>"
 +"<div class='vbox'><div class='lbl'>📺 Watch first</div>"
 +"<a href='https://www.youtube.com/watch?v=uhJJgc-0iTQ' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Building more effective AI agents (Anthropic)</span><span class='vdesc'>Alex Albert and Erik from Anthropic discuss the thinking behind the 'Building Effective Agents' guide this whole domain is built on.</span></span></a>"
 +"<a href='https://www.youtube.com/watch?v=D7_ipDqhtwk' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>How We Build Effective Agents — Barry Zhang, Anthropic</span><span class='vdesc'>A conference talk covering the same territory with more live Q&A depth.</span></span></a>"
 +"</div>"
 +"<div class='kbox'><div class='lbl'>Key takeaways</div><ul><li>This cert assumes Developer-level fluency with the API, tools, and basic agents.</li><li>Every scenario reduces to: what's the simplest reliable architecture, and where does it break?</li><li>The same core patterns repeat across all 6 possible exam scenarios — learn patterns, not scenarios.</li></ul></div>"},
-{h:"Agentic Architecture & Orchestration",b:"<p>The heaviest domain (27%) — this is about choosing the right shape of system for the job, and Anthropic's own guidance is explicit: <b>use the simplest pattern that works</b>, and escalate complexity only when the task demands it. Every extra layer of orchestration adds cost, latency, and failure surface.</p>"
+{h:"Agentic Architecture & Orchestration",b:"<p>This is about choosing the right shape of system for the job, and Anthropic's own guidance is explicit: <b>use the simplest pattern that works</b>, and escalate complexity only when the task demands it. Every extra layer of orchestration adds cost, latency, and failure surface.</p>"
 +"<div class='diagram-box'><svg viewBox='0 0 600 130' xmlns='http://www.w3.org/2000/svg'>"
 +"<rect x='10' y='45' width='90' height='40' rx='8' fill='#5a9e6f'/><text x='55' y='70' text-anchor='middle' font-size='9.5' fill='#fff'>Single prompt</text>"
 +"<rect x='115' y='45' width='90' height='40' rx='8' fill='#5a9e6f'/><text x='160' y='63' text-anchor='middle' font-size='9' fill='#fff'>Prompt</text><text x='160' y='75' text-anchor='middle' font-size='9' fill='#fff'>chaining</text>"
