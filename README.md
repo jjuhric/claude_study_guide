@@ -25,6 +25,35 @@ with XP, levels, badges, and study streaks.
 Names, codes, and prices confirmed against Anthropic's public Pearson VUE and
 Skilljar listings.
 
+## How to study with it
+
+Six modes per certification, designed around what actually moves exam results —
+spaced retrieval, targeted weak-spot work, and timed rehearsal:
+
+| Mode | What it's for |
+|---|---|
+| 📖 **Study Guide** | Written lessons per domain. Read these first — the questions assume the grounding. |
+| ⚔️ **Quiz Battle** | 10 questions with instant explanations. Prioritizes unseen questions, then ones you got wrong. |
+| 🃏 **Flashcards** | Spaced repetition. Only shows cards that are **due**. |
+| ⏱️ **Mock Exam** | 20 questions, 40 minutes, scored. Pacing is a separate skill from knowing the material. |
+| 🎯 **Review Misses** | Serves only questions you have previously answered wrong. |
+| 🩹 **Weakest Domain** | Drills whichever domain you score lowest in — untested domains come first. |
+
+**Spaced repetition.** Flashcards use Leitner boxes. Recall a card and it moves
+up a box and returns later (1 → 2 → 4 → 9 → 21 days); miss it and it drops to
+box 1 and comes back immediately, plus once more in the same session. When
+nothing is due, the app says so rather than inviting you to drill pointlessly —
+the spacing *is* the mechanism. You can always override and drill the full deck.
+
+**Prep progress.** Each certification page shows a single score blended from six
+components (lessons read, question coverage, accuracy, domain breadth, card
+retention, mock performance) and always names the weakest one with a button
+that takes you straight there. It measures progress through *this app's*
+material — it is not a prediction about the real exam.
+
+**Keyboard.** `1`–`4` answer, `Enter`/`Space` advance. On flashcards, `Space`
+flips, `1` is still-learning, `2` is knew-it.
+
 ## Running locally
 
 The app loads its content from `data/*.json`, and browsers block `fetch()` on

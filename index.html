@@ -60,8 +60,30 @@
   .mode p{font-size:11.5px; color:var(--muted);}
 
   .dombar{margin:8px 0;}
-  .dombar .dl{display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;}
-  .dombar .dl .pc{color:var(--muted);}
+  .dombar .dl{display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px; gap:10px;}
+  .dombar .dl .pc{color:var(--muted); white-space:nowrap;}
+  .dombar.drillable{cursor:pointer; border-radius:9px; padding:6px 8px; margin:4px -8px; transition:background .12s;}
+  .dombar.drillable:hover{background:var(--bg);}
+  .dombar.drillable:hover .pc b{color:var(--coral);}
+
+  /* Prep progress */
+  .meter{margin:9px 0;}
+  .meter .dl{display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px; gap:10px;}
+  .meter .dl .pc{color:var(--muted);}
+  .prepring{width:84px; height:84px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    background:conic-gradient(var(--pc) var(--pv), var(--border) 0);}
+  .prepring>span{width:64px; height:64px; border-radius:50%; background:var(--card); display:flex; align-items:center; justify-content:center;
+    font-size:21px; font-weight:800; color:var(--ink);}
+  .prepring>span small{font-size:11px; font-weight:600; color:var(--muted); margin-left:1px;}
+  .nextstep{border-left:4px solid var(--coral); background:rgba(217,119,87,.07); border-radius:0 12px 12px 0;
+    padding:12px 15px; margin-top:16px; font-size:13.5px; line-height:1.55;}
+  .nextstep .lbl{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--coral-dark); margin-bottom:5px;}
+  .modebar{display:inline-block; background:rgba(217,119,87,.12); color:var(--coral-dark); border-radius:8px;
+    padding:4px 11px; font-size:11.5px; font-weight:700; margin-bottom:10px;}
+  .okey{display:inline-flex; align-items:center; justify-content:center; width:19px; height:19px; border-radius:5px;
+    background:var(--border); color:var(--muted); font-size:11px; margin-right:9px; flex-shrink:0; vertical-align:1px;}
+  .opt:hover .okey{background:var(--coral); color:#fff;}
+  @media (max-width:520px){ .okey{display:none;} }
 
   /* Quiz */
   .qmeta{display:flex; justify-content:space-between; align-items:center; font-size:12.5px; color:var(--muted); margin-bottom:12px; flex-wrap:wrap; gap:6px;}
@@ -235,7 +257,7 @@ const store = {
   get(){ try{ return JSON.parse(localStorage.getItem("certquest")||"null"); }catch(e){ return mem.d||null; } },
   set(d){ try{ localStorage.setItem("certquest", JSON.stringify(d)); }catch(e){ mem.d=d; } }
 };
-const S_DEFAULTS = {v:1, xp:0, badges:[], seenCerts:[], answered:{}, cardsSeen:0, days:[], mocks:{}, domStats:{}, lessonsRead:{}};
+const S_DEFAULTS = {v:1, xp:0, badges:[], seenCerts:[], answered:{}, cardsSeen:0, days:[], mocks:{}, domStats:{}, lessonsRead:{}, cardBox:{}};
 /* Repair any saved field with a missing or wrong-shaped value, so older or partial
    saves can't throw (badges/answered) or silently go NaN (xp/cardsSeen). */
 function migrate(raw){
@@ -265,6 +287,63 @@ function dayStreak(){
   return n;
 }
 function checkDayStreak(){ if(dayStreak()>=3) award("streak3"); }
+
+/* ================= SPACED REPETITION =================
+   Leitner boxes. A card you know moves up a box and comes back later; a card
+   you miss drops to box 1 and returns immediately. Recall is what fixes
+   material in memory, so the schedule is the point — not the card count. */
+const BOX_DAYS=[0,1,2,4,9,21];           // review gap in days, indexed by box
+const dayKey=d=>d.toISOString().slice(0,10);
+const today=()=>dayKey(new Date());
+function inDays(n){ const d=new Date(); d.setDate(d.getDate()+n); return dayKey(d); }
+function shuffleArr(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function cardBox(c,i){ const b=(S.cardBox[c.id]||{})[i]; return (b&&typeof b.b==="number")?b:{b:0,d:""}; }
+function dueCards(c){ const t=today(); return c.cards.map((_,i)=>i).filter(i=>{ const s=cardBox(c,i); return !s.d||s.d<=t; }); }
+function nextDueDate(c){
+  const ds=c.cards.map((_,i)=>cardBox(c,i).d).filter(Boolean).sort();
+  return ds.length?ds[0]:null;
+}
+function scheduleCard(c,i,knew){
+  S.cardBox[c.id]=S.cardBox[c.id]||{};
+  const s=cardBox(c,i);
+  s.b = knew ? Math.min(5, s.b+1) : 1;
+  s.d = knew ? inDays(BOX_DAYS[s.b]) : today();   // missed cards stay due
+  S.cardBox[c.id][i]=s;
+}
+/* Fraction of a deck that has reached a durable box (3+ correct recalls). */
+function cardRetention(c){
+  if(!c.cards.length) return 0;
+  return c.cards.filter((_,i)=>cardBox(c,i).b>=3).length / c.cards.length;
+}
+
+/* ================= PREP PROGRESS =================
+   A blend of the things that actually predict readiness on THIS app's material.
+   It is not a prediction about the real exam — we have no verified blueprint —
+   so it is framed as prep progress and always names the weakest component. */
+function prepProgress(c){
+  const p=certProgress(c), lp=lessonProgress(c);
+  const st=S.domStats[c.id]||{};
+  const domAcc=c.domains.map((_,i)=>{ const s=st[i]||{s:0,c:0}; return s.s>=3 ? s.c/s.s : null; });
+  const solid=domAcc.filter(a=>a!==null&&a>=0.7).length;
+  const best=(S.mocks[c.id]||[]).length?Math.max(...S.mocks[c.id]):0;
+  const parts=[
+    {k:"lessons",  label:"Read the study guide",      v: lp.total?lp.done/lp.total:0,
+     todo:"Work through the remaining lessons — the questions assume that grounding.", go:"startLearn"},
+    {k:"coverage", label:"See every question",        v: p.total?p.seen/p.total:0,
+     todo:"Keep running quiz rounds until you have seen the whole bank.", go:"startQuiz"},
+    {k:"accuracy", label:"Answer accurately",         v: p.seen>=5?p.correct/p.seen:0,
+     todo:"Accuracy is the gap. Review your missed questions before adding new ones.", go:"startReview"},
+    {k:"domains",  label:"Cover every domain",        v: c.domains.length?solid/c.domains.length:0,
+     todo:"Some domains are untested or weak. Drill the weakest one.", go:"startWeakest"},
+    {k:"cards",    label:"Retain the key facts",      v: cardRetention(c),
+     todo:"Run your due flashcards — recall over time is what makes facts stick.", go:"startCards"},
+    {k:"mock",     label:"Perform under time",        v: best?Math.min(1,Math.max(0,(best-400)/320)):0,
+     todo:"Sit a timed mock exam — pacing is a separate skill from knowing the material.", go:"startMock"},
+  ];
+  const score=Math.round(100*parts.reduce((a,x)=>a+x.v,0)/parts.length);
+  const weakest=parts.slice().sort((a,b)=>a.v-b.v)[0];
+  return {score, parts, weakest};
+}
 
 function addXP(n, why){
   const before=level(); S.xp+=n; save();
@@ -364,25 +443,47 @@ function certView(id){
   renderHeader();
   const p=certProgress(c);
   const lp=lessonProgress(c);
+  const rp=prepProgress(c);
+  const due=dueCards(c).length, nd=nextDueDate(c);
+  const ans=S.answered[c.id]||{};
+  const misses=Object.keys(ans).filter(k=>ans[k]===false&&k<c.questions.length).length;
   let doms='';
   c.domains.forEach((d,i)=>{
     const st=(S.domStats[c.id]||{})[i]||{s:0,c:0};
     const pc=st.s?Math.round(st.c/st.s*100):0;
-    doms+='<div class="dombar"><div class="dl"><span>'+d+'</span><span class="pc">'+(st.s? pc+"% ("+st.c+"/"+st.s+")":"—")+'</span></div>'
+    const has=c.questions.some(q=>q.d===i);
+    doms+='<div class="dombar'+(has?" drillable":"")+'"'+(has?' onclick="startDrill(\''+id+'\','+i+')" title="Drill this domain"':'')+'>'
+      +'<div class="dl"><span>'+esc(d)+'</span><span class="pc">'+(st.s? pc+"% ("+st.c+"/"+st.s+")":"not yet tested")+(has?' <b>›</b>':'')+'</span></div>'
       +'<div class="pbar"><div style="width:'+pc+'%; background:'+c.color+'"></div></div></div>';
   });
+  const meters=rp.parts.map(x=>{
+    const v=Math.round(x.v*100);
+    return '<div class="meter"><div class="dl"><span>'+x.label+'</span><span class="pc">'+v+'%</span></div>'
+      +'<div class="pbar"><div style="width:'+v+'%; background:'+(x.v>=.8?"var(--green)":x.v>=.5?"var(--gold)":"var(--coral)")+'"></div></div></div>';
+  }).join('');
   $("app").innerHTML =
    '<button class="back" onclick="home()">← All certifications</button>'
    +'<div class="panel"><div style="display:flex; gap:14px; align-items:center;"><div style="font-size:38px;">'+c.em+'</div>'
    +'<div><h2 style="font-size:19px;">'+c.name+' – '+c.sub+'</h2><div class="code" style="color:var(--muted); font-size:12px;">'+c.code+' · '+c.price+' · see the official exam guide for format</div>'
    +'<div style="font-size:13px; margin-top:4px; color:var(--muted);">'+c.blurb+'</div></div></div>'
    +'<div class="modes">'
-   +'<div class="mode" onclick="startLearn(\''+id+'\')"><div class="em">📖</div><h4>Study Guide</h4><p>Learn every domain before you drill it — '+lp.total+' lessons ('+lp.done+' read)</p></div>'
+   +'<div class="mode" onclick="startLearn(\''+id+'\')"><div class="em">📖</div><h4>Study Guide</h4><p>'+lp.total+' lessons · '+lp.done+' read</p></div>'
    +'<div class="mode" onclick="startQuiz(\''+id+'\')"><div class="em">⚔️</div><h4>Quiz Battle</h4><p>10 questions, instant feedback, combo XP</p></div>'
-   +'<div class="mode" onclick="startCards(\''+id+'\')"><div class="em">🃏</div><h4>Flashcards</h4><p>Flip-card drills on key concepts</p></div>'
+   +'<div class="mode" onclick="startCards(\''+id+'\')"><div class="em">🃏</div><h4>Flashcards</h4><p>'+(due?'<b style="color:var(--coral)">'+due+' due now</b>':(nd?'All caught up · next '+nd:'Spaced repetition'))+'</p></div>'
    +'<div class="mode" onclick="startMock(\''+id+'\')"><div class="em">⏱️</div><h4>Mock Exam</h4><p>20 questions, 40 min, practice scoring</p></div>'
+   +'<div class="mode" onclick="startReview(\''+id+'\')"><div class="em">🎯</div><h4>Review Misses</h4><p>'+(misses?'<b style="color:var(--coral)">'+misses+' to revisit</b>':'Nothing missed yet')+'</p></div>'
+   +'<div class="mode" onclick="startWeakest(\''+id+'\')"><div class="em">🩹</div><h4>Weakest Domain</h4><p>Target where you score lowest</p></div>'
    +'</div></div>'
-   +'<div class="panel"><h3 style="font-size:15px; margin-bottom:10px;">📊 Domain mastery</h3>'+doms+'</div>';
+   +'<div class="panel"><div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">'
+   +'<div class="prepring" style="--pv:'+(rp.score*3.6)+'deg; --pc:'+c.color+'"><span>'+rp.score+'<small>%</small></span></div>'
+   +'<div style="flex:1; min-width:200px;"><h3 style="font-size:15px;">Prep progress</h3>'
+   +'<p style="font-size:12px; color:var(--muted); margin-top:3px; line-height:1.5;">Based on this app\'s material only — not a prediction about the real exam.</p></div></div>'
+   +'<div style="margin-top:14px;">'+meters+'</div>'
+   +'<div class="nextstep"><div class="lbl">Do this next</div>'+esc(rp.weakest.todo)
+   +'<div style="margin-top:10px;"><button class="btn sm" onclick="'+rp.weakest.go+'(\''+id+'\')">'+esc(rp.weakest.label)+' →</button></div></div>'
+   +'</div>'
+   +'<div class="panel"><h3 style="font-size:15px; margin-bottom:10px;">📊 Domain mastery</h3>'
+   +'<p style="font-size:12px; color:var(--muted); margin:-4px 0 10px;">Tap a domain to drill just those questions.</p>'+doms+'</div>';
 }
 
 /* ================= STUDY GUIDE ================= */
@@ -474,13 +575,14 @@ function startQuiz(id){
 function quizQ(){
   const c=Q.cert, qi=Q.idxs[Q.i], q=c.questions[qi];
   renderHeader();
-  let opts=''; q.opts.forEach((o,j)=>{ opts+='<button class="opt" onclick="answer('+j+')">'+esc(o)+'</button>'; });
+  let opts=''; q.opts.forEach((o,j)=>{ opts+='<button class="opt" onclick="answer('+j+')"><b class="okey">'+(j+1)+'</b>'+esc(o)+'</button>'; });
   $("app").innerHTML =
-   '<button class="back" onclick="certView(\''+c.id+'\')">← Quit quiz</button>'
+   '<button class="back" onclick="certView(\''+c.id+'\')">← Quit</button>'
    +'<div class="panel"><div class="qmeta"><span>Question '+(Q.i+1)+' / '+Q.idxs.length+'</span>'
    +(Q.combo>=2?'<span class="combo">🔥 Combo ×'+Q.combo+'</span>':'')
    +'<span>✅ '+Q.correct+'</span></div>'
-   +'<div class="domtag">'+c.domains[q.d]+'</div>'
+   +(Q.label?'<div class="modebar">'+esc(Q.label)+'</div>':'')
+   +'<div class="domtag">'+esc(c.domains[q.d])+'</div>'
    +'<div class="qtext">'+esc(q.q)+'</div>'+opts
    +'<div class="exp" id="exp"></div>'
    +'<div class="center"><button class="btn" id="nextb" style="display:none" onclick="nextQ()">'+(Q.i+1<Q.idxs.length?"Next →":"See results 🏁")+'</button></div>'
@@ -527,18 +629,22 @@ function nextQ(){
   $("app").innerHTML='<div class="panel center"><h2 style="font-size:20px;">Round complete!</h2>'
    +'<div class="bigscore" style="color:'+Q.cert.color+'">'+Q.correct+'/'+Q.idxs.length+'</div>'
    +'<div class="subtext">'+msg+'</div>'
-   +'<div class="rowbtns" style="justify-content:center;"><button class="btn" onclick="startQuiz(\''+Q.cert.id+'\')">⚔️ Another round</button>'
-   +'<button class="btn ghost" onclick="certView(\''+Q.cert.id+'\')">Back to '+Q.cert.code+'</button></div></div>';
+   +'<div class="rowbtns" style="justify-content:center;">'
+   +(Q.mode==="review"
+      ? '<button class="btn" onclick="startReview(\''+Q.cert.id+'\')">🎯 Review more misses</button>'
+      : '<button class="btn" onclick="startQuiz(\''+Q.cert.id+'\')">⚔️ Another round</button>')
+   +'<button class="btn ghost" onclick="startWeakest(\''+Q.cert.id+'\')">🩹 Weakest domain</button>'
+   +'<button class="btn ghost" onclick="certView(\''+Q.cert.id+'\')">Back to '+esc(Q.cert.code)+'</button></div></div>';
 }
 
 /* ================= FLASHCARDS ================= */
 let F={};
-function startCards(id){
+function startCards(id,mode){
   const c=CERTS.find(x=>x.id===id);
   if(!c.cards.length) return noContent(c,"flashcards");
-  const idxs=c.cards.map((_,i)=>i);
-  for(let i=idxs.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idxs[i],idxs[j]]=[idxs[j],idxs[i]];}
-  F={cert:c, idxs, i:0, knew:0};
+  const idxs = mode==="all" ? c.cards.map((_,i)=>i) : dueCards(c);
+  if(!idxs.length) return cardsCaughtUp(c);
+  F={cert:c, idxs:shuffleArr(idxs.slice()), i:0, knew:0, again:new Set(), mode:mode||"due"};
   cardView();
 }
 function cardView(){
@@ -546,8 +652,9 @@ function cardView(){
   renderHeader();
   $("app").innerHTML =
    '<button class="back" onclick="certView(\''+c.id+'\')">← Quit flashcards</button>'
-   +'<div class="panel"><div class="qmeta"><span>Card '+(F.i+1)+' / '+F.idxs.length+'</span><span>👍 '+F.knew+' known</span></div>'
-   +'<div class="hint">Tap the card to flip</div>'
+   +'<div class="panel"><div class="qmeta"><span>Card '+(F.i+1)+' / '+F.idxs.length+(F.mode==="all"?" · whole deck":" · due today")+'</span>'
+   +'<span>'+"▮".repeat(cardBox(c,F.idxs[F.i]).b)+"▯".repeat(5-cardBox(c,F.idxs[F.i]).b)+' · 👍 '+F.knew+'</span></div>'
+   +'<div class="hint">Tap the card to flip · <b>Space</b> flip · <b>1</b> still learning · <b>2</b> knew it</div>'
    +'<div class="fcstage"><div class="fcard" id="fc" onclick="this.classList.toggle(\'flip\')">'
    +'<div class="fface front">'+esc(card.f)+'</div>'
    +'<div class="fface backf">'+esc(card.b)+'</div>'
@@ -556,18 +663,74 @@ function cardView(){
    +'<button class="btn sm" onclick="gradeCard(true)">✅ Knew it</button></div></div>';
 }
 function gradeCard(knew){
+  const c=F.cert, ci=F.idxs[F.i];
+  scheduleCard(c,ci,knew);
   S.cardsSeen++; save();
   if(S.cardsSeen>=25)award("cards25");
-  if(knew){ F.knew++; addXP(4,"flashcard"); } else { F.idxs.push(F.idxs[F.i]); }
+  if(knew){ F.knew++; addXP(4,"flashcard"); }
+  else if(!F.again.has(ci)){ F.again.add(ci); F.idxs.push(ci); }  // one same-session repeat
   F.i++;
-  if(F.i<F.idxs.length){ cardView(); }
-  else{
-    renderHeader(); confetti();
-    $("app").innerHTML='<div class="panel center"><h2 style="font-size:20px;">Deck cleared! 🃏</h2>'
-     +'<div class="subtext" style="margin-top:8px;">You worked through every card (repeats included) for '+F.cert.code+'.</div>'
-     +'<div class="rowbtns" style="justify-content:center;"><button class="btn" onclick="startCards(\''+F.cert.id+'\')">Shuffle & go again</button>'
-     +'<button class="btn ghost" onclick="certView(\''+F.cert.id+'\')">Back</button></div></div>';
+  if(F.i<F.idxs.length){ cardView(); return; }
+  renderHeader(); confetti();
+  const ret=Math.round(cardRetention(c)*100);
+  const left=dueCards(c).length;
+  const nd=nextDueDate(c);
+  $("app").innerHTML='<div class="panel center"><h2 style="font-size:20px;">Session complete 🃏</h2>'
+   +'<div class="bigscore" style="color:'+c.color+'; font-size:38px;">'+F.knew+'<span style="font-size:20px; color:var(--muted);"> / '+F.idxs.length+' recalled</span></div>'
+   +'<div class="subtext">'+ret+'% of the '+esc(c.code)+' deck has reached a durable box.'
+   +(left?' '+left+' card'+(left===1?'':'s')+' still due.':(nd?' Next review: <b>'+esc(nd)+'</b>.':''))+'</div>'
+   +'<div class="rowbtns" style="justify-content:center;">'
+   +(left?'<button class="btn" onclick="startCards(\''+c.id+'\')">Keep going ('+left+' due)</button>':'')
+   +'<button class="btn ghost" onclick="startCards(\''+c.id+'\',\'all\')">Drill whole deck</button>'
+   +'<button class="btn ghost" onclick="certView(\''+c.id+'\')">Back to '+esc(c.code)+'</button></div></div>';
+}
+function cardsCaughtUp(c){
+  const nd=nextDueDate(c);
+  renderHeader();
+  $("app").innerHTML='<button class="back" onclick="certView(\''+c.id+'\')">← Back to '+esc(c.code)+'</button>'
+   +'<div class="panel center"><div style="font-size:38px;">🌤️</div>'
+   +'<h2 style="font-size:19px; margin-top:6px;">Nothing due right now</h2>'
+   +'<div class="subtext" style="margin-top:8px;">'+Math.round(cardRetention(c)*100)+'% of this deck is in a durable box.'
+   +(nd?' Your next card is due <b>'+esc(nd)+'</b>.':'')
+   +' Spacing reviews out is what makes recall stick — coming back then beats drilling now.</div>'
+   +'<div class="rowbtns" style="justify-content:center;"><button class="btn ghost" onclick="startCards(\''+c.id+'\',\'all\')">Drill the whole deck anyway</button>'
+   +'<button class="btn" onclick="certView(\''+c.id+'\')">Back to '+esc(c.code)+'</button></div></div>';
+}
+
+/* ================= TARGETED PRACTICE ================= */
+function startDrill(id,domIdx){
+  const c=CERTS.find(x=>x.id===id);
+  const pool=c.questions.map((q,i)=>i).filter(i=>c.questions[i].d===domIdx);
+  if(!pool.length) return noContent(c,"questions for that domain");
+  Q={cert:c, idxs:shuffleArr(pool).slice(0,10), i:0, correct:0, combo:0, mode:"drill", label:"Drilling "+c.domains[domIdx]};
+  quizQ();
+}
+function startWeakest(id){
+  const c=CERTS.find(x=>x.id===id);
+  if(!c.questions.length) return noContent(c,"practice questions");
+  const st=S.domStats[c.id]||{};
+  const ranked=c.domains.map((d,i)=>{
+    const s=st[i]||{s:0,c:0};
+    return {i, has:c.questions.some(q=>q.d===i), acc: s.s>=3 ? s.c/s.s : -1};  // untested sorts first
+  }).filter(x=>x.has).sort((a,b)=>a.acc-b.acc);
+  if(!ranked.length) return noContent(c,"practice questions");
+  startDrill(id, ranked[0].i);
+}
+function startReview(id){
+  const c=CERTS.find(x=>x.id===id);
+  const ans=S.answered[c.id]||{};
+  const pool=Object.keys(ans).filter(k=>ans[k]===false).map(Number).filter(i=>i<c.questions.length);
+  if(!pool.length){
+    renderHeader();
+    $("app").innerHTML='<button class="back" onclick="certView(\''+c.id+'\')">← Back to '+esc(c.code)+'</button>'
+     +'<div class="panel center"><div style="font-size:38px;">✨</div><h2 style="font-size:19px; margin-top:6px;">No missed questions</h2>'
+     +'<div class="subtext" style="margin-top:8px;">Nothing to revisit for '+esc(c.code)+' yet. Missed questions land here automatically so you can hunt down weak spots.</div>'
+     +'<div class="rowbtns" style="justify-content:center;"><button class="btn" onclick="startQuiz(\''+c.id+'\')">⚔️ Quiz Battle</button>'
+     +'<button class="btn ghost" onclick="certView(\''+c.id+'\')">Back</button></div></div>';
+    return;
   }
+  Q={cert:c, idxs:shuffleArr(pool).slice(0,15), i:0, correct:0, combo:0, mode:"review", label:"Reviewing past misses"};
+  quizQ();
 }
 
 /* ================= MOCK EXAM ================= */
@@ -588,7 +751,7 @@ function mockQ(){
   renderHeader();
   let opts=''; q.opts.forEach((o,j)=>{
     const sel=M.picks[M.i]===j;
-    opts+='<button class="opt'+(sel?" correct":"")+'" onclick="mockPick('+j+')">'+esc(o)+'</button>';
+    opts+='<button class="opt'+(sel?" correct":"")+'" onclick="mockPick('+j+')"><b class="okey">'+(j+1)+'</b>'+esc(o)+'</button>';
   });
   let nav=''; M.idxs.forEach((_,k)=>{
     nav+='<button class="'+(M.picks[k]!==null?"answered ":"")+(k===M.i?"cur":"")+'" onclick="M.i='+k+';mockQ()">'+(k+1)+'</button>';
@@ -643,6 +806,33 @@ function finishMock(){
    +'<div class="rowbtns" style="justify-content:center;"><button class="btn" onclick="startMock(\''+c.id+'\')">⏱️ Retake mock</button>'
    +'<button class="btn ghost" onclick="certView(\''+c.id+'\')">Back to '+c.code+'</button></div></div>';
 }
+
+/* ================= KEYBOARD =================
+   Drilling speed matters when you are doing hundreds of reps, so every
+   answer path is reachable without the mouse. Handlers read the live DOM
+   rather than tracking screen state, so they stay correct as views change. */
+document.addEventListener("keydown", e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+  const tag=(e.target&&e.target.tagName||"").toLowerCase();
+  if(tag==="input"||tag==="textarea") return;
+  const card=$("fc");
+  const opts=[...document.querySelectorAll(".opt")];
+  const next=$("nextb");
+
+  if(card){                                          // flashcards
+    if(e.key===" "||e.key==="Enter"){ e.preventDefault(); card.classList.toggle("flip"); }
+    else if(e.key==="1"){ e.preventDefault(); gradeCard(false); }
+    else if(e.key==="2"){ e.preventDefault(); gradeCard(true); }
+    return;
+  }
+  if(next&&next.style.display!=="none"&&(e.key==="Enter"||e.key===" ")){  // advance after answering
+    e.preventDefault(); nextQ(); return;
+  }
+  if(opts.length&&/^[1-9]$/.test(e.key)){            // quiz and mock share .opt
+    const i=+e.key-1;
+    if(i<opts.length&&!opts[i].disabled){ e.preventDefault(); opts[i].click(); }
+  }
+});
 
 /* boot happens after data loads (bottom of file) */
 </script>

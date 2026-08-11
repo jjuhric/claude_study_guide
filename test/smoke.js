@@ -192,6 +192,54 @@ vm.createContext(sandbox);
   }
   check(mismatches === 0, `shuffle preserves the correct answer for all questions (${mismatches} mismatches)`);
 
+  /* ---------- 7. spaced repetition ---------- */
+  evalIn(`S.cardBox={}; scheduleCard(CERTS[0],0,true)`);
+  check(evalIn(`S.cardBox.ccao["0"].b`) === 1, "scheduleCard: a correct recall advances to box 1");
+  evalIn(`scheduleCard(CERTS[0],0,true); scheduleCard(CERTS[0],0,true)`);
+  check(evalIn(`S.cardBox.ccao["0"].b`) === 3, "scheduleCard: consecutive recalls climb boxes");
+  check(evalIn(`S.cardBox.ccao["0"].d > today()`), "scheduleCard: a known card is scheduled forward");
+  evalIn(`scheduleCard(CERTS[0],0,false)`);
+  check(evalIn(`S.cardBox.ccao["0"].b`) === 1, "scheduleCard: a miss drops back to box 1");
+  check(evalIn(`S.cardBox.ccao["0"].d === today()`), "scheduleCard: a missed card stays due today");
+  check(evalIn(`S.cardBox.ccao["0"].b <= 5`), "scheduleCard: box never exceeds the ladder length");
+
+  evalIn(`S.cardBox={}`);
+  check(evalIn(`dueCards(CERTS[0]).length`) === data.ccao.cards.length, "dueCards: an unseen deck is entirely due");
+  check(evalIn(`(function(){CERTS[0].cards.forEach((_,i)=>scheduleCard(CERTS[0],i,true));return dueCards(CERTS[0]).length})()`) === 0,
+    "dueCards: cards scheduled ahead drop out of the queue");
+  try { call("startCards", "ccao"); check(/Nothing due right now/.test(els.app.innerHTML), "startCards: caught-up screen instead of pointless drilling"); }
+  catch (e) { check(false, `startCards caught-up threw -> ${e.message}`); }
+  evalIn(`S.cardBox={}`);
+
+  /* ---------- 8. targeted practice ---------- */
+  // Every "do this next" button must point at a function that actually exists.
+  for (const g of evalIn(`prepProgress(CERTS[0]).parts.map(p=>p.go)`)) {
+    check(evalIn(`typeof ${g}`) === "function", `prep next-step action ${g}() is defined`);
+  }
+  const rp = evalIn(`JSON.stringify((function(){const r=prepProgress(CERTS[0]);return {s:r.score,n:r.parts.length,w:r.weakest.k}})())`);
+  const rpo = JSON.parse(rp);
+  check(rpo.s >= 0 && rpo.s <= 100, `prepProgress: score in range (${rpo.s})`);
+  check(rpo.n === 6 && !!rpo.w, `prepProgress: ${rpo.n} components, weakest identified (${rpo.w})`);
+
+  for (const [fn, label] of [["startWeakest", "weakest-domain drill"], ["startReview", "review misses"]]) {
+    try { call(fn, "ccao"); check(els.app.innerHTML.length > 200, `${label} renders`); }
+    catch (e) { check(false, `${label} threw -> ${e.message}`); }
+  }
+  try { call("startDrill", "ccao", 0); check(/Drilling/.test(els.app.innerHTML), "domain drill renders with its mode label"); }
+  catch (e) { check(false, `startDrill threw -> ${e.message}`); }
+  // a drill must only serve questions from the domain asked for
+  check(evalIn(`Q.idxs.every(i=>CERTS[0].questions[i].d===0)`), "domain drill serves only that domain's questions");
+
+  /* ---------- 9. cert page surfaces the new guidance ---------- */
+  call("certView", "ccao");
+  const cv = els.app.innerHTML;
+  check(/class="prepring"/.test(cv), "cert page renders the prep-progress ring");
+  check((cv.match(/class="meter"/g) || []).length === 6, "cert page renders all 6 prep components");
+  check(/class="nextstep"/.test(cv) && /Do this next/.test(cv), "cert page tells you what to do next");
+  check((cv.match(/class="mode"/g) || []).length === 6, "cert page offers all 6 study modes");
+  check(/dombar drillable/.test(cv), "domain rows are drillable");
+  check(/not a prediction about the real exam/.test(cv), "prep score is scoped honestly");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
