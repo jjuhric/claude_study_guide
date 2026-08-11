@@ -68,11 +68,21 @@ Then open http://localhost:4173.
 
 ## Tests
 
-No dependencies. Boots the app in a VM with a DOM shim, renders every screen
-for every certification, and checks content integrity:
+No dependencies. `smoke.js` boots the app in a VM with a DOM shim, renders every
+screen for every certification, exercises the spaced-repetition scheduler, and
+checks content integrity. Runs offline:
 
 ```bash
 node test/smoke.js
+```
+
+`links.js` checks every recommended video against YouTube's oEmbed endpoint and
+reports any that have been deleted or made private, with the lesson that
+references them. It needs the network, so it is kept separate — run it
+periodically, since recommended videos do rot:
+
+```bash
+node test/links.js
 ```
 
 ## Layout
