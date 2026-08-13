@@ -156,6 +156,10 @@
   .mocknav button{width:34px; height:34px; border-radius:9px; border:2px solid var(--border); background:var(--card); cursor:pointer; font-size:12px; font-weight:600; color:var(--ink);}
   .mocknav button.answered{background:var(--coral); border-color:var(--coral); color:#fff;}
   .mocknav button.cur{border-color:var(--ink);}
+  .mocknav button.flagged{box-shadow:inset 0 -4px 0 var(--gold);}
+  .btn.flagon{background:rgba(232,180,72,.18); border-color:var(--gold); color:var(--coral-dark);}
+  .dombreak{margin-top:16px; text-align:left;}
+  .dombreak h4{font-size:13.5px; margin-bottom:8px;}
 
   /* Results */
   .bigscore{font-size:52px; font-weight:800; text-align:center; margin:8px 0;}
@@ -837,13 +841,40 @@ function startReview(id){
 
 /* ================= MOCK EXAM ================= */
 let M={};
+/* Stratified sample across domains. Uniform random over the whole bank can
+   over-sample one domain and skip another entirely, which a blueprinted exam
+   never does. Slots are allocated proportionally to each domain's pool with a
+   floor of one, then largest-remainder balanced to hit exactly n. */
+function sampleByDomain(c,n){
+  const byDom={};
+  c.questions.forEach((q,i)=>{ (byDom[q.d]=byDom[q.d]||[]).push(i); });
+  const doms=Object.keys(byDom).map(Number).sort((a,b)=>a-b);
+  const total=c.questions.length;
+  n=Math.min(n,total);
+  const alloc=doms.map(d=>{
+    const ideal=n*byDom[d].length/total;
+    return {d, ideal, take:Math.min(byDom[d].length, Math.max(1, Math.floor(ideal)))};
+  });
+  let used=alloc.reduce((s,a)=>s+a.take,0);
+  while(used<n){                                  // hand out leftovers by largest shortfall
+    const cand=alloc.slice().sort((x,y)=>(y.ideal-y.take)-(x.ideal-x.take)).find(a=>a.take<byDom[a.d].length);
+    if(!cand) break;
+    cand.take++; used++;
+  }
+  while(used>n){                                  // trim overshoot, never below one per domain
+    const cand=alloc.slice().sort((x,y)=>(x.ideal-x.take)-(y.ideal-y.take)).find(a=>a.take>1);
+    if(!cand) break;
+    cand.take--; used--;
+  }
+  const out=[];
+  alloc.forEach(a=>{ out.push(...shuffleArr(byDom[a.d].slice()).slice(0,a.take)); });
+  return shuffleArr(out);
+}
 function startMock(id){
   const c=CERTS.find(x=>x.id===id);
   if(!c.questions.length) return noContent(c,"mock exam questions");
   const n=Math.min(20,c.questions.length);
-  const idxs=c.questions.map((_,i)=>i);
-  for(let i=idxs.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idxs[i],idxs[j]]=[idxs[j],idxs[i]];}
-  M={cert:c, idxs:idxs.slice(0,n), i:0, picks:new Array(n).fill(null), secs:40*60, timer:null};
+  M={cert:c, idxs:sampleByDomain(c,n), i:0, picks:new Array(n).fill(null), flags:[], secs:40*60, timer:null};
   M.timer=setInterval(()=>{ M.secs--; const t=$("mt"); if(t){ t.textContent=fmtT(M.secs); if(M.secs<=300)t.classList.add("low"); } if(M.secs<=0)finishMock(); },1000);
   mockQ();
 }
@@ -856,29 +887,53 @@ function mockQ(){
     opts+='<button class="opt'+(sel?" correct":"")+'" onclick="mockPick('+j+')"><b class="okey">'+(j+1)+'</b>'+esc(o)+'</button>';
   });
   let nav=''; M.idxs.forEach((_,k)=>{
-    nav+='<button class="'+(M.picks[k]!==null?"answered ":"")+(k===M.i?"cur":"")+'" onclick="M.i='+k+';mockQ()">'+(k+1)+'</button>';
+    nav+='<button class="'+(M.picks[k]!==null?"answered ":"")+(M.flags.includes(k)?"flagged ":"")+(k===M.i?"cur":"")+'"'
+      +' onclick="M.i='+k+';mockQ()" aria-label="Question '+(k+1)+(M.picks[k]!==null?", answered":", unanswered")+(M.flags.includes(k)?", flagged":"")+'">'+(k+1)+'</button>';
   });
   const answered=M.picks.filter(p=>p!==null).length;
+  const flagged=M.flags.includes(M.i);
   $("app").innerHTML =
    '<button class="back" onclick="abandonMock()">← Abandon exam</button>'
    +'<div class="panel"><div class="qmeta"><span>Q '+(M.i+1)+' / '+M.idxs.length+'</span>'
    +'<span class="timer'+(M.secs<=300?" low":"")+'" id="mt">'+fmtT(M.secs)+'</span>'
-   +'<span>'+answered+' answered</span></div>'
-   +'<div class="domtag">'+c.domains[q.d]+'</div>'
+   +'<span>'+answered+' answered'+(M.flags.length?' · '+M.flags.length+' 🚩':'')+'</span></div>'
+   +'<div class="domtag">'+esc(c.domains[q.d])+'</div>'
    +'<div class="qtext">'+esc(q.q)+'</div>'+opts
    +'<div class="rowbtns">'
    +(M.i>0?'<button class="btn ghost sm" onclick="M.i--;mockQ()">← Prev</button>':'')
    +(M.i<M.idxs.length-1?'<button class="btn sm" onclick="M.i++;mockQ()">Next →</button>':'')
-   +'<button class="btn sm" style="background:var(--green); margin-left:auto;" onclick="confirmFinish()">Submit exam 🏁</button>'
+   +'<button class="btn ghost sm'+(flagged?" flagon":"")+'" onclick="toggleFlag()" aria-pressed="'+flagged+'">'
+   +(flagged?"🚩 Flagged":"⚐ Flag for review")+'</button>'
+   +'<button class="btn sm" style="background:var(--green); margin-left:auto;" onclick="confirmFinish()">Review & submit 🏁</button>'
    +'</div><div class="mocknav">'+nav+'</div></div>';
+}
+function toggleFlag(){
+  const k=M.i;                       // flags track position in the paper, not question id
+  const at=M.flags.indexOf(k);
+  if(at>=0) M.flags.splice(at,1); else M.flags.push(k);
+  mockQ();
+}
+/* Real proctored exams end with a review screen rather than a blind submit. */
+function reviewScreen(){
+  const c=M.cert;
+  const un=M.idxs.map((_,k)=>k).filter(k=>M.picks[k]===null);
+  const fl=M.flags.slice().sort((a,b)=>a-b);
+  const chip=(k,cls)=>'<button class="'+cls+'" onclick="M.i='+k+';mockQ()">'+(k+1)+'</button>';
+  $("app").innerHTML =
+   '<button class="back" onclick="mockQ()">← Back to the exam</button>'
+   +'<div class="panel"><h2 style="font-size:19px;">Review before submitting</h2>'
+   +'<div class="qmeta" style="margin-top:8px;"><span class="timer'+(M.secs<=300?" low":"")+'" id="mt">'+fmtT(M.secs)+' left</span>'
+   +'<span>'+(M.idxs.length-un.length)+' / '+M.idxs.length+' answered</span></div>'
+   +'<div style="margin-top:14px;"><h4 style="font-size:13.5px;">Unanswered ('+un.length+')</h4>'
+   +'<div class="mocknav">'+(un.length?un.map(k=>chip(k,"")).join(""):'<span style="font-size:13px; color:var(--muted);">None — every question has an answer.</span>')+'</div></div>'
+   +'<div style="margin-top:14px;"><h4 style="font-size:13.5px;">Flagged for review ('+fl.length+')</h4>'
+   +'<div class="mocknav">'+(fl.length?fl.map(k=>chip(k,"flagged")).join(""):'<span style="font-size:13px; color:var(--muted);">None flagged.</span>')+'</div></div>'
+   +'<div class="rowbtns" style="margin-top:18px;"><button class="btn ghost" onclick="mockQ()">Keep working</button>'
+   +'<button class="btn" style="background:var(--green);" onclick="finishMock()">Submit for scoring 🏁</button></div></div>';
 }
 function mockPick(j){ M.picks[M.i]= (M.picks[M.i]===j? null : j); if(M.i<M.idxs.length-1){M.i++;} mockQ(); }
 function abandonMock(){ if(confirm("Abandon this mock exam? No score will be recorded.")){ clearInterval(M.timer); certView(M.cert.id); } }
-function confirmFinish(){
-  const un=M.picks.filter(p=>p===null).length;
-  if(un>0 && !confirm(un+" question(s) unanswered — submit anyway?")) return;
-  finishMock();
-}
+function confirmFinish(){ reviewScreen(); }
 function finishMock(){
   clearInterval(M.timer);
   const c=M.cert;
@@ -890,6 +945,25 @@ function finishMock(){
   award("mock1"); if(pass)award("pass_"+c.id);
   addXP(20+correct*5, "mock exam");
   renderHeader(); if(pass)confetti();
+  /* A bare score says nothing actionable. The per-domain split is what turns a
+     mock into a study plan, so it leads the results and links into drilling. */
+  const dstat={};
+  M.idxs.forEach((qi,k)=>{
+    const d=c.questions[qi].d;
+    const s=dstat[d]=dstat[d]||{s:0,c:0};
+    s.s++; if(M.picks[k]===c.questions[qi].a)s.c++;
+  });
+  const ordered=Object.keys(dstat).map(Number).sort((a,b)=>(dstat[a].c/dstat[a].s)-(dstat[b].c/dstat[b].s));
+  let domHtml='<div class="dombreak"><h4>📊 How you did by domain</h4>';
+  ordered.forEach(d=>{
+    const s=dstat[d], pc=Math.round(s.c/s.s*100);
+    domHtml+='<div class="dombar drillable" onclick="startDrill(\''+c.id+'\','+d+')" title="Drill this domain">'
+      +'<div class="dl"><span>'+esc(c.domains[d])+'</span><span class="pc">'+pc+'% ('+s.c+'/'+s.s+') <b>›</b></span></div>'
+      +'<div class="pbar"><div style="width:'+pc+'%; background:'+(pc>=70?"var(--green)":pc>=50?"var(--gold)":"var(--red)")+'"></div></div></div>';
+  });
+  const worst=ordered[0];
+  domHtml+='<p style="font-size:12.5px; color:var(--muted); margin-top:8px;">Weakest here: <b>'+esc(c.domains[worst])+'</b>'
+    +' — tap any domain to drill it.</p></div>';
   let missHtml='';
   if(missed.length){
     missHtml='<div style="text-align:left; margin-top:16px;"><h4 style="font-size:14px; margin-bottom:8px;">📝 Review your misses</h4>';
@@ -904,8 +978,10 @@ function finishMock(){
    +'<div class="bigscore" style="color:'+(pass?"var(--green)":"var(--red)")+'">'+scaled+'</div>'
    +'<div class="verdict '+(pass?"pass":"fail")+'">'+(pass?"Cleared the 720 practice benchmark! 🎉":"Below the 720 practice benchmark — keep drilling!")+'</div>'
    +'<div class="subtext">'+correct+'/'+M.idxs.length+' correct · practice score on a 100–1000 scale · 720 is this app\'s own benchmark, not a verified official pass mark</div>'
+   +domHtml
    +missHtml
    +'<div class="rowbtns" style="justify-content:center;"><button class="btn" onclick="startMock(\''+c.id+'\')">⏱️ Retake mock</button>'
+   +'<button class="btn ghost" onclick="startDrill(\''+c.id+'\','+worst+')">🩹 Drill '+esc(c.domains[worst])+'</button>'
    +'<button class="btn ghost" onclick="certView(\''+c.id+'\')">Back to '+c.code+'</button></div></div>';
 }
 

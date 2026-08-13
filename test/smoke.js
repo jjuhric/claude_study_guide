@@ -309,6 +309,47 @@ vm.createContext(sandbox);
   check(/focus-visible/.test(html), "keyboard focus is visible");
   check(/role="progressbar"/.test(html), "the XP bar is exposed as a progressbar");
 
+  /* ---------- 13. mock exam realism ---------- */
+  for (const c of CERTS) {
+    const n = Math.min(20, c.questions.length);
+    // Sample repeatedly: every domain with questions must appear every time.
+    let everyDomainAlways = true, alwaysExactlyN = true, noDupes = true;
+    const domsWithQs = [...new Set(c.questions.map(q => q.d))];
+    for (let t = 0; t < 40; t++) {
+      const pick = evalIn(`sampleByDomain(CERTS.find(x=>x.id==="${c.id}"),${n})`);
+      if (pick.length !== n) alwaysExactlyN = false;
+      if (new Set(pick).size !== pick.length) noDupes = false;
+      const got = new Set(pick.map(i => c.questions[i].d));
+      if (domsWithQs.some(d => !got.has(d))) everyDomainAlways = false;
+    }
+    check(alwaysExactlyN, `${c.code}: mock always draws exactly ${n} questions`);
+    check(noDupes, `${c.code}: mock never repeats a question`);
+    check(everyDomainAlways, `${c.code}: every domain is represented in every mock`);
+  }
+  // asking for more than exists must not hang or over-draw
+  check(evalIn(`sampleByDomain(CERTS[0], 9999).length`) === CERTS[0].questions.length,
+    "sampleByDomain caps at the size of the bank");
+
+  call("startMock", "ccao");
+  check(evalIn(`M.flags.length`) === 0, "a fresh mock starts with nothing flagged");
+  evalIn(`M.i=2; toggleFlag()`);
+  check(evalIn(`M.flags.includes(2)`), "toggleFlag flags the current question");
+  evalIn(`toggleFlag()`);
+  check(!evalIn(`M.flags.includes(2)`), "toggleFlag unflags on a second press");
+  evalIn(`M.i=0; toggleFlag(); M.i=4; toggleFlag()`);
+  evalIn(`confirmFinish()`);
+  const rv = els.app.innerHTML;
+  check(/Review before submitting/.test(rv), "submitting opens a review screen, not a blind confirm");
+  check(/Unanswered \(\d+\)/.test(rv) && /Flagged for review \(2\)/.test(rv), "review screen lists unanswered and flagged questions");
+
+  // score a mock and confirm the results break down by domain
+  evalIn(`M.picks=M.idxs.map((qi,k)=>k%2===0 ? M.cert.questions[qi].a : (M.cert.questions[qi].a+1)%4)`);
+  evalIn(`finishMock()`);
+  const res = els.app.innerHTML;
+  check(/How you did by domain/.test(res), "mock results break the score down by domain");
+  check(/Weakest here/.test(res), "mock results name the weakest domain");
+  check(/dombar drillable/.test(res), "domains in the results link straight into a drill");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
