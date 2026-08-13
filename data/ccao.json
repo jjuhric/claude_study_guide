@@ -301,6 +301,816 @@
       ],
       "a": 1,
       "exp": "Role prompting shapes perspective, vocabulary, and conventions — a core Prompting-domain technique."
+    },
+    {
+      "d": 0,
+      "q": "A colleague's prompt keeps producing summaries that are too long. The most reliable fix is:",
+      "opts": [
+        "Ask again and hope for a shorter one",
+        "State the constraint explicitly — the audience, the format, and a word or bullet limit",
+        "Paste the text in smaller pieces",
+        "Tell Claude the summary was bad"
+      ],
+      "a": 1,
+      "exp": "Vague dissatisfaction cannot be acted on. Explicit constraints — length, format, audience — are the highest-leverage part of a prompt.",
+      "why": [
+        "Repetition without changing the instruction usually reproduces the same behavior.",
+        "Correct. Constraints are instructions; if length matters, say what the limit is and who is reading.",
+        "Chunking changes what is summarized, not how long the output is.",
+        "Negative feedback without a target gives Claude nothing specific to aim at."
+      ]
+    },
+    {
+      "d": 0,
+      "q": "Which prompt is most likely to produce a usable first draft?",
+      "opts": [
+        "'Write something about our Q3 results.'",
+        "'You are writing to existing enterprise customers. In under 200 words, summarize the three Q3 wins below in plain language, no jargon, ending with one forward-looking sentence.'",
+        "'Write a really good Q3 summary, make it professional.'",
+        "'Summarize Q3. Be thorough but also brief.'"
+      ],
+      "a": 1,
+      "exp": "Role, audience, source material, length, tone, and a defined ending give Claude everything it needs. 'Professional' and 'thorough but brief' are unmeasurable.",
+      "why": [
+        "No audience, no source, no format — the output will be generic.",
+        "Correct. Every element is specific and checkable.",
+        "'Really good' and 'professional' are not instructions Claude can act on differently.",
+        "'Thorough but also brief' is self-contradictory; Claude has to guess which you meant."
+      ]
+    },
+    {
+      "d": 0,
+      "q": "You need Claude to follow a specific structure across many documents. The best approach is:",
+      "opts": [
+        "Re-explain the structure in prose each time",
+        "Give one worked example of the structure filled in, then ask for the same shape",
+        "Ask for 'consistent formatting'",
+        "Run each document twice and compare"
+      ],
+      "a": 1,
+      "exp": "A single concrete example communicates structure far more precisely than a description of it. This is few-shot prompting.",
+      "why": [
+        "Prose descriptions of layout are ambiguous and drift between runs.",
+        "Correct. One filled-in example pins down the format exactly.",
+        "'Consistent' does not tell Claude which structure to be consistent with.",
+        "Running twice detects inconsistency but does nothing to prevent it."
+      ]
+    },
+    {
+      "d": 0,
+      "q": "When a task has several stages (extract, then compare, then recommend), the better prompting approach is:",
+      "opts": [
+        "One prompt asking for everything at once with no structure",
+        "Name the stages explicitly and ask for the output of each in order",
+        "Ask only for the recommendation and trust the reasoning",
+        "Use a different tool for each stage"
+      ],
+      "a": 1,
+      "exp": "Naming the stages makes the intermediate work visible, which is both more accurate and far easier to check.",
+      "why": [
+        "Bundling multi-stage work without structure tends to skip stages silently.",
+        "Correct. Explicit stages improve accuracy and make each step auditable.",
+        "Jumping to the conclusion hides the reasoning you most need to verify.",
+        "Switching tools per stage adds friction without improving the reasoning."
+      ]
+    },
+    {
+      "d": 0,
+      "q": "A prompt works well for you but produces poor results for a teammate. The most likely cause is:",
+      "opts": [
+        "Claude behaves differently per user account",
+        "Your version carried context — attached files or earlier conversation — that theirs does not",
+        "Their subscription tier is lower",
+        "Prompts expire"
+      ],
+      "a": 1,
+      "exp": "Prompts are rarely portable on their own. What made it work is usually the surrounding context that did not travel with the text.",
+      "why": [
+        "Claude does not tailor behavior to individual accounts in that way.",
+        "Correct. The missing ingredient is almost always context the prompt assumed.",
+        "Tier affects access and limits, not whether a well-specified prompt works.",
+        "Prompts have no expiry; the context around them is what changed."
+      ]
+    },
+    {
+      "d": 1,
+      "q": "Claude produces a competitor analysis containing specific market-share percentages. Before sending it to a client you should:",
+      "opts": [
+        "Send it — the numbers look plausible",
+        "Verify every figure against a named source, and remove or attribute anything you cannot confirm",
+        "Ask Claude whether it is confident",
+        "Round the numbers to look less precise"
+      ],
+      "a": 1,
+      "exp": "Specific-looking figures are exactly where generated content is most dangerous. Verification against sources is the only reliable check.",
+      "why": [
+        "Plausibility is not accuracy — fabricated statistics look plausible by construction.",
+        "Correct. Verify against sources, and attribute or drop what you cannot confirm.",
+        "Stated confidence does not correlate reliably with correctness.",
+        "Rounding hides the precision but keeps the unverified claim."
+      ]
+    },
+    {
+      "d": 1,
+      "q": "Which output most warrants full human review before use?",
+      "opts": [
+        "A brainstorm of internal meeting-name ideas",
+        "A summary of a regulatory obligation that will be sent to a customer",
+        "A rewrite of your own paragraph in a friendlier tone",
+        "A list of questions to ask in a discovery call"
+      ],
+      "a": 1,
+      "exp": "Scrutiny should scale with stakes. External, regulatory, or contractual content carries real consequences if wrong.",
+      "why": [
+        "Low stakes and easily discarded if unhelpful.",
+        "Correct. External-facing and regulatory — the highest-consequence category.",
+        "You already own the underlying content and can judge the rewrite directly.",
+        "Discovery questions are a starting point you will adapt live."
+      ]
+    },
+    {
+      "d": 1,
+      "q": "Claude cites a source you cannot find anywhere. The correct interpretation is:",
+      "opts": [
+        "The source is too new to be indexed",
+        "Treat the citation as unverified and do not use it until confirmed",
+        "The search engine is at fault",
+        "Cite it anyway and add 'according to Claude'"
+      ],
+      "a": 1,
+      "exp": "An uncheckable citation is not evidence. Generated references can look entirely conventional and still not exist.",
+      "why": [
+        "Possible but not the default assumption, and it does not make the claim usable.",
+        "Correct. If it cannot be confirmed, it cannot be relied upon.",
+        "Blaming the tooling does not establish that the source exists.",
+        "Attributing an unverified claim passes the risk to the reader."
+      ]
+    },
+    {
+      "d": 1,
+      "q": "The most useful habit when reviewing a long Claude-generated document is:",
+      "opts": [
+        "Read the first and last paragraphs",
+        "Check the claims that would be most damaging if wrong, then spot-check the rest",
+        "Rewrite everything in your own words",
+        "Run it through Claude again and ask if it is correct"
+      ],
+      "a": 1,
+      "exp": "Risk-weighted review concentrates limited attention where errors cost the most.",
+      "why": [
+        "Skimming the ends misses the specifics in the middle, which is where errors hide.",
+        "Correct. Prioritize by consequence, then sample the remainder.",
+        "Rewriting wholesale discards the time saving without targeting the risk.",
+        "Asking the same system to grade itself does not add independent verification."
+      ]
+    },
+    {
+      "d": 1,
+      "q": "Claude declines part of a request and completes the rest. The appropriate response is:",
+      "opts": [
+        "Rephrase repeatedly until it complies",
+        "Read the refusal, judge whether the concern is legitimate, and adjust the task or escalate through the proper channel",
+        "Switch to a different tool immediately",
+        "Report the tool as broken"
+      ],
+      "a": 1,
+      "exp": "A refusal is information about the request. The professional response is to understand it, not to route around it.",
+      "why": [
+        "Rephrasing to defeat a safeguard is a misuse pattern, not a technique.",
+        "Correct. Evaluate the concern, then adjust the task or use the right channel.",
+        "Tool-switching to evade a refusal has the same problem as rephrasing.",
+        "A refusal is designed behavior, not a defect."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "A workflow classifies thousands of short support tickets into five categories each night. The sensible model choice is:",
+      "opts": [
+        "The largest available model for maximum accuracy",
+        "A small, fast model — the task is simple, high-volume, and latency-tolerant",
+        "Whichever model is newest",
+        "Alternate between models to spread load"
+      ],
+      "a": 1,
+      "exp": "Match capability to task difficulty. Simple, repetitive classification at volume is exactly where a small model wins on cost and speed.",
+      "why": [
+        "Paying top-tier rates for trivial classification wastes budget with no quality gain.",
+        "Correct. Small model, high volume, simple task — the textbook fit.",
+        "Recency is not a selection criterion; task difficulty is.",
+        "Rotating models adds inconsistency without a benefit."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "Which factor should most influence choosing a more capable model?",
+      "opts": [
+        "The length of the input document",
+        "The difficulty of the reasoning required and the cost of getting it wrong",
+        "The number of people on the team",
+        "The time of day the job runs"
+      ],
+      "a": 1,
+      "exp": "Capability tiers differ mainly in reasoning depth. Long-but-simple work does not need a stronger model; hard judgment does.",
+      "why": [
+        "Length is a context-window question, largely separate from reasoning difficulty.",
+        "Correct. Reasoning difficulty and error cost are the deciding factors.",
+        "Team size has no bearing on which model suits the task.",
+        "Scheduling affects batching decisions, not capability needs."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "A customer asks whether Claude can tell them today's stock price. The accurate answer is:",
+      "opts": [
+        "Yes, models always know current prices",
+        "Not from training data alone — that needs a tool or connection that retrieves live information",
+        "No, this is impossible for any AI",
+        "Only in the paid tier"
+      ],
+      "a": 1,
+      "exp": "Training data has a cutoff. Current information requires retrieval — search or a connected data source — not recall.",
+      "why": [
+        "Training data is a snapshot; it cannot contain today's prices.",
+        "Correct. Live data requires a retrieval path, not memory.",
+        "It is very possible with the right connection; the limitation is on recall alone.",
+        "This is a capability-architecture question, not a pricing-tier one."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "Your team uses one model for everything and costs are climbing. The first thing to examine is:",
+      "opts": [
+        "Whether anyone is using the tool too often",
+        "Whether the simplest, highest-volume steps could run on a smaller model",
+        "Whether to stop using AI entirely",
+        "Whether to shorten everyone's prompts by a few words"
+      ],
+      "a": 1,
+      "exp": "Right-sizing per step is the largest and least disruptive cost lever in most workflows.",
+      "why": [
+        "Usage volume is often the point; the question is whether each call is right-sized.",
+        "Correct. Move the easy, high-volume work down a tier first.",
+        "An overreaction that discards the value along with the cost.",
+        "Trimming a few words is negligible next to tier and volume decisions."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "The clearest sign that a task needs a more capable model is:",
+      "opts": [
+        "The output is shorter than expected",
+        "The task requires multi-step reasoning and a smaller model makes logical errors on it",
+        "The prompt is long",
+        "The task is important to a senior stakeholder"
+      ],
+      "a": 1,
+      "exp": "Escalate on observed failure of a specific kind — reasoning errors — not on length, importance, or preference.",
+      "why": [
+        "Output length is controlled by instructions, not capability.",
+        "Correct. Observed reasoning failures are the signal that justifies escalating.",
+        "A long prompt needs context room, not necessarily more reasoning power.",
+        "Stakeholder seniority does not change the task's actual difficulty."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "Before recommending a Claude deployment option to a customer, the most important thing to establish is:",
+      "opts": [
+        "Which option is cheapest",
+        "Where their data is allowed to live and what their compliance requirements are",
+        "Which option launched most recently",
+        "Which option the competitor chose"
+      ],
+      "a": 1,
+      "exp": "Data residency and compliance constrain the option set before cost or features are worth comparing.",
+      "why": [
+        "Cost only matters among options the customer is permitted to use.",
+        "Correct. Compliance and data-handling constraints narrow the field first.",
+        "Recency is not a requirement-gathering input.",
+        "A competitor's choice reflects their constraints, not this customer's."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "A team wants Claude to work with a 300-page internal manual on every query. The key consideration is:",
+      "opts": [
+        "Nothing — paste the whole manual each time",
+        "Whether the whole manual is needed per query, or whether retrieving the relevant sections would be more effective and cheaper",
+        "Splitting the manual across several people",
+        "Converting the manual to a spreadsheet"
+      ],
+      "a": 1,
+      "exp": "Sending an entire corpus on every query is expensive and dilutes attention. Retrieving the relevant portion is usually better on both cost and quality.",
+      "why": [
+        "Repeatedly sending everything is costly and buries the relevant passage.",
+        "Correct. Retrieve what is relevant rather than resending everything.",
+        "Dividing work between people does not address how the content reaches the model.",
+        "Reformatting does not change the underlying volume problem."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "The best first candidate to hand to Claude in an existing workflow is a task that is:",
+      "opts": [
+        "The most business-critical step",
+        "Frequent, time-consuming, low-risk, and easy to verify",
+        "The one nobody understands",
+        "The step with the strictest audit requirements"
+      ],
+      "a": 1,
+      "exp": "Start where the value is real and the downside is contained, and where you can tell quickly whether it worked.",
+      "why": [
+        "Critical steps are the worst place to learn how a new tool behaves.",
+        "Correct. High frequency, low risk, easy to check — the ideal starting point.",
+        "Automating a step nobody understands means nobody can verify the output.",
+        "Heavily audited steps carry the most process overhead for a first attempt."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "Claude drafts customer emails that a human sends. The right control is:",
+      "opts": [
+        "Let Claude send them directly to save time",
+        "Keep a human approval step before anything reaches the customer",
+        "Have Claude review its own drafts twice",
+        "Send drafts to customers marked 'AI-generated'"
+      ],
+      "a": 1,
+      "exp": "Irreversible, outward-facing actions need human approval. Drafting is assistive; sending is a commitment.",
+      "why": [
+        "Removing the human from an irreversible external action is the risk, not the saving.",
+        "Correct. A human approves before anything leaves the organization.",
+        "Self-review adds no independent judgment.",
+        "Labeling does not substitute for reviewing the content."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "A workflow saves time but nobody trusts the output. The most productive next step is:",
+      "opts": [
+        "Mandate the tool be used anyway",
+        "Measure quality on a sample against the previous process and share the results",
+        "Remove the tool",
+        "Make the prompt longer"
+      ],
+      "a": 1,
+      "exp": "Trust follows evidence. A measured comparison against the old process is the argument that actually lands.",
+      "why": [
+        "Mandating use without evidence deepens resistance.",
+        "Correct. Evidence from a fair comparison is what changes minds.",
+        "Abandoning without measuring discards a possibly real gain.",
+        "Prompt length is unrelated to organizational trust."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "When documenting a Claude-assisted workflow for a team, the most important thing to capture is:",
+      "opts": [
+        "The exact wording of every prompt used once",
+        "What the step is for, what good output looks like, and who checks it",
+        "How many tokens each run consumes",
+        "Which day the workflow was created"
+      ],
+      "a": 1,
+      "exp": "Purpose, quality bar, and accountability are what make a workflow repeatable by someone else.",
+      "why": [
+        "One-off prompt text ages quickly and rarely transfers.",
+        "Correct. Intent, acceptance criteria, and ownership are the durable parts.",
+        "Useful for cost tracking but not for running the workflow correctly.",
+        "Creation date is metadata, not operating instructions."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "A repetitive workflow gives inconsistent results between team members. The most likely fix is:",
+      "opts": [
+        "Ask everyone to be more careful",
+        "Standardize the prompt and required context into a shared, versioned template",
+        "Restrict the workflow to one person",
+        "Run each request several times and pick the best"
+      ],
+      "a": 1,
+      "exp": "Inconsistent inputs produce inconsistent outputs. Shared templates remove the variance at its source.",
+      "why": [
+        "Care does not fix a process that lets everyone improvise inputs.",
+        "Correct. Standardize the input and the outputs converge.",
+        "Creating a bottleneck hides the inconsistency rather than fixing it.",
+        "Picking the best of several runs is expensive and still unrepeatable."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "The strongest indicator that a workflow is genuinely working is:",
+      "opts": [
+        "The team says it feels faster",
+        "A measurable reduction in cycle time or rework with quality held constant",
+        "The volume of requests increased",
+        "Leadership approved it"
+      ],
+      "a": 1,
+      "exp": "Perception and volume are weak proxies. Cycle time or rework, with quality held flat, is the real signal.",
+      "why": [
+        "Perceived speed is easily wrong in either direction.",
+        "Correct. A measured improvement with quality controlled is the evidence.",
+        "More usage can indicate churn and retries as easily as success.",
+        "Approval is a decision, not an outcome measurement."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "The main advantage of giving Claude your own source documents rather than relying on its training is:",
+      "opts": [
+        "It makes responses shorter",
+        "Answers are grounded in your actual, current material rather than general knowledge",
+        "It removes the need to review outputs",
+        "It guarantees the answer is correct"
+      ],
+      "a": 1,
+      "exp": "Grounding in your own material is what makes answers specific and current. It improves relevance; it does not remove the need to check.",
+      "why": [
+        "Grounding affects what the answer draws on, not its length.",
+        "Correct. Your documents supply specificity and currency that training data cannot.",
+        "Review is still required — grounding reduces error, it does not eliminate it.",
+        "No retrieval approach guarantees correctness."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "A corpus is far larger than what can be sent in one request, and most of it is irrelevant to any single question. The right approach is:",
+      "opts": [
+        "Send as much as fits and accept the rest is lost",
+        "Retrieve only the passages relevant to each question and supply those",
+        "Summarize the entire corpus once and use only the summary forever",
+        "Ask the question repeatedly until it works"
+      ],
+      "a": 1,
+      "exp": "Retrieval selects what matters per query. This is the core idea behind retrieval-augmented approaches.",
+      "why": [
+        "Arbitrary truncation drops content with no regard for relevance.",
+        "Correct. Select per query rather than sending everything or a fixed digest.",
+        "A single global summary loses the detail that specific questions need.",
+        "Repetition does not change what information is available."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "Your team keeps a shared project space with reference documents so Claude has consistent background. The main risk to manage is:",
+      "opts": [
+        "The documents make responses too detailed",
+        "Stale documents silently producing confidently outdated answers",
+        "Having more than one document",
+        "Team members reading the documents"
+      ],
+      "a": 1,
+      "exp": "Grounding inherits the quality of what it is grounded in. Outdated source material produces confident, wrong answers.",
+      "why": [
+        "Detail is usually the goal of supplying references.",
+        "Correct. Staleness is the main failure mode — assign ownership and review dates.",
+        "Multiple documents are normal and expected.",
+        "People reading the reference material is a benefit."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "When source documents disagree with each other, the best practice is:",
+      "opts": [
+        "Let Claude pick whichever it prefers",
+        "Tell Claude which source is authoritative, or ask it to surface the conflict rather than resolve it silently",
+        "Delete the older document without checking",
+        "Ask the question in a different way"
+      ],
+      "a": 1,
+      "exp": "Unflagged conflicts produce arbitrary answers. Either establish precedence or require the disagreement be surfaced.",
+      "why": [
+        "An arbitrary choice between conflicting sources is not a decision you can defend.",
+        "Correct. Set precedence explicitly, or have the conflict reported.",
+        "The older document may be the correct one; deleting without checking loses information.",
+        "Rephrasing does not resolve a genuine contradiction in the sources."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "Before adding a document to a shared knowledge space, the most important check is:",
+      "opts": [
+        "Whether it is formatted attractively",
+        "Whether its contents are approved for that audience and free of data that should not be shared",
+        "Whether it is under a certain page count",
+        "Whether it was written recently"
+      ],
+      "a": 1,
+      "exp": "Everything in a shared space becomes visible to everyone with access. Classification comes before convenience.",
+      "why": [
+        "Formatting affects readability, not whether sharing is permitted.",
+        "Correct. Approval and sensitivity determine whether it belongs there at all.",
+        "Length is a practical consideration, not a governance one.",
+        "Recency matters for accuracy but does not make sharing appropriate."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "A good sign that your knowledge setup is working is:",
+      "opts": [
+        "Answers are longer than before",
+        "Answers cite the specific internal document and section they came from",
+        "Claude responds faster",
+        "Fewer people ask questions"
+      ],
+      "a": 1,
+      "exp": "Traceability to a named source is what makes a grounded answer checkable and trustworthy.",
+      "why": [
+        "Length is not a quality indicator.",
+        "Correct. Specific, checkable attribution is the signal that grounding is working.",
+        "Speed reflects model and load, not grounding quality.",
+        "Fewer questions could equally mean people gave up on the tool."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "The main reason to keep a record of which document version informed an important answer is:",
+      "opts": [
+        "To increase storage usage",
+        "So the answer can be re-checked or defended later when the source has changed",
+        "To make the answer longer",
+        "Because Claude requires it"
+      ],
+      "a": 1,
+      "exp": "Decisions get revisited. Knowing which version of the source was used is what makes an old answer auditable.",
+      "why": [
+        "Storage is a cost, not a purpose.",
+        "Correct. Version provenance is what makes an answer defensible after the fact.",
+        "Provenance is metadata; it does not change answer length.",
+        "This is an organizational practice, not a product requirement."
+      ]
+    },
+    {
+      "d": 5,
+      "q": "A colleague wants to paste a customer contract into Claude to summarize it. The first question to ask is:",
+      "opts": [
+        "Whether the summary will be accurate",
+        "Whether that contract is classified as data approved for this tool under your policy",
+        "How long the contract is",
+        "Which model will be used"
+      ],
+      "a": 1,
+      "exp": "Data classification and policy come before any question of quality or configuration.",
+      "why": [
+        "Accuracy matters, but only once the data is permitted to be there at all.",
+        "Correct. Policy and classification gate the decision.",
+        "Length is a practical detail, not a governance check.",
+        "Model choice is downstream of whether the data may be used."
+      ]
+    },
+    {
+      "d": 5,
+      "q": "Who is accountable for an error in a Claude-drafted document sent to a client?",
+      "opts": [
+        "The model vendor",
+        "The person and organization that reviewed and sent it",
+        "Nobody, since it was automated",
+        "The prompt author only"
+      ],
+      "a": 1,
+      "exp": "Accountability follows the decision to send. Tools assist; people and organizations remain responsible for what they publish.",
+      "why": [
+        "Vendors supply a tool; they do not assume responsibility for your client communications.",
+        "Correct. Whoever approved and sent it owns the outcome.",
+        "Automation does not remove accountability.",
+        "Writing the prompt is not the same as approving the final output."
+      ]
+    },
+    {
+      "d": 5,
+      "q": "An internal team wants to use Claude to screen job applicants. The correct response is:",
+      "opts": [
+        "Proceed — it will save time",
+        "Flag it for legal and HR review first, since decisions about people carry specific fairness and regulatory obligations",
+        "Proceed if the prompt mentions fairness",
+        "Proceed but keep it undocumented"
+      ],
+      "a": 1,
+      "exp": "Consequential decisions about individuals attract specific legal and fairness obligations that must be assessed before deployment.",
+      "why": [
+        "Time saved is irrelevant if the use is not permitted.",
+        "Correct. High-stakes decisions about people require review before deployment.",
+        "A fairness instruction in a prompt is not a compliance assessment.",
+        "Avoiding documentation makes the risk worse, not smaller."
+      ]
+    },
+    {
+      "d": 5,
+      "q": "The most useful thing an organization can publish to keep AI use safe day to day is:",
+      "opts": [
+        "A list of banned words",
+        "Clear guidance on what data may be used, what needs human review, and who to ask when unsure",
+        "A monthly usage leaderboard",
+        "A requirement that all output be rewritten by hand"
+      ],
+      "a": 1,
+      "exp": "Practical guidance on data, review thresholds, and escalation covers the decisions people actually face.",
+      "why": [
+        "Word lists do not address data handling or review.",
+        "Correct. Data rules, review thresholds, and an escalation path cover real decisions.",
+        "Leaderboards encourage volume, which is not a safety goal.",
+        "Rewriting everything by hand removes the benefit entirely."
+      ]
+    },
+    {
+      "d": 5,
+      "q": "Claude is asked to produce content that would mislead customers about a product limitation. The right action is:",
+      "opts": [
+        "Rephrase until Claude produces it",
+        "Decline — the problem is the request, not the tool's response to it",
+        "Produce it and add a disclaimer",
+        "Escalate to get approval to bypass the refusal"
+      ],
+      "a": 1,
+      "exp": "Some outputs should not be produced regardless of tooling. Getting a tool to comply does not make the content acceptable.",
+      "why": [
+        "Rephrasing to defeat a safeguard does not change what the content does to customers.",
+        "Correct. The request itself is the problem.",
+        "A disclaimer does not repair deliberately misleading content.",
+        "There is no approval that makes misleading customers acceptable."
+      ]
+    },
+    {
+      "d": 5,
+      "q": "Personal data appears in a document a colleague wants to process. The safest handling is:",
+      "opts": [
+        "Process it and delete the output afterward",
+        "Remove or mask the personal data unless there is an approved basis to process it",
+        "Process only the first page",
+        "Rename the file"
+      ],
+      "a": 1,
+      "exp": "Minimize personal data before processing unless there is an approved basis. Deleting afterward does not undo the exposure.",
+      "why": [
+        "Deleting output later does not address the processing that already happened.",
+        "Correct. Minimize or mask unless processing is approved.",
+        "Partial processing still processes personal data.",
+        "Renaming changes nothing about the contents."
+      ]
+    },
+    {
+      "d": 5,
+      "q": "Your customer asks where their data goes when they use Claude. The professional response is:",
+      "opts": [
+        "Guess based on how similar tools work",
+        "Point them to the official documentation and terms for the specific deployment they are using, and involve the right specialist if unsure",
+        "Tell them it is completely private in every case",
+        "Say it does not matter for most companies"
+      ],
+      "a": 1,
+      "exp": "Data-handling answers must come from authoritative documentation for their actual deployment, not from generalization.",
+      "why": [
+        "Guessing about data handling creates real liability.",
+        "Correct. Cite the authoritative source for their specific deployment.",
+        "Blanket privacy claims are not accurate across deployments.",
+        "Dismissing the question is both wrong and damaging to trust."
+      ]
+    },
+    {
+      "d": 6,
+      "q": "Claude's answer ignores half of a long instruction. The most effective fix is:",
+      "opts": [
+        "Repeat the whole instruction twice",
+        "Restructure it — break the requirements into a numbered list and ask for each to be addressed",
+        "Write the instruction in capitals",
+        "Shorten the input document"
+      ],
+      "a": 1,
+      "exp": "Buried requirements get missed. Structure makes each requirement individually visible and checkable.",
+      "why": [
+        "Duplication adds length without adding clarity.",
+        "Correct. Enumerate requirements so none can be buried in prose.",
+        "Capitalization does not change how instructions are parsed.",
+        "The problem is instruction structure, not source length."
+      ]
+    },
+    {
+      "d": 6,
+      "q": "Output quality degrades noticeably late in a very long conversation. The most likely explanation is:",
+      "opts": [
+        "The model is tired",
+        "Early context has been crowded out as the conversation grew",
+        "Your network connection weakened",
+        "The subscription is throttled"
+      ],
+      "a": 1,
+      "exp": "Long conversations push earlier content out of effective reach. Restating key constraints or starting fresh with a summary restores quality.",
+      "why": [
+        "Models do not fatigue; the cause is contextual.",
+        "Correct. Crowding is the standard explanation for late-conversation drift.",
+        "Connectivity affects delivery, not reasoning quality.",
+        "Throttling affects rate and availability, not answer quality."
+      ]
+    },
+    {
+      "d": 6,
+      "q": "The same prompt gives noticeably different answers on different runs. The best way to increase consistency is:",
+      "opts": [
+        "Accept it as unavoidable",
+        "Tighten the prompt — specify format, constraints, and an example of the expected output",
+        "Send the request more slowly",
+        "Ask the question in a different language"
+      ],
+      "a": 1,
+      "exp": "Under-specified prompts leave room for variation. Constraints and an example narrow the acceptable output space.",
+      "why": [
+        "Much of the variation is avoidable with better specification.",
+        "Correct. Specificity and a worked example are the practical consistency levers.",
+        "Timing has no bearing on output variability.",
+        "Changing language adds a variable rather than removing one."
+      ]
+    },
+    {
+      "d": 6,
+      "q": "Claude misunderstands a domain term that means something specific inside your company. The fix is:",
+      "opts": [
+        "Avoid the term entirely",
+        "Define the term in the prompt the first time you use it",
+        "Use the term more often so it is learned",
+        "Ask Claude to guess the meaning"
+      ],
+      "a": 1,
+      "exp": "Internal jargon is not shared knowledge. Defining it inline is the direct fix.",
+      "why": [
+        "Avoiding the term may make the request harder to express accurately.",
+        "Correct. Supply the definition rather than assuming it.",
+        "Repetition within a conversation does not teach a company-specific meaning.",
+        "Guessing invites exactly the misunderstanding you are trying to fix."
+      ]
+    },
+    {
+      "d": 6,
+      "q": "A summary is accurate but written at the wrong level for its audience. The most direct fix is:",
+      "opts": [
+        "Make it shorter",
+        "Name the audience and their expertise explicitly, and state what they need to do with it",
+        "Ask for 'a better summary'",
+        "Change model"
+      ],
+      "a": 1,
+      "exp": "Register and depth follow from a stated audience and purpose. Neither is inferable if you never say who is reading.",
+      "why": [
+        "Length and reading level are different problems.",
+        "Correct. State the audience, their expertise, and the intended use.",
+        "'Better' does not identify what was wrong.",
+        "A different model will make the same assumption about an unstated audience."
+      ]
+    },
+    {
+      "d": 6,
+      "q": "You suspect Claude has misread a source document you attached. The fastest way to confirm is:",
+      "opts": [
+        "Re-attach the document and hope",
+        "Ask it to quote the exact passage it used before it continues",
+        "Ask whether it read the document",
+        "Rephrase the original question"
+      ],
+      "a": 1,
+      "exp": "Asking for the underlying passage makes the grounding visible and immediately checkable against the source.",
+      "why": [
+        "Re-attaching without checking does not tell you what went wrong.",
+        "Correct. Requesting the exact passage exposes the actual grounding.",
+        "A yes/no answer about reading is not verifiable evidence.",
+        "Rephrasing may produce a different answer without revealing the original error."
+      ]
+    },
+    {
+      "d": 6,
+      "q": "Claude produces a well-written answer that is confidently wrong. The most important lesson is:",
+      "opts": [
+        "Fluency and accuracy are independent — polish is not evidence of correctness",
+        "The prompt was too short",
+        "The model needs replacing",
+        "Longer answers are more reliable"
+      ],
+      "a": 0,
+      "exp": "Confident, fluent presentation is not a signal of accuracy. This is why verification scales with stakes rather than with how good the output looks.",
+      "why": [
+        "Correct. Presentation quality carries no information about factual accuracy.",
+        "Prompt length may or may not be a factor; the general lesson is about fluency.",
+        "Every model can produce fluent errors; replacement does not solve it.",
+        "Length is unrelated to reliability."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "A customer asks why Claude gave a different answer than their internal wiki. The most useful first check is:",
+      "opts": [
+        "Whether the wiki is popular internally",
+        "Whether the wiki was actually supplied as a source, or whether Claude answered from general knowledge",
+        "Whether the question was phrased politely",
+        "Whether the wiki has images"
+      ],
+      "a": 1,
+      "exp": "Grounded answers and general-knowledge answers fail differently. Establish which one you got before diagnosing anything else.",
+      "why": [
+        "Popularity says nothing about whether the content reached the model.",
+        "Correct. If the wiki was never supplied, the answer was never grounded in it.",
+        "Phrasing does not determine which sources were available.",
+        "Images are a formatting detail, not the reason for the discrepancy."
+      ]
     }
   ],
   "cards": [

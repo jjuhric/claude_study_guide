@@ -81,10 +81,13 @@ else {
 /* ---------- 4. boot through the real loader ---------- */
 const els = {};
 const mkEl = id => ({
-  id, innerHTML: "", textContent: "", style: {}, className: "",
-  classList: { add() {}, remove() {}, contains: () => false },
-  appendChild() {}, remove() {}, addEventListener() {},
+  id, innerHTML: "", textContent: "", style: {}, className: "", disabled: false,
+  classList: { _s: new Set(), add(c) { this._s.add(c); }, remove(c) { this._s.delete(c); }, contains(c) { return this._s.has(c); } },
+  appendChild() {}, remove() {}, addEventListener() {}, focus() {}, setAttribute() {}, getAttribute: () => null,
+  insertAdjacentHTML(pos, html) { this.innerHTML += html; },
 });
+// Four stand-in answer buttons so answer() can grade and annotate them.
+const optEls = [0, 1, 2, 3].map(i => mkEl("opt" + i));
 for (const id of ["hdr", "app", "toast"]) els[id] = mkEl(id);
 
 const storage = {};
@@ -97,6 +100,7 @@ const sandbox = {
   localStorage: { getItem: k => (k in storage ? storage[k] : null), setItem: (k, v) => { storage[k] = String(v); } },
   document: {
     getElementById: id => els[id] || (els[id] = mkEl(id)),
+    querySelectorAll: sel => (sel === ".opt" ? optEls : []),
     createElement: () => { const e = mkEl("tmp"); e.click = () => { downloads.push(e); }; return e; },
     body: { appendChild() {} },
     addEventListener() {},
@@ -349,6 +353,63 @@ vm.createContext(sandbox);
   check(/How you did by domain/.test(res), "mock results break the score down by domain");
   check(/Weakest here/.test(res), "mock results name the weakest domain");
   check(/dombar drillable/.test(res), "domains in the results link straight into a drill");
+
+  /* ---------- 14. per-option rationales ---------- */
+  // Structure: a `why` array, when present, must be parallel to `opts`.
+  let badWhy = [];
+  let withWhy = 0;
+  for (const [id, d] of Object.entries(data)) {
+    d.questions.forEach((q, i) => {
+      if (!("why" in q)) return;
+      withWhy++;
+      if (!Array.isArray(q.why) || q.why.length !== q.opts.length || q.why.some(w => !w || !w.trim())) badWhy.push(`${id}[${i}]`);
+    });
+  }
+  check(badWhy.length === 0, `every "why" array is parallel to its options (${badWhy.slice(0, 3).join(", ") || "all valid"})`);
+  check(withWhy > 0, `${withWhy} questions carry per-option rationales`);
+
+  // The load-time shuffle must permute `why` with `opts`, or explanations end
+  // up attached to the wrong answers — silently, and in a way no user can spot.
+  let misaligned = 0, checked = 0;
+  for (const c of CERTS) {
+    const raw = data[c.id];
+    c.questions.forEach((q, i) => {
+      const src = raw.questions[i];
+      if (!Array.isArray(src.why)) return;
+      src.opts.forEach((optText, oi) => {
+        const ni = q.opts.indexOf(optText);
+        checked++;
+        if (ni < 0 || q.why[ni] !== src.why[oi]) misaligned++;
+      });
+    });
+  }
+  check(misaligned === 0, `shuffle keeps each rationale with its option (${checked} option/rationale pairs, ${misaligned} misaligned)`);
+
+  // and the correct answer's rationale must still be the correct one
+  let wrongAnchor = 0;
+  for (const c of CERTS) {
+    const raw = data[c.id];
+    c.questions.forEach((q, i) => {
+      const src = raw.questions[i];
+      if (!Array.isArray(src.why)) return;
+      if (q.why[q.a] !== src.why[src.a]) wrongAnchor++;
+    });
+  }
+  check(wrongAnchor === 0, "the correct option keeps its own rationale after shuffling");
+
+  // rendering: answering a question that has rationales shows all of them
+  evalIn(`startQuiz("ccao")`);
+  const withIdx = evalIn(`Q.idxs.findIndex(i=>Array.isArray(Q.cert.questions[i].why))`);
+  if (withIdx >= 0) {
+    evalIn(`Q.i=${withIdx}; quizQ()`);
+    evalIn(`answer((Q.cert.questions[Q.idxs[Q.i]].a+1)%4)`);   // deliberately wrong
+    const expHtml = els.exp.innerHTML;
+    check(/class="whybox"/.test(expHtml), "a wrong answer shows the per-option breakdown");
+    check((expHtml.match(/class="wrow/g) || []).length === 4, "the breakdown covers all four options");
+    check(/wrow ok/.test(expHtml) && /wrow no/.test(expHtml), "the breakdown distinguishes right from wrong options");
+  } else {
+    check(false, "could not find a question with rationales to render");
+  }
 
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;

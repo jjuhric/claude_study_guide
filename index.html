@@ -119,6 +119,11 @@
     background:var(--border); color:var(--muted); font-size:11px; margin-right:9px; flex-shrink:0; vertical-align:1px;}
   .opt:hover .okey{background:var(--coral); color:#fff;}
   .opt .mark{float:right; font-weight:700; margin-left:8px;}
+  .whybox{margin-top:12px; border-top:1px solid var(--border); padding-top:10px;}
+  .wrow{display:block; font-size:12.5px; line-height:1.5; margin-bottom:9px;}
+  .wrow b{display:block; margin-bottom:2px;}
+  .wrow.ok b{color:var(--green);} .wrow.no b{color:var(--red);}
+  .wrow span{color:var(--muted);}
   .opt.correct .mark{color:var(--green);} .opt.wrong .mark{color:var(--red);}
   @media (max-width:520px){ .okey{display:none;} }
 
@@ -718,7 +723,19 @@ function answer(j){
     addXP(10+bonus, bonus?("combo ×"+Q.combo):"correct");
   } else { Q.combo=0; }
   const e=$("exp");
-  e.innerHTML='<b>'+(ok?"✅ Correct!":"❌ Not quite.")+'</b> '+esc(q.exp);
+  /* "I narrowed it to two and picked wrong" is the common failure mode, so
+     when a question carries per-option rationales, show all of them. */
+  let why='';
+  if(Array.isArray(q.why)&&q.why.length===q.opts.length){
+    why='<div class="whybox">';
+    q.opts.forEach((o,k)=>{
+      const right=(k===q.a);
+      why+='<div class="wrow '+(right?"ok":"no")+'"><b>'+(right?"✓":"✗")+' '+esc(o)+'</b>'
+        +'<span>'+esc(q.why[k])+'</span></div>';
+    });
+    why+='</div>';
+  }
+  e.innerHTML='<b>'+(ok?"✅ Correct!":"❌ Not quite.")+'</b> '+esc(q.exp)+why;
   e.classList.add("show");
   const nb=$("nextb");
   nb.style.display="inline-block";
@@ -1037,6 +1054,9 @@ document.addEventListener("keydown", e=>{
     for(const c of CERTS){ for(const q of c.questions){
       const n=q.opts.length, idx=Array.from({length:n},(_,i)=>i);
       for(let i=n-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; }
+      /* Per-option rationales must ride the same permutation as the options,
+         or every explanation ends up attached to the wrong answer. */
+      if(Array.isArray(q.why)&&q.why.length===n) q.why=idx.map(k=>q.why[k]);
       q.opts=idx.map(k=>q.opts[k]);
       q.a=idx.indexOf(q.a);
     } }
