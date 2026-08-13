@@ -88,6 +88,8 @@ const mkEl = id => ({
 for (const id of ["hdr", "app", "toast"]) els[id] = mkEl(id);
 
 const storage = {};
+const downloads = [];
+let lastBlob = null;
 const sandbox = {
   console,
   setTimeout: () => 0, clearTimeout: () => {}, setInterval: () => 0, clearInterval: () => {},
@@ -95,11 +97,23 @@ const sandbox = {
   localStorage: { getItem: k => (k in storage ? storage[k] : null), setItem: (k, v) => { storage[k] = String(v); } },
   document: {
     getElementById: id => els[id] || (els[id] = mkEl(id)),
-    createElement: () => mkEl("tmp"),
+    createElement: () => { const e = mkEl("tmp"); e.click = () => { downloads.push(e); }; return e; },
     body: { appendChild() {} },
     addEventListener() {},
+    documentElement: {
+      attrs: {},
+      setAttribute(k, v) { this.attrs[k] = v; },
+      removeAttribute(k) { delete this.attrs[k]; },
+      getAttribute(k) { return k in this.attrs ? this.attrs[k] : null; },
+    },
   },
   addEventListener() {},
+  // Enough of the download + file-read surface to exercise export/import.
+  Blob: class { constructor(parts) { this.parts = parts; } },
+  URL: { createObjectURL: b => { lastBlob = b; return "blob:test"; }, revokeObjectURL() {} },
+  FileReader: class {
+    readAsText(file) { this.result = file.__text; setTimeout(() => this.onload && this.onload(), 0); }
+  },
   // Serve data/*.json off disk, mimicking the browser fetch the loader uses.
   fetch: url => {
     const f = path.join(ROOT, String(url).split("?")[0]);
@@ -239,6 +253,61 @@ vm.createContext(sandbox);
   check((cv.match(/class="mode"/g) || []).length === 6, "cert page offers all 6 study modes");
   check(/dombar drillable/.test(cv), "domain rows are drillable");
   check(/not a prediction about the real exam/.test(cv), "prep score is scoped honestly");
+
+  /* ---------- 10. theme ---------- */
+  const root = sandbox.document.documentElement;
+  evalIn(`S.theme="auto"; applyTheme()`);
+  check(root.getAttribute("data-theme") === null, "theme auto: no override, follows the OS");
+  evalIn(`S.theme="dark"; applyTheme()`);
+  check(root.getAttribute("data-theme") === "dark", "theme dark: data-theme set on the root element");
+  evalIn(`S.theme="light"; applyTheme()`);
+  check(root.getAttribute("data-theme") === "light", "theme light: overrides a dark OS preference");
+  evalIn(`S.theme="auto"; applyTheme(); cycleTheme()`);
+  check(["light", "dark", "auto"].includes(evalIn(`S.theme`)), "cycleTheme moves through the three states");
+  evalIn(`S.theme="auto"; applyTheme()`);
+  // dark theme must not leave white-on-white or black-on-black anywhere
+  check(!/#toast\{[^}]*color:#fff/.test(html), "toast text is not hardcoded white (breaks in dark)");
+  check(!/\.exbox pre\{background:#fff/.test(html), "code blocks use a themed background");
+
+  /* ---------- 11. export / import ---------- */
+  evalIn(`S.xp=1234; S.badges=["first"]; save()`);
+  downloads.length = 0;
+  evalIn(`exportProgress()`);
+  check(downloads.length === 1, "exportProgress triggers a download");
+  check(/^cert-quest-progress-\d{4}-\d{2}-\d{2}\.json$/.test(downloads[0].download || ""),
+    `export filename is dated (${downloads[0] && downloads[0].download})`);
+  const exported = lastBlob && lastBlob.parts && lastBlob.parts[0];
+  let round = null;
+  try { round = JSON.parse(exported); } catch (e) { /* reported below */ }
+  check(round && round.xp === 1234 && round.badges[0] === "first", "exported JSON round-trips the live state");
+
+  // importing replaces state, and runs through the same repair path as a load
+  evalIn(`S.xp=0; S.badges=[]; save()`);
+  sandbox.confirm = () => true;
+  evalIn(`importProgress({__text:${JSON.stringify(JSON.stringify({ xp: 999, badges: ["first", "combo5"], cardsSeen: "bad" }))}})`);
+  await new Promise(r => setTimeout(r, 20));
+  check(evalIn(`S.xp`) === 999, "importProgress restores exported values");
+  check(evalIn(`S.badges.length`) === 2, "importProgress restores badges");
+  check(evalIn(`typeof S.cardsSeen === "number" && isFinite(S.cardsSeen)`), "importProgress repairs bad fields via migrate()");
+
+  // a malformed file must not wipe progress
+  let alerted = 0; sandbox.alert = () => { alerted++; };
+  evalIn(`importProgress({__text:"not json at all"})`);
+  await new Promise(r => setTimeout(r, 20));
+  check(evalIn(`S.xp`) === 999 && alerted === 1, "a malformed import is rejected without destroying progress");
+  sandbox.confirm = () => false;
+  evalIn(`importProgress({__text:${JSON.stringify(JSON.stringify({ xp: 5 }))}})`);
+  await new Promise(r => setTimeout(r, 20));
+  check(evalIn(`S.xp`) === 999, "declining the import confirmation keeps current progress");
+
+  /* ---------- 12. accessibility ---------- */
+  check(/aria-live="polite"/.test(html) && /id="live"/.test(html), "a live region exists for announcements");
+  check(/<main id="app">/.test(html), "app content is in a <main> landmark");
+  check(/aria-disabled/.test(html), "answered options expose their disabled state");
+  check(/class="vhide"> — correct answer/.test(html), "correctness is conveyed by text, not colour alone");
+  check(/prefers-reduced-motion/.test(html), "reduced-motion preference is respected");
+  check(/focus-visible/.test(html), "keyboard focus is visible");
+  check(/role="progressbar"/.test(html), "the XP bar is exposed as a progressbar");
 
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
