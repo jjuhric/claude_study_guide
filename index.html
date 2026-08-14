@@ -165,6 +165,10 @@
   .btn.flagon{background:rgba(232,180,72,.18); border-color:var(--gold); color:var(--coral-dark);}
   .dombreak{margin-top:16px; text-align:left;}
   .dombreak h4{font-size:13.5px; margin-bottom:8px;}
+  .weakrow{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    border:2px solid var(--border); border-radius:12px; padding:10px 13px; margin-bottom:8px; font-size:13.5px;}
+  .weakrow .pc{color:var(--muted); font-size:12px;}
+  .weakrow .wact{display:flex; gap:7px; flex-shrink:0;}
 
   /* Results */
   .bigscore{font-size:52px; font-weight:800; text-align:center; margin:8px 0;}
@@ -540,6 +544,30 @@ function badgesView(){
   }
   h+='</div></div>'; $("app").innerHTML=h;
 }
+/* Lessons run [foundation, ...one per domain in order], so domain d is taught
+   by lesson d+1. Verified for every certification by the test suite. */
+function lessonForDomain(c,d){
+  const i=d+1;
+  return (c.lessons&&c.lessons[i]&&!c.lessons[i].foundation) ? i : -1;
+}
+/* Weak domains from a finished round, worst first, with the lesson that
+   teaches each — so a bad round turns into a specific next action. */
+function weakDomainLinks(c,stats,heading){
+  const rows=Object.keys(stats).map(Number)
+    .filter(d=>stats[d].s>0 && stats[d].c<stats[d].s)
+    .sort((a,b)=>(stats[a].c/stats[a].s)-(stats[b].c/stats[b].s));
+  if(!rows.length) return '';
+  let h='<div class="dombreak"><h4>'+heading+'</h4>';
+  rows.forEach(d=>{
+    const s=stats[d], li=lessonForDomain(c,d);
+    h+='<div class="weakrow"><div><b>'+esc(c.domains[d])+'</b>'
+      +'<span class="pc"> '+s.c+'/'+s.s+' correct</span></div><div class="wact">'
+      +'<button class="btn ghost sm" onclick="startDrill(\''+c.id+'\','+d+')">🩹 Drill</button>'
+      +(li>=0?'<button class="btn ghost sm" onclick="lessonView(\''+c.id+'\','+li+')">📖 Lesson</button>':'')
+      +'</div></div>';
+  });
+  return h+'</div>';
+}
 function lessonProgress(c){
   const read=S.lessonsRead[c.id]||[];
   const done=read.filter(Boolean).length;
@@ -691,7 +719,7 @@ function pickQuestions(c,n){
 function startQuiz(id){
   const c=CERTS.find(x=>x.id===id);
   if(!c.questions.length) return noContent(c,"practice questions");
-  Q={cert:c, idxs:pickQuestions(c,10), i:0, correct:0, combo:0, mode:"quiz"};
+  Q={cert:c, idxs:pickQuestions(c,10), i:0, correct:0, combo:0, mode:"quiz", stats:{}};
   quizQ();
 }
 function quizQ(){
@@ -740,6 +768,9 @@ function answer(j){
     const bonus=Math.min(Q.combo-1,5)*2;
     addXP(10+bonus, bonus?("combo ×"+Q.combo):"correct");
   } else { Q.combo=0; }
+  Q.stats=Q.stats||{};
+  const st=Q.stats[q.d]=Q.stats[q.d]||{s:0,c:0};
+  st.s++; if(ok)st.c++;
   const e=$("exp");
   /* "I narrowed it to two and picked wrong" is the common failure mode, so
      when a question carries per-option rationales, show all of them. */
@@ -770,6 +801,7 @@ function nextQ(){
   $("app").innerHTML='<div class="panel center"><h2 style="font-size:20px;">Round complete!</h2>'
    +'<div class="bigscore" style="color:'+Q.cert.color+'">'+Q.correct+'/'+Q.idxs.length+'</div>'
    +'<div class="subtext">'+msg+'</div>'
+   +weakDomainLinks(Q.cert, Q.stats||{}, "Where you dropped marks")
    +'<div class="rowbtns" style="justify-content:center;">'
    +(Q.mode==="review"
       ? '<button class="btn" onclick="startReview(\''+Q.cert.id+'\')">🎯 Review more misses</button>'
@@ -843,7 +875,7 @@ function startDrill(id,domIdx){
   const c=CERTS.find(x=>x.id===id);
   const pool=c.questions.map((q,i)=>i).filter(i=>c.questions[i].d===domIdx);
   if(!pool.length) return noContent(c,"questions for that domain");
-  Q={cert:c, idxs:shuffleArr(pool).slice(0,10), i:0, correct:0, combo:0, mode:"drill", label:"Drilling "+c.domains[domIdx]};
+  Q={cert:c, idxs:shuffleArr(pool).slice(0,10), i:0, correct:0, combo:0, mode:"drill", stats:{}, label:"Drilling "+c.domains[domIdx]};
   quizQ();
 }
 function startWeakest(id){
@@ -870,7 +902,7 @@ function startReview(id){
      +'<button class="btn ghost" onclick="certView(\''+c.id+'\')">Back</button></div></div>';
     return;
   }
-  Q={cert:c, idxs:shuffleArr(pool).slice(0,15), i:0, correct:0, combo:0, mode:"review", label:"Reviewing past misses"};
+  Q={cert:c, idxs:shuffleArr(pool).slice(0,15), i:0, correct:0, combo:0, mode:"review", stats:{}, label:"Reviewing past misses"};
   quizQ();
 }
 
@@ -992,13 +1024,16 @@ function finishMock(){
   let domHtml='<div class="dombreak"><h4>📊 How you did by domain</h4>';
   ordered.forEach(d=>{
     const s=dstat[d], pc=Math.round(s.c/s.s*100);
-    domHtml+='<div class="dombar drillable" onclick="startDrill(\''+c.id+'\','+d+')" title="Drill this domain">'
-      +'<div class="dl"><span>'+esc(c.domains[d])+'</span><span class="pc">'+pc+'% ('+s.c+'/'+s.s+') <b>›</b></span></div>'
-      +'<div class="pbar"><div style="width:'+pc+'%; background:'+(pc>=70?"var(--green)":pc>=50?"var(--gold)":"var(--red)")+'"></div></div></div>';
+    const li=lessonForDomain(c,d);
+    domHtml+='<div class="dombar"><div class="dl"><span>'+esc(c.domains[d])+'</span><span class="pc">'+pc+'% ('+s.c+'/'+s.s+')</span></div>'
+      +'<div class="pbar"><div style="width:'+pc+'%; background:'+(pc>=70?"var(--green)":pc>=50?"var(--gold)":"var(--red)")+'"></div></div>'
+      +'<div class="wact" style="margin-top:7px;"><button class="btn ghost sm" onclick="startDrill(\''+c.id+'\','+d+')">🩹 Drill</button>'
+      +(li>=0?'<button class="btn ghost sm" onclick="lessonView(\''+c.id+'\','+li+')">📖 Lesson</button>':'')
+      +'</div></div>';
   });
   const worst=ordered[0];
   domHtml+='<p style="font-size:12.5px; color:var(--muted); margin-top:8px;">Weakest here: <b>'+esc(c.domains[worst])+'</b>'
-    +' — tap any domain to drill it.</p></div>';
+    +' — drill it, or read the lesson that covers it.</p></div>';
   let missHtml='';
   if(missed.length){
     missHtml='<div style="text-align:left; margin-top:16px;"><h4 style="font-size:14px; margin-bottom:8px;">📝 Review your misses</h4>';

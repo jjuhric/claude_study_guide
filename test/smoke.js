@@ -393,7 +393,8 @@ vm.createContext(sandbox);
   const res = els.app.innerHTML;
   check(/How you did by domain/.test(res), "mock results break the score down by domain");
   check(/Weakest here/.test(res), "mock results name the weakest domain");
-  check(/dombar drillable/.test(res), "domains in the results link straight into a drill");
+  check(/startDrill\('ccao',\d+\)/.test(res), "each domain in the mock results links into a drill");
+  check(/lessonView\('ccao',\d+\)/.test(res), "each domain in the mock results links to its lesson");
 
   /* ---------- 14. per-option rationales ---------- */
   // Structure: a `why` array, when present, must be parallel to `opts`.
@@ -505,6 +506,33 @@ vm.createContext(sandbox);
   } else {
     check(false, "could not find a question with rationales to render");
   }
+
+  /* ---------- 15. practice links back to the teaching material ---------- */
+  // lessons are [foundation, ...one per domain in order], so domain d -> lesson d+1
+  const badMap = [];
+  for (const c of CERTS) {
+    c.domains.forEach((name, d) => {
+      const li = evalIn(`lessonForDomain(CERTS.find(x=>x.id==="${c.id}"),${d})`);
+      if (li !== d + 1) badMap.push(`${c.code} d${d}->${li}`);
+      else if (c.lessons[li].h.trim() !== name.trim()) badMap.push(`${c.code} d${d} "${c.lessons[li].h}"≠"${name}"`);
+    });
+  }
+  check(badMap.length === 0, `each domain maps to the lesson that teaches it (${badMap.slice(0, 2).join(", ") || "all four certs clean"})`);
+
+  // A round with misses must offer the lesson for the weak domain, not just a drill.
+  evalIn(`startDrill("ccao",0)`);
+  evalIn(`Q.idxs.forEach((qi,k)=>{Q.i=k; answer((Q.cert.questions[qi].a+1)%4); })`);
+  evalIn(`Q.i=Q.idxs.length-1; nextQ()`);
+  const rr = els.app.innerHTML;
+  check(/Where you dropped marks/.test(rr), "a round with misses reports the weak domains");
+  check(/lessonView\('ccao',1\)/.test(rr), "the weak domain links to its lesson");
+  check(/startDrill\('ccao',0\)/.test(rr), "the weak domain also links to a drill");
+
+  // A perfect round should not nag about weak domains.
+  evalIn(`startDrill("ccao",0)`);
+  evalIn(`Q.idxs.forEach((qi,k)=>{Q.i=k; answer(Q.cert.questions[qi].a); })`);
+  evalIn(`Q.i=Q.idxs.length-1; nextQ()`);
+  check(!/Where you dropped marks/.test(els.app.innerHTML), "a perfect round shows no weak-domain section");
 
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
