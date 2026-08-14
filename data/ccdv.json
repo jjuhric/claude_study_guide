@@ -742,7 +742,7 @@
     },
     {
       "d": 2,
-      "q": "An agent's tool call fails with a transient network error. The most appropriate handling is:",
+      "q": "An agent's tool keeps failing after several retries across a run. The most appropriate handling is:",
       "opts": [
         "Abandon the whole run",
         "Retry with backoff, and if it keeps failing return a clear error the agent can reason about",
@@ -750,7 +750,7 @@
         "Silently pretend the tool returned nothing"
       ],
       "a": 1,
-      "exp": "Transient failures deserve bounded retries; persistent ones should become visible information rather than silent gaps.",
+      "exp": "Transient failures deserve bounded retries; a persistent failure should become visible information the agent can reason about rather than a silent gap.",
       "why": [
         "Abandoning on a transient blip wastes completed work.",
         "Correct. Bounded backoff, then surface a actionable error.",
@@ -1138,20 +1138,20 @@
     },
     {
       "d": 6,
-      "q": "The three primitives an MCP server can expose are:",
+      "q": "An MCP server you depend on ships a new version that renames a tool. Your agent breaks. The durable fix is:",
       "opts": [
-        "Models, weights, and embeddings",
-        "Tools, resources, and prompts",
-        "Users, roles, and tokens",
-        "Files, folders, and drives"
+        "Hardcode the old tool name in the prompt",
+        "Pin the server version and treat tool contracts as a versioned dependency, upgrading deliberately",
+        "Ask the model to guess the new name",
+        "Retry until it works"
       ],
       "a": 1,
-      "exp": "MCP standardizes tools (actions the model can invoke), resources (data it can read), and prompts (reusable templates).",
+      "exp": "A connected server is a dependency with an interface. Pinning and deliberate upgrades apply to it exactly as they do to any library.",
       "why": [
-        "These are model internals, not protocol primitives.",
-        "Correct. Tools, resources, and prompts are the three primitives.",
-        "Identity concepts are not MCP primitives.",
-        "Filesystem concepts may be exposed as resources, but are not the primitives."
+        "Hardcoding a stale name in the prompt does not restore the missing tool.",
+        "Correct. Pin the version and upgrade deliberately, as with any dependency.",
+        "Guessing an interface is not a recovery strategy.",
+        "Retrying a call to a tool that no longer exists cannot succeed."
       ]
     },
     {

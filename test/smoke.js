@@ -379,6 +379,36 @@ vm.createContext(sandbox);
   }
   check(thin.length === 0, `every domain has at least 10 questions (${thin.join(", ") || "all domains ≥10"})`);
 
+  // Near-duplicate questions make a bank feel smaller than it is — a learner
+  // meets the same item twice in one round. Dice coefficient over character
+  // bigrams of the normalised stem; distinct questions sit well below 0.80.
+  const normQ = s => s.toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+  const bigrams = s => {
+    const t = normQ(s), m = new Map();
+    for (let i = 0; i < t.length - 1; i++) m.set(t.slice(i, i + 2), (m.get(t.slice(i, i + 2)) || 0) + 1);
+    return m;
+  };
+  const dice = (a, b) => {
+    const A = bigrams(a), B = bigrams(b);
+    let inter = 0, na = 0, nb = 0;
+    for (const v of A.values()) na += v;
+    for (const v of B.values()) nb += v;
+    for (const [g, c] of A) if (B.has(g)) inter += Math.min(c, B.get(g));
+    return na + nb ? (2 * inter) / (na + nb) : 0;
+  };
+  const dupes = [];
+  let worstPair = { r: 0, label: "" };
+  for (const [id, d] of Object.entries(data)) {
+    for (let i = 0; i < d.questions.length; i++) {
+      for (let j = i + 1; j < d.questions.length; j++) {
+        const r = dice(d.questions[i].q, d.questions[j].q);
+        if (r > worstPair.r) worstPair = { r, label: `${id}[${i}]/[${j}]` };
+        if (r >= 0.8) dupes.push(`${id}[${i}]/[${j}] ${r.toFixed(2)}`);
+      }
+    }
+  }
+  check(dupes.length === 0, `no near-duplicate questions (worst ${worstPair.label} at ${worstPair.r.toFixed(2)})`);
+
   // Authoring guard: the rationale that begins "Correct" must sit at the answer
   // index. Structural parallelism alone cannot catch a rationale written against
   // the wrong option — the reader just sees the wrong justification.

@@ -436,20 +436,20 @@
     },
     {
       "d": 0,
-      "q": "Scaling from one to fifty concurrent agent sessions sharing tools and rate limits, the key addition is:",
+      "q": "An orchestrator spawns workers whose combined output no longer fits in its own context. The right response is:",
       "opts": [
-        "Fifty API keys",
-        "Central concurrency management — queues, per-session budgets, and backpressure so sessions degrade fairly",
-        "Larger prompts",
-        "Nothing changes"
+        "Increase the orchestrator's context window and continue",
+        "Have workers return bounded, schema-constrained summaries, and synthesize in stages if needed",
+        "Reduce the number of workers until it fits",
+        "Drop the results that arrive last"
       ],
       "a": 1,
-      "exp": "Shared-resource contention is a fleet-level problem needing queuing, budgets, and backpressure.",
+      "exp": "Bounding what each worker returns is the scalable fix. Growing the window or truncating results only postpones or hides the problem.",
       "why": [
-        "More keys does not create fair scheduling and may violate terms.",
-        "Correct. Queues, budgets, and backpressure keep degradation fair and predictable.",
-        "Prompt size is unrelated to contention.",
-        "Contention behavior changes fundamentally at scale."
+        "A larger window raises the ceiling without changing the growth pattern.",
+        "Correct. Bound each worker's return and synthesize hierarchically.",
+        "Cutting workers sacrifices coverage to work around a format problem.",
+        "Discarding by arrival order loses information arbitrarily."
       ]
     },
     {
@@ -706,20 +706,20 @@
     },
     {
       "d": 3,
-      "q": "An LLM-as-judge eval disagrees with human raters forty percent of the time. You should:",
+      "q": "Your agent's offline evals look healthy but users report worse results. The most likely gap is:",
       "opts": [
-        "Trust the judge because it is cheaper",
-        "Calibrate — refine the rubric and validate the judge against human labels before relying on it",
-        "Discard evaluation entirely",
-        "Use a larger model as judge and assume agreement"
+        "The evals are too difficult",
+        "The eval set no longer reflects the production distribution — real traffic has drifted away from it",
+        "Users are mistaken",
+        "The model changed silently"
       ],
       "a": 1,
-      "exp": "An uncalibrated judge is an unmeasured instrument. Validate against human labels before trusting it to gate decisions.",
+      "exp": "Evals measure the distribution you built them from. When production drifts and the set does not, healthy scores stop meaning healthy behaviour.",
       "why": [
-        "Cost does not make an inaccurate measurement usable.",
-        "Correct. Refine the rubric and validate against human labels.",
-        "Abandoning evaluation leaves you with no signal at all.",
-        "A bigger judge can be confidently wrong in the same way."
+        "Difficulty would depress scores, not inflate them relative to reality.",
+        "Correct. A stale eval set measures a distribution that no longer exists.",
+        "Dismissing consistent user reports discards your best signal.",
+        "Version changes are deliberate events, not silent ones."
       ]
     },
     {
@@ -796,20 +796,20 @@
     },
     {
       "d": 4,
-      "q": "Who should be able to change a production agent's system prompt?",
+      "q": "An agent needs to act on behalf of users in two different customer tenants. The critical isolation requirement is:",
       "opts": [
-        "Anyone on the team, at any time",
-        "Authorized roles through change control — review, eval gate, and versioned deploy, like any production change",
-        "The agent itself",
-        "Nobody, once it is live"
+        "Separate prompts per tenant",
+        "Tenant identity enforced at the data and tool layer, so no request can reach another tenant's data regardless of what the model does",
+        "A larger context window per tenant",
+        "Running the agent twice"
       ],
       "a": 1,
-      "exp": "Prompts are production configuration that determines behavior, and they need the same controls as code.",
+      "exp": "Multi-tenant isolation must hold at the resource boundary. Anything enforced only in the prompt can be defeated by injected content or a reasoning error.",
       "why": [
-        "Uncontrolled edits to behavior-defining configuration is a production risk.",
-        "Correct. Review, eval gate, and versioned rollout by authorized roles.",
-        "Self-modification removes human accountability.",
-        "Freezing prompts entirely prevents necessary fixes."
+        "Prompt separation is not an access control.",
+        "Correct. Enforce tenancy at the data and tool layer, below the model.",
+        "Context capacity has no bearing on isolation.",
+        "Repeating the run does not create a boundary."
       ]
     },
     {
