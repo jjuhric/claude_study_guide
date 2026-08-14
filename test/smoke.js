@@ -574,6 +574,38 @@ vm.createContext(sandbox);
   check(cp.seen === 0, `progress ignores ids no longer in the bank (seen=${cp.seen})`);
   evalIn(`S.answered={}; S.domStats={}; S.cardBox={}`);
 
+  /* ---------- 17. lesson depth ---------- */
+  // Lessons must keep pace with the bank they teach. Diagrams are excluded from
+  // the word count — inline SVG is illustration, not reading material.
+  const prose = b => b.replace(/<svg[\s\S]*?<\/svg>/g, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const thinLessons = [], noVideo = [], noTakeaways = [];
+  for (const [id, d] of Object.entries(data)) {
+    d.lessons.forEach((l, i) => {
+      const w = prose(l.b).split(" ").filter(Boolean).length;
+      const floor = l.foundation ? 250 : 400;
+      if (w < floor) thinLessons.push(`${id}[${i}] "${l.h}" ${w}w < ${floor}`);
+      if (!/class='vbox'/.test(l.b)) noVideo.push(`${id} "${l.h}"`);
+      if (!l.foundation && !/class='kbox'/.test(l.b)) noTakeaways.push(`${id} "${l.h}"`);
+    });
+  }
+  check(thinLessons.length === 0, `every lesson meets its depth floor (${thinLessons.slice(0, 3).join("; ") || "all above floor"})`);
+  check(noVideo.length === 0, `every lesson has a video block (${noVideo.slice(0, 3).join(", ") || "all present"})`);
+  check(noTakeaways.length === 0, `every domain lesson has key takeaways (${noTakeaways.slice(0, 3).join(", ") || "all present"})`);
+
+  // A domain's lesson should not be dwarfed by the questions it teaches.
+  const ratios = [];
+  for (const [id, d] of Object.entries(data)) {
+    const perDomain = {};
+    d.questions.forEach(qq => { perDomain[qq.d] = (perDomain[qq.d] || 0) + 1; });
+    d.lessons.forEach((l, i) => {
+      if (l.foundation) return;
+      const n = perDomain[i - 1] || 0;
+      const w = prose(l.b).split(" ").filter(Boolean).length;
+      if (n && w / n < 35) ratios.push(`${id} "${l.h}" ${Math.round(w / n)}w per question`);
+    });
+  }
+  check(ratios.length === 0, `lessons carry at least 35 words per question they teach (${ratios.slice(0, 3).join("; ") || "all above"})`);
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
