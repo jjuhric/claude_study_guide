@@ -366,7 +366,18 @@ vm.createContext(sandbox);
     });
   }
   check(badWhy.length === 0, `every "why" array is parallel to its options (${badWhy.slice(0, 3).join(", ") || "all valid"})`);
-  check(withWhy > 0, `${withWhy} questions carry per-option rationales`);
+  const totalQs = Object.values(data).reduce((a, d) => a + d.questions.length, 0);
+  check(withWhy === totalQs, `every question carries per-option rationales (${withWhy}/${totalQs})`);
+
+  // Depth: a domain with only a handful of questions makes the weakest-domain
+  // drill trivial and per-domain accuracy statistically meaningless.
+  const thin = [];
+  for (const [id, d] of Object.entries(data)) {
+    const dist = {};
+    d.questions.forEach(qq => { dist[qq.d] = (dist[qq.d] || 0) + 1; });
+    for (const [dom, n] of Object.entries(dist)) if (n < 10) thin.push(`${id} d${dom}=${n}`);
+  }
+  check(thin.length === 0, `every domain has at least 10 questions (${thin.join(", ") || "all domains ≥10"})`);
 
   // Authoring guard: the rationale that begins "Correct" must sit at the answer
   // index. Structural parallelism alone cannot catch a rationale written against

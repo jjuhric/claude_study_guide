@@ -12,7 +12,13 @@
         "The prompt was rejected"
       ],
       "a": 1,
-      "exp": "'max_tokens' means truncation — raise max_tokens or continue the response. 'end_turn' is the natural completion signal."
+      "exp": "'max_tokens' means truncation — raise max_tokens or continue the response. 'end_turn' is the natural completion signal.",
+      "why": [
+        "Natural completion reports stop_reason 'end_turn'.",
+        "Correct. 'max_tokens' means the output hit your own cap and was truncated.",
+        "Rate limiting surfaces as HTTP 429, not a stop reason.",
+        "A rejected prompt returns an error rather than a truncated message."
+      ]
     },
     {
       "d": 0,
@@ -24,7 +30,13 @@
         "temperature"
       ],
       "a": 1,
-      "exp": "model, max_tokens, and messages are the required fields; system and tools are optional. Sampling parameters like temperature are rejected on current Claude models."
+      "exp": "model, max_tokens, and messages are the required fields; system and tools are optional. Sampling parameters like temperature are rejected on current Claude models.",
+      "why": [
+        "The system prompt is optional.",
+        "Correct. model, max_tokens, and messages are the required fields.",
+        "Tools are only needed when you want tool use.",
+        "Sampling parameters are optional, and are rejected on current models."
+      ]
     },
     {
       "d": 0,
@@ -36,7 +48,13 @@
         "Retry every request twice"
       ],
       "a": 1,
-      "exp": "Streaming (server-sent events) delivers tokens incrementally, dramatically improving perceived latency."
+      "exp": "Streaming (server-sent events) delivers tokens incrementally, dramatically improving perceived latency.",
+      "why": [
+        "A tiny output cap truncates answers rather than speeding them up.",
+        "Correct. Streaming renders tokens as they are produced, cutting perceived latency.",
+        "Batch processing is asynchronous and much slower to first response.",
+        "Duplicate requests double cost and do nothing for latency."
+      ]
     },
     {
       "d": 0,
@@ -48,7 +66,13 @@
         "Send the request to a different model in parallel"
       ],
       "a": 1,
-      "exp": "429 = rate limit. Exponential backoff with jitter, honoring retry-after headers, is the expected pattern."
+      "exp": "429 = rate limit. Exponential backoff with jitter, honoring retry-after headers, is the expected pattern.",
+      "why": [
+        "Failing on the first 429 makes normal rate limiting look like an outage.",
+        "Correct. Exponential backoff that respects the rate-limit headers is the robust pattern.",
+        "Key rotation to evade limits is a terms problem, not an engineering fix.",
+        "Fanning out under rate limiting amplifies the pressure."
+      ]
     },
     {
       "d": 0,
@@ -60,7 +84,13 @@
         "Use the same API key"
       ],
       "a": 1,
-      "exp": "Each request stands alone — you manage and resend conversation history yourself."
+      "exp": "Each request stands alone — you manage and resend conversation history yourself.",
+      "why": [
+        "There is no session identifier that carries conversation state.",
+        "Correct. Resend the full history each call; the API keeps no state for you.",
+        "There is no such mode to enable.",
+        "The key authenticates you; it stores nothing about the conversation."
+      ]
     },
     {
       "d": 1,
@@ -72,7 +102,13 @@
         "Return the raw tool call to the user"
       ],
       "a": 1,
-      "exp": "The tool-use loop: Claude requests a tool → your code runs it → you return tool_result → Claude continues. Core CCDV-F material."
+      "exp": "The tool-use loop: Claude requests a tool → your code runs it → you return tool_result → Claude continues. Core CCDV-F material.",
+      "why": [
+        "'tool_use' is expected control flow, not a failure.",
+        "Correct. Run the tool and return a tool_result to continue the loop.",
+        "Ignoring it strands the model waiting for information it requested.",
+        "Raw tool calls are an implementation detail, not user-facing output."
+      ]
     },
     {
       "d": 1,
@@ -84,7 +120,13 @@
         "Setting temperature to 1.0"
       ],
       "a": 1,
-      "exp": "Tool descriptions are effectively prompts. Precise descriptions + strict JSON schemas drive correct selection and arguments."
+      "exp": "Tool descriptions are effectively prompts. Precise descriptions + strict JSON schemas drive correct selection and arguments.",
+      "why": [
+        "More tools creates more opportunity to confuse similar options.",
+        "Correct. Descriptions and schemas are what drive correct selection and arguments.",
+        "Terse names strip out the information needed to choose.",
+        "Sampling parameters are rejected on current models and never governed tool accuracy."
+      ]
     },
     {
       "d": 1,
@@ -96,7 +138,13 @@
         "Set max_tokens very high"
       ],
       "a": 1,
-      "exp": "Schema-enforced structured output (or a 'response' tool with input schema) is the reliable way to get valid JSON."
+      "exp": "Schema-enforced structured output (or a 'response' tool with input schema) is the reliable way to get valid JSON.",
+      "why": [
+        "Prose requests for JSON fail unpredictably.",
+        "Correct. A schema-constrained response conforms by construction.",
+        "Regex repair is the fragility structured outputs exist to remove.",
+        "A high output cap does nothing for structural validity."
+      ]
     },
     {
       "d": 1,
@@ -108,7 +156,13 @@
         "Always retry 100 times"
       ],
       "a": 0,
-      "exp": "Feeding errors back as tool_result lets the model recover gracefully — a tested resilience pattern."
+      "exp": "Feeding errors back as tool_result lets the model recover gracefully — a tested resilience pattern.",
+      "why": [
+        "Correct. Return the error as a tool_result so the model can retry or adapt.",
+        "Crashing the loop discards all progress over a transient blip.",
+        "Silently returning nothing produces confidently wrong output.",
+        "Unbounded retries amplify an outage and can exhaust budget."
+      ]
     },
     {
       "d": 2,
@@ -120,7 +174,13 @@
         "Agents are always faster"
       ],
       "a": 1,
-      "exp": "Agent = model + tools + loop with feedback. Single-turn calls just map input→output."
+      "exp": "Agent = model + tools + loop with feedback. Single-turn calls just map input→output.",
+      "why": [
+        "Model size is unrelated to whether something is an agent.",
+        "Correct. The defining feature is the loop: choose, act, observe, iterate.",
+        "Agents still rely on prompts.",
+        "Agents are usually slower than a single call, not faster."
+      ]
     },
     {
       "d": 2,
@@ -132,7 +192,13 @@
         "Model fine-tuning"
       ],
       "a": 1,
-      "exp": "The Agent SDK exposes the same agent loop infrastructure behind Claude Code for building custom agents."
+      "exp": "The Agent SDK exposes the same agent loop infrastructure behind Claude Code for building custom agents.",
+      "why": [
+        "The SDK is a developer library, not a prompt editor.",
+        "Correct. It provides the agent harness — loop, tool execution, context, and permissions.",
+        "It is not a credit programme.",
+        "It does not perform fine-tuning."
+      ]
     },
     {
       "d": 2,
@@ -144,7 +210,13 @@
         "When you have many tools"
       ],
       "a": 1,
-      "exp": "Anthropic's guidance: use the simplest pattern that works. Reserve autonomous agents for open-ended tasks."
+      "exp": "Anthropic's guidance: use the simplest pattern that works. Reserve autonomous agents for open-ended tasks.",
+      "why": [
+        "Agents add cost and failure surface that fixed workflows avoid.",
+        "Correct. Predictable, well-defined tasks are cheaper and more reliable as fixed steps.",
+        "Creative tasks can still be a single well-specified call.",
+        "Tool count alone does not require an autonomous loop."
+      ]
     },
     {
       "d": 2,
@@ -156,7 +228,13 @@
         "Configure billing"
       ],
       "a": 1,
-      "exp": "CLAUDE.md holds project conventions, commands, and context that Claude Code reads automatically."
+      "exp": "CLAUDE.md holds project conventions, commands, and context that Claude Code reads automatically.",
+      "why": [
+        "Secrets must never be committed to a repository.",
+        "Correct. It supplies persistent, project-specific instructions and context each session.",
+        "It is not a conversation log.",
+        "It has nothing to do with billing."
+      ]
     },
     {
       "d": 3,
@@ -168,7 +246,13 @@
         "Opus with extended thinking"
       ],
       "a": 1,
-      "exp": "Small model + caching + Batches API (50% discount) is the canonical cost-optimization stack for high-volume simple tasks."
+      "exp": "Small model + caching + Batches API (50% discount) is the canonical cost-optimization stack for high-volume simple tasks.",
+      "why": [
+        "Top-tier capability is wasted on high-volume short summaries.",
+        "Correct. Small model plus caching plus batch processing is the canonical cost stack.",
+        "Streaming helps interactive latency, not batch cost.",
+        "Extra reasoning on a simple task multiplies cost for no gain."
+      ]
     },
     {
       "d": 3,
@@ -180,7 +264,13 @@
         "Reducing output length"
       ],
       "a": 1,
-      "exp": "Caching applies to repeated prompt prefixes — big system prompts and shared documents become nearly free on cache hits."
+      "exp": "Caching applies to repeated prompt prefixes — big system prompts and shared documents become nearly free on cache hits.",
+      "why": [
+        "Caching reuses a prefix; it does not compress anything.",
+        "Correct. A repeated prefix is billed at a fraction of normal input cost on cache hits.",
+        "It caches prompt prefixes, not finished responses keyed by query.",
+        "Caching applies to input, not output length."
+      ]
     },
     {
       "d": 3,
@@ -192,7 +282,13 @@
         "Formatting fixes"
       ],
       "a": 1,
-      "exp": "Extended thinking trades tokens/latency for reasoning quality — use it selectively where difficulty warrants."
+      "exp": "Extended thinking trades tokens/latency for reasoning quality — use it selectively where difficulty warrants.",
+      "why": [
+        "Extra reasoning on every call multiplies cost with no benefit on easy work.",
+        "Correct. Reserve it for genuinely hard multi-step reasoning where accuracy matters.",
+        "Simple classification gains nothing from deeper reasoning.",
+        "Formatting is not a reasoning problem."
+      ]
     },
     {
       "d": 4,
@@ -204,7 +300,13 @@
         "Fine-tune instead"
       ],
       "a": 0,
-      "exp": "Retrieval keeps context focused and costs down; giant contexts dilute attention and cost more."
+      "exp": "Retrieval keeps context focused and costs down; giant contexts dilute attention and cost more.",
+      "why": [
+        "Correct. Retrieve the relevant sections so each call carries only what matters.",
+        "Resending everything every call is expensive and dilutes attention.",
+        "Telling users to read the manual abandons the use case.",
+        "Fine-tuning is a heavier, slower answer to what is a retrieval problem."
+      ]
     },
     {
       "d": 4,
@@ -216,7 +318,13 @@
         "It reduces token count"
       ],
       "a": 1,
-      "exp": "Anthropic's long-context guidance: put docs up top, task at the end — measurable quality gains."
+      "exp": "Anthropic's long-context guidance: put docs up top, task at the end — measurable quality gains.",
+      "why": [
+        "Aesthetics are not the reason.",
+        "Correct. Placing the task after the material anchors attention on what to do with it.",
+        "There is no positional loading difference.",
+        "Ordering does not change the token count."
+      ]
     },
     {
       "d": 4,
@@ -228,7 +336,13 @@
         "They enable streaming"
       ],
       "a": 1,
-      "exp": "Clear delimiters prevent instruction/content bleed; Claude handles XML-style structure especially well."
+      "exp": "Clear delimiters prevent instruction/content bleed; Claude handles XML-style structure especially well.",
+      "why": [
+        "The API does not require any particular markup.",
+        "Correct. Explicit delimiters separate content types unambiguously.",
+        "Tags add tokens rather than saving them.",
+        "Streaming is unrelated to prompt structure."
+      ]
     },
     {
       "d": 5,
@@ -240,7 +354,13 @@
         "In the URL as a query param"
       ],
       "a": 1,
-      "exp": "Client-exposed keys will be stolen and abused. Proxy all calls through your backend."
+      "exp": "Client-exposed keys will be stolen and abused. Proxy all calls through your backend.",
+      "why": [
+        "Anything in frontend code is readable and extractable by users.",
+        "Correct. Keep the key server-side and expose only your own authorized endpoints.",
+        "A committed secret persists in history even after deletion.",
+        "URLs are logged and cached in many places along the path."
+      ]
     },
     {
       "d": 5,
@@ -252,7 +372,13 @@
         "Harmless"
       ],
       "a": 1,
-      "exp": "Prompt injection via untrusted content is the signature agentic-security threat. Sandboxing, least-privilege tools, and human approval for sensitive actions mitigate it."
+      "exp": "Prompt injection via untrusted content is the signature agentic-security threat. Sandboxing, least-privilege tools, and human approval for sensitive actions mitigate it.",
+      "why": [
+        "This is an application design issue, not a model defect.",
+        "Correct. Fetched content is untrusted data and must never be treated as instructions.",
+        "It is an attack, not a request for functionality.",
+        "Without safeguards, models can and do follow injected instructions."
+      ]
     },
     {
       "d": 5,
@@ -264,7 +390,13 @@
         "Share one admin credential across agents"
       ],
       "a": 1,
-      "exp": "Least privilege limits blast radius when the model errs or is injected."
+      "exp": "Least privilege limits blast radius when the model errs or is injected.",
+      "why": [
+        "Broad grants turn any injection into a privilege escalation.",
+        "Correct. Least privilege, with approval gates before destructive actions.",
+        "Default production write access is the widest possible blast radius.",
+        "A shared admin credential destroys attribution and least privilege at once."
+      ]
     },
     {
       "d": 6,
@@ -276,7 +408,13 @@
         "Claude's internal memory format"
       ],
       "a": 1,
-      "exp": "MCP standardizes how clients (like Claude) discover and call tools/resources exposed by servers — 'USB-C for AI'."
+      "exp": "MCP standardizes how clients (like Claude) discover and call tools/resources exposed by servers — 'USB-C for AI'.",
+      "why": [
+        "MCP is an integration protocol, not a training method.",
+        "Correct. An open standard connecting applications to tools and data through servers.",
+        "It is unrelated to billing.",
+        "It is a protocol between systems, not an internal memory format."
+      ]
     },
     {
       "d": 6,
@@ -288,7 +426,13 @@
         "Export everything to CSV weekly"
       ],
       "a": 1,
-      "exp": "An MCP server wraps the data source in controlled tools — Claude gets capability without raw credentials."
+      "exp": "An MCP server wraps the data source in controlled tools — Claude gets capability without raw credentials.",
+      "why": [
+        "A database cannot be meaningfully pasted into a prompt.",
+        "Correct. Expose safe, scoped query tools through an MCP server.",
+        "Credentials must never appear in a prompt.",
+        "Stale weekly exports defeat the purpose of querying live data."
+      ]
     },
     {
       "d": 6,
@@ -300,7 +444,13 @@
         "Users, roles, tokens"
       ],
       "a": 1,
-      "exp": "MCP servers expose tools (actions), resources (data), and prompts (templates)."
+      "exp": "MCP servers expose tools (actions), resources (data), and prompts (templates).",
+      "why": [
+        "These are model internals, not protocol primitives.",
+        "Correct. Tools, resources, and prompts are the three primitives.",
+        "Filesystem concepts may be exposed as resources but are not primitives.",
+        "Identity concepts are not MCP primitives."
+      ]
     },
     {
       "d": 0,

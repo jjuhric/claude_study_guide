@@ -12,7 +12,13 @@
         "One giant prompt with all data inline"
       ],
       "a": 1,
-      "exp": "Predictable sequence → workflow, not autonomy. The exam repeatedly rewards choosing the simplest sufficient pattern."
+      "exp": "Predictable sequence → workflow, not autonomy. The exam repeatedly rewards choosing the simplest sufficient pattern.",
+      "why": [
+        "Thirty tools and full autonomy is far more machinery than a predictable sequence needs.",
+        "Correct. A predictable sequence is best served by a fixed workflow with tool calls at defined steps.",
+        "Voting multiplies cost for a task with a known path.",
+        "Inlining all data ignores the tool calls the task actually requires."
+      ]
     },
     {
       "d": 0,
@@ -24,7 +30,13 @@
         "When you want to save tokens"
       ],
       "a": 1,
-      "exp": "Multi-agent adds cost and coordination overhead; it pays off for parallelizable, context-heavy, separable work."
+      "exp": "Multi-agent adds cost and coordination overhead; it pays off for parallelizable, context-heavy, separable work.",
+      "why": [
+        "More agents means more cost, latency, and failure surface, not automatically more capability.",
+        "Correct. Separable subtasks that benefit from isolated contexts or parallelism justify the pattern.",
+        "Multi-agent designs generally increase latency.",
+        "They typically multiply token usage rather than saving it."
+      ]
     },
     {
       "d": 0,
@@ -36,7 +48,13 @@
         "Retry forever silently"
       ],
       "a": 1,
-      "exp": "Reliability requires bounded loops with detection of no-progress states and graceful escalation — a core orchestration topic."
+      "exp": "Reliability requires bounded loops with detection of no-progress states and graceful escalation — a core orchestration topic.",
+      "why": [
+        "Capability does not create a termination condition.",
+        "Correct. Iteration caps, repeated-failure detection, and an escalation path bound the loop.",
+        "Removing capability is disproportionate to a retry bug.",
+        "Silent infinite retries are the failure being described."
+      ]
     },
     {
       "d": 0,
@@ -48,7 +66,13 @@
         "Users see more options"
       ],
       "a": 1,
-      "exp": "Routing = separation of concerns: cheap triage, then specialized focused handling."
+      "exp": "Routing = separation of concerns: cheap triage, then specialized focused handling.",
+      "why": [
+        "Routing directs work; it does not make any handler more factual.",
+        "Correct. Focused prompts and tools per category improve both quality and cost.",
+        "Routing still uses the API for every handler.",
+        "Routing is internal; users do not see the branches."
+      ]
     },
     {
       "d": 0,
@@ -60,7 +84,13 @@
         "Be disabled entirely always"
       ],
       "a": 1,
-      "exp": "Checkpoint irreversible or high-blast-radius actions with human-in-the-loop approval."
+      "exp": "Checkpoint irreversible or high-blast-radius actions with human-in-the-loop approval.",
+      "why": [
+        "Autonomy on irreversible actions is precisely the risk.",
+        "Correct. Irreversible actions need human confirmation before they happen.",
+        "Logging detects after the fact; it does not prevent.",
+        "A blanket ban removes legitimate capability rather than governing it."
+      ]
     },
     {
       "d": 1,
@@ -72,7 +102,13 @@
         "Longer chat sessions"
       ],
       "a": 1,
-      "exp": "CLAUDE.md in the repo gives every session the same project context — the canonical Claude Code workflow answer."
+      "exp": "CLAUDE.md in the repo gives every session the same project context — the canonical Claude Code workflow answer.",
+      "why": [
+        "Verbal norms are neither discoverable nor enforceable.",
+        "Correct. A checked-in instructions file applies the same conventions to everyone.",
+        "Private notes guarantee divergence between engineers.",
+        "Session length has nothing to do with shared conventions."
+      ]
     },
     {
       "d": 1,
@@ -84,7 +120,13 @@
         "Let it run unattended overnight"
       ],
       "a": 1,
-      "exp": "Explore → plan → execute → verify. Plan-then-act with test checkpoints is the tested best practice."
+      "exp": "Explore → plan → execute → verify. Plan-then-act with test checkpoints is the tested best practice.",
+      "why": [
+        "A single sweeping instruction produces an unreviewable change.",
+        "Correct. Plan, review the plan, then execute in verified steps.",
+        "Tests are the verification that makes agentic changes safe.",
+        "Unattended overnight runs remove the review the workflow depends on."
+      ]
     },
     {
       "d": 1,
@@ -96,7 +138,13 @@
         "Skip permissions"
       ],
       "a": 1,
-      "exp": "Subagents isolate context per task — the main thread stays clean and work can fan out."
+      "exp": "Subagents isolate context per task — the main thread stays clean and work can fan out.",
+      "why": [
+        "Token pricing does not differ by subagent.",
+        "Correct. Separate context windows keep the main session focused and enable parallel work.",
+        "Subagents share the same underlying models.",
+        "Permissions still apply to subagents."
+      ]
     },
     {
       "d": 1,
@@ -108,7 +156,13 @@
         "Avoid tests in agentic workflows"
       ],
       "a": 1,
-      "exp": "Instructions in CLAUDE.md plus hooks make verification systematic instead of hopeful."
+      "exp": "Instructions in CLAUDE.md plus hooks make verification systematic instead of hopeful.",
+      "why": [
+        "Relying on recall is not a mechanism.",
+        "Correct. Encode the requirement in project instructions, or enforce it with hooks.",
+        "Delayed manual testing defeats the point of an automatic gate.",
+        "Tests matter more in agentic workflows, not less."
+      ]
     },
     {
       "d": 2,
@@ -120,7 +174,13 @@
         "Markdown tables"
       ],
       "a": 1,
-      "exp": "Contract-first: define the schema, constrain generation to it, validate anyway. Prompt Engineering & Structured Output is a CCAR-F domain."
+      "exp": "Contract-first: define the schema, constrain generation to it, validate anyway. Prompt Engineering & Structured Output is a CCAR-F domain.",
+      "why": [
+        "Regex over free text is the fragile pattern this replaces.",
+        "Correct. Constrain generation to a schema, and validate downstream regardless.",
+        "'Mostly JSON' is not a contract anything can rely on.",
+        "Markdown tables are for humans, not machine parsing."
+      ]
     },
     {
       "d": 2,
@@ -132,7 +192,13 @@
         "Switch providers"
       ],
       "a": 0,
-      "exp": "Targeted examples of hard cases are the highest-leverage prompt fix — they teach the boundary behavior."
+      "exp": "Targeted examples of hard cases are the highest-leverage prompt fix — they teach the boundary behavior.",
+      "why": [
+        "Correct. Show the failing cases as examples and state the rule for them.",
+        "Removing content is unlikely to add the missing guidance.",
+        "Sampling parameters are rejected on current models and never fixed edge cases.",
+        "Provider choice does not address an under-specified prompt."
+      ]
     },
     {
       "d": 2,
@@ -144,7 +210,13 @@
         "Faster responses"
       ],
       "a": 1,
-      "exp": "Evaluator/reviser loops trade tokens for quality — appropriate when output quality justifies the cost."
+      "exp": "Evaluator/reviser loops trade tokens for quality — appropriate when output quality justifies the cost.",
+      "why": [
+        "Multi-pass review costs more tokens, not fewer.",
+        "Correct. A critique pass catches errors that a single generation misses.",
+        "Self-review is not a substitute for tests.",
+        "Extra passes increase latency."
+      ]
     },
     {
       "d": 2,
@@ -156,7 +228,13 @@
         "Setting a stop sequence at \"}\" and retrying on parse failures"
       ],
       "a": 1,
-      "exp": "Structured outputs constrain generation to your schema, so the response is valid by construction. Prefilling the assistant turn is the older trick and now returns a 400 error on current Claude models."
+      "exp": "Structured outputs constrain generation to your schema, so the response is valid by construction. Prefilling the assistant turn is the older trick and now returns a 400 error on current Claude models.",
+      "why": [
+        "Assistant-turn prefill returns an error on current Claude models.",
+        "Correct. Structured outputs constrain generation to the schema.",
+        "Prompt-and-repair is the failure-prone pattern this replaces.",
+        "Stop sequences end generation; they do not enforce a shape."
+      ]
     },
     {
       "d": 3,
@@ -168,7 +246,13 @@
         "Descriptions waste tokens"
       ],
       "a": 1,
-      "exp": "Overlapping or vague tools cause wrong selections. Distinct, well-documented tools are an exam staple."
+      "exp": "Overlapping or vague tools cause wrong selections. Distinct, well-documented tools are an exam staple.",
+      "why": [
+        "Overlapping micro-tools multiply selection errors.",
+        "Correct. Few, distinct, well-documented tools with strict schemas.",
+        "A generic catch-all endpoint destroys the model's ability to choose correctly.",
+        "Descriptions are what drive correct selection; they earn their tokens."
+      ]
     },
     {
       "d": 3,
@@ -180,7 +264,13 @@
         "Fail if results exceed 100"
       ],
       "a": 1,
-      "exp": "Token-efficient tool responses are an architectural responsibility — context is a scarce resource."
+      "exp": "Token-efficient tool responses are an architectural responsibility — context is a scarce resource.",
+      "why": [
+        "Returning everything wastes context and buries the relevant rows.",
+        "Correct. Filtering and pagination let the agent request only what it needs.",
+        "A bare path forces another step to read the data.",
+        "Hard failure on large results makes the tool unusable for legitimate queries."
+      ]
     },
     {
       "d": 3,
@@ -192,7 +282,13 @@
         "When you need lower latency than function calls"
       ],
       "a": 1,
-      "exp": "MCP shines for reuse and interoperability across clients; bespoke tools are fine for single-app needs."
+      "exp": "MCP shines for reuse and interoperability across clients; bespoke tools are fine for single-app needs.",
+      "why": [
+        "MCP is an open standard, not product-specific.",
+        "Correct. Reuse across multiple clients or agents is what justifies the interface.",
+        "It is not limited to databases.",
+        "A protocol hop does not beat an in-process call on latency."
+      ]
     },
     {
       "d": 3,
@@ -204,7 +300,13 @@
         "No limits — the model is careful"
       ],
       "a": 1,
-      "exp": "Least privilege + read-only replicas + auditability: tool design is security design."
+      "exp": "Least privilege + read-only replicas + auditability: tool design is security design.",
+      "why": [
+        "Production read-write through a model-callable tool is the widest possible blast radius.",
+        "Correct. Read-only replica, allowlists and limits, and audit logging.",
+        "Root credentials remove every meaningful control.",
+        "Relying on model carefulness is not a security control."
+      ]
     },
     {
       "d": 4,
@@ -216,7 +318,13 @@
         "Raise temperature"
       ],
       "a": 1,
-      "exp": "Context compaction / structured note-taking preserves critical state past window limits — core Context Management material."
+      "exp": "Context compaction / structured note-taking preserves critical state past window limits — core Context Management material.",
+      "why": [
+        "Hope is not a mitigation.",
+        "Correct. Compact state and decisions into a durable note that is re-injected.",
+        "Restarting discards everything learned.",
+        "Sampling parameters are rejected on current models and are unrelated to context loss."
+      ]
     },
     {
       "d": 4,
@@ -228,7 +336,13 @@
         "You enjoy large bills"
       ],
       "a": 0,
-      "exp": "Just-in-time retrieval (search/RAG, agentic file exploration) beats exhaustive preloading for large corpora."
+      "exp": "Just-in-time retrieval (search/RAG, agentic file exploration) beats exhaustive preloading for large corpora.",
+      "why": [
+        "Correct. A corpus far larger than the window, mostly irrelevant per query, is the retrieval case.",
+        "A two-page corpus fits trivially and needs no retrieval.",
+        "Latency tolerance does not argue for or against retrieval.",
+        "Cost indifference is not an engineering signal."
+      ]
     },
     {
       "d": 4,
@@ -240,7 +354,13 @@
         "Blaming the vendor"
       ],
       "a": 1,
-      "exp": "Reliability domain: design for failure with retries, fallbacks, and degradation modes."
+      "exp": "Reliability domain: design for failure with retries, fallbacks, and degradation modes.",
+      "why": [
+        "Outages are routine at scale and must be designed for.",
+        "Correct. Retries with backoff, fallback tiers, circuit breakers, and graceful degradation.",
+        "A status page reports failure; it does not survive it.",
+        "Attribution is not a resilience strategy."
+      ]
     },
     {
       "d": 4,
@@ -252,7 +372,13 @@
         "Nowhere"
       ],
       "a": 1,
-      "exp": "Models orchestrate and interpret; deterministic computation belongs in code for correctness — a recurring architecture principle."
+      "exp": "Models orchestrate and interpret; deterministic computation belongs in code for correctness — a recurring architecture principle.",
+      "why": [
+        "Instructions cannot make arithmetic deterministic.",
+        "Correct. Let code compute exact values and let the model orchestrate.",
+        "There is no durable memory that performs computation.",
+        "The logic still has to exist somewhere."
+      ]
     },
     {
       "d": 0,
@@ -264,7 +390,13 @@
         "Merge into one agent with double context"
       ],
       "a": 0,
-      "exp": "Inter-agent handoffs should exchange minimal structured state, not full transcripts."
+      "exp": "Inter-agent handoffs should exchange minimal structured state, not full transcripts.",
+      "why": [
+        "Correct. Pass distilled structured artifacts rather than raw transcripts.",
+        "A larger window raises the ceiling without addressing the waste.",
+        "Compression does not help content that must be read as tokens.",
+        "Merging discards the isolation that motivated the split."
+      ]
     },
     {
       "d": 2,
@@ -276,7 +408,13 @@
         "Fine-tune per prompt"
       ],
       "a": 1,
-      "exp": "Treat prompts like code: shared components, versioning, and review keep 40 prompts coherent."
+      "exp": "Treat prompts like code: shared components, versioning, and review keep 40 prompts coherent.",
+      "why": [
+        "Copy-paste guarantees the 40 copies drift apart.",
+        "Correct. One shared, versioned component included everywhere.",
+        "Author discretion is what produces inconsistency.",
+        "Fine-tuning per prompt is disproportionate and unmaintainable."
+      ]
     },
     {
       "d": 1,
@@ -288,7 +426,13 @@
         "Run as repo admin"
       ],
       "a": 1,
-      "exp": "Headless agent + CI = least privilege and human review of diffs. Claude Code for CI is one of the six exam scenarios."
+      "exp": "Headless agent + CI = least privilege and human review of diffs. Claude Code for CI is one of the six exam scenarios.",
+      "why": [
+        "Unsupervised changes with no gate is the risk itself.",
+        "Correct. Scoped permissions, no direct push, and human-reviewed PR diffs.",
+        "Auto-merge removes the review that makes this safe.",
+        "Admin rights give the widest possible blast radius."
+      ]
     },
     {
       "d": 3,
@@ -300,7 +444,13 @@
         "Add a third tool"
       ],
       "a": 1,
-      "exp": "Tool-selection errors usually trace to ambiguous descriptions — clarify boundaries and add usage notes."
+      "exp": "Tool-selection errors usually trace to ambiguous descriptions — clarify boundaries and add usage notes.",
+      "why": [
+        "Deleting a needed tool to fix a selection problem loses capability.",
+        "Correct. Selection errors are usually description problems — state when each applies and when it does not.",
+        "Fine-tuning is a heavyweight answer to an ambiguous description.",
+        "A third tool adds another option to confuse."
+      ]
     },
     {
       "d": 0,

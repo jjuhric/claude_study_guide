@@ -12,7 +12,13 @@
         "Shorten the prompt so Claude focuses better"
       ],
       "a": 1,
-      "exp": "Vague prompts produce vague output. Adding role, audience, tone, format, and concrete details is the highest-leverage fix before changing models or retrying."
+      "exp": "Vague prompts produce vague output. Adding role, audience, tone, format, and concrete details is the highest-leverage fix before changing models or retrying.",
+      "why": [
+        "Repetition without new information reproduces the same generic output.",
+        "Correct. Audience, tone, format, and product specifics are what make output non-generic.",
+        "Capability cannot supply context the prompt never provided.",
+        "Brevity is not the issue; missing specifics are."
+      ]
     },
     {
       "d": 0,
@@ -24,7 +30,13 @@
         "Keeping the prompt under one sentence"
       ],
       "a": 1,
-      "exp": "Showing an example or template (few-shot / output scaffolding) is the most reliable way to get consistent structure."
+      "exp": "Showing an example or template (few-shot / output scaffolding) is the most reliable way to get consistent structure.",
+      "why": [
+        "Politeness does not communicate a structure.",
+        "Correct. A template or filled-in example pins the structure down exactly.",
+        "Capitalization carries no structural meaning.",
+        "A one-sentence limit removes room to specify the structure."
+      ]
     },
     {
       "d": 0,
@@ -36,7 +48,13 @@
         "Tell it the answer you expect"
       ],
       "a": 1,
-      "exp": "Instructing Claude to reason step by step (or using extended thinking) improves accuracy on complex analytical tasks."
+      "exp": "Instructing Claude to reason step by step (or using extended thinking) improves accuracy on complex analytical tasks.",
+      "why": [
+        "Speed pressure works against careful reasoning.",
+        "Correct. Asking for step-by-step reasoning improves accuracy on complex analysis.",
+        "Splitting into many chats loses the shared context the analysis needs.",
+        "Stating your expected answer invites agreement rather than analysis."
+      ]
     },
     {
       "d": 0,
@@ -48,7 +66,13 @@
         "Summarize the document yourself first, always"
       ],
       "a": 0,
-      "exp": "Clear separation of instructions and source material — using delimiters, XML-style tags, or clear headers — helps Claude apply instructions to the right content."
+      "exp": "Clear separation of instructions and source material — using delimiters, XML-style tags, or clear headers — helps Claude apply instructions to the right content.",
+      "why": [
+        "Correct. Lead with instructions and mark the document clearly so the two are never confused.",
+        "Scattering instructions makes them easy to miss and hard to follow.",
+        "With no framing, the model has to guess what to do with the text.",
+        "Pre-summarizing discards detail the task may need, and is not always appropriate."
+      ]
     },
     {
       "d": 1,
@@ -60,7 +84,13 @@
         "Publish with a disclaimer"
       ],
       "a": 1,
-      "exp": "Output evaluation is a core CCAO-F skill: always verify facts against sources. Confidence is not accuracy."
+      "exp": "Output evaluation is a core CCAO-F skill: always verify facts against sources. Confidence is not accuracy.",
+      "why": [
+        "Confidence is not evidence; unsupported figures are a known failure mode.",
+        "Correct. Verify against the source and treat unsupported claims as suspect.",
+        "Self-assessed certainty does not reliably track accuracy.",
+        "A disclaimer does not make an unverified statistic safe to publish."
+      ]
     },
     {
       "d": 1,
@@ -72,7 +102,13 @@
         "Rely on Claude's self-assessment"
       ],
       "a": 1,
-      "exp": "Human review before external or high-stakes use is the expected governance-aligned evaluation practice."
+      "exp": "Human review before external or high-stakes use is the expected governance-aligned evaluation practice.",
+      "why": [
+        "Fixed-interval spot checks miss the items that matter most.",
+        "Correct. Review facts, logic, and tone before use, especially externally.",
+        "Length is not a quality signal.",
+        "Self-assessment adds no independent verification."
+      ]
     },
     {
       "d": 1,
@@ -84,7 +120,13 @@
         "It's real if it appears twice"
       ],
       "a": 1,
-      "exp": "Generated citations can be hallucinated. Verify any citation before relying on it — a classic exam theme."
+      "exp": "Generated citations can be hallucinated. Verify any citation before relying on it — a classic exam theme.",
+      "why": [
+        "Generated citations can be entirely fabricated while looking conventional.",
+        "Correct. Treat it as unverified until independently confirmed.",
+        "Any part of a citation can be wrong, including the case itself.",
+        "Repetition reflects consistency, not existence."
+      ]
     },
     {
       "d": 1,
@@ -96,7 +138,13 @@
         "Avoid mentioning sources to save tokens"
       ],
       "a": 1,
-      "exp": "Asking for quotes/citations grounded in provided material makes verification fast and surfaces unsupported claims."
+      "exp": "Asking for quotes/citations grounded in provided material makes verification fast and surfaces unsupported claims.",
+      "why": [
+        "Confidence in tone makes verification harder, not easier.",
+        "Correct. Asking for the specific source passages makes claims checkable.",
+        "Jargon obscures rather than exposes the basis for a claim.",
+        "Removing sources removes the means of verification."
+      ]
     },
     {
       "d": 2,
@@ -108,7 +156,13 @@
         "Run all models and compare"
       ],
       "a": 1,
-      "exp": "Model selection weighs capability vs. cost/speed. High-volume simple tasks fit smaller, faster models like Haiku."
+      "exp": "Model selection weighs capability vs. cost/speed. High-volume simple tasks fit smaller, faster models like Haiku.",
+      "why": [
+        "Top-tier capability is wasted on simple, repetitive classification.",
+        "Correct. High volume plus low difficulty is the classic small-model case.",
+        "Recency is not a selection criterion.",
+        "Running every model multiplies cost for a task that needs one."
+      ]
     },
     {
       "d": 2,
@@ -120,7 +174,13 @@
         "When you need faster responses"
       ],
       "a": 1,
-      "exp": "Top-tier models are justified when task complexity and stakes demand maximum capability."
+      "exp": "Top-tier models are justified when task complexity and stakes demand maximum capability.",
+      "why": [
+        "Using the strongest model everywhere wastes budget on easy work.",
+        "Correct. Reserve top capability for hard reasoning and high-stakes output.",
+        "Prompt length does not determine reasoning difficulty.",
+        "More capable tiers are generally not the fastest option."
+      ]
     },
     {
       "d": 2,
@@ -132,7 +192,13 @@
         "Temperature settings"
       ],
       "a": 1,
-      "exp": "Web search retrieves current information; training data has a cutoff. Knowing feature-to-need mapping is part of Model Selection."
+      "exp": "Web search retrieves current information; training data has a cutoff. Knowing feature-to-need mapping is part of Model Selection.",
+      "why": [
+        "Extended reasoning works on what the model already has; it retrieves nothing.",
+        "Correct. Web search reaches information beyond the training cutoff.",
+        "A bigger window holds more of what you supply; it does not fetch anything.",
+        "Sampling settings do not retrieve information."
+      ]
     },
     {
       "d": 3,
@@ -144,7 +210,13 @@
         "Use a different account per report"
       ],
       "a": 1,
-      "exp": "Projects with persistent knowledge and instructions are designed exactly for recurring workflows."
+      "exp": "Projects with persistent knowledge and instructions are designed exactly for recurring workflows.",
+      "why": [
+        "Re-pasting every week is error-prone and inconsistent between runs.",
+        "Correct. Project knowledge plus reusable instructions makes the setup repeatable.",
+        "Support is not a workflow mechanism.",
+        "Multiple accounts fragment the work with no benefit."
+      ]
     },
     {
       "d": 3,
@@ -156,7 +228,13 @@
         "It involves writing drafts"
       ],
       "a": 1,
-      "exp": "Claude augments workflows; accountability and binding judgment stay with humans. Recognizing escalation points is tested."
+      "exp": "Claude augments workflows; accountability and binding judgment stay with humans. Recognizing escalation points is tested.",
+      "why": [
+        "Document length is a capacity question, not an accountability one.",
+        "Correct. Final accountability, judgment, and binding decisions stay with people.",
+        "Frequency is an argument for automation, not against it.",
+        "Drafting is among the best-suited tasks to delegate."
+      ]
     },
     {
       "d": 3,
@@ -168,7 +246,13 @@
         "Use creative formatting"
       ],
       "a": 1,
-      "exp": "Matching Claude's output format to the downstream tool (structured/tabular) makes integration seamless."
+      "exp": "Matching Claude's output format to the downstream tool (structured/tabular) makes integration seamless.",
+      "why": [
+        "Prose has to be re-keyed by hand into a spreadsheet.",
+        "Correct. Ask for the structure your process already consumes.",
+        "A verbal description is the least machine-usable form.",
+        "Creative formatting increases the work needed downstream."
+      ]
     },
     {
       "d": 4,
@@ -180,7 +264,13 @@
         "It makes responses faster"
       ],
       "a": 1,
-      "exp": "Project knowledge grounds answers in your documents per-conversation; it does not retrain the model."
+      "exp": "Project knowledge grounds answers in your documents per-conversation; it does not retrain the model.",
+      "why": [
+        "Supplying documents does not train or permanently change the model.",
+        "Correct. Responses become grounded in your specific material across conversations.",
+        "Context limits still apply to what is supplied per request.",
+        "Grounding affects relevance, not speed."
+      ]
     },
     {
       "d": 4,
@@ -192,7 +282,13 @@
         "Repeat the question until the answer changes"
       ],
       "a": 1,
-      "exp": "Knowledge management means curating sources: stale documents in, stale answers out."
+      "exp": "Knowledge management means curating sources: stale documents in, stale answers out.",
+      "why": [
+        "Instructions to ignore content are unreliable while the content is still present.",
+        "Correct. Fix the source: remove or replace the outdated document.",
+        "Model capability does not resolve a stale source.",
+        "Repeating until the answer changes selects for randomness."
+      ]
     },
     {
       "d": 5,
@@ -204,7 +300,13 @@
         "How fast Claude responds"
       ],
       "a": 1,
-      "exp": "Governance & Risk: data classification and organizational policy come before convenience."
+      "exp": "Governance & Risk: data classification and organizational policy come before convenience.",
+      "why": [
+        "Prompt quality is irrelevant if the data may not be used at all.",
+        "Correct. Data classification and policy decide whether this is permitted.",
+        "Cost is downstream of permission.",
+        "Latency has no bearing on data handling."
+      ]
     },
     {
       "d": 5,
@@ -216,7 +318,13 @@
         "Using AI only in secret"
       ],
       "a": 1,
-      "exp": "Responsible use pairs transparency (where policy requires) with human review before outputs are used."
+      "exp": "Responsible use pairs transparency (where policy requires) with human review before outputs are used.",
+      "why": [
+        "Presenting unreviewed AI output as your own analysis is both risky and misleading.",
+        "Correct. Disclose where required and review before use.",
+        "Auto-sending external email removes the human check at the riskiest point.",
+        "Secrecy prevents the review and oversight that make use responsible."
+      ]
     },
     {
       "d": 5,
@@ -228,7 +336,13 @@
         "Assume the feature is broken"
       ],
       "a": 1,
-      "exp": "Adding legitimate context is fine; attempting to bypass safety guardrails is not. Escalate via proper channels if needed."
+      "exp": "Adding legitimate context is fine; attempting to bypass safety guardrails is not. Escalate via proper channels if needed.",
+      "why": [
+        "Deliberately circumventing a safeguard is misuse, not troubleshooting.",
+        "Correct. Supply legitimate context, then escalate through proper channels.",
+        "Coercive phrasing is not a technique and does not change the outcome.",
+        "A refusal is designed behavior, not a defect."
+      ]
     },
     {
       "d": 6,
@@ -240,7 +354,13 @@
         "The model was downgraded mid-chat"
       ],
       "a": 1,
-      "exp": "Long conversations accumulate noise. Starting fresh with a distilled summary is the standard troubleshooting move."
+      "exp": "Long conversations accumulate noise. Starting fresh with a distilled summary is the standard troubleshooting move.",
+      "why": [
+        "Models do not fatigue over time.",
+        "Correct. Long context dilutes focus; restart with a summary of the key points.",
+        "Throttling affects rate and availability, not answer quality.",
+        "Models are not silently swapped mid-conversation."
+      ]
     },
     {
       "d": 6,
@@ -252,7 +372,13 @@
         "Report a bug immediately"
       ],
       "a": 1,
-      "exp": "Prominence, clarity, and examples fix instruction-following issues far better than volume."
+      "exp": "Prominence, clarity, and examples fix instruction-following issues far better than volume.",
+      "why": [
+        "More instructions makes the ignored one even easier to lose.",
+        "Correct. Restructure so the instruction is explicit and prominent, with an example if needed.",
+        "Punctuation does not change how instructions are weighted.",
+        "This is a prompt-structure issue, not a product defect."
+      ]
     },
     {
       "d": 6,
@@ -264,7 +390,13 @@
         "Give up"
       ],
       "a": 0,
-      "exp": "Ambiguous phrasing can trigger cautious refusals; clarifying legitimate intent usually resolves it."
+      "exp": "Ambiguous phrasing can trigger cautious refusals; clarifying legitimate intent usually resolves it.",
+      "why": [
+        "Correct. Clarify intent and context first — benign requests are often just ambiguous.",
+        "A new account does not change how a request is interpreted.",
+        "Identical repetition produces the same result.",
+        "Giving up skips the straightforward fix."
+      ]
     },
     {
       "d": 1,
@@ -276,7 +408,13 @@
         "Inability to write code"
       ],
       "a": 1,
-      "exp": "The signature risk: fluency masks errors. This is why Output Evaluation is the largest CCAO-F domain."
+      "exp": "The signature risk: fluency masks errors. This is why Output Evaluation is the largest CCAO-F domain.",
+      "why": [
+        "Refusals happen but are not the characteristic risk.",
+        "Correct. Fluent, confident text containing factual errors is the defining failure mode.",
+        "There is no such fixed length limit.",
+        "Code generation is a core strength."
+      ]
     },
     {
       "d": 3,
@@ -288,7 +426,13 @@
         "Deciding employee compensation"
       ],
       "a": 1,
-      "exp": "Drafting/synthesis is ideal delegation; approval, signing, and compensation decisions need human authority."
+      "exp": "Drafting/synthesis is ideal delegation; approval, signing, and compensation decisions need human authority.",
+      "why": [
+        "Approving payment is an accountable financial decision.",
+        "Correct. First-draft synthesis is assistive, reviewable, and high value.",
+        "Signing contracts is a binding legal act.",
+        "Compensation decisions carry legal and fairness obligations."
+      ]
     },
     {
       "d": 0,
@@ -300,7 +444,13 @@
         "Making responses shorter"
       ],
       "a": 1,
-      "exp": "Role prompting shapes perspective, vocabulary, and conventions — a core Prompting-domain technique."
+      "exp": "Role prompting shapes perspective, vocabulary, and conventions — a core Prompting-domain technique.",
+      "why": [
+        "Roles do not unlock hidden capabilities.",
+        "Correct. A role frames tone, perspective, and domain conventions.",
+        "Roles have no effect on context capacity.",
+        "Response length is controlled by explicit instruction."
+      ]
     },
     {
       "d": 0,

@@ -12,7 +12,13 @@
         "Reduce to one worker"
       ],
       "a": 1,
-      "exp": "At scale, orchestrators must own decomposition: explicit disjoint scopes plus shared state prevent duplicated effort."
+      "exp": "At scale, orchestrators must own decomposition: explicit disjoint scopes plus shared state prevent duplicated effort.",
+      "why": [
+        "More workers multiplies the duplication.",
+        "Correct. Disjoint subtask boundaries plus a shared ledger stop workers repeating each other.",
+        "Free negotiation reintroduces the coordination overhead isolation avoids.",
+        "Collapsing to one worker discards the parallelism entirely."
+      ]
     },
     {
       "d": 0,
@@ -24,7 +30,13 @@
         "Raw tool logs"
       ],
       "a": 1,
-      "exp": "Contract-based handoffs with distilled artifacts keep orchestrator context lean and synthesis tractable."
+      "exp": "Contract-based handoffs with distilled artifacts keep orchestrator context lean and synthesis tractable.",
+      "why": [
+        "Full transcripts drown the orchestrator in detail.",
+        "Correct. Compact structured results against the assigned subtask contract.",
+        "Withholding results until the end removes the orchestrator's ability to steer.",
+        "Raw tool logs belong with the worker that produced them."
+      ]
     },
     {
       "d": 0,
@@ -36,7 +48,13 @@
         "Routers are free"
       ],
       "a": 1,
-      "exp": "Tool-selection accuracy degrades as toolsets balloon; specialization keeps each decision space small."
+      "exp": "Tool-selection accuracy degrades as toolsets balloon; specialization keeps each decision space small.",
+      "why": [
+        "Total compute is not the differentiator.",
+        "Correct. Smaller focused tool sets reduce selection errors and context bloat.",
+        "Diagram aesthetics are not an engineering argument.",
+        "Routing costs a classification call; it is not free."
+      ]
     },
     {
       "d": 0,
@@ -48,7 +66,13 @@
         "Rerun from scratch each time"
       ],
       "a": 1,
-      "exp": "Durable externalized state with checkpointing is how production agents achieve resumability."
+      "exp": "Durable externalized state with checkpointing is how production agents achieve resumability.",
+      "why": [
+        "Context-only state is lost on any restart.",
+        "Correct. Externalize state so a run can resume from the last known-good step.",
+        "Restarts cannot be prevented, only survived.",
+        "Rerunning from scratch wastes all completed work."
+      ]
     },
     {
       "d": 0,
@@ -60,7 +84,13 @@
         "Single API lookup"
       ],
       "a": 1,
-      "exp": "Anthropic's multi-agent research findings: parallel breadth-first exploration is where the cost pays for itself."
+      "exp": "Anthropic's multi-agent research findings: parallel breadth-first exploration is where the cost pays for itself.",
+      "why": [
+        "FAQ answering is a single lookup, not breadth-heavy exploration.",
+        "Correct. Independent subtopics explored in parallel and then synthesized.",
+        "Formatting is trivially sequential.",
+        "One lookup needs no parallel decomposition."
+      ]
     },
     {
       "d": 1,
@@ -72,7 +102,13 @@
         "Retrying the same call"
       ],
       "a": 1,
-      "exp": "Silent data corruption needs programmatic validation — schema checks, invariants, sanity bounds — not model vigilance alone."
+      "exp": "Silent data corruption needs programmatic validation — schema checks, invariants, sanity bounds — not model vigilance alone.",
+      "why": [
+        "Silent corruption is exactly what the model is least able to notice.",
+        "Correct. Validate invariants on tool output in code and surface or halt on anomalies.",
+        "Prompt length cannot detect wrong data.",
+        "Retrying returns the same wrong data."
+      ]
     },
     {
       "d": 1,
@@ -84,7 +120,13 @@
         "Switch to a random provider silently"
       ],
       "a": 1,
-      "exp": "Layered graceful degradation with observability is the professional reliability pattern."
+      "exp": "Layered graceful degradation with observability is the professional reliability pattern.",
+      "why": [
+        "An error page is the outcome to avoid, not the plan.",
+        "Correct. Backoff, fallback tier, cached response, then human handoff, each logged.",
+        "Infinite retries amplify the outage.",
+        "Silent provider switching produces unpredictable behavior and unclear data handling."
+      ]
     },
     {
       "d": 1,
@@ -96,7 +138,13 @@
         "Run weekly instead"
       ],
       "a": 1,
-      "exp": "Idempotency + checkpoints = cheap recovery. Classic production-agent engineering."
+      "exp": "Idempotency + checkpoints = cheap recovery. Classic production-agent engineering.",
+      "why": [
+        "Accepting doubled nightly cost ignores an easy fix.",
+        "Correct. Idempotent steps with checkpoints let reruns resume at the failure point.",
+        "Removing a step changes the result silently.",
+        "Running less often does not make the failure cheaper."
+      ]
     },
     {
       "d": 1,
@@ -108,7 +156,13 @@
         "Refuse everything"
       ],
       "a": 1,
-      "exp": "Professional systems encode 'when uncertain, clarify or escalate' — silent assumptions cause the worst incidents."
+      "exp": "Professional systems encode 'when uncertain, clarify or escalate' — silent assumptions cause the worst incidents.",
+      "why": [
+        "Confident guessing in a high-stakes workflow is the failure mode.",
+        "Correct. Detect ambiguity and clarify or route to a human rather than assume.",
+        "Cost is the wrong tiebreaker for a high-stakes ambiguity.",
+        "Blanket refusal removes the capability rather than handling the edge case."
+      ]
     },
     {
       "d": 2,
@@ -120,7 +174,13 @@
         "Remove formatting steps"
       ],
       "a": 1,
-      "exp": "Per-step model routing backed by eval evidence is the canonical cost strategy."
+      "exp": "Per-step model routing backed by eval evidence is the canonical cost strategy.",
+      "why": [
+        "Uniformity is not worth paying top-tier rates for formatting.",
+        "Correct. Route each step to the cheapest model that meets its quality bar, verified by evals.",
+        "Removing quality checks trades correctness for cost.",
+        "Formatting steps are usually necessary; the tier is what is wrong."
+      ]
     },
     {
       "d": 2,
@@ -132,7 +192,13 @@
         "Lower max_tokens by 10"
       ],
       "a": 1,
-      "exp": "At that volume the cached prefix dominates spend — caching stable content is the first lever to pull."
+      "exp": "At that volume the cached prefix dominates spend — caching stable content is the first lever to pull.",
+      "why": [
+        "Naming saves a negligible number of tokens.",
+        "Correct. At that volume the repeated prefix dominates spend, so cache it.",
+        "Parallelism changes throughput, not cost per call.",
+        "A ten-token output reduction is irrelevant against a large repeated input."
+      ]
     },
     {
       "d": 2,
@@ -144,7 +210,13 @@
         "Fastest model for both"
       ],
       "a": 1,
-      "exp": "Match model and inference settings to each step's latency/quality profile."
+      "exp": "Match model and inference settings to each step's latency/quality profile.",
+      "why": [
+        "One model cannot be optimal for opposite constraints.",
+        "Correct. Optimize each step for its own latency or quality constraint.",
+        "Maximum capability everywhere wastes money on the latency-bound path.",
+        "Maximum speed everywhere sacrifices the quality-critical step."
+      ]
     },
     {
       "d": 2,
@@ -156,7 +228,13 @@
         "Turn reasoning off everywhere to save tokens"
       ],
       "a": 1,
-      "exp": "Reasoning depth is a paid dial, set per task class from evals. On current models the control is the effort level alongside adaptive thinking; the older fixed thinking-token budget has been removed."
+      "exp": "Reasoning depth is a paid dial, set per task class from evals. On current models the control is the effort level alongside adaptive thinking; the older fixed thinking-token budget has been removed.",
+      "why": [
+        "Maximum effort everywhere multiplies cost and latency for no measured gain.",
+        "Correct. Set effort per task class from evals showing where reasoning changes outcomes.",
+        "Never revisiting the setting guarantees it is wrong somewhere.",
+        "Disabling reasoning entirely degrades the tasks that need it."
+      ]
     },
     {
       "d": 3,
@@ -168,7 +246,13 @@
         "Test in production"
       ],
       "a": 1,
-      "exp": "Eval-gated prompt changes are the tested professional norm; vibes are not a regression strategy."
+      "exp": "Eval-gated prompt changes are the tested professional norm; vibes are not a regression strategy.",
+      "why": [
+        "Readability is not evidence of behavior.",
+        "Correct. Compare against the incumbent on a versioned eval suite before shipping.",
+        "A single opinion is not a measurement.",
+        "Production is where the cost of being wrong is highest."
+      ]
     },
     {
       "d": 3,
@@ -180,7 +264,13 @@
         "Screenshots"
       ],
       "a": 1,
-      "exp": "Step-level tracing plus outcome metrics plus qualitative sampling — you can't fix what you can't see."
+      "exp": "Step-level tracing plus outcome metrics plus qualitative sampling — you can't fix what you can't see.",
+      "why": [
+        "Error counts miss silent quality failures entirely.",
+        "Correct. Step traces, outcome metrics, and sampled human review together.",
+        "Host metrics say nothing about agent behavior.",
+        "Screenshots do not explain multi-step reasoning."
+      ]
     },
     {
       "d": 3,
@@ -192,7 +282,13 @@
         "Average the two"
       ],
       "a": 1,
-      "exp": "Judge models must be validated against human judgment before being trusted as gates."
+      "exp": "Judge models must be validated against human judgment before being trusted as gates.",
+      "why": [
+        "Cost does not make an unvalidated measurement usable.",
+        "Correct. Calibrate the rubric against human labels, or keep humans for that axis.",
+        "Deleting the eval leaves no signal at all.",
+        "Averaging a calibrated and an uncalibrated source obscures both."
+      ]
     },
     {
       "d": 3,
@@ -204,7 +300,13 @@
         "Blame users"
       ],
       "a": 1,
-      "exp": "Evals localize the regression; then targeted fixes or version pinning — measured response over reflex."
+      "exp": "Evals localize the regression; then targeted fixes or version pinning — measured response over reflex.",
+      "why": [
+        "A blanket rollback discards the improvements along with the regressions.",
+        "Correct. Rerun the evals, isolate failing segments, then patch or pin accordingly.",
+        "Ignoring a known regression compounds the damage.",
+        "Attribution is not remediation."
+      ]
     },
     {
       "d": 4,
@@ -216,7 +318,13 @@
         "Disabling logging for privacy"
       ],
       "a": 1,
-      "exp": "High-impact tools demand scoped permissions, approvals, and auditability — the security triad for agents."
+      "exp": "High-impact tools demand scoped permissions, approvals, and auditability — the security triad for agents.",
+      "why": [
+        "Irreversible external actions always need governance.",
+        "Correct. Least privilege, approval gates for irreversible actions, immutable audit logs.",
+        "Speed is irrelevant to governance.",
+        "Removing logs destroys the audit trail that accountability depends on."
+      ]
     },
     {
       "d": 4,
@@ -228,7 +336,13 @@
         "Cookie banners"
       ],
       "a": 1,
-      "exp": "Untrusted content + powerful tools is the classic injection kill-chain; break it architecturally."
+      "exp": "Untrusted content + powerful tools is the classic injection kill-chain; break it architecturally.",
+      "why": [
+        "Latency is an operational concern, not the security threat.",
+        "Correct. Injection from fetched content steering internal tools is the core threat.",
+        "Media weight is a performance detail.",
+        "Consent dialogs are a nuisance, not the risk to design against."
+      ]
     },
     {
       "d": 4,
@@ -240,7 +354,13 @@
         "Avoiding documentation"
       ],
       "a": 1,
-      "exp": "Traces are data too: minimize, mask, control access, and set retention — governance covers observability artifacts."
+      "exp": "Traces are data too: minimize, mask, control access, and set retention — governance covers observability artifacts.",
+      "why": [
+        "Verbatim indefinite logging of personal data is the opposite of good practice.",
+        "Correct. Minimize, redact where feasible, set retention, and control access to traces.",
+        "Emailing logs spreads personal data further with no controls.",
+        "Avoiding documentation makes governance impossible."
+      ]
     },
     {
       "d": 4,
@@ -252,7 +372,13 @@
         "Nobody ever"
       ],
       "a": 1,
-      "exp": "Prompts are production configuration: access control, review, evals, versioned rollout."
+      "exp": "Prompts are production configuration: access control, review, evals, versioned rollout.",
+      "why": [
+        "Uncontrolled edits to behavior-defining configuration is a production risk.",
+        "Correct. Authorized roles, review, eval gate, and versioned deploy.",
+        "Self-modification removes human accountability.",
+        "Freezing prompts prevents necessary fixes."
+      ]
     },
     {
       "d": 1,
@@ -264,7 +390,13 @@
         "Retry the whole task"
       ],
       "a": 1,
-      "exp": "Persisting incremental artifacts converts failures into partial successes — a hallmark of production-grade design."
+      "exp": "Persisting incremental artifacts converts failures into partial successes — a hallmark of production-grade design.",
+      "why": [
+        "Capability does not address the loss of completed work.",
+        "Correct. Persist intermediate results so completed work survives a late failure.",
+        "Hardware is not the constraint.",
+        "Full retries discard the work already paid for."
+      ]
     },
     {
       "d": 0,
@@ -276,7 +408,13 @@
         "Larger prompts"
       ],
       "a": 1,
-      "exp": "Shared-resource contention needs queuing, budgets, and backpressure — orchestration at the fleet level."
+      "exp": "Shared-resource contention needs queuing, budgets, and backpressure — orchestration at the fleet level.",
+      "why": [
+        "Contention behavior changes fundamentally at fifty concurrent sessions.",
+        "Correct. Queues, per-session budgets, and backpressure make degradation fair.",
+        "More keys does not create fair scheduling and may breach terms.",
+        "Prompt size is unrelated to shared-resource contention."
+      ]
     },
     {
       "d": 3,
@@ -288,7 +426,13 @@
         "Marketing copy"
       ],
       "a": 1,
-      "exp": "Evals must mirror reality and stress boundaries; stale or easy-only suites give false confidence."
+      "exp": "Evals must mirror reality and stress boundaries; stale or easy-only suites give false confidence.",
+      "why": [
+        "Easy synthetic questions measure nothing that matters.",
+        "Correct. Real representative cases plus curated hard ones and past failures, refreshed over time.",
+        "One transcript cannot characterize a distribution.",
+        "Marketing copy is not a workload."
+      ]
     },
     {
       "d": 0,

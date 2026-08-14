@@ -35,7 +35,7 @@ spaced retrieval, targeted weak-spot work, and timed rehearsal:
 | 📖 **Study Guide** | Written lessons per domain. Read these first — the questions assume the grounding. |
 | ⚔️ **Quiz Battle** | 10 questions with instant explanations. Prioritizes unseen questions, then ones you got wrong. |
 | 🃏 **Flashcards** | Spaced repetition. Only shows cards that are **due**. |
-| ⏱️ **Mock Exam** | 20 questions, 40 minutes, scored. Pacing is a separate skill from knowing the material. |
+| ⏱️ **Mock Exam** | 20 questions, 40 minutes, scored. Samples proportionally across domains, supports flag-for-review, and breaks results down by domain. |
 | 🎯 **Review Misses** | Serves only questions you have previously answered wrong. |
 | 🩹 **Weakest Domain** | Drills whichever domain you score lowest in — untested domains come first. |
 
@@ -110,8 +110,16 @@ diffed without touching the app. Question shape:
 ```
 
 `d` indexes into that certification's `domains` array in `index.html`; `a`
-indexes into `opts`. Option order is shuffled at load, so the authored position
-of the correct answer does not matter.
+indexes into `opts`. An optional `why` array, parallel to `opts`, explains why
+each option is right or wrong and is shown after answering — write the correct
+option's entry starting with "Correct." so the test can verify it is anchored to
+the right index. Option order is shuffled at load (and `why` is permuted with
+it), so the authored position of the correct answer does not matter.
+
+**242 questions across four certifications**, at least 10 per domain — the
+threshold below which weakest-domain drilling and per-domain accuracy stop
+meaning anything. `node test/smoke.js` enforces both that floor and the
+rationale requirement.
 
 **Keep all questions original.** Pearson VUE exams are under NDA — reproducing
 real exam items is braindumping, which gets candidates decertified and creates
