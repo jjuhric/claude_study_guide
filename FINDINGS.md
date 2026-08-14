@@ -1,7 +1,7 @@
 # Claude Cert Quest — Findings
 
-Reviewed: `index.html` (1400 lines, single-file HTML/CSS/JS, localStorage-only)
-Date: 2026-08-10
+First reviewed: 2026-08-10 · Last updated: 2026-08-13
+App shell `index.html` + content in `data/*.json`, progress in localStorage.
 
 ## Project goal (as confirmed)
 
@@ -23,7 +23,37 @@ content**, not just run as a solo offline toy.
 Architecture decided: **Supabase** (auth + Postgres) · **GitHub Pages** (hosting)
 · **content extracted to versioned JSON**.
 
-Done on 2026-08-10:
+Live at https://jjuhric.github.io/claude_study_guide/ · **170 checks** in
+`node test/smoke.js` (offline) plus `node test/links.js` (network).
+
+### Done on 2026-08-13
+
+- **Content: 99 → 242 questions**, at least 10 per domain across all four
+  certifications (several domains had 2–4). Every question carries per-option
+  rationales explaining why each wrong answer is wrong.
+- **Spaced repetition** (Leitner boxes) for flashcards; grades were previously
+  recorded and discarded.
+- **Targeted practice**: Review Misses, Weakest Domain, tappable domain rows.
+- **Prep progress**: six-component score per certification that names the
+  weakest component and links to the fix. Explicitly *not* a prediction about
+  the real exam.
+- **Mock realism**: domain-stratified sampling (every domain represented in
+  every draw), flag-for-review with a pre-submit review screen, per-domain
+  results breakdown.
+- **Weak domains link to the lesson that teaches them**, so a bad round becomes
+  a specific next action rather than more drilling.
+- **Dark mode**, **progress export/import**, and an **accessibility pass**
+  (live-region announcements, non-colour correctness signals, focus management,
+  reduced-motion).
+- **On-demand content loading**: first paint dropped from 116KB to ~21KB
+  gzipped; a certification's bank loads when opened.
+- **Progress keyed by stable question id** rather than array position, with
+  migration for existing saves. Fixes a real defect — replacing questions in
+  place had silently reattached correctness records to different questions.
+- **Duplicate detection**: four near-duplicate questions removed (one was a
+  0.95 match); the suite now fails at a 0.80 similarity threshold.
+
+### Done on 2026-08-10
 
 - Cert codes corrected to `CCAR-F` / `CCAR-P` (§1.3), blurbs matched to the
   official target audiences, prices verified
@@ -33,9 +63,19 @@ Done on 2026-08-10:
 - Content extracted to `data/*.json`; `index.html` 193KB → 39KB
 - `test/smoke.js` added — 62 checks, dependency-free
 
-Still open: Supabase auth + progress sync (needs an account created by the
-owner), content validation against the official blueprints (§0, blocked on
-Partner Academy access), and question-bank size (§2).
+### Still open
+
+1. **Content validation against the official blueprints** — the domain lists
+   are still unvalidated groupings. Blocked on Anthropic Partner Academy
+   access (§0). Highest-value remaining work.
+2. **Supabase auth + progress sync** — blocked on the owner creating a
+   project. Export/import is the interim safety net.
+3. **Lesson depth** — 28 lessons still cover one per domain, written when the
+   bank was 99 questions. With 242 questions and 10+ per domain, some lessons
+   are now thin relative to what is tested against them.
+4. **Question ids for lessons** — lessons are still referenced by array index
+   (`lessonsRead`), the same weakness that was fixed for questions and cards.
+   Lower risk, since lessons rarely churn, but the same fix applies.
 
 ---
 
