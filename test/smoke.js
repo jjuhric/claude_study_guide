@@ -368,6 +368,19 @@ vm.createContext(sandbox);
   check(badWhy.length === 0, `every "why" array is parallel to its options (${badWhy.slice(0, 3).join(", ") || "all valid"})`);
   check(withWhy > 0, `${withWhy} questions carry per-option rationales`);
 
+  // Authoring guard: the rationale that begins "Correct" must sit at the answer
+  // index. Structural parallelism alone cannot catch a rationale written against
+  // the wrong option — the reader just sees the wrong justification.
+  const misanchored = [];
+  for (const [id, d] of Object.entries(data)) {
+    d.questions.forEach((qq, i) => {
+      if (!Array.isArray(qq.why)) return;
+      const marked = qq.why.map((w, k) => (/^correct\b/i.test(w.trim()) ? k : -1)).filter(k => k >= 0);
+      if (marked.length !== 1 || marked[0] !== qq.a) misanchored.push(`${id}[${i}] marked=${JSON.stringify(marked)} a=${qq.a}`);
+    });
+  }
+  check(misanchored.length === 0, `the "Correct" rationale sits at the answer index (${misanchored.slice(0, 2).join("; ") || "all aligned"})`);
+
   // The load-time shuffle must permute `why` with `opts`, or explanations end
   // up attached to the wrong answers — silently, and in a way no user can spot.
   let misaligned = 0, checked = 0;

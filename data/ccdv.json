@@ -301,6 +301,816 @@
       ],
       "a": 1,
       "exp": "MCP servers expose tools (actions), resources (data), and prompts (templates)."
+    },
+    {
+      "d": 0,
+      "q": "A Messages API response comes back with stop_reason 'refusal'. Your client should:",
+      "opts": [
+        "Retry the identical request immediately",
+        "Handle it as a terminal outcome — surface it and do not treat partial content as a complete answer",
+        "Ignore stop_reason and parse content anyway",
+        "Increase max_tokens and retry"
+      ],
+      "a": 1,
+      "exp": "'refusal' means generation was stopped on safety grounds. It is a terminal state that needs explicit handling, not a retry loop.",
+      "why": [
+        "Retrying an identical refused request wastes calls and will generally refuse again.",
+        "Correct. Check stop_reason before consuming content, and handle refusal explicitly.",
+        "Consuming content without checking stop_reason is how truncated or refused output reaches users.",
+        "max_tokens is unrelated to a safety refusal."
+      ]
+    },
+    {
+      "d": 0,
+      "q": "You are streaming a response and need to know when the model has finished naturally. You should look for:",
+      "opts": [
+        "The first content block",
+        "stop_reason 'end_turn' on the completed message",
+        "A blank line in the stream",
+        "The client timeout firing"
+      ],
+      "a": 1,
+      "exp": "'end_turn' is the natural-completion signal. Streaming delivers incremental events, but the terminal reason is what tells you why generation stopped.",
+      "why": [
+        "The first block signals the start of content, not completion.",
+        "Correct. end_turn is the natural finish; max_tokens means truncation.",
+        "Whitespace in the stream carries no completion semantics.",
+        "A timeout indicates your client gave up, not that the model finished."
+      ]
+    },
+    {
+      "d": 0,
+      "q": "Your integration sets temperature to 0 for determinism against a current Claude model. The likely result is:",
+      "opts": [
+        "Perfectly deterministic output",
+        "An error — sampling parameters are rejected on current Claude models",
+        "Slower responses",
+        "Higher cost per token"
+      ],
+      "a": 1,
+      "exp": "Current Claude models reject sampling parameters such as temperature. Behavior is steered through prompting and structured outputs instead.",
+      "why": [
+        "Even where temperature was accepted, it never guaranteed determinism.",
+        "Correct. Sampling parameters are rejected — steer with prompting and schemas.",
+        "Latency is unrelated to this parameter.",
+        "Pricing is per token and unaffected by sampling settings."
+      ]
+    },
+    {
+      "d": 0,
+      "q": "Which is the correct way to keep a multi-turn conversation going with the Messages API?",
+      "opts": [
+        "The API stores conversation state for you between calls",
+        "Send the full prior message history with each request — the API is stateless",
+        "Send only the latest user message and a conversation ID",
+        "Re-send only the system prompt"
+      ],
+      "a": 1,
+      "exp": "The Messages API is stateless. Conversation continuity is the caller's responsibility: resend the history each turn.",
+      "why": [
+        "There is no server-side conversation store for the Messages API.",
+        "Correct. You own the history and resend it, which is also why caching matters.",
+        "There is no conversation ID that substitutes for sending history.",
+        "The system prompt alone carries none of the dialogue."
+      ]
+    },
+    {
+      "d": 0,
+      "q": "A long generation is cut off mid-sentence. The most direct diagnosis is:",
+      "opts": [
+        "Check whether stop_reason is 'max_tokens'",
+        "Assume a network failure",
+        "Assume the model refused",
+        "Lower max_tokens and retry"
+      ],
+      "a": 0,
+      "exp": "stop_reason distinguishes truncation from natural completion, refusal, and tool use. Read it before guessing.",
+      "why": [
+        "Correct. max_tokens means you hit your own output cap — raise it or continue the response.",
+        "Network failures usually surface as transport errors, not clean truncated messages.",
+        "A refusal reports stop_reason 'refusal', not a mid-sentence cut.",
+        "Lowering the cap makes truncation more likely, not less."
+      ]
+    },
+    {
+      "d": 1,
+      "q": "You need a response that always conforms to a fixed JSON schema. On current models the supported mechanism is:",
+      "opts": [
+        "Prefilling the assistant turn with '{'",
+        "Structured outputs — output_config.format with a json_schema",
+        "Asking for JSON in the system prompt and repairing failures",
+        "Setting a stop sequence at '}'"
+      ],
+      "a": 1,
+      "exp": "Structured outputs constrain generation to the schema, so the response is valid by construction. Prefilling the assistant turn is rejected on current models.",
+      "why": [
+        "Assistant-turn prefill returns an error on current Claude models.",
+        "Correct. output_config.format guarantees schema conformance.",
+        "Prompt-and-repair is the failure-prone pattern structured outputs replaced.",
+        "Stop sequences terminate generation; they do not enforce a shape."
+      ]
+    },
+    {
+      "d": 1,
+      "q": "What most improves the chance Claude calls the right tool with the right arguments?",
+      "opts": [
+        "Registering as many tools as possible",
+        "Precise tool descriptions and tight input schemas with required fields",
+        "Very short tool names",
+        "Calling tools in a fixed order"
+      ],
+      "a": 1,
+      "exp": "Tool descriptions and schemas are effectively prompts. Ambiguity there produces wrong tool choices and malformed arguments.",
+      "why": [
+        "More tools means more opportunity for confusion between similar options.",
+        "Correct. Describe when to use each tool, and constrain arguments in the schema.",
+        "Terse names remove the information needed to choose correctly.",
+        "Forcing an order defeats the point of letting the model select."
+      ]
+    },
+    {
+      "d": 1,
+      "q": "Setting strict: true on a tool definition gives you:",
+      "opts": [
+        "Faster tool execution",
+        "A guarantee that tool inputs conform to the declared schema",
+        "Automatic retries when a tool fails",
+        "Permission to skip validating inputs entirely"
+      ],
+      "a": 1,
+      "exp": "Strict tool use guarantees the generated arguments match the schema. Runtime validation of business rules is still your responsibility.",
+      "why": [
+        "Execution speed is determined by your own tool implementation.",
+        "Correct. Strict mode constrains generated arguments to the schema.",
+        "Retry behavior is something your application implements.",
+        "Schema conformance is not the same as business-rule validity — keep validating."
+      ]
+    },
+    {
+      "d": 1,
+      "q": "After Claude returns a tool_use block, the correct next step is:",
+      "opts": [
+        "Start a brand-new conversation with the result",
+        "Execute the tool and send the result back as a tool_result in the ongoing message history",
+        "Ignore it if you already know the answer",
+        "Send the result as a new system prompt"
+      ],
+      "a": 1,
+      "exp": "Tool use is a loop: the model requests, you execute, you return the result in the conversation, and generation continues with that result available.",
+      "why": [
+        "Starting over discards the reasoning that led to the tool call.",
+        "Correct. Return a tool_result in the same conversation to continue the loop.",
+        "Skipping the result leaves the model waiting on information it asked for.",
+        "System prompts are not the channel for tool results."
+      ]
+    },
+    {
+      "d": 1,
+      "q": "A tool occasionally receives arguments that are schema-valid but semantically impossible, such as an end date before a start date. The right fix is:",
+      "opts": [
+        "Assume the model will stop doing it",
+        "Validate in the tool and return a clear error the model can act on",
+        "Remove the tool",
+        "Widen the schema so it never fails"
+      ],
+      "a": 1,
+      "exp": "Schemas constrain shape, not meaning. Returning a specific, actionable error lets the model correct itself on the next turn.",
+      "why": [
+        "Hoping for different behavior is not a control.",
+        "Correct. Validate semantics and return an error the model can read and retry against.",
+        "Removing capability to avoid an edge case is disproportionate.",
+        "Loosening the schema increases the range of bad inputs."
+      ]
+    },
+    {
+      "d": 1,
+      "q": "The main reason to prefer a schema-constrained tool over free-text parsing for extraction is:",
+      "opts": [
+        "It uses fewer tokens in every case",
+        "The output shape is guaranteed, removing an entire class of parse failures",
+        "It avoids the need for any error handling",
+        "It is the only way to call an external API"
+      ],
+      "a": 1,
+      "exp": "Contract-first extraction removes parsing as a failure mode. You still handle transport, semantics, and downstream errors.",
+      "why": [
+        "Schemas can add tokens; the win is reliability, not always size.",
+        "Correct. A guaranteed shape eliminates parse failures by construction.",
+        "Other error classes remain and still need handling.",
+        "Tools are one integration path among several."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "The clearest signal that a task warrants an agent loop rather than a single call is:",
+      "opts": [
+        "The prompt is long",
+        "The number and order of steps cannot be known in advance",
+        "The output must be JSON",
+        "Several people will read the result"
+      ],
+      "a": 1,
+      "exp": "Agents earn their complexity when the path is discovered at run time. Known, fixed pipelines are better served by explicit orchestration.",
+      "why": [
+        "Length is a context concern, not a control-flow one.",
+        "Correct. Unknown step count and order is the defining case for an agent loop.",
+        "Structured output is achievable in a single call.",
+        "Audience size does not change the control flow required."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "An agent runs indefinitely on an ambiguous task. The most important safeguard is:",
+      "opts": [
+        "A larger model",
+        "Explicit stopping conditions — iteration caps, budget limits, and a defined escalation path",
+        "More tools",
+        "A longer system prompt"
+      ],
+      "a": 1,
+      "exp": "Loop guards are what keep an autonomous system bounded. Without them, ambiguity becomes unbounded spend.",
+      "why": [
+        "Capability does not create termination conditions.",
+        "Correct. Caps, budgets, and escalation are the guardrails that bound a loop.",
+        "More tools widen the search space and can worsen looping.",
+        "Instructions alone do not enforce termination."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "When an agent must run for a long time, persisting intermediate results matters because:",
+      "opts": [
+        "It reduces token cost to zero",
+        "A failure late in the run still delivers the work already completed",
+        "It makes the model faster",
+        "It removes the need for retries"
+      ],
+      "a": 1,
+      "exp": "Partial delivery turns a total loss into a partial success, and gives a retry somewhere to resume from.",
+      "why": [
+        "Persistence does not eliminate token cost.",
+        "Correct. Checkpointing converts an all-or-nothing failure into recoverable progress.",
+        "Storage does not change inference speed.",
+        "Retries are still needed; checkpoints make them cheaper."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "The main reason to give a subagent its own context window is:",
+      "opts": [
+        "It makes the subagent smarter",
+        "It isolates that work so the main thread stays focused and the subtasks can run in parallel",
+        "It avoids all token cost",
+        "It guarantees correctness"
+      ],
+      "a": 1,
+      "exp": "Isolation keeps the orchestrator's context clean and enables genuine parallelism. It is a structural benefit, not a capability one.",
+      "why": [
+        "Context isolation does not change model capability.",
+        "Correct. Isolation preserves focus and unlocks parallel execution.",
+        "Parallel subagents typically increase total token use.",
+        "No architecture guarantees correct results."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "Before adding a second agent to a working single-agent system, you should first ask:",
+      "opts": [
+        "Whether the team wants to use more agents",
+        "Whether the simplest pattern that works has actually been exhausted",
+        "Whether the vendor recommends it",
+        "Whether the budget allows it"
+      ],
+      "a": 1,
+      "exp": "Published guidance is consistent: use the simplest pattern that works, and escalate only when the task demands it. Each layer adds cost, latency, and failure surface.",
+      "why": [
+        "Preference is not an architectural justification.",
+        "Correct. Escalate complexity only when the simpler pattern demonstrably fails.",
+        "Vendor guidance in fact points toward the simplest workable pattern.",
+        "Affordability does not make added complexity beneficial."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "An agent's tool call fails with a transient network error. The most appropriate handling is:",
+      "opts": [
+        "Abandon the whole run",
+        "Retry with backoff, and if it keeps failing return a clear error the agent can reason about",
+        "Retry immediately forever",
+        "Silently pretend the tool returned nothing"
+      ],
+      "a": 1,
+      "exp": "Transient failures deserve bounded retries; persistent ones should become visible information rather than silent gaps.",
+      "why": [
+        "Abandoning on a transient blip wastes completed work.",
+        "Correct. Bounded backoff, then surface a actionable error.",
+        "Unbounded immediate retries amplify the outage.",
+        "Silently swallowing failures produces confidently wrong results."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "A nightly job summarizes a million documents with no latency requirement. The strongest cost lever is:",
+      "opts": [
+        "Streaming the responses",
+        "The Batches API, which processes asynchronously at a substantial discount",
+        "Raising max_tokens",
+        "Adding more tools"
+      ],
+      "a": 1,
+      "exp": "Asynchronous batch processing is designed for exactly this shape: high volume, no urgency. It is priced well below synchronous calls.",
+      "why": [
+        "Streaming improves perceived latency for interactive use, not batch cost.",
+        "Correct. Batch processing trades latency for a significant discount.",
+        "A higher output cap tends to increase cost.",
+        "Tools add capability and cost, not savings."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "A large system prompt and tool set are sent on every one of 100k daily calls. The first optimization is:",
+      "opts": [
+        "Rename variables to be shorter",
+        "Prompt caching on the stable prefix so repeated content is charged at a fraction of input cost",
+        "Reduce max_tokens slightly",
+        "Add more parallelism"
+      ],
+      "a": 1,
+      "exp": "When a large prefix repeats at volume, caching dominates the savings. Order stable content first so the cache prefix is as long as possible.",
+      "why": [
+        "Token savings from naming are negligible at this scale.",
+        "Correct. Cache the stable prefix; cache reads cost a fraction of normal input.",
+        "Output caps barely affect a cost profile dominated by repeated input.",
+        "Parallelism changes throughput, not cost per call."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "Prompt caching gives the biggest benefit when:",
+      "opts": [
+        "Every request is completely different",
+        "A large block of content is identical across many requests and appears at the start",
+        "Responses are very long",
+        "You use many different models"
+      ],
+      "a": 1,
+      "exp": "Caching works on repeated prefixes. Variation early in the prompt breaks the cache; stable content first is the design rule.",
+      "why": [
+        "Fully distinct requests share no prefix to cache.",
+        "Correct. A large, identical, leading block is the ideal case.",
+        "Caching applies to input, not output length.",
+        "Caches are per model; spreading across models fragments them."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "You need higher reasoning quality on a hard analytical step. On current models the control is:",
+      "opts": [
+        "A fixed thinking token budget",
+        "Raising the effort level for that call",
+        "Setting temperature higher",
+        "Sending the prompt twice"
+      ],
+      "a": 1,
+      "exp": "Current models expose reasoning depth as an effort level with adaptive thinking. The older fixed token budget has been removed.",
+      "why": [
+        "The fixed budget_tokens dial has been removed on current models.",
+        "Correct. Effort is the supported control for how much the model reasons.",
+        "Sampling parameters are rejected on current models and never controlled reasoning depth.",
+        "Duplicate requests double cost without improving reasoning."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "A pipeline runs five steps of very different difficulty on one large model. The most effective change is:",
+      "opts": [
+        "Move all steps to the largest model",
+        "Right-size each step, keeping the strong model only where reasoning is genuinely hard",
+        "Move all steps to the smallest model",
+        "Run the steps in a different order"
+      ],
+      "a": 1,
+      "exp": "Per-step right-sizing captures most of the available savings without harming the steps that need capability.",
+      "why": [
+        "Uniformly upgrading raises cost with no benefit on easy steps.",
+        "Correct. Match model tier to each step's actual difficulty.",
+        "Uniformly downgrading degrades the steps that need reasoning.",
+        "Ordering does not change per-step difficulty."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "The most reliable way to decide whether a cheaper model is good enough for a step is:",
+      "opts": [
+        "Team intuition",
+        "An eval on representative cases comparing quality against the current model",
+        "Vendor benchmark scores",
+        "Trying it once on a sample input"
+      ],
+      "a": 1,
+      "exp": "Model substitution decisions should rest on measured quality against your own cases, not on general benchmarks or single spot checks.",
+      "why": [
+        "Intuition is unreliable and unreviewable.",
+        "Correct. Measure on representative cases before switching.",
+        "Public benchmarks rarely reflect your specific task distribution.",
+        "One example cannot characterize a distribution."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "Cost has grown steadily while traffic is flat. The most likely explanation to investigate first is:",
+      "opts": [
+        "The model got more expensive on its own",
+        "Prompts or context have grown — more history, larger retrieved chunks, or more tools per call",
+        "Users are typing faster",
+        "The API is billing incorrectly"
+      ],
+      "a": 1,
+      "exp": "Flat traffic with rising cost points at growth in per-call tokens, which usually creeps in through history, retrieval, and tool definitions.",
+      "why": [
+        "Pricing changes are announced and would not be a silent creep.",
+        "Correct. Per-call token growth is the usual cause of drift at flat volume.",
+        "Typing speed has no bearing on token usage.",
+        "Billing errors are possible but far less likely than context growth."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "A long-running conversation gradually loses earlier constraints. The architectural fix is:",
+      "opts": [
+        "Ask the user to repeat themselves",
+        "Compaction — periodically summarize decisions and state into a durable note that is re-injected",
+        "Increase max_tokens",
+        "Switch to a smaller model"
+      ],
+      "a": 1,
+      "exp": "Compaction preserves the important state past window limits, instead of relying on everything staying in raw history.",
+      "why": [
+        "Pushing the problem to the user is not an architecture.",
+        "Correct. Summarize state into a durable note and re-inject it.",
+        "max_tokens governs output length, not input retention.",
+        "A smaller model typically has less room, not more."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "The recommended point to compact a long agent context is:",
+      "opts": [
+        "Only after a request fails for exceeding the window",
+        "Proactively at a utilization threshold, leaving headroom for the summarization itself",
+        "Never — let the provider handle it",
+        "After every single tool call"
+      ],
+      "a": 1,
+      "exp": "Compacting at a threshold leaves room to actually perform the compaction. Waiting for a hard failure leaves none.",
+      "why": [
+        "By the time it fails you may not have room to summarize.",
+        "Correct. Compact proactively with headroom reserved.",
+        "Context management is the application's responsibility.",
+        "Compacting constantly destroys useful recent detail and burns tokens."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "Placing the large, unchanging portion of a prompt first is recommended mainly because:",
+      "opts": [
+        "It reads better",
+        "It maximizes the cacheable prefix, cutting cost on repeated calls",
+        "It makes responses shorter",
+        "It is required by the API"
+      ],
+      "a": 1,
+      "exp": "Caching keys on the leading prefix. Stable-first ordering is what makes the cache usable across calls.",
+      "why": [
+        "Readability is a side benefit, not the reason.",
+        "Correct. Stable content first maximizes what can be cached.",
+        "Prompt ordering does not control output length.",
+        "There is no ordering requirement in the API itself."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "A prompt handles common inputs well but fails on a recurring edge case. The highest-leverage fix is:",
+      "opts": [
+        "Raise the effort level",
+        "Add few-shot examples covering that edge case, plus an explicit rule for it",
+        "Switch providers",
+        "Make the prompt shorter"
+      ],
+      "a": 1,
+      "exp": "Targeted examples of the failing case teach the boundary behavior directly, which general instructions rarely do.",
+      "why": [
+        "More reasoning does not supply missing task-specific guidance.",
+        "Correct. Show the hard case and state the rule for it.",
+        "Provider choice does not address an under-specified prompt.",
+        "Removing content is unlikely to add the missing guidance."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "The most reliable way to know a prompt change actually improved things is:",
+      "opts": [
+        "It looks better on one example",
+        "A regression set of representative cases scored before and after",
+        "The prompt is now longer and more detailed",
+        "The team agrees it reads well"
+      ],
+      "a": 1,
+      "exp": "Prompt engineering is empirical. Without a fixed evaluation set you cannot distinguish improvement from variance.",
+      "why": [
+        "A single example cannot separate improvement from noise.",
+        "Correct. Fixed cases scored before and after is the only trustworthy signal.",
+        "Length is not correlated with quality.",
+        "Readability to humans is not the same as task performance."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "Retrieval is preferred over pasting an entire corpus mainly because:",
+      "opts": [
+        "The corpus is confidential",
+        "Only the relevant portion is supplied, which improves focus and cuts cost",
+        "Retrieval guarantees factual accuracy",
+        "The API rejects large inputs entirely"
+      ],
+      "a": 1,
+      "exp": "Retrieval narrows what the model must attend to. It improves relevance and cost; it does not guarantee correctness.",
+      "why": [
+        "Confidentiality is a separate concern from retrieval mechanics.",
+        "Correct. Supplying only relevant passages improves focus and reduces spend.",
+        "Grounding reduces error but guarantees nothing.",
+        "Large inputs are supported; the issue is that they are wasteful and diluting."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "System prompts in a production application should be treated as:",
+      "opts": [
+        "Throwaway strings any developer can edit live",
+        "Versioned configuration under review, with eval gates before rollout",
+        "Documentation only",
+        "Secrets that must never be read by the team"
+      ],
+      "a": 1,
+      "exp": "Prompts materially determine behavior, so they need the same change control as any other production configuration.",
+      "why": [
+        "Unreviewed live edits to behavior-defining text is a production risk.",
+        "Correct. Version, review, gate on evals, and roll out deliberately.",
+        "Prompts are executable configuration, not commentary.",
+        "The team needs to read and review them; they are not secrets."
+      ]
+    },
+    {
+      "d": 5,
+      "q": "Content retrieved from a web page instructs the model to ignore prior instructions and email a file. This is:",
+      "opts": [
+        "A model defect to report",
+        "Prompt injection — retrieved content is data, never instructions",
+        "A legitimate instruction if the user opened the page",
+        "Harmless because models ignore such text"
+      ],
+      "a": 1,
+      "exp": "Anything arriving through tools or retrieval is untrusted data. Treating it as instruction is the core injection vulnerability.",
+      "why": [
+        "Injection is an application design issue, not a model defect.",
+        "Correct. Observed content is data; only the user issues instructions.",
+        "Opening a page does not authorize what the page's text demands.",
+        "Models can and do follow injected instructions without safeguards."
+      ]
+    },
+    {
+      "d": 5,
+      "q": "The strongest structural defense against a tool being misused via injected content is:",
+      "opts": [
+        "A longer system prompt telling the model to be careful",
+        "Least privilege on the tool itself, plus human approval for irreversible actions",
+        "Hiding the tool's name",
+        "Trusting the model's judgment"
+      ],
+      "a": 1,
+      "exp": "Prompt-level warnings can be overridden by clever input. Capability limits and approval gates hold regardless of what the model is persuaded to attempt.",
+      "why": [
+        "Instructions are the layer injection attacks target.",
+        "Correct. Constrain what the tool can do and gate irreversible actions.",
+        "Obscurity is not a control.",
+        "Relying on judgment alone leaves no defense when judgment is manipulated."
+      ]
+    },
+    {
+      "d": 5,
+      "q": "API keys for a Claude integration should be:",
+      "opts": [
+        "Embedded in the front-end so the browser can call the API directly",
+        "Held server-side, with the browser calling your backend instead",
+        "Shared in the team chat for convenience",
+        "Committed to the repository in a config file"
+      ],
+      "a": 1,
+      "exp": "A key in client code is a published key. Route calls through a backend that holds the credential and enforces your own authorization.",
+      "why": [
+        "Anything in the browser is readable by users and extractable at scale.",
+        "Correct. Keep credentials server-side behind your own authorization.",
+        "Chat history is neither access-controlled nor rotatable.",
+        "Committed secrets persist in history even after removal."
+      ]
+    },
+    {
+      "d": 5,
+      "q": "Before sending user-supplied documents to the API, the most important check is:",
+      "opts": [
+        "Whether the document is well formatted",
+        "Whether it contains data your policy and agreements permit you to process",
+        "Whether it is under a certain length",
+        "Whether the user is a paying customer"
+      ],
+      "a": 1,
+      "exp": "Data classification governs whether processing is permitted at all, ahead of any technical consideration.",
+      "why": [
+        "Formatting is irrelevant to whether processing is lawful.",
+        "Correct. Permitted-use and data classification come first.",
+        "Length is an engineering concern, not a governance one.",
+        "Payment status does not determine data-handling permissions."
+      ]
+    },
+    {
+      "d": 5,
+      "q": "An agent has a tool that can delete records. The appropriate control is:",
+      "opts": [
+        "Trust the agent once it has been tested",
+        "Require explicit confirmation for destructive actions, and scope the tool to the narrowest permission that works",
+        "Log deletions and review them monthly",
+        "Rename the tool so the model is less likely to pick it"
+      ],
+      "a": 1,
+      "exp": "Irreversible actions need a gate before the fact. Detection after the fact does not undo a deletion.",
+      "why": [
+        "Testing cannot enumerate every input an agent will encounter.",
+        "Correct. Confirm before irreversible actions, and minimize permissions.",
+        "Monthly review detects damage long after it is done.",
+        "Naming is not an access control."
+      ]
+    },
+    {
+      "d": 5,
+      "q": "When an application shows model output containing a link supplied by retrieved content, the safe behavior is:",
+      "opts": [
+        "Auto-follow it to enrich the answer",
+        "Treat it as untrusted, and do not fetch or submit data to it automatically",
+        "Follow it only if it uses HTTPS",
+        "Follow it if the domain looks familiar"
+      ],
+      "a": 1,
+      "exp": "Endpoints suggested by untrusted content are an exfiltration path. They should not be fetched or posted to automatically.",
+      "why": [
+        "Auto-following is precisely the exfiltration vector.",
+        "Correct. Untrusted content must not steer where data goes.",
+        "Transport encryption says nothing about the destination's trustworthiness.",
+        "Lookalike domains are a standard attack technique."
+      ]
+    },
+    {
+      "d": 5,
+      "q": "The purpose of validating model output before acting on it is:",
+      "opts": [
+        "To improve response quality",
+        "Because generated values are untrusted input to whatever consumes them next",
+        "To reduce token cost",
+        "It is unnecessary with structured outputs"
+      ],
+      "a": 1,
+      "exp": "Model output crossing into a database query, a shell command, or an API call is untrusted input at that boundary, regardless of how it was generated.",
+      "why": [
+        "Validation rejects bad values; it does not make generation better.",
+        "Correct. Treat generated values as untrusted at every boundary they cross.",
+        "Validation has no bearing on token cost.",
+        "Schema conformance is not the same as being safe to execute."
+      ]
+    },
+    {
+      "d": 6,
+      "q": "The three primitives an MCP server can expose are:",
+      "opts": [
+        "Models, weights, and embeddings",
+        "Tools, resources, and prompts",
+        "Users, roles, and tokens",
+        "Files, folders, and drives"
+      ],
+      "a": 1,
+      "exp": "MCP standardizes tools (actions the model can invoke), resources (data it can read), and prompts (reusable templates).",
+      "why": [
+        "These are model internals, not protocol primitives.",
+        "Correct. Tools, resources, and prompts are the three primitives.",
+        "Identity concepts are not MCP primitives.",
+        "Filesystem concepts may be exposed as resources, but are not the primitives."
+      ]
+    },
+    {
+      "d": 6,
+      "q": "The main problem MCP is designed to solve is:",
+      "opts": [
+        "Making models reason better",
+        "The N-by-M integration problem — every client needing bespoke connectors for every data source",
+        "Reducing token cost",
+        "Replacing HTTP"
+      ],
+      "a": 1,
+      "exp": "MCP is an interoperability standard: build a server once and any compatible client can use it, instead of pairwise integrations.",
+      "why": [
+        "The protocol does not change model capability.",
+        "Correct. One standard interface replaces bespoke pairwise connectors.",
+        "Integration standardization is not primarily a cost mechanism.",
+        "MCP is a protocol layered over existing transports, not a replacement for them."
+      ]
+    },
+    {
+      "d": 6,
+      "q": "An MCP resource differs from an MCP tool in that a resource:",
+      "opts": [
+        "Executes an action with side effects",
+        "Exposes data for the model to read, rather than an action to perform",
+        "Is always faster",
+        "Requires no schema"
+      ],
+      "a": 1,
+      "exp": "Resources are readable context; tools are invocable actions. The distinction matters for permissions and for reasoning about side effects.",
+      "why": [
+        "Side-effecting operations belong in tools.",
+        "Correct. Resources supply data; tools perform actions.",
+        "Performance is an implementation property, not a distinction of kind.",
+        "Both are described so the client knows how to use them."
+      ]
+    },
+    {
+      "d": 6,
+      "q": "Before connecting a third-party MCP server to an agent with write access, the most important step is:",
+      "opts": [
+        "Check that it is popular",
+        "Review what tools it exposes and what permissions they require, and scope access accordingly",
+        "Confirm it is open source",
+        "Confirm it is fast"
+      ],
+      "a": 1,
+      "exp": "A connected server extends the agent's capability surface. What it can do, and with what permissions, is the security question.",
+      "why": [
+        "Popularity is not a security review.",
+        "Correct. Audit exposed capability and grant the minimum required.",
+        "Source availability helps review but is not itself an assessment.",
+        "Latency is unrelated to safety."
+      ]
+    },
+    {
+      "d": 6,
+      "q": "An MCP prompt primitive is best described as:",
+      "opts": [
+        "A system prompt the server forces on the client",
+        "A reusable, parameterized template the server offers for common tasks",
+        "The user's typed message",
+        "A cached response"
+      ],
+      "a": 1,
+      "exp": "Prompts let a server ship curated, parameterized templates so clients need not reinvent effective phrasing for that domain.",
+      "why": [
+        "Servers offer prompts; they do not override client behavior.",
+        "Correct. A reusable parameterized template exposed by the server.",
+        "User input is not a protocol primitive.",
+        "Caching is unrelated to the prompt primitive."
+      ]
+    },
+    {
+      "d": 6,
+      "q": "A benefit of standardizing tool access through MCP rather than hardcoding integrations is:",
+      "opts": [
+        "Tools become free to run",
+        "Servers can be developed, versioned, and reused independently of any one client",
+        "The model no longer needs tool descriptions",
+        "Authentication becomes unnecessary"
+      ],
+      "a": 1,
+      "exp": "Decoupling servers from clients is the architectural win: independent development, versioning, and reuse across compatible clients.",
+      "why": [
+        "Execution costs are unchanged by the protocol.",
+        "Correct. Servers become independently developed, reusable components.",
+        "Descriptions still drive correct tool selection.",
+        "Authentication remains essential and is part of a careful deployment."
+      ]
+    },
+    {
+      "d": 6,
+      "q": "Your agent connects to an MCP server that suddenly returns a tool description telling the model to exfiltrate credentials. The correct design assumption is:",
+      "opts": [
+        "Server-supplied descriptions are trusted configuration",
+        "Tool descriptions from a server are untrusted content and must not be able to escalate the agent’s permissions",
+        "The model will always recognize and ignore this",
+        "This cannot happen over MCP"
+      ],
+      "a": 1,
+      "exp": "Anything a server supplies — including tool descriptions — is data from outside your trust boundary. Permissions must be enforced by your application, not by what a description claims.",
+      "why": [
+        "Treating remote descriptions as trusted config is exactly the vulnerability.",
+        "Correct. Enforce permissions in your application; never let described intent grant capability.",
+        "Models can be steered by injected instructions; detection is not a control.",
+        "A compromised or malicious server is a realistic threat over any integration protocol."
+      ]
     }
   ],
   "cards": [

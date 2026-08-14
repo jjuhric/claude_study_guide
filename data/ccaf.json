@@ -301,6 +301,474 @@
       ],
       "a": 1,
       "exp": "Tool-selection errors usually trace to ambiguous descriptions — clarify boundaries and add usage notes."
+    },
+    {
+      "d": 0,
+      "q": "A task decomposes into four independent research questions whose answers are combined at the end. The fitting pattern is:",
+      "opts": [
+        "A single sequential chain",
+        "Orchestrator with parallel workers, then a synthesis step",
+        "A router that picks one question",
+        "A human performing each step"
+      ],
+      "a": 1,
+      "exp": "Independent subtasks that recombine is the orchestrator-workers shape; parallelism is the whole benefit.",
+      "why": [
+        "Sequential execution wastes the independence between the questions.",
+        "Correct. Fan out independent work, then synthesize the results.",
+        "Routing picks one path; here all four answers are needed.",
+        "Manual execution discards the automation entirely."
+      ]
+    },
+    {
+      "d": 0,
+      "q": "Requests fall into three distinct categories, each best handled by a different prompt and model. The right pattern is:",
+      "opts": [
+        "Run all three handlers and pick the best output",
+        "A routing step that classifies then dispatches to the specialist handler",
+        "One general prompt covering all three",
+        "A multi-agent debate"
+      ],
+      "a": 1,
+      "exp": "Routing classifies once and dispatches, which keeps each handler focused and avoids paying for work you discard.",
+      "why": [
+        "Running everything triples cost to use one result.",
+        "Correct. Classify, then dispatch to the specialist path.",
+        "A single generic prompt underperforms specialists on all three.",
+        "Debate adds cost and latency without addressing categorization."
+      ]
+    },
+    {
+      "d": 0,
+      "q": "The strongest argument for choosing a simpler orchestration than you think you need is:",
+      "opts": [
+        "Simpler systems are always more accurate",
+        "Every added layer adds cost, latency, and failure surface, and must earn its place",
+        "Complex systems are harder to explain to customers",
+        "Simple systems use newer models"
+      ],
+      "a": 1,
+      "exp": "Published guidance is explicit: use the simplest pattern that works and escalate only when the task demands it.",
+      "why": [
+        "Simplicity is not automatically more accurate; it is cheaper to operate and reason about.",
+        "Correct. Complexity has real operational cost and must be justified.",
+        "Explicability matters but is not the core engineering argument.",
+        "Model choice is independent of orchestration complexity."
+      ]
+    },
+    {
+      "d": 0,
+      "q": "A pipeline has a step whose output quality varies and materially affects everything downstream. The best structural addition is:",
+      "opts": [
+        "Run the step twice and keep the longer output",
+        "An evaluator step that checks the output against criteria and triggers a retry or escalation",
+        "Skip the step when it is slow",
+        "Ask the user to check it"
+      ],
+      "a": 1,
+      "exp": "Evaluator-optimizer inserts a quality gate exactly where variance is costly, with a defined remedy.",
+      "why": [
+        "Length is not a quality criterion.",
+        "Correct. Gate the variable step with explicit criteria and a defined remedy.",
+        "Skipping a load-bearing step trades quality for speed silently.",
+        "Pushing verification onto users does not scale."
+      ]
+    },
+    {
+      "d": 0,
+      "q": "The clearest sign an orchestration has become too complex is:",
+      "opts": [
+        "It uses more than one model",
+        "Failures are hard to attribute to a specific step, and changes have unpredictable effects",
+        "It has more than three prompts",
+        "It costs more than last month"
+      ],
+      "a": 1,
+      "exp": "Diagnosability is the practical limit. When you cannot localize a failure, you can no longer safely change the system.",
+      "why": [
+        "Multiple models is normal right-sizing.",
+        "Correct. Loss of attribution and predictability is the real complexity ceiling.",
+        "Prompt count alone is not a meaningful threshold.",
+        "Cost growth may be legitimate; it is not itself a complexity signal."
+      ]
+    },
+    {
+      "d": 1,
+      "q": "The main reason to commit a project-level instructions file for Claude Code is:",
+      "opts": [
+        "It makes the model faster",
+        "Conventions, commands, and constraints apply consistently for everyone on the repository",
+        "It replaces code review",
+        "It stores API keys conveniently"
+      ],
+      "a": 1,
+      "exp": "Checked-in project instructions make agent behavior a reviewable, shared property of the repository rather than per-developer folklore.",
+      "why": [
+        "Instructions do not affect inference speed.",
+        "Correct. Shared, versioned conventions apply to every contributor.",
+        "Automated assistance does not remove human review.",
+        "Secrets must never be committed."
+      ]
+    },
+    {
+      "d": 1,
+      "q": "Running an agentic coding workflow in CI, the most important guardrail is:",
+      "opts": [
+        "Giving it the largest model",
+        "Scoping what it may change and requiring review before anything merges",
+        "Letting it run without a time limit",
+        "Disabling tests to avoid false failures"
+      ],
+      "a": 1,
+      "exp": "In CI the agent operates unattended, so blast radius and merge gates are what keep it safe.",
+      "why": [
+        "Capability does not bound what the agent may alter.",
+        "Correct. Constrain scope and keep a human merge gate.",
+        "Unbounded runs are a cost and reliability hazard.",
+        "Disabling tests removes the signal you most need."
+      ]
+    },
+    {
+      "d": 1,
+      "q": "A coding agent makes a sweeping refactor when a narrow fix was wanted. The most effective correction is:",
+      "opts": [
+        "Use a smaller model",
+        "State the scope explicitly — which files may change and what must not — and ask for the minimal diff",
+        "Run it again and hope",
+        "Accept the refactor"
+      ],
+      "a": 1,
+      "exp": "Scope is an instruction. Unstated boundaries are the usual cause of over-broad changes.",
+      "why": [
+        "Capability is not the issue; specification is.",
+        "Correct. Name the allowed scope and ask for the smallest change that works.",
+        "Repetition without new constraints reproduces the behavior.",
+        "Accepting an unrequested refactor inherits unreviewed risk."
+      ]
+    },
+    {
+      "d": 1,
+      "q": "The best first step when adopting agentic coding on a large legacy codebase is:",
+      "opts": [
+        "Ask it to modernize everything at once",
+        "Start with well-tested, well-bounded areas where correctness is verifiable quickly",
+        "Disable the test suite for speed",
+        "Give it write access to production"
+      ],
+      "a": 1,
+      "exp": "Verifiability is what makes agentic changes safe. Start where tests can tell you immediately whether the change was right.",
+      "why": [
+        "Wholesale modernization is unreviewable and high risk.",
+        "Correct. Begin where verification is fast and the blast radius is small.",
+        "Tests are the verification mechanism; removing them removes safety.",
+        "Production write access is never an appropriate starting point."
+      ]
+    },
+    {
+      "d": 1,
+      "q": "Version-controlling the prompts and instructions that drive a coding workflow matters mainly because:",
+      "opts": [
+        "It reduces token usage",
+        "Behavior changes become reviewable and revertible like any other change",
+        "It is required by the tool",
+        "It makes onboarding slower"
+      ],
+      "a": 1,
+      "exp": "Prompts are executable configuration. Treating them as code gives you review, history, and rollback.",
+      "why": [
+        "Version control does not change token consumption.",
+        "Correct. Review, history, and rollback apply to behavior-defining text.",
+        "It is a practice, not a product requirement.",
+        "Shared, versioned conventions speed onboarding up."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "Designing a contract between an extraction step and its consumer, the right order is:",
+      "opts": [
+        "Write the prompt, see what comes out, then write a parser",
+        "Define the schema first, constrain generation to it, and validate downstream anyway",
+        "Ask for markdown and parse headings",
+        "Let each consumer parse differently"
+      ],
+      "a": 1,
+      "exp": "Contract-first design removes parse failures by construction, and validation still guards semantics.",
+      "why": [
+        "Reverse-engineering a contract from observed output is fragile.",
+        "Correct. Schema first, constrained generation, and validation regardless.",
+        "Prose formats are not machine contracts.",
+        "Divergent parsers multiply failure modes."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "A schema-constrained step returns structurally valid output with a nonsensical value. This shows that:",
+      "opts": [
+        "Structured outputs are unreliable",
+        "Schemas guarantee shape, not meaning — semantic validation is still required",
+        "The schema was too strict",
+        "The model needs replacing"
+      ],
+      "a": 1,
+      "exp": "Shape and meaning are different guarantees. Constrained decoding delivers the first; your validation must cover the second.",
+      "why": [
+        "The mechanism worked exactly as specified.",
+        "Correct. Shape conformance is not semantic correctness.",
+        "Strictness produced valid structure; it was never a meaning check.",
+        "Every model can emit schema-valid nonsense."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "Across many documents you need identical structure. Beyond a schema, the most useful addition is:",
+      "opts": [
+        "A longer system prompt",
+        "One or two worked examples showing the structure filled in for edge cases",
+        "A higher effort level on every call",
+        "Randomizing the prompt to avoid overfitting"
+      ],
+      "a": 1,
+      "exp": "Examples communicate expectations that a schema cannot express, particularly around edge cases and conventions.",
+      "why": [
+        "Length without specificity does not improve consistency.",
+        "Correct. Worked examples pin down conventions the schema cannot encode.",
+        "More reasoning does not supply missing conventions.",
+        "Deliberate variation undermines consistency."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "The most reliable way to evolve a prompt that many systems depend on is:",
+      "opts": [
+        "Edit it in place and watch for complaints",
+        "Version it, run the change against a regression set, and roll out behind a gate",
+        "Only change it during quiet periods",
+        "Let each team keep a copy"
+      ],
+      "a": 1,
+      "exp": "Shared prompts are shared infrastructure. Versioning plus evals plus staged rollout is the safe change path.",
+      "why": [
+        "Complaint-driven detection is slow and damaging.",
+        "Correct. Version, evaluate against fixed cases, and gate the rollout.",
+        "Timing does not reduce the risk of an unmeasured change.",
+        "Forked copies guarantee divergence."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "When a task needs both prose for humans and fields for a system, the cleanest design is:",
+      "opts": [
+        "Ask for prose and regex the fields out",
+        "Define one schema containing both the structured fields and a prose field",
+        "Run the task twice with different prompts",
+        "Ask for prose and let each consumer interpret it"
+      ],
+      "a": 1,
+      "exp": "A single schema covering both consumers keeps them in sync and avoids a second, divergent generation.",
+      "why": [
+        "Regex over prose is the fragility structured outputs exist to remove.",
+        "Correct. One schema, both consumers, generated once and consistent.",
+        "Two runs can disagree with each other.",
+        "Unstructured interpretation produces inconsistent downstream behavior."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "Designing a tool an agent will call unsupervised, the most important property is:",
+      "opts": [
+        "A short name",
+        "Narrow scope with clearly described preconditions and failure modes",
+        "Returning as much data as possible",
+        "Accepting free-form text arguments"
+      ],
+      "a": 1,
+      "exp": "Unsupervised tools should be narrow and legible: easy to select correctly, hard to misuse, and clear when they fail.",
+      "why": [
+        "Names matter less than described behavior.",
+        "Correct. Narrow scope and explicit contracts make selection and recovery reliable.",
+        "Oversized responses waste context and bury the relevant part.",
+        "Free-form arguments invite malformed calls."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "Two tools have overlapping purposes and the agent frequently picks the wrong one. The best fix is:",
+      "opts": [
+        "Delete one arbitrarily",
+        "Clarify the descriptions so each states when to use it and when not to, or merge them",
+        "Add a third tool to choose between them",
+        "Rename them to be similar"
+      ],
+      "a": 1,
+      "exp": "Selection errors are usually description problems. State the boundary explicitly, or remove the ambiguity by merging.",
+      "why": [
+        "Arbitrary removal may drop needed capability.",
+        "Correct. Make the boundary explicit, or eliminate it by merging.",
+        "A meta-tool adds a layer without resolving the ambiguity.",
+        "Similar names make confusion more likely."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "A tool returns 5,000 rows when the agent needs a handful. The right change is:",
+      "opts": [
+        "Increase the context window",
+        "Add pagination and filtering parameters so the agent requests only what it needs",
+        "Summarize the rows with another model call",
+        "Accept it as the cost of completeness"
+      ],
+      "a": 1,
+      "exp": "Tool design should let the caller narrow the result. Filtering at the source beats paying to carry and then discard data.",
+      "why": [
+        "Larger windows postpone the problem at higher cost.",
+        "Correct. Give the agent parameters to narrow the request at the source.",
+        "An extra call to fix an oversized payload adds cost and latency.",
+        "Uncontrolled payloads degrade both cost and reasoning quality."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "Exposing internal capabilities through MCP rather than a bespoke integration is most justified when:",
+      "opts": [
+        "Only one client will ever use them",
+        "Multiple clients or agents need the same capabilities, now or plausibly later",
+        "The team wants to try a new protocol",
+        "The capabilities are trivial"
+      ],
+      "a": 1,
+      "exp": "MCP's value is reuse across clients. With a single permanent consumer, the abstraction may not pay for itself.",
+      "why": [
+        "A single consumer rarely justifies the extra indirection.",
+        "Correct. Reuse across clients is what the standard buys you.",
+        "Novelty is not an architectural reason.",
+        "Triviality argues against added protocol machinery."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "A tool performs an irreversible external action. The architecture should:",
+      "opts": [
+        "Rely on the agent's judgment",
+        "Require explicit confirmation, and make the operation idempotent or safely retryable where possible",
+        "Retry automatically on any error",
+        "Log the action and move on"
+      ],
+      "a": 1,
+      "exp": "Irreversible actions need a gate before, and idempotency so that retries after ambiguity do not double-apply.",
+      "why": [
+        "Judgment is not a control for irreversible effects.",
+        "Correct. Confirm before acting, and design for safe retries.",
+        "Blind retries on an irreversible action can duplicate it.",
+        "Logging is detection after the fact, not prevention."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "An agent's context fills during a long task. The right design response is:",
+      "opts": [
+        "Truncate the oldest messages automatically",
+        "Compact — summarize decisions and state into a durable note, re-injected as the working record",
+        "Start over with a fresh session",
+        "Move to a model with a larger window and change nothing else"
+      ],
+      "a": 1,
+      "exp": "Compaction preserves meaning rather than position. Blind truncation drops whatever happens to be oldest, including load-bearing constraints.",
+      "why": [
+        "Truncation discards by position, not importance.",
+        "Correct. Summarize the decisions and state that must survive.",
+        "Restarting loses everything learned.",
+        "A larger window delays the same failure without addressing it."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "The most reliable way to keep critical constraints in force across a long run is:",
+      "opts": [
+        "State them once at the very start",
+        "Carry them in a durable structure that is re-injected each cycle",
+        "Repeat them in every user message manually",
+        "Rely on the model remembering"
+      ],
+      "a": 1,
+      "exp": "Constraints that must hold throughout belong in state that is deliberately re-supplied, not in a single early message.",
+      "why": [
+        "Early statements get crowded out as the run grows.",
+        "Correct. Re-inject the constraints as part of the working record.",
+        "Manual repetition does not scale and is easily forgotten.",
+        "There is no persistence across context loss."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "An agent occasionally repeats the same failing action indefinitely. The right safeguard is:",
+      "opts": [
+        "A longer system prompt",
+        "Repeated-failure detection with a cap, then escalation to a different strategy or a human",
+        "A larger context window",
+        "Removing the tool"
+      ],
+      "a": 1,
+      "exp": "Loop detection with a defined escalation converts an infinite retry into a bounded, reportable outcome.",
+      "why": [
+        "Instructions do not enforce termination.",
+        "Correct. Detect repetition, cap it, and escalate deliberately.",
+        "More context does not stop a behavioral loop.",
+        "Removing capability is disproportionate to a retry bug."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "Retrieved context and the agent's own conclusions should be distinguished because:",
+      "opts": [
+        "It improves formatting",
+        "Conflating sourced facts with generated inferences makes errors impossible to trace",
+        "It reduces token usage",
+        "The API requires it"
+      ],
+      "a": 1,
+      "exp": "Traceability depends on knowing what came from a source and what the system concluded. Blurring them destroys auditability.",
+      "why": [
+        "This is an auditability concern, not presentation.",
+        "Correct. Separating sourced from inferred keeps errors traceable.",
+        "Labeling provenance does not reduce tokens.",
+        "This is a design practice, not an API requirement."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "The best reliability metric for a long-running agent is:",
+      "opts": [
+        "Average tokens per run",
+        "The rate of runs that reach a correct, verifiable end state — with partial progress measured separately",
+        "Number of tool calls",
+        "Total wall-clock time"
+      ],
+      "a": 1,
+      "exp": "Outcome correctness is the metric that matters; token and step counts are diagnostics, not goals.",
+      "why": [
+        "Token usage is a cost signal, not a reliability one.",
+        "Correct. Verified end-state success, with partial progress tracked separately.",
+        "Tool-call volume says nothing about whether the task succeeded.",
+        "Duration matters operationally but does not measure correctness."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "Two agents in a workflow disagree about a fact drawn from different retrieved passages. The right architectural response is:",
+      "opts": [
+        "Let the later agent overwrite the earlier conclusion",
+        "Surface the conflict with both sources attached, and resolve it by a defined precedence rule or human judgment",
+        "Average the two answers",
+        "Retry until they agree"
+      ],
+      "a": 1,
+      "exp": "Silent overwrites hide contradictions in the source material. Conflicts should be made visible and resolved by an explicit rule.",
+      "why": [
+        "Recency is not authority; the earlier conclusion may be the correct one.",
+        "Correct. Surface the conflict with provenance and apply a defined precedence rule.",
+        "Averaging facts is meaningless and can produce a claim neither source supports.",
+        "Retrying until agreement selects for luck, not truth."
+      ]
     }
   ],
   "cards": [

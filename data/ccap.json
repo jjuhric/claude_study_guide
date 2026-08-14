@@ -289,6 +289,492 @@
       ],
       "a": 1,
       "exp": "Evals must mirror reality and stress boundaries; stale or easy-only suites give false confidence."
+    },
+    {
+      "d": 0,
+      "q": "Scaling from one to fifty concurrent agent sessions sharing tools and rate limits, the key addition is:",
+      "opts": [
+        "Fifty API keys",
+        "Central concurrency management — queues, per-session budgets, and backpressure so sessions degrade fairly",
+        "Larger prompts",
+        "Nothing changes"
+      ],
+      "a": 1,
+      "exp": "Shared-resource contention is a fleet-level problem needing queuing, budgets, and backpressure.",
+      "why": [
+        "More keys does not create fair scheduling and may violate terms.",
+        "Correct. Queues, budgets, and backpressure keep degradation fair and predictable.",
+        "Prompt size is unrelated to contention.",
+        "Contention behavior changes fundamentally at scale."
+      ]
+    },
+    {
+      "d": 0,
+      "q": "A multi-agent design costs many times a single-agent one. That is justified when:",
+      "opts": [
+        "The team prefers agents",
+        "Parallel exploration measurably improves outcomes enough to warrant the token multiple",
+        "The vendor promotes it",
+        "The task is long"
+      ],
+      "a": 1,
+      "exp": "Multi-agent architectures buy parallel breadth at a large token multiple; the gain must be measured, not assumed.",
+      "why": [
+        "Preference is not a justification for a cost multiple.",
+        "Correct. Measured outcome gains must exceed the added spend.",
+        "Marketing is not evidence for your workload.",
+        "Duration alone does not imply parallel decomposition helps."
+      ]
+    },
+    {
+      "d": 0,
+      "q": "Subagents in a fleet should generally not coordinate directly with each other because:",
+      "opts": [
+        "It is technically impossible",
+        "Cross-talk destroys the context isolation and parallelism that made the design worthwhile",
+        "It is slower to send messages",
+        "The protocol forbids it"
+      ],
+      "a": 1,
+      "exp": "Isolation is the point: self-contained tasks, fresh context, and results returned to the orchestrator.",
+      "why": [
+        "It is possible, just usually undesirable.",
+        "Correct. Cross-talk reintroduces the coupling isolation was meant to remove.",
+        "Latency is a secondary concern next to the architectural cost.",
+        "Nothing forbids it; the argument is design, not permission."
+      ]
+    },
+    {
+      "d": 0,
+      "q": "The orchestrator's context in a large fleet should contain:",
+      "opts": [
+        "Every subagent's full transcript",
+        "Compact structured results and the state needed to decide next steps",
+        "Only the original user request",
+        "The full contents of every tool response"
+      ],
+      "a": 1,
+      "exp": "The orchestrator needs decisions, not raw transcripts. Aggregating everything recreates the overflow the fan-out avoided.",
+      "why": [
+        "Full transcripts drown the orchestrator in detail.",
+        "Correct. Compact results plus decision state is what it actually needs.",
+        "Dropping subagent results leaves nothing to synthesize.",
+        "Raw tool payloads belong with the subagent that requested them."
+      ]
+    },
+    {
+      "d": 0,
+      "q": "A fleet's aggregate token usage grows faster than its task volume. The first thing to examine is:",
+      "opts": [
+        "Whether users are asking harder questions",
+        "Whether agents are retrying, looping, or re-reading context they already have",
+        "Whether the model changed",
+        "Whether logging is too verbose"
+      ],
+      "a": 1,
+      "exp": "Superlinear token growth usually indicates wasted work: retries, loops, and redundant context rather than genuine demand.",
+      "why": [
+        "Possible, but it would generally scale with volume rather than outpace it.",
+        "Correct. Retries, loops, and redundant context are the usual causes.",
+        "Model changes are deliberate and would be a known event.",
+        "Application logging does not consume model tokens."
+      ]
+    },
+    {
+      "d": 1,
+      "q": "An agent completes ninety percent of a task then fails. Users receive nothing. The design fix is:",
+      "opts": [
+        "A larger model",
+        "Persist intermediate results so a late failure still delivers completed work",
+        "Longer timeouts",
+        "Retry the whole task automatically"
+      ],
+      "a": 1,
+      "exp": "Checkpointing converts all-or-nothing failure into partial delivery and gives retries a resume point.",
+      "why": [
+        "Capability does not address the loss of completed work.",
+        "Correct. Persist as you go so partial progress survives failure.",
+        "Longer timeouts postpone rather than prevent total loss.",
+        "Full retries discard the ninety percent already paid for."
+      ]
+    },
+    {
+      "d": 1,
+      "q": "A nightly ten-step pipeline fails at step seven. The most efficient recovery is:",
+      "opts": [
+        "Rerun all ten steps",
+        "Resume from step seven using persisted outputs of the earlier steps",
+        "Skip step seven",
+        "Run the pipeline twice nightly"
+      ],
+      "a": 1,
+      "exp": "Idempotent, checkpointed steps let you resume rather than repeat, which saves both time and spend.",
+      "why": [
+        "Rerunning completed work wastes time and money.",
+        "Correct. Resume from the failure point using stored outputs.",
+        "Skipping a step changes the result silently.",
+        "Duplicate runs multiply cost without addressing the failure."
+      ]
+    },
+    {
+      "d": 1,
+      "q": "A downstream dependency degrades intermittently under load. The right agent-side behavior is:",
+      "opts": [
+        "Retry immediately and continuously",
+        "Backoff with jitter, a retry ceiling, and a defined fallback when the ceiling is hit",
+        "Fail the entire run on first error",
+        "Ignore the errors and continue"
+      ],
+      "a": 1,
+      "exp": "Bounded backoff with jitter avoids amplifying an outage, and an explicit fallback keeps behavior predictable.",
+      "why": [
+        "Aggressive retries worsen the degradation for everyone.",
+        "Correct. Bounded, jittered retries with a defined fallback.",
+        "Failing immediately on a transient error is needlessly brittle.",
+        "Ignoring errors yields confidently wrong output."
+      ]
+    },
+    {
+      "d": 1,
+      "q": "Distinguishing recoverable from unrecoverable failures matters because:",
+      "opts": [
+        "It reduces token cost",
+        "Retrying an unrecoverable failure burns budget and delays surfacing a problem that needs a human",
+        "It makes logs shorter",
+        "The API requires the distinction"
+      ],
+      "a": 1,
+      "exp": "Retry policy should follow failure class. Retrying a permanent error is pure waste and hides the real issue.",
+      "why": [
+        "Any saving is a side effect of not wasting retries.",
+        "Correct. Class determines whether to retry or escalate.",
+        "Log volume is incidental.",
+        "This is application design, not an API requirement."
+      ]
+    },
+    {
+      "d": 1,
+      "q": "A production agent silently produces lower-quality output after a dependency schema change. This was missed because:",
+      "opts": [
+        "The model degraded",
+        "There was no outcome monitoring — only crash-level alerting",
+        "The prompt was too short",
+        "Users did not complain loudly enough"
+      ],
+      "a": 1,
+      "exp": "Silent quality regressions require outcome-level monitoring; uptime and error rates will not surface them.",
+      "why": [
+        "Models do not silently degrade on their own.",
+        "Correct. Without outcome metrics, quality regressions are invisible.",
+        "Prompt length is unrelated to detecting regressions.",
+        "Relying on complaints means detecting damage after it lands."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "An interactive step must feel fast and an overnight step must be accurate. The right strategy is:",
+      "opts": [
+        "The same model for both",
+        "A fast model with streaming for the interactive step; a stronger model, and more reasoning effort, for the async step",
+        "The strongest model for both",
+        "The fastest model for both"
+      ],
+      "a": 1,
+      "exp": "Match model and inference settings to each step's latency and quality profile rather than standardizing on one.",
+      "why": [
+        "A single choice cannot be optimal for opposite constraints.",
+        "Correct. Optimize each step for its own constraint.",
+        "Uniform maximum capability wastes money on the latency-bound step.",
+        "Uniform speed sacrifices quality where quality is the requirement."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "Latency is dominated by a large fixed prompt resent on every call. The most effective change is:",
+      "opts": [
+        "Shorten variable user input",
+        "Cache the stable prefix so repeated content is not reprocessed each time",
+        "Lower max_tokens",
+        "Add more concurrency"
+      ],
+      "a": 1,
+      "exp": "When a large prefix repeats, caching removes the dominant repeated work.",
+      "why": [
+        "Variable input is the small part of the payload here.",
+        "Correct. Caching the stable prefix removes the repeated cost.",
+        "Output caps do not address input processing.",
+        "Concurrency raises throughput without reducing per-call latency."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "Deciding whether to move a step to a cheaper model, the deciding evidence should be:",
+      "opts": [
+        "The price difference alone",
+        "An eval on representative production cases showing quality holds",
+        "A colleague's experience on a different task",
+        "The newest model available"
+      ],
+      "a": 1,
+      "exp": "Substitutions must be validated on your own distribution; price is only meaningful once quality is shown to hold.",
+      "why": [
+        "Price without quality evidence is an incomplete decision.",
+        "Correct. Validate on representative cases before switching.",
+        "A different task is not evidence for yours.",
+        "Recency is not a quality guarantee."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "Setting reasoning effort per task class rather than globally is preferable because:",
+      "opts": [
+        "It is simpler to configure",
+        "Effort is a paid dial and only some task classes convert it into better outcomes",
+        "Global settings are unsupported",
+        "It guarantees lower cost"
+      ],
+      "a": 1,
+      "exp": "Reasoning depth costs tokens and latency; it should be spent where evals show it changes results.",
+      "why": [
+        "Per-class configuration is more work, not less.",
+        "Correct. Spend reasoning where it demonstrably improves outcomes.",
+        "Global configuration is possible; it is just wasteful.",
+        "Per-class tuning can raise cost where high effort is warranted."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "The most defensible way to set a per-run budget cap for an agent is:",
+      "opts": [
+        "A round number chosen by the team",
+        "The observed cost distribution of successful runs, with headroom, so caps catch runaway behavior rather than normal work",
+        "The cheapest run ever recorded",
+        "No cap at all"
+      ],
+      "a": 1,
+      "exp": "Caps should be derived from observed successful-run cost so they catch pathology without killing legitimate work.",
+      "why": [
+        "An arbitrary number will either be ineffective or cut off valid runs.",
+        "Correct. Derive the cap from the real distribution, plus headroom.",
+        "The minimum would terminate most legitimate runs.",
+        "No cap means a loop can run until someone notices the bill."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "An LLM-as-judge eval disagrees with human raters forty percent of the time. You should:",
+      "opts": [
+        "Trust the judge because it is cheaper",
+        "Calibrate — refine the rubric and validate the judge against human labels before relying on it",
+        "Discard evaluation entirely",
+        "Use a larger model as judge and assume agreement"
+      ],
+      "a": 1,
+      "exp": "An uncalibrated judge is an unmeasured instrument. Validate against human labels before trusting it to gate decisions.",
+      "why": [
+        "Cost does not make an inaccurate measurement usable.",
+        "Correct. Refine the rubric and validate against human labels.",
+        "Abandoning evaluation leaves you with no signal at all.",
+        "A bigger judge can be confidently wrong in the same way."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "An agent observability stack should capture:",
+      "opts": [
+        "Error counts only",
+        "Step-level traces — tool calls, inputs and outputs, tokens, latency — plus outcome metrics and sampled human review",
+        "Screenshots of the UI",
+        "Only the final answer"
+      ],
+      "a": 1,
+      "exp": "You cannot debug or improve what you cannot see. Step traces, outcomes, and qualitative sampling cover the three levels that matter.",
+      "why": [
+        "Error counts miss silent quality failures entirely.",
+        "Correct. Traces, outcome metrics, and sampled human review together.",
+        "UI captures do not explain agent behavior.",
+        "The final answer hides where a multi-step run went wrong."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "The most important property of a regression set used to gate deployments is:",
+      "opts": [
+        "That it is large",
+        "That it is representative of real production cases, including known failure modes",
+        "That the current system passes all of it",
+        "That it changes frequently"
+      ],
+      "a": 1,
+      "exp": "Representativeness beats size. A set the system already passes entirely provides no signal about the changes that matter.",
+      "why": [
+        "Size without representativeness measures the wrong distribution.",
+        "Correct. Mirror production, and deliberately include known failures.",
+        "A set you always pass cannot detect regressions.",
+        "A constantly changing set makes results incomparable over time."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "Sampling transcripts for human review remains necessary alongside automated metrics because:",
+      "opts": [
+        "It is required by regulation in all cases",
+        "Metrics only measure what you thought to measure; reading transcripts surfaces failure modes you have not encoded",
+        "It is cheaper than automation",
+        "It replaces the need for evals"
+      ],
+      "a": 1,
+      "exp": "Qualitative review is how new failure modes are discovered and turned into future metrics.",
+      "why": [
+        "Regulatory requirements vary and are not universal.",
+        "Correct. Reading real transcripts reveals unmodeled failure modes.",
+        "Human review is more expensive per item, not less.",
+        "It complements automated evaluation rather than replacing it."
+      ]
+    },
+    {
+      "d": 3,
+      "q": "The right time to build evaluation for an agent workflow is:",
+      "opts": [
+        "After the first production incident",
+        "Before meaningful rollout, so changes can be measured from the start",
+        "Only if the team has spare capacity",
+        "After the prompt stops changing"
+      ],
+      "a": 1,
+      "exp": "Without a baseline you cannot tell improvement from regression, which makes every subsequent change a guess.",
+      "why": [
+        "Waiting for an incident means learning the expensive way.",
+        "Correct. A baseline before rollout makes every later change measurable.",
+        "Evaluation is core engineering, not discretionary.",
+        "Prompts change constantly; that is precisely why evals are needed."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "Who should be able to change a production agent's system prompt?",
+      "opts": [
+        "Anyone on the team, at any time",
+        "Authorized roles through change control — review, eval gate, and versioned deploy, like any production change",
+        "The agent itself",
+        "Nobody, once it is live"
+      ],
+      "a": 1,
+      "exp": "Prompts are production configuration that determines behavior, and they need the same controls as code.",
+      "why": [
+        "Uncontrolled edits to behavior-defining configuration is a production risk.",
+        "Correct. Review, eval gate, and versioned rollout by authorized roles.",
+        "Self-modification removes human accountability.",
+        "Freezing prompts entirely prevents necessary fixes."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "An agent fleet reads from a shared knowledge store that any team can write to. The main governance risk is:",
+      "opts": [
+        "Storage cost",
+        "Poisoned or unreviewed content silently steering every agent that reads it",
+        "Slower retrieval",
+        "Duplicate documents"
+      ],
+      "a": 1,
+      "exp": "A shared, writable grounding source is a high-value injection target; write access needs review just as code does.",
+      "why": [
+        "Storage is a cost concern, not a governance one.",
+        "Correct. Unreviewed writes propagate to every consuming agent.",
+        "Latency is an operational detail.",
+        "Duplication is untidy but not a security risk."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "Agents act on behalf of users with differing permissions. The correct model is:",
+      "opts": [
+        "Give the agent broad service credentials for simplicity",
+        "Have the agent act with the requesting user's effective permissions, enforced server-side",
+        "Ask the agent to check permissions itself in the prompt",
+        "Grant permissions per tool regardless of user"
+      ],
+      "a": 1,
+      "exp": "Authorization must be enforced at the resource, scoped to the actual user. A shared powerful credential turns any injection into privilege escalation.",
+      "why": [
+        "Broad shared credentials make every prompt injection a privilege escalation.",
+        "Correct. Enforce the requesting user's permissions server-side.",
+        "Prompt-level checks can be overridden by injected content.",
+        "User-independent permissions ignore who is actually asking."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "Audit requirements for an agent that takes consequential actions should include:",
+      "opts": [
+        "The final output only",
+        "Who requested it, what the agent did, which tools ran with which inputs, and what approvals were given",
+        "Token counts only",
+        "Nothing, since actions are automated"
+      ],
+      "a": 1,
+      "exp": "Accountability requires reconstructing the decision: requester, actions, tool inputs, and approvals.",
+      "why": [
+        "The output alone cannot reconstruct how it was reached.",
+        "Correct. Requester, actions, tool inputs, and approvals together.",
+        "Usage metrics are not an audit trail.",
+        "Automation increases rather than removes the need for auditability."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "A customer asks whether an agent can be given autonomous authority to issue refunds. The right answer is:",
+      "opts": [
+        "Yes, if the prompt says to be careful",
+        "It depends on defined limits, approval thresholds, and audit — with irreversible or high-value actions gated by a human",
+        "No, agents can never take actions",
+        "Yes, if the model is capable enough"
+      ],
+      "a": 1,
+      "exp": "Autonomy is a governance decision expressed through limits, thresholds, and gates, not a capability question.",
+      "why": [
+        "Prompt instructions are not an authorization control.",
+        "Correct. Define limits and thresholds, and gate high-value or irreversible actions.",
+        "Agents routinely take actions within appropriate controls.",
+        "Capability does not determine what authority should be delegated."
+      ]
+    },
+    {
+      "d": 2,
+      "q": "A high-volume agent step is latency-bound rather than cost-bound. The most effective first change is:",
+      "opts": [
+        "Move it to the strongest available model",
+        "Move it to a faster model tier and stream, then re-measure before doing anything more elaborate",
+        "Add more retries",
+        "Increase the reasoning effort"
+      ],
+      "a": 1,
+      "exp": "Latency-bound work is fixed by faster inference and earlier first tokens, then re-measured. Reasoning depth and retries push latency the wrong way.",
+      "why": [
+        "Stronger models are generally slower, which worsens a latency problem.",
+        "Correct. Faster tier plus streaming, then measure again before optimizing further.",
+        "Retries add latency; they do not reduce it.",
+        "More reasoning increases time to answer."
+      ]
+    },
+    {
+      "d": 4,
+      "q": "An agent needs a credential to call an internal system. The safest handling is:",
+      "opts": [
+        "Put the credential in the system prompt so the agent can use it",
+        "Keep the credential in the execution environment behind a tool, so the model never sees the secret itself",
+        "Let the agent read it from a shared document",
+        "Embed it in the tool description"
+      ],
+      "a": 1,
+      "exp": "Secrets should live in the execution layer, not in anything the model can emit. A credential in context can be echoed into output or exfiltrated by injection.",
+      "why": [
+        "Anything in the prompt can be reproduced in output or leaked via injection.",
+        "Correct. The tool holds the credential; the model only requests the action.",
+        "A readable document spreads the secret further and is equally exposed.",
+        "Tool descriptions are supplied to the model and are just as exposed."
+      ]
     }
   ],
   "cards": [
