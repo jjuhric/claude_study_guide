@@ -18,7 +18,8 @@
         "Correct. Audience, tone, format, and product specifics are what make output non-generic.",
         "Capability cannot supply context the prompt never provided.",
         "Brevity is not the issue; missing specifics are."
-      ]
+      ],
+      "id": "ccaoq-380ef56e"
     },
     {
       "d": 0,
@@ -36,7 +37,8 @@
         "Correct. A template or filled-in example pins the structure down exactly.",
         "Capitalization carries no structural meaning.",
         "A one-sentence limit removes room to specify the structure."
-      ]
+      ],
+      "id": "ccaoq-4002fe85"
     },
     {
       "d": 0,
@@ -54,7 +56,8 @@
         "Correct. Asking for step-by-step reasoning improves accuracy on complex analysis.",
         "Splitting into many chats loses the shared context the analysis needs.",
         "Stating your expected answer invites agreement rather than analysis."
-      ]
+      ],
+      "id": "ccaoq-4fc190f1"
     },
     {
       "d": 0,
@@ -72,7 +75,8 @@
         "Scattering instructions makes them easy to miss and hard to follow.",
         "With no framing, the model has to guess what to do with the text.",
         "Pre-summarizing discards detail the task may need, and is not always appropriate."
-      ]
+      ],
+      "id": "ccaoq-5a7eb999"
     },
     {
       "d": 1,
@@ -90,7 +94,8 @@
         "Correct. Verify against the source and treat unsupported claims as suspect.",
         "Self-assessed certainty does not reliably track accuracy.",
         "A disclaimer does not make an unverified statistic safe to publish."
-      ]
+      ],
+      "id": "ccaoq-10b13a41"
     },
     {
       "d": 1,
@@ -108,7 +113,8 @@
         "Correct. Review facts, logic, and tone before use, especially externally.",
         "Length is not a quality signal.",
         "Self-assessment adds no independent verification."
-      ]
+      ],
+      "id": "ccaoq-78d1e80c"
     },
     {
       "d": 1,
@@ -126,7 +132,8 @@
         "Correct. Treat it as unverified until independently confirmed.",
         "Any part of a citation can be wrong, including the case itself.",
         "Repetition reflects consistency, not existence."
-      ]
+      ],
+      "id": "ccaoq-b79c0dd3"
     },
     {
       "d": 1,
@@ -144,7 +151,8 @@
         "Correct. Asking for the specific source passages makes claims checkable.",
         "Jargon obscures rather than exposes the basis for a claim.",
         "Removing sources removes the means of verification."
-      ]
+      ],
+      "id": "ccaoq-93db063e"
     },
     {
       "d": 2,
@@ -162,7 +170,8 @@
         "Correct. High volume plus low difficulty is the classic small-model case.",
         "Recency is not a selection criterion.",
         "Running every model multiplies cost for a task that needs one."
-      ]
+      ],
+      "id": "ccaoq-8484d075"
     },
     {
       "d": 2,
@@ -180,7 +189,8 @@
         "Correct. Reserve top capability for hard reasoning and high-stakes output.",
         "Prompt length does not determine reasoning difficulty.",
         "More capable tiers are generally not the fastest option."
-      ]
+      ],
+      "id": "ccaoq-6575c5f9"
     },
     {
       "d": 2,
@@ -198,7 +208,8 @@
         "Correct. Web search reaches information beyond the training cutoff.",
         "A bigger window holds more of what you supply; it does not fetch anything.",
         "Sampling settings do not retrieve information."
-      ]
+      ],
+      "id": "ccaoq-7a4395ad"
     },
     {
       "d": 3,
@@ -216,7 +227,8 @@
         "Correct. Project knowledge plus reusable instructions makes the setup repeatable.",
         "Support is not a workflow mechanism.",
         "Multiple accounts fragment the work with no benefit."
-      ]
+      ],
+      "id": "ccaoq-7a8132c4"
     },
     {
       "d": 3,
@@ -234,7 +246,8 @@
         "Correct. Final accountability, judgment, and binding decisions stay with people.",
         "Frequency is an argument for automation, not against it.",
         "Drafting is among the best-suited tasks to delegate."
-      ]
+      ],
+      "id": "ccaoq-96a3b7bf"
     },
     {
       "d": 3,
@@ -252,7 +265,8 @@
         "Correct. Ask for the structure your process already consumes.",
         "A verbal description is the least machine-usable form.",
         "Creative formatting increases the work needed downstream."
-      ]
+      ],
+      "id": "ccaoq-bfacbfbd"
     },
     {
       "d": 4,
@@ -270,7 +284,8 @@
         "Correct. Responses become grounded in your specific material across conversations.",
         "Context limits still apply to what is supplied per request.",
         "Grounding affects relevance, not speed."
-      ]
+      ],
+      "id": "ccaoq-9222a15b"
     },
     {
       "d": 4,
@@ -288,7 +303,8 @@
         "Correct. Fix the source: remove or replace the outdated document.",
         "Model capability does not resolve a stale source.",
         "Repeating until the answer changes selects for randomness."
-      ]
+      ],
+      "id": "ccaoq-27bdcd42"
     },
     {
       "d": 5,
@@ -306,7 +322,8 @@
         "Correct. Data classification and policy decide whether this is permitted.",
         "Cost is downstream of permission.",
         "Latency has no bearing on data handling."
-      ]
+      ],
+      "id": "ccaoq-c3c414ae"
     },
     {
       "d": 5,
@@ -324,7 +341,8 @@
         "Correct. Disclose where required and review before use.",
         "Auto-sending external email removes the human check at the riskiest point.",
         "Secrecy prevents the review and oversight that make use responsible."
-      ]
+      ],
+      "id": "ccaoq-54b675d0"
     },
     {
       "d": 5,
@@ -342,7 +360,8 @@
         "Correct. Supply legitimate context, then escalate through proper channels.",
         "Coercive phrasing is not a technique and does not change the outcome.",
         "A refusal is designed behavior, not a defect."
-      ]
+      ],
+      "id": "ccaoq-c02126dd"
     },
     {
       "d": 6,
@@ -360,7 +379,8 @@
         "Correct. Long context dilutes focus; restart with a summary of the key points.",
         "Throttling affects rate and availability, not answer quality.",
         "Models are not silently swapped mid-conversation."
-      ]
+      ],
+      "id": "ccaoq-61dae721"
     },
     {
       "d": 6,
@@ -378,7 +398,8 @@
         "Correct. Restructure so the instruction is explicit and prominent, with an example if needed.",
         "Punctuation does not change how instructions are weighted.",
         "This is a prompt-structure issue, not a product defect."
-      ]
+      ],
+      "id": "ccaoq-9bcb4582"
     },
     {
       "d": 6,
@@ -396,7 +417,8 @@
         "A new account does not change how a request is interpreted.",
         "Identical repetition produces the same result.",
         "Giving up skips the straightforward fix."
-      ]
+      ],
+      "id": "ccaoq-6613fcd5"
     },
     {
       "d": 1,
@@ -414,7 +436,8 @@
         "Correct. Fluent, confident text containing factual errors is the defining failure mode.",
         "There is no such fixed length limit.",
         "Code generation is a core strength."
-      ]
+      ],
+      "id": "ccaoq-17a33b48"
     },
     {
       "d": 3,
@@ -432,7 +455,8 @@
         "Correct. First-draft synthesis is assistive, reviewable, and high value.",
         "Signing contracts is a binding legal act.",
         "Compensation decisions carry legal and fairness obligations."
-      ]
+      ],
+      "id": "ccaoq-8725e6d4"
     },
     {
       "d": 0,
@@ -450,7 +474,8 @@
         "Correct. A role frames tone, perspective, and domain conventions.",
         "Roles have no effect on context capacity.",
         "Response length is controlled by explicit instruction."
-      ]
+      ],
+      "id": "ccaoq-3c678783"
     },
     {
       "d": 0,
@@ -468,7 +493,8 @@
         "Correct. Constraints are instructions; if length matters, say what the limit is and who is reading.",
         "Chunking changes what is summarized, not how long the output is.",
         "Negative feedback without a target gives Claude nothing specific to aim at."
-      ]
+      ],
+      "id": "ccaoq-dcd3737d"
     },
     {
       "d": 0,
@@ -486,7 +512,8 @@
         "Correct. Every element is specific and checkable.",
         "'Really good' and 'professional' are not instructions Claude can act on differently.",
         "'Thorough but also brief' is self-contradictory; Claude has to guess which you meant."
-      ]
+      ],
+      "id": "ccaoq-0859df45"
     },
     {
       "d": 0,
@@ -504,7 +531,8 @@
         "Correct. One filled-in example pins down the format exactly.",
         "'Consistent' does not tell Claude which structure to be consistent with.",
         "Running twice detects inconsistency but does nothing to prevent it."
-      ]
+      ],
+      "id": "ccaoq-d6593377"
     },
     {
       "d": 0,
@@ -522,7 +550,8 @@
         "Correct. Explicit stages improve accuracy and make each step auditable.",
         "Jumping to the conclusion hides the reasoning you most need to verify.",
         "Switching tools per stage adds friction without improving the reasoning."
-      ]
+      ],
+      "id": "ccaoq-d9d4df59"
     },
     {
       "d": 0,
@@ -540,7 +569,8 @@
         "Correct. The missing ingredient is almost always context the prompt assumed.",
         "Tier affects access and limits, not whether a well-specified prompt works.",
         "Prompts have no expiry; the context around them is what changed."
-      ]
+      ],
+      "id": "ccaoq-b2f2bd91"
     },
     {
       "d": 1,
@@ -558,7 +588,8 @@
         "Correct. Verify against sources, and attribute or drop what you cannot confirm.",
         "Stated confidence does not correlate reliably with correctness.",
         "Rounding hides the precision but keeps the unverified claim."
-      ]
+      ],
+      "id": "ccaoq-add5ca4f"
     },
     {
       "d": 1,
@@ -576,7 +607,8 @@
         "Correct. External-facing and regulatory — the highest-consequence category.",
         "You already own the underlying content and can judge the rewrite directly.",
         "Discovery questions are a starting point you will adapt live."
-      ]
+      ],
+      "id": "ccaoq-b60aab7a"
     },
     {
       "d": 1,
@@ -594,7 +626,8 @@
         "Correct. If it cannot be confirmed, it cannot be relied upon.",
         "Blaming the tooling does not establish that the source exists.",
         "Attributing an unverified claim passes the risk to the reader."
-      ]
+      ],
+      "id": "ccaoq-6a9b8fd0"
     },
     {
       "d": 1,
@@ -612,7 +645,8 @@
         "Correct. Prioritize by consequence, then sample the remainder.",
         "Rewriting wholesale discards the time saving without targeting the risk.",
         "Asking the same system to grade itself does not add independent verification."
-      ]
+      ],
+      "id": "ccaoq-948351c6"
     },
     {
       "d": 1,
@@ -630,7 +664,8 @@
         "Correct. Evaluate the concern, then adjust the task or use the right channel.",
         "Tool-switching to evade a refusal has the same problem as rephrasing.",
         "A refusal is designed behavior, not a defect."
-      ]
+      ],
+      "id": "ccaoq-9a43fc15"
     },
     {
       "d": 2,
@@ -648,7 +683,8 @@
         "Correct. Small model, high volume, simple task — the textbook fit.",
         "Recency is not a selection criterion; task difficulty is.",
         "Rotating models adds inconsistency without a benefit."
-      ]
+      ],
+      "id": "ccaoq-9ff15685"
     },
     {
       "d": 2,
@@ -666,7 +702,8 @@
         "Correct. Reasoning difficulty and error cost are the deciding factors.",
         "Team size has no bearing on which model suits the task.",
         "Scheduling affects batching decisions, not capability needs."
-      ]
+      ],
+      "id": "ccaoq-1b42fa20"
     },
     {
       "d": 2,
@@ -684,7 +721,8 @@
         "Correct. Live data requires a retrieval path, not memory.",
         "It is very possible with the right connection; the limitation is on recall alone.",
         "This is a capability-architecture question, not a pricing-tier one."
-      ]
+      ],
+      "id": "ccaoq-b93cbcec"
     },
     {
       "d": 2,
@@ -702,7 +740,8 @@
         "Correct. Move the easy, high-volume work down a tier first.",
         "An overreaction that discards the value along with the cost.",
         "Trimming a few words is negligible next to tier and volume decisions."
-      ]
+      ],
+      "id": "ccaoq-94afc330"
     },
     {
       "d": 2,
@@ -720,7 +759,8 @@
         "Correct. Observed reasoning failures are the signal that justifies escalating.",
         "A long prompt needs context room, not necessarily more reasoning power.",
         "Stakeholder seniority does not change the task's actual difficulty."
-      ]
+      ],
+      "id": "ccaoq-4212a2bc"
     },
     {
       "d": 2,
@@ -738,7 +778,8 @@
         "Correct. Compliance and data-handling constraints narrow the field first.",
         "Recency is not a requirement-gathering input.",
         "A competitor's choice reflects their constraints, not this customer's."
-      ]
+      ],
+      "id": "ccaoq-f66e793d"
     },
     {
       "d": 2,
@@ -756,7 +797,8 @@
         "Correct. Retrieve what is relevant rather than resending everything.",
         "Dividing work between people does not address how the content reaches the model.",
         "Reformatting does not change the underlying volume problem."
-      ]
+      ],
+      "id": "ccaoq-1a8fa0c8"
     },
     {
       "d": 3,
@@ -774,7 +816,8 @@
         "Correct. High frequency, low risk, easy to check — the ideal starting point.",
         "Automating a step nobody understands means nobody can verify the output.",
         "Heavily audited steps carry the most process overhead for a first attempt."
-      ]
+      ],
+      "id": "ccaoq-9047e9f3"
     },
     {
       "d": 3,
@@ -792,7 +835,8 @@
         "Correct. A human approves before anything leaves the organization.",
         "Self-review adds no independent judgment.",
         "Labeling does not substitute for reviewing the content."
-      ]
+      ],
+      "id": "ccaoq-e49ab54a"
     },
     {
       "d": 3,
@@ -810,7 +854,8 @@
         "Correct. Evidence from a fair comparison is what changes minds.",
         "Abandoning without measuring discards a possibly real gain.",
         "Prompt length is unrelated to organizational trust."
-      ]
+      ],
+      "id": "ccaoq-2acb9608"
     },
     {
       "d": 3,
@@ -828,7 +873,8 @@
         "Correct. Intent, acceptance criteria, and ownership are the durable parts.",
         "Useful for cost tracking but not for running the workflow correctly.",
         "Creation date is metadata, not operating instructions."
-      ]
+      ],
+      "id": "ccaoq-5811ef88"
     },
     {
       "d": 3,
@@ -846,7 +892,8 @@
         "Correct. Standardize the input and the outputs converge.",
         "Creating a bottleneck hides the inconsistency rather than fixing it.",
         "Picking the best of several runs is expensive and still unrepeatable."
-      ]
+      ],
+      "id": "ccaoq-ec5eaa83"
     },
     {
       "d": 3,
@@ -864,7 +911,8 @@
         "Correct. A measured improvement with quality controlled is the evidence.",
         "More usage can indicate churn and retries as easily as success.",
         "Approval is a decision, not an outcome measurement."
-      ]
+      ],
+      "id": "ccaoq-f70c8206"
     },
     {
       "d": 4,
@@ -882,7 +930,8 @@
         "Correct. Your documents supply specificity and currency that training data cannot.",
         "Review is still required — grounding reduces error, it does not eliminate it.",
         "No retrieval approach guarantees correctness."
-      ]
+      ],
+      "id": "ccaoq-8adb6f43"
     },
     {
       "d": 4,
@@ -900,7 +949,8 @@
         "Correct. Select per query rather than sending everything or a fixed digest.",
         "A single global summary loses the detail that specific questions need.",
         "Repetition does not change what information is available."
-      ]
+      ],
+      "id": "ccaoq-7836ea2f"
     },
     {
       "d": 4,
@@ -918,7 +968,8 @@
         "Correct. Staleness is the main failure mode — assign ownership and review dates.",
         "Multiple documents are normal and expected.",
         "People reading the reference material is a benefit."
-      ]
+      ],
+      "id": "ccaoq-8575f46d"
     },
     {
       "d": 4,
@@ -936,7 +987,8 @@
         "Correct. Set precedence explicitly, or have the conflict reported.",
         "The older document may be the correct one; deleting without checking loses information.",
         "Rephrasing does not resolve a genuine contradiction in the sources."
-      ]
+      ],
+      "id": "ccaoq-3258120d"
     },
     {
       "d": 4,
@@ -954,7 +1006,8 @@
         "Correct. Approval and sensitivity determine whether it belongs there at all.",
         "Length is a practical consideration, not a governance one.",
         "Recency matters for accuracy but does not make sharing appropriate."
-      ]
+      ],
+      "id": "ccaoq-f4d15caf"
     },
     {
       "d": 4,
@@ -972,7 +1025,8 @@
         "Correct. Specific, checkable attribution is the signal that grounding is working.",
         "Speed reflects model and load, not grounding quality.",
         "Fewer questions could equally mean people gave up on the tool."
-      ]
+      ],
+      "id": "ccaoq-ad577027"
     },
     {
       "d": 4,
@@ -990,7 +1044,8 @@
         "Correct. Version provenance is what makes an answer defensible after the fact.",
         "Provenance is metadata; it does not change answer length.",
         "This is an organizational practice, not a product requirement."
-      ]
+      ],
+      "id": "ccaoq-5ca69082"
     },
     {
       "d": 5,
@@ -1008,7 +1063,8 @@
         "Correct. Policy and classification gate the decision.",
         "Length is a practical detail, not a governance check.",
         "Model choice is downstream of whether the data may be used."
-      ]
+      ],
+      "id": "ccaoq-20d6d808"
     },
     {
       "d": 5,
@@ -1026,7 +1082,8 @@
         "Correct. Whoever approved and sent it owns the outcome.",
         "Automation does not remove accountability.",
         "Writing the prompt is not the same as approving the final output."
-      ]
+      ],
+      "id": "ccaoq-df920b39"
     },
     {
       "d": 5,
@@ -1044,7 +1101,8 @@
         "Correct. High-stakes decisions about people require review before deployment.",
         "A fairness instruction in a prompt is not a compliance assessment.",
         "Avoiding documentation makes the risk worse, not smaller."
-      ]
+      ],
+      "id": "ccaoq-e6f0bdda"
     },
     {
       "d": 5,
@@ -1062,7 +1120,8 @@
         "Correct. Data rules, review thresholds, and an escalation path cover real decisions.",
         "Leaderboards encourage volume, which is not a safety goal.",
         "Rewriting everything by hand removes the benefit entirely."
-      ]
+      ],
+      "id": "ccaoq-f1d41038"
     },
     {
       "d": 5,
@@ -1080,7 +1139,8 @@
         "Correct. The request itself is the problem.",
         "A disclaimer does not repair deliberately misleading content.",
         "There is no approval that makes misleading customers acceptable."
-      ]
+      ],
+      "id": "ccaoq-bf87ea09"
     },
     {
       "d": 5,
@@ -1098,7 +1158,8 @@
         "Correct. Minimize or mask unless processing is approved.",
         "Partial processing still processes personal data.",
         "Renaming changes nothing about the contents."
-      ]
+      ],
+      "id": "ccaoq-fdcf2407"
     },
     {
       "d": 5,
@@ -1116,7 +1177,8 @@
         "Correct. Cite the authoritative source for their specific deployment.",
         "Blanket privacy claims are not accurate across deployments.",
         "Dismissing the question is both wrong and damaging to trust."
-      ]
+      ],
+      "id": "ccaoq-8b75f12f"
     },
     {
       "d": 6,
@@ -1134,7 +1196,8 @@
         "Correct. Enumerate requirements so none can be buried in prose.",
         "Capitalization does not change how instructions are parsed.",
         "The problem is instruction structure, not source length."
-      ]
+      ],
+      "id": "ccaoq-433a0f06"
     },
     {
       "d": 6,
@@ -1152,7 +1215,8 @@
         "Correct. Crowding is the standard explanation for late-conversation drift.",
         "Connectivity affects delivery, not reasoning quality.",
         "Throttling affects rate and availability, not answer quality."
-      ]
+      ],
+      "id": "ccaoq-aed89b32"
     },
     {
       "d": 6,
@@ -1170,7 +1234,8 @@
         "Correct. Specificity and a worked example are the practical consistency levers.",
         "Timing has no bearing on output variability.",
         "Changing language adds a variable rather than removing one."
-      ]
+      ],
+      "id": "ccaoq-7a9f5852"
     },
     {
       "d": 6,
@@ -1188,7 +1253,8 @@
         "Correct. Supply the definition rather than assuming it.",
         "Repetition within a conversation does not teach a company-specific meaning.",
         "Guessing invites exactly the misunderstanding you are trying to fix."
-      ]
+      ],
+      "id": "ccaoq-a55626fd"
     },
     {
       "d": 6,
@@ -1206,7 +1272,8 @@
         "Correct. State the audience, their expertise, and the intended use.",
         "'Better' does not identify what was wrong.",
         "A different model will make the same assumption about an unstated audience."
-      ]
+      ],
+      "id": "ccaoq-b038250f"
     },
     {
       "d": 6,
@@ -1224,7 +1291,8 @@
         "Correct. Requesting the exact passage exposes the actual grounding.",
         "A yes/no answer about reading is not verifiable evidence.",
         "Rephrasing may produce a different answer without revealing the original error."
-      ]
+      ],
+      "id": "ccaoq-8b169cc5"
     },
     {
       "d": 6,
@@ -1242,7 +1310,8 @@
         "Prompt length may or may not be a factor; the general lesson is about fluency.",
         "Every model can produce fluent errors; replacement does not solve it.",
         "Length is unrelated to reliability."
-      ]
+      ],
+      "id": "ccaoq-2a2debae"
     },
     {
       "d": 4,
@@ -1260,57 +1329,70 @@
         "Correct. If the wiki was never supplied, the answer was never grounded in it.",
         "Phrasing does not determine which sources were available.",
         "Images are a formatting detail, not the reason for the discrepancy."
-      ]
+      ],
+      "id": "ccaoq-7fc26b69"
     }
   ],
   "cards": [
     {
       "f": "What CCAO-F study domains does this app use?",
-      "b": "Prompting · Output Evaluation · Model Selection · Workflow Integration · Knowledge Management · Governance & Risk · Troubleshooting. These are this app's study groupings — the official domain list and weightings are in the Partner Academy exam guide."
+      "b": "Prompting · Output Evaluation · Model Selection · Workflow Integration · Knowledge Management · Governance & Risk · Troubleshooting. These are this app's study groupings — the official domain list and weightings are in the Partner Academy exam guide.",
+      "id": "ccaoc-0d1d2a7c"
     },
     {
       "f": "What does CCAO-F cost?",
-      "b": "$99 USD (confirmed on Anthropic's Pearson VUE page). Independent study sites widely report 120 minutes and a scaled pass mark of 720 on a 100–1000 range, but Anthropic publishes the authoritative format only in the Partner Academy exam guide — treat those figures as unconfirmed."
+      "b": "$99 USD (confirmed on Anthropic's Pearson VUE page). Independent study sites widely report 120 minutes and a scaled pass mark of 720 on a 100–1000 range, but Anthropic publishes the authoritative format only in the Partner Academy exam guide — treat those figures as unconfirmed.",
+      "id": "ccaoc-f32f2230"
     },
     {
       "f": "Hallucination",
-      "b": "Fluent, confident output containing fabricated or unsupported claims. Mitigate by grounding in sources, asking for citations, and verifying before use."
+      "b": "Fluent, confident output containing fabricated or unsupported claims. Mitigate by grounding in sources, asking for citations, and verifying before use.",
+      "id": "ccaoc-2584b778"
     },
     {
       "f": "When should a human stay in the loop?",
-      "b": "Final accountability, legal/binding decisions, high-stakes external communication, and anything requiring judgment your org assigns to people."
+      "b": "Final accountability, legal/binding decisions, high-stakes external communication, and anything requiring judgment your org assigns to people.",
+      "id": "ccaoc-3c5a5fc2"
     },
     {
       "f": "Projects (Claude feature)",
-      "b": "Persistent workspaces with custom instructions + knowledge files, so recurring workflows don't need re-pasting context every chat."
+      "b": "Persistent workspaces with custom instructions + knowledge files, so recurring workflows don't need re-pasting context every chat.",
+      "id": "ccaoc-51f7a52d"
     },
     {
       "f": "Role prompting",
-      "b": "Assigning Claude a persona/expertise ('You are a...') to shape tone, perspective, and domain conventions."
+      "b": "Assigning Claude a persona/expertise ('You are a...') to shape tone, perspective, and domain conventions.",
+      "id": "ccaoc-dcc496b5"
     },
     {
       "f": "Few-shot prompting",
-      "b": "Including 1+ worked examples of input → desired output so Claude mimics the pattern and format."
+      "b": "Including 1+ worked examples of input → desired output so Claude mimics the pattern and format.",
+      "id": "ccaoc-e8f4c459"
     },
     {
       "f": "Haiku vs Sonnet vs Opus — quick rule",
-      "b": "Haiku: fast/cheap, high-volume simple tasks. Sonnet: balanced default. Opus-class: hardest reasoning and highest-stakes quality."
+      "b": "Haiku: fast/cheap, high-volume simple tasks. Sonnet: balanced default. Opus-class: hardest reasoning and highest-stakes quality.",
+      "id": "ccaoc-1c78b511"
     },
     {
       "f": "Web search vs training data",
-      "b": "Training data has a cutoff date; web search fetches current info. Use search for anything time-sensitive."
+      "b": "Training data has a cutoff date; web search fetches current info. Use search for anything time-sensitive.",
+      "id": "ccaoc-791117d7"
     },
     {
       "f": "Fix for degraded answers in a long chat",
-      "b": "Context has accumulated noise — start a fresh conversation seeded with a concise summary of the key points."
+      "b": "Context has accumulated noise — start a fresh conversation seeded with a concise summary of the key points.",
+      "id": "ccaoc-75bce46b"
     },
     {
       "f": "Data governance first question",
-      "b": "Before pasting data into any AI tool: is this data class approved by org policy for this tool?"
+      "b": "Before pasting data into any AI tool: is this data class approved by org policy for this tool?",
+      "id": "ccaoc-66309935"
     },
     {
       "f": "Making outputs verifiable",
-      "b": "Ask Claude to quote source passages / cite where each claim comes from — unsupported claims become visible instantly."
+      "b": "Ask Claude to quote source passages / cite where each claim comes from — unsupported claims become visible instantly.",
+      "id": "ccaoc-bc1dfeb2"
     }
   ],
   "lessons": [

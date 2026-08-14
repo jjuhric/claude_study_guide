@@ -18,7 +18,8 @@
         "Correct. A predictable sequence is best served by a fixed workflow with tool calls at defined steps.",
         "Voting multiplies cost for a task with a known path.",
         "Inlining all data ignores the tool calls the task actually requires."
-      ]
+      ],
+      "id": "ccafq-27dabfb9"
     },
     {
       "d": 0,
@@ -36,7 +37,8 @@
         "Correct. Separable subtasks that benefit from isolated contexts or parallelism justify the pattern.",
         "Multi-agent designs generally increase latency.",
         "They typically multiply token usage rather than saving it."
-      ]
+      ],
+      "id": "ccafq-3d2af472"
     },
     {
       "d": 0,
@@ -54,7 +56,8 @@
         "Correct. Iteration caps, repeated-failure detection, and an escalation path bound the loop.",
         "Removing capability is disproportionate to a retry bug.",
         "Silent infinite retries are the failure being described."
-      ]
+      ],
+      "id": "ccafq-ab0a4f65"
     },
     {
       "d": 0,
@@ -72,7 +75,8 @@
         "Correct. Focused prompts and tools per category improve both quality and cost.",
         "Routing still uses the API for every handler.",
         "Routing is internal; users do not see the branches."
-      ]
+      ],
+      "id": "ccafq-74ca1fd0"
     },
     {
       "d": 0,
@@ -90,7 +94,8 @@
         "Correct. Irreversible actions need human confirmation before they happen.",
         "Logging detects after the fact; it does not prevent.",
         "A blanket ban removes legitimate capability rather than governing it."
-      ]
+      ],
+      "id": "ccafq-cf5c44cd"
     },
     {
       "d": 1,
@@ -108,7 +113,8 @@
         "Correct. A checked-in instructions file applies the same conventions to everyone.",
         "Private notes guarantee divergence between engineers.",
         "Session length has nothing to do with shared conventions."
-      ]
+      ],
+      "id": "ccafq-58fae554"
     },
     {
       "d": 1,
@@ -126,7 +132,8 @@
         "Correct. Plan, review the plan, then execute in verified steps.",
         "Tests are the verification that makes agentic changes safe.",
         "Unattended overnight runs remove the review the workflow depends on."
-      ]
+      ],
+      "id": "ccafq-67bc295a"
     },
     {
       "d": 1,
@@ -144,7 +151,8 @@
         "Correct. Separate context windows keep the main session focused and enable parallel work.",
         "Subagents share the same underlying models.",
         "Permissions still apply to subagents."
-      ]
+      ],
+      "id": "ccafq-b04c15ec"
     },
     {
       "d": 1,
@@ -162,7 +170,8 @@
         "Correct. Encode the requirement in project instructions, or enforce it with hooks.",
         "Delayed manual testing defeats the point of an automatic gate.",
         "Tests matter more in agentic workflows, not less."
-      ]
+      ],
+      "id": "ccafq-bc1963f7"
     },
     {
       "d": 2,
@@ -180,7 +189,8 @@
         "Correct. Constrain generation to a schema, and validate downstream regardless.",
         "'Mostly JSON' is not a contract anything can rely on.",
         "Markdown tables are for humans, not machine parsing."
-      ]
+      ],
+      "id": "ccafq-8b319fa2"
     },
     {
       "d": 2,
@@ -198,7 +208,8 @@
         "Removing content is unlikely to add the missing guidance.",
         "Sampling parameters are rejected on current models and never fixed edge cases.",
         "Provider choice does not address an under-specified prompt."
-      ]
+      ],
+      "id": "ccafq-d9592137"
     },
     {
       "d": 2,
@@ -216,7 +227,8 @@
         "Correct. A critique pass catches errors that a single generation misses.",
         "Self-review is not a substitute for tests.",
         "Extra passes increase latency."
-      ]
+      ],
+      "id": "ccafq-83e0b43c"
     },
     {
       "d": 2,
@@ -234,7 +246,8 @@
         "Correct. Structured outputs constrain generation to the schema.",
         "Prompt-and-repair is the failure-prone pattern this replaces.",
         "Stop sequences end generation; they do not enforce a shape."
-      ]
+      ],
+      "id": "ccafq-6ef2e548"
     },
     {
       "d": 3,
@@ -252,7 +265,8 @@
         "Correct. Few, distinct, well-documented tools with strict schemas.",
         "A generic catch-all endpoint destroys the model's ability to choose correctly.",
         "Descriptions are what drive correct selection; they earn their tokens."
-      ]
+      ],
+      "id": "ccafq-2c58d518"
     },
     {
       "d": 3,
@@ -270,7 +284,8 @@
         "Correct. Filtering and pagination let the agent request only what it needs.",
         "A bare path forces another step to read the data.",
         "Hard failure on large results makes the tool unusable for legitimate queries."
-      ]
+      ],
+      "id": "ccafq-f1010723"
     },
     {
       "d": 3,
@@ -288,7 +303,8 @@
         "Correct. Reuse across multiple clients or agents is what justifies the interface.",
         "It is not limited to databases.",
         "A protocol hop does not beat an in-process call on latency."
-      ]
+      ],
+      "id": "ccafq-9ab486af"
     },
     {
       "d": 3,
@@ -306,7 +322,8 @@
         "Correct. Read-only replica, allowlists and limits, and audit logging.",
         "Root credentials remove every meaningful control.",
         "Relying on model carefulness is not a security control."
-      ]
+      ],
+      "id": "ccafq-1ced14ed"
     },
     {
       "d": 4,
@@ -324,7 +341,8 @@
         "Correct. Compact state and decisions into a durable note that is re-injected.",
         "Restarting discards everything learned.",
         "Sampling parameters are rejected on current models and are unrelated to context loss."
-      ]
+      ],
+      "id": "ccafq-17f02166"
     },
     {
       "d": 4,
@@ -342,7 +360,8 @@
         "A two-page corpus fits trivially and needs no retrieval.",
         "Latency tolerance does not argue for or against retrieval.",
         "Cost indifference is not an engineering signal."
-      ]
+      ],
+      "id": "ccafq-3ef2f822"
     },
     {
       "d": 4,
@@ -360,7 +379,8 @@
         "Correct. Retries with backoff, fallback tiers, circuit breakers, and graceful degradation.",
         "A status page reports failure; it does not survive it.",
         "Attribution is not a resilience strategy."
-      ]
+      ],
+      "id": "ccafq-6cbb61c5"
     },
     {
       "d": 4,
@@ -378,7 +398,8 @@
         "Correct. Let code compute exact values and let the model orchestrate.",
         "There is no durable memory that performs computation.",
         "The logic still has to exist somewhere."
-      ]
+      ],
+      "id": "ccafq-1a8c7744"
     },
     {
       "d": 0,
@@ -396,7 +417,8 @@
         "A larger window raises the ceiling without addressing the waste.",
         "Compression does not help content that must be read as tokens.",
         "Merging discards the isolation that motivated the split."
-      ]
+      ],
+      "id": "ccafq-ec406edf"
     },
     {
       "d": 2,
@@ -414,7 +436,8 @@
         "Correct. One shared, versioned component included everywhere.",
         "Author discretion is what produces inconsistency.",
         "Fine-tuning per prompt is disproportionate and unmaintainable."
-      ]
+      ],
+      "id": "ccafq-d89a9302"
     },
     {
       "d": 1,
@@ -432,7 +455,8 @@
         "Correct. Scoped permissions, no direct push, and human-reviewed PR diffs.",
         "Auto-merge removes the review that makes this safe.",
         "Admin rights give the widest possible blast radius."
-      ]
+      ],
+      "id": "ccafq-549737c1"
     },
     {
       "d": 3,
@@ -450,7 +474,8 @@
         "Correct. Selection errors are usually description problems — state when each applies and when it does not.",
         "Fine-tuning is a heavyweight answer to an ambiguous description.",
         "A third tool adds another option to confuse."
-      ]
+      ],
+      "id": "ccafq-5750136a"
     },
     {
       "d": 0,
@@ -468,7 +493,8 @@
         "Correct. Fan out independent work, then synthesize the results.",
         "Routing picks one path; here all four answers are needed.",
         "Manual execution discards the automation entirely."
-      ]
+      ],
+      "id": "ccafq-8f4f3360"
     },
     {
       "d": 0,
@@ -486,7 +512,8 @@
         "Correct. Classify, then dispatch to the specialist path.",
         "A single generic prompt underperforms specialists on all three.",
         "Debate adds cost and latency without addressing categorization."
-      ]
+      ],
+      "id": "ccafq-8229387b"
     },
     {
       "d": 0,
@@ -504,7 +531,8 @@
         "Correct. Complexity has real operational cost and must be justified.",
         "Explicability matters but is not the core engineering argument.",
         "Model choice is independent of orchestration complexity."
-      ]
+      ],
+      "id": "ccafq-f3f05271"
     },
     {
       "d": 0,
@@ -522,7 +550,8 @@
         "Correct. Gate the variable step with explicit criteria and a defined remedy.",
         "Skipping a load-bearing step trades quality for speed silently.",
         "Pushing verification onto users does not scale."
-      ]
+      ],
+      "id": "ccafq-2cf55920"
     },
     {
       "d": 0,
@@ -540,7 +569,8 @@
         "Correct. Loss of attribution and predictability is the real complexity ceiling.",
         "Prompt count alone is not a meaningful threshold.",
         "Cost growth may be legitimate; it is not itself a complexity signal."
-      ]
+      ],
+      "id": "ccafq-69f3bca1"
     },
     {
       "d": 1,
@@ -558,7 +588,8 @@
         "Correct. Shared, versioned conventions apply to every contributor.",
         "Automated assistance does not remove human review.",
         "Secrets must never be committed."
-      ]
+      ],
+      "id": "ccafq-64a7fce7"
     },
     {
       "d": 1,
@@ -576,7 +607,8 @@
         "Correct. Constrain scope and keep a human merge gate.",
         "Unbounded runs are a cost and reliability hazard.",
         "Disabling tests removes the signal you most need."
-      ]
+      ],
+      "id": "ccafq-1b50adde"
     },
     {
       "d": 1,
@@ -594,7 +626,8 @@
         "Correct. Name the allowed scope and ask for the smallest change that works.",
         "Repetition without new constraints reproduces the behavior.",
         "Accepting an unrequested refactor inherits unreviewed risk."
-      ]
+      ],
+      "id": "ccafq-ddf11539"
     },
     {
       "d": 1,
@@ -612,7 +645,8 @@
         "Correct. Begin where verification is fast and the blast radius is small.",
         "Tests are the verification mechanism; removing them removes safety.",
         "Production write access is never an appropriate starting point."
-      ]
+      ],
+      "id": "ccafq-9cba9550"
     },
     {
       "d": 1,
@@ -630,7 +664,8 @@
         "Correct. Review, history, and rollback apply to behavior-defining text.",
         "It is a practice, not a product requirement.",
         "Shared, versioned conventions speed onboarding up."
-      ]
+      ],
+      "id": "ccafq-8dcc3867"
     },
     {
       "d": 2,
@@ -648,7 +683,8 @@
         "Correct. Schema first, constrained generation, and validation regardless.",
         "Prose formats are not machine contracts.",
         "Divergent parsers multiply failure modes."
-      ]
+      ],
+      "id": "ccafq-06893c5a"
     },
     {
       "d": 2,
@@ -666,7 +702,8 @@
         "Correct. Shape conformance is not semantic correctness.",
         "Strictness produced valid structure; it was never a meaning check.",
         "Every model can emit schema-valid nonsense."
-      ]
+      ],
+      "id": "ccafq-5a28de82"
     },
     {
       "d": 2,
@@ -684,7 +721,8 @@
         "Correct. Worked examples pin down conventions the schema cannot encode.",
         "More reasoning does not supply missing conventions.",
         "Deliberate variation undermines consistency."
-      ]
+      ],
+      "id": "ccafq-5da2035f"
     },
     {
       "d": 2,
@@ -702,7 +740,8 @@
         "Correct. Version, evaluate against fixed cases, and gate the rollout.",
         "Timing does not reduce the risk of an unmeasured change.",
         "Forked copies guarantee divergence."
-      ]
+      ],
+      "id": "ccafq-6121c04c"
     },
     {
       "d": 2,
@@ -720,7 +759,8 @@
         "Correct. One schema, both consumers, generated once and consistent.",
         "Two runs can disagree with each other.",
         "Unstructured interpretation produces inconsistent downstream behavior."
-      ]
+      ],
+      "id": "ccafq-afefe8c1"
     },
     {
       "d": 3,
@@ -738,7 +778,8 @@
         "Correct. Narrow scope and explicit contracts make selection and recovery reliable.",
         "Oversized responses waste context and bury the relevant part.",
         "Free-form arguments invite malformed calls."
-      ]
+      ],
+      "id": "ccafq-eadd0578"
     },
     {
       "d": 3,
@@ -756,7 +797,8 @@
         "Correct. Make the boundary explicit, or eliminate it by merging.",
         "A meta-tool adds a layer without resolving the ambiguity.",
         "Similar names make confusion more likely."
-      ]
+      ],
+      "id": "ccafq-28c1de46"
     },
     {
       "d": 3,
@@ -774,7 +816,8 @@
         "Correct. Give the agent parameters to narrow the request at the source.",
         "An extra call to fix an oversized payload adds cost and latency.",
         "Uncontrolled payloads degrade both cost and reasoning quality."
-      ]
+      ],
+      "id": "ccafq-a5d7a5b2"
     },
     {
       "d": 3,
@@ -792,7 +835,8 @@
         "Correct. Reuse across clients is what the standard buys you.",
         "Novelty is not an architectural reason.",
         "Triviality argues against added protocol machinery."
-      ]
+      ],
+      "id": "ccafq-762f4874"
     },
     {
       "d": 3,
@@ -810,7 +854,8 @@
         "Correct. Confirm before acting, and design for safe retries.",
         "Blind retries on an irreversible action can duplicate it.",
         "Logging is detection after the fact, not prevention."
-      ]
+      ],
+      "id": "ccafq-b93fc678"
     },
     {
       "d": 4,
@@ -828,7 +873,8 @@
         "Correct. Summarize the decisions and state that must survive.",
         "Restarting loses everything learned.",
         "A larger window delays the same failure without addressing it."
-      ]
+      ],
+      "id": "ccafq-5d3a9bb3"
     },
     {
       "d": 4,
@@ -846,7 +892,8 @@
         "Correct. Re-inject the constraints as part of the working record.",
         "Manual repetition does not scale and is easily forgotten.",
         "There is no persistence across context loss."
-      ]
+      ],
+      "id": "ccafq-48bd8a24"
     },
     {
       "d": 4,
@@ -864,7 +911,8 @@
         "Correct. Detect repetition, cap it, and escalate deliberately.",
         "More context does not stop a behavioral loop.",
         "Removing capability is disproportionate to a retry bug."
-      ]
+      ],
+      "id": "ccafq-c0ab68e8"
     },
     {
       "d": 4,
@@ -882,7 +930,8 @@
         "Correct. Separating sourced from inferred keeps errors traceable.",
         "Labeling provenance does not reduce tokens.",
         "This is a design practice, not an API requirement."
-      ]
+      ],
+      "id": "ccafq-d0d931f5"
     },
     {
       "d": 4,
@@ -900,7 +949,8 @@
         "Correct. Verified end-state success, with partial progress tracked separately.",
         "Tool-call volume says nothing about whether the task succeeded.",
         "Duration matters operationally but does not measure correctness."
-      ]
+      ],
+      "id": "ccafq-9359a2bf"
     },
     {
       "d": 4,
@@ -918,57 +968,70 @@
         "Correct. Surface the conflict with provenance and apply a defined precedence rule.",
         "Averaging facts is meaningless and can produce a claim neither source supports.",
         "Retrying until agreement selects for luck, not truth."
-      ]
+      ],
+      "id": "ccafq-f2938c0c"
     }
   ],
   "cards": [
     {
       "f": "What CCAR-F study domains does this app use?",
-      "b": "Agentic Architecture & Orchestration · Claude Code Workflows · Prompt Eng & Structured Output · Tool Design & MCP · Context Mgmt & Reliability. These are this app's study groupings — official weightings are in the Partner Academy exam guide."
+      "b": "Agentic Architecture & Orchestration · Claude Code Workflows · Prompt Eng & Structured Output · Tool Design & MCP · Context Mgmt & Reliability. These are this app's study groupings — official weightings are in the Partner Academy exam guide.",
+      "id": "ccafc-ad9c628f"
     },
     {
       "f": "What does CCAR-F cost?",
-      "b": "$125 USD (confirmed on Anthropic's Pearson VUE page). Independent study sites widely report 120 minutes, scenario-based and a scaled pass mark of 720 on a 100–1000 range, but Anthropic publishes the authoritative format only in the Partner Academy exam guide — treat those figures as unconfirmed."
+      "b": "$125 USD (confirmed on Anthropic's Pearson VUE page). Independent study sites widely report 120 minutes, scenario-based and a scaled pass mark of 720 on a 100–1000 range, but Anthropic publishes the authoritative format only in the Partner Academy exam guide — treat those figures as unconfirmed.",
+      "id": "ccafc-0fdf8a1b"
     },
     {
       "f": "Solution scenarios worth practising",
-      "b": "Customer Support Agent · Code Gen with Claude Code · Multi-Agent Research · Developer Productivity · Claude Code for CI · Structured Data Extraction. Useful practice contexts for architect-level thinking — not a verified list of exam scenarios."
+      "b": "Customer Support Agent · Code Gen with Claude Code · Multi-Agent Research · Developer Productivity · Claude Code for CI · Structured Data Extraction. Useful practice contexts for architect-level thinking — not a verified list of exam scenarios.",
+      "id": "ccafc-a0b48494"
     },
     {
       "f": "Golden rule of agent design",
-      "b": "Use the simplest pattern that works: prompt → workflow → single agent → multi-agent. Escalate complexity only when the task demands it."
+      "b": "Use the simplest pattern that works: prompt → workflow → single agent → multi-agent. Escalate complexity only when the task demands it.",
+      "id": "ccafc-bf0eec56"
     },
     {
       "f": "Common workflow patterns",
-      "b": "Prompt chaining · Routing · Parallelization (sectioning/voting) · Orchestrator-workers · Evaluator-optimizer"
+      "b": "Prompt chaining · Routing · Parallelization (sectioning/voting) · Orchestrator-workers · Evaluator-optimizer",
+      "id": "ccafc-a5df9744"
     },
     {
       "f": "Loop guards",
-      "b": "Max iterations, repeated-failure detection, budget caps, and escalation paths — how agents avoid spiraling."
+      "b": "Max iterations, repeated-failure detection, budget caps, and escalation paths — how agents avoid spiraling.",
+      "id": "ccafc-7c04e2e1"
     },
     {
       "f": "Compaction",
-      "b": "Summarizing conversation/agent state into a durable structured note when nearing context limits, then continuing with the summary."
+      "b": "Summarizing conversation/agent state into a durable structured note when nearing context limits, then continuing with the summary.",
+      "id": "ccafc-e0abd987"
     },
     {
       "f": "Subagents (Claude Code)",
-      "b": "Delegated tasks running in separate context windows — isolation keeps the main thread clean; enables parallelism."
+      "b": "Delegated tasks running in separate context windows — isolation keeps the main thread clean; enables parallelism.",
+      "id": "ccafc-897c6aba"
     },
     {
       "f": "Hooks (Claude Code)",
-      "b": "Scripted actions that fire at lifecycle points (e.g., after edits, before completion) — enforce tests/lint deterministically."
+      "b": "Scripted actions that fire at lifecycle points (e.g., after edits, before completion) — enforce tests/lint deterministically.",
+      "id": "ccafc-5377fb5f"
     },
     {
       "f": "Tool design checklist",
-      "b": "Distinct purpose · precise description with when-to-use · strict input schema · concise token-efficient output · safe failure messages"
+      "b": "Distinct purpose · precise description with when-to-use · strict input schema · concise token-efficient output · safe failure messages",
+      "id": "ccafc-7b02962d"
     },
     {
       "f": "Approval gates",
-      "b": "Human confirmation required before irreversible/high-impact actions (deletes, sends, payments, prod changes)."
+      "b": "Human confirmation required before irreversible/high-impact actions (deletes, sends, payments, prod changes).",
+      "id": "ccafc-cb3d32b0"
     },
     {
       "f": "Models orchestrate, code computes",
-      "b": "Deterministic logic (math, validation, exact lookups) belongs in tools/code; the model decides and interprets."
+      "b": "Deterministic logic (math, validation, exact lookups) belongs in tools/code; the model decides and interprets.",
+      "id": "ccafc-2b8061c4"
     }
   ],
   "lessons": [

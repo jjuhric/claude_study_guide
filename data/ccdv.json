@@ -18,7 +18,8 @@
         "Correct. 'max_tokens' means the output hit your own cap and was truncated.",
         "Rate limiting surfaces as HTTP 429, not a stop reason.",
         "A rejected prompt returns an error rather than a truncated message."
-      ]
+      ],
+      "id": "ccdvq-b8eb6b17"
     },
     {
       "d": 0,
@@ -36,7 +37,8 @@
         "Correct. model, max_tokens, and messages are the required fields.",
         "Tools are only needed when you want tool use.",
         "Sampling parameters are optional, and are rejected on current models."
-      ]
+      ],
+      "id": "ccdvq-174e0fc2"
     },
     {
       "d": 0,
@@ -54,7 +56,8 @@
         "Correct. Streaming renders tokens as they are produced, cutting perceived latency.",
         "Batch processing is asynchronous and much slower to first response.",
         "Duplicate requests double cost and do nothing for latency."
-      ]
+      ],
+      "id": "ccdvq-b417b9e8"
     },
     {
       "d": 0,
@@ -72,7 +75,8 @@
         "Correct. Exponential backoff that respects the rate-limit headers is the robust pattern.",
         "Key rotation to evade limits is a terms problem, not an engineering fix.",
         "Fanning out under rate limiting amplifies the pressure."
-      ]
+      ],
+      "id": "ccdvq-9c999ce4"
     },
     {
       "d": 0,
@@ -90,7 +94,8 @@
         "Correct. Resend the full history each call; the API keeps no state for you.",
         "There is no such mode to enable.",
         "The key authenticates you; it stores nothing about the conversation."
-      ]
+      ],
+      "id": "ccdvq-51b62f11"
     },
     {
       "d": 1,
@@ -108,7 +113,8 @@
         "Correct. Run the tool and return a tool_result to continue the loop.",
         "Ignoring it strands the model waiting for information it requested.",
         "Raw tool calls are an implementation detail, not user-facing output."
-      ]
+      ],
+      "id": "ccdvq-c465de53"
     },
     {
       "d": 1,
@@ -126,7 +132,8 @@
         "Correct. Descriptions and schemas are what drive correct selection and arguments.",
         "Terse names strip out the information needed to choose.",
         "Sampling parameters are rejected on current models and never governed tool accuracy."
-      ]
+      ],
+      "id": "ccdvq-3ae76b37"
     },
     {
       "d": 1,
@@ -144,7 +151,8 @@
         "Correct. A schema-constrained response conforms by construction.",
         "Regex repair is the fragility structured outputs exist to remove.",
         "A high output cap does nothing for structural validity."
-      ]
+      ],
+      "id": "ccdvq-510d877b"
     },
     {
       "d": 1,
@@ -162,7 +170,8 @@
         "Crashing the loop discards all progress over a transient blip.",
         "Silently returning nothing produces confidently wrong output.",
         "Unbounded retries amplify an outage and can exhaust budget."
-      ]
+      ],
+      "id": "ccdvq-684f0fa3"
     },
     {
       "d": 2,
@@ -180,7 +189,8 @@
         "Correct. The defining feature is the loop: choose, act, observe, iterate.",
         "Agents still rely on prompts.",
         "Agents are usually slower than a single call, not faster."
-      ]
+      ],
+      "id": "ccdvq-1c992455"
     },
     {
       "d": 2,
@@ -198,7 +208,8 @@
         "Correct. It provides the agent harness — loop, tool execution, context, and permissions.",
         "It is not a credit programme.",
         "It does not perform fine-tuning."
-      ]
+      ],
+      "id": "ccdvq-301e5572"
     },
     {
       "d": 2,
@@ -216,7 +227,8 @@
         "Correct. Predictable, well-defined tasks are cheaper and more reliable as fixed steps.",
         "Creative tasks can still be a single well-specified call.",
         "Tool count alone does not require an autonomous loop."
-      ]
+      ],
+      "id": "ccdvq-7c093e81"
     },
     {
       "d": 2,
@@ -234,7 +246,8 @@
         "Correct. It supplies persistent, project-specific instructions and context each session.",
         "It is not a conversation log.",
         "It has nothing to do with billing."
-      ]
+      ],
+      "id": "ccdvq-f1d132d6"
     },
     {
       "d": 3,
@@ -252,7 +265,8 @@
         "Correct. Small model plus caching plus batch processing is the canonical cost stack.",
         "Streaming helps interactive latency, not batch cost.",
         "Extra reasoning on a simple task multiplies cost for no gain."
-      ]
+      ],
+      "id": "ccdvq-ec90682b"
     },
     {
       "d": 3,
@@ -270,7 +284,8 @@
         "Correct. A repeated prefix is billed at a fraction of normal input cost on cache hits.",
         "It caches prompt prefixes, not finished responses keyed by query.",
         "Caching applies to input, not output length."
-      ]
+      ],
+      "id": "ccdvq-e6c8ae38"
     },
     {
       "d": 3,
@@ -288,7 +303,8 @@
         "Correct. Reserve it for genuinely hard multi-step reasoning where accuracy matters.",
         "Simple classification gains nothing from deeper reasoning.",
         "Formatting is not a reasoning problem."
-      ]
+      ],
+      "id": "ccdvq-40b6e514"
     },
     {
       "d": 4,
@@ -306,7 +322,8 @@
         "Resending everything every call is expensive and dilutes attention.",
         "Telling users to read the manual abandons the use case.",
         "Fine-tuning is a heavier, slower answer to what is a retrieval problem."
-      ]
+      ],
+      "id": "ccdvq-7426d846"
     },
     {
       "d": 4,
@@ -324,7 +341,8 @@
         "Correct. Placing the task after the material anchors attention on what to do with it.",
         "There is no positional loading difference.",
         "Ordering does not change the token count."
-      ]
+      ],
+      "id": "ccdvq-9d69c722"
     },
     {
       "d": 4,
@@ -342,7 +360,8 @@
         "Correct. Explicit delimiters separate content types unambiguously.",
         "Tags add tokens rather than saving them.",
         "Streaming is unrelated to prompt structure."
-      ]
+      ],
+      "id": "ccdvq-bc2e8c78"
     },
     {
       "d": 5,
@@ -360,7 +379,8 @@
         "Correct. Keep the key server-side and expose only your own authorized endpoints.",
         "A committed secret persists in history even after deletion.",
         "URLs are logged and cached in many places along the path."
-      ]
+      ],
+      "id": "ccdvq-94c6f769"
     },
     {
       "d": 5,
@@ -378,7 +398,8 @@
         "Correct. Fetched content is untrusted data and must never be treated as instructions.",
         "It is an attack, not a request for functionality.",
         "Without safeguards, models can and do follow injected instructions."
-      ]
+      ],
+      "id": "ccdvq-0a99a757"
     },
     {
       "d": 5,
@@ -396,7 +417,8 @@
         "Correct. Least privilege, with approval gates before destructive actions.",
         "Default production write access is the widest possible blast radius.",
         "A shared admin credential destroys attribution and least privilege at once."
-      ]
+      ],
+      "id": "ccdvq-0f640dcd"
     },
     {
       "d": 6,
@@ -414,7 +436,8 @@
         "Correct. An open standard connecting applications to tools and data through servers.",
         "It is unrelated to billing.",
         "It is a protocol between systems, not an internal memory format."
-      ]
+      ],
+      "id": "ccdvq-d9055ea6"
     },
     {
       "d": 6,
@@ -432,7 +455,8 @@
         "Correct. Expose safe, scoped query tools through an MCP server.",
         "Credentials must never appear in a prompt.",
         "Stale weekly exports defeat the purpose of querying live data."
-      ]
+      ],
+      "id": "ccdvq-af8859b3"
     },
     {
       "d": 6,
@@ -450,7 +474,8 @@
         "Correct. Tools, resources, and prompts are the three primitives.",
         "Filesystem concepts may be exposed as resources but are not primitives.",
         "Identity concepts are not MCP primitives."
-      ]
+      ],
+      "id": "ccdvq-bcc18ba9"
     },
     {
       "d": 0,
@@ -468,7 +493,8 @@
         "Correct. Check stop_reason before consuming content, and handle refusal explicitly.",
         "Consuming content without checking stop_reason is how truncated or refused output reaches users.",
         "max_tokens is unrelated to a safety refusal."
-      ]
+      ],
+      "id": "ccdvq-e2963133"
     },
     {
       "d": 0,
@@ -486,7 +512,8 @@
         "Correct. end_turn is the natural finish; max_tokens means truncation.",
         "Whitespace in the stream carries no completion semantics.",
         "A timeout indicates your client gave up, not that the model finished."
-      ]
+      ],
+      "id": "ccdvq-dc0f1f3d"
     },
     {
       "d": 0,
@@ -504,7 +531,8 @@
         "Correct. Sampling parameters are rejected — steer with prompting and schemas.",
         "Latency is unrelated to this parameter.",
         "Pricing is per token and unaffected by sampling settings."
-      ]
+      ],
+      "id": "ccdvq-f76b735f"
     },
     {
       "d": 0,
@@ -522,7 +550,8 @@
         "Correct. You own the history and resend it, which is also why caching matters.",
         "There is no conversation ID that substitutes for sending history.",
         "The system prompt alone carries none of the dialogue."
-      ]
+      ],
+      "id": "ccdvq-b0245cc3"
     },
     {
       "d": 0,
@@ -540,7 +569,8 @@
         "Network failures usually surface as transport errors, not clean truncated messages.",
         "A refusal reports stop_reason 'refusal', not a mid-sentence cut.",
         "Lowering the cap makes truncation more likely, not less."
-      ]
+      ],
+      "id": "ccdvq-90cfb38b"
     },
     {
       "d": 1,
@@ -558,7 +588,8 @@
         "Correct. output_config.format guarantees schema conformance.",
         "Prompt-and-repair is the failure-prone pattern structured outputs replaced.",
         "Stop sequences terminate generation; they do not enforce a shape."
-      ]
+      ],
+      "id": "ccdvq-7bdab442"
     },
     {
       "d": 1,
@@ -576,7 +607,8 @@
         "Correct. Describe when to use each tool, and constrain arguments in the schema.",
         "Terse names remove the information needed to choose correctly.",
         "Forcing an order defeats the point of letting the model select."
-      ]
+      ],
+      "id": "ccdvq-2f6b0256"
     },
     {
       "d": 1,
@@ -594,7 +626,8 @@
         "Correct. Strict mode constrains generated arguments to the schema.",
         "Retry behavior is something your application implements.",
         "Schema conformance is not the same as business-rule validity — keep validating."
-      ]
+      ],
+      "id": "ccdvq-bd341913"
     },
     {
       "d": 1,
@@ -612,7 +645,8 @@
         "Correct. Return a tool_result in the same conversation to continue the loop.",
         "Skipping the result leaves the model waiting on information it asked for.",
         "System prompts are not the channel for tool results."
-      ]
+      ],
+      "id": "ccdvq-ca9f02d2"
     },
     {
       "d": 1,
@@ -630,7 +664,8 @@
         "Correct. Validate semantics and return an error the model can read and retry against.",
         "Removing capability to avoid an edge case is disproportionate.",
         "Loosening the schema increases the range of bad inputs."
-      ]
+      ],
+      "id": "ccdvq-859b8550"
     },
     {
       "d": 1,
@@ -648,7 +683,8 @@
         "Correct. A guaranteed shape eliminates parse failures by construction.",
         "Other error classes remain and still need handling.",
         "Tools are one integration path among several."
-      ]
+      ],
+      "id": "ccdvq-075368a3"
     },
     {
       "d": 2,
@@ -666,7 +702,8 @@
         "Correct. Unknown step count and order is the defining case for an agent loop.",
         "Structured output is achievable in a single call.",
         "Audience size does not change the control flow required."
-      ]
+      ],
+      "id": "ccdvq-ee8bd157"
     },
     {
       "d": 2,
@@ -684,7 +721,8 @@
         "Correct. Caps, budgets, and escalation are the guardrails that bound a loop.",
         "More tools widen the search space and can worsen looping.",
         "Instructions alone do not enforce termination."
-      ]
+      ],
+      "id": "ccdvq-14333d4d"
     },
     {
       "d": 2,
@@ -702,7 +740,8 @@
         "Correct. Checkpointing converts an all-or-nothing failure into recoverable progress.",
         "Storage does not change inference speed.",
         "Retries are still needed; checkpoints make them cheaper."
-      ]
+      ],
+      "id": "ccdvq-4b877c43"
     },
     {
       "d": 2,
@@ -720,7 +759,8 @@
         "Correct. Isolation preserves focus and unlocks parallel execution.",
         "Parallel subagents typically increase total token use.",
         "No architecture guarantees correct results."
-      ]
+      ],
+      "id": "ccdvq-2942dc87"
     },
     {
       "d": 2,
@@ -738,7 +778,8 @@
         "Correct. Escalate complexity only when the simpler pattern demonstrably fails.",
         "Vendor guidance in fact points toward the simplest workable pattern.",
         "Affordability does not make added complexity beneficial."
-      ]
+      ],
+      "id": "ccdvq-878a9db6"
     },
     {
       "d": 2,
@@ -756,7 +797,8 @@
         "Correct. Bounded backoff, then surface a actionable error.",
         "Unbounded immediate retries amplify the outage.",
         "Silently swallowing failures produces confidently wrong results."
-      ]
+      ],
+      "id": "ccdvq-2e8d5ada"
     },
     {
       "d": 3,
@@ -774,7 +816,8 @@
         "Correct. Batch processing trades latency for a significant discount.",
         "A higher output cap tends to increase cost.",
         "Tools add capability and cost, not savings."
-      ]
+      ],
+      "id": "ccdvq-725123b9"
     },
     {
       "d": 3,
@@ -792,7 +835,8 @@
         "Correct. Cache the stable prefix; cache reads cost a fraction of normal input.",
         "Output caps barely affect a cost profile dominated by repeated input.",
         "Parallelism changes throughput, not cost per call."
-      ]
+      ],
+      "id": "ccdvq-802e2c5a"
     },
     {
       "d": 3,
@@ -810,7 +854,8 @@
         "Correct. A large, identical, leading block is the ideal case.",
         "Caching applies to input, not output length.",
         "Caches are per model; spreading across models fragments them."
-      ]
+      ],
+      "id": "ccdvq-2227b5d2"
     },
     {
       "d": 3,
@@ -828,7 +873,8 @@
         "Correct. Effort is the supported control for how much the model reasons.",
         "Sampling parameters are rejected on current models and never controlled reasoning depth.",
         "Duplicate requests double cost without improving reasoning."
-      ]
+      ],
+      "id": "ccdvq-a81c7010"
     },
     {
       "d": 3,
@@ -846,7 +892,8 @@
         "Correct. Match model tier to each step's actual difficulty.",
         "Uniformly downgrading degrades the steps that need reasoning.",
         "Ordering does not change per-step difficulty."
-      ]
+      ],
+      "id": "ccdvq-ec180399"
     },
     {
       "d": 3,
@@ -864,7 +911,8 @@
         "Correct. Measure on representative cases before switching.",
         "Public benchmarks rarely reflect your specific task distribution.",
         "One example cannot characterize a distribution."
-      ]
+      ],
+      "id": "ccdvq-c37231c3"
     },
     {
       "d": 3,
@@ -882,7 +930,8 @@
         "Correct. Per-call token growth is the usual cause of drift at flat volume.",
         "Typing speed has no bearing on token usage.",
         "Billing errors are possible but far less likely than context growth."
-      ]
+      ],
+      "id": "ccdvq-e32b6ddf"
     },
     {
       "d": 4,
@@ -900,7 +949,8 @@
         "Correct. Summarize state into a durable note and re-inject it.",
         "max_tokens governs output length, not input retention.",
         "A smaller model typically has less room, not more."
-      ]
+      ],
+      "id": "ccdvq-93a241d9"
     },
     {
       "d": 4,
@@ -918,7 +968,8 @@
         "Correct. Compact proactively with headroom reserved.",
         "Context management is the application's responsibility.",
         "Compacting constantly destroys useful recent detail and burns tokens."
-      ]
+      ],
+      "id": "ccdvq-a21ceec9"
     },
     {
       "d": 4,
@@ -936,7 +987,8 @@
         "Correct. Stable content first maximizes what can be cached.",
         "Prompt ordering does not control output length.",
         "There is no ordering requirement in the API itself."
-      ]
+      ],
+      "id": "ccdvq-47ee75d3"
     },
     {
       "d": 4,
@@ -954,7 +1006,8 @@
         "Correct. Show the hard case and state the rule for it.",
         "Provider choice does not address an under-specified prompt.",
         "Removing content is unlikely to add the missing guidance."
-      ]
+      ],
+      "id": "ccdvq-ca44d118"
     },
     {
       "d": 4,
@@ -972,7 +1025,8 @@
         "Correct. Fixed cases scored before and after is the only trustworthy signal.",
         "Length is not correlated with quality.",
         "Readability to humans is not the same as task performance."
-      ]
+      ],
+      "id": "ccdvq-07dbef8a"
     },
     {
       "d": 4,
@@ -990,7 +1044,8 @@
         "Correct. Supplying only relevant passages improves focus and reduces spend.",
         "Grounding reduces error but guarantees nothing.",
         "Large inputs are supported; the issue is that they are wasteful and diluting."
-      ]
+      ],
+      "id": "ccdvq-e3a7862c"
     },
     {
       "d": 4,
@@ -1008,7 +1063,8 @@
         "Correct. Version, review, gate on evals, and roll out deliberately.",
         "Prompts are executable configuration, not commentary.",
         "The team needs to read and review them; they are not secrets."
-      ]
+      ],
+      "id": "ccdvq-a3f23ffa"
     },
     {
       "d": 5,
@@ -1026,7 +1082,8 @@
         "Correct. Observed content is data; only the user issues instructions.",
         "Opening a page does not authorize what the page's text demands.",
         "Models can and do follow injected instructions without safeguards."
-      ]
+      ],
+      "id": "ccdvq-3da5959f"
     },
     {
       "d": 5,
@@ -1044,7 +1101,8 @@
         "Correct. Constrain what the tool can do and gate irreversible actions.",
         "Obscurity is not a control.",
         "Relying on judgment alone leaves no defense when judgment is manipulated."
-      ]
+      ],
+      "id": "ccdvq-f76f6b27"
     },
     {
       "d": 5,
@@ -1062,7 +1120,8 @@
         "Correct. Keep credentials server-side behind your own authorization.",
         "Chat history is neither access-controlled nor rotatable.",
         "Committed secrets persist in history even after removal."
-      ]
+      ],
+      "id": "ccdvq-ef875acc"
     },
     {
       "d": 5,
@@ -1080,7 +1139,8 @@
         "Correct. Permitted-use and data classification come first.",
         "Length is an engineering concern, not a governance one.",
         "Payment status does not determine data-handling permissions."
-      ]
+      ],
+      "id": "ccdvq-317637fe"
     },
     {
       "d": 5,
@@ -1098,7 +1158,8 @@
         "Correct. Confirm before irreversible actions, and minimize permissions.",
         "Monthly review detects damage long after it is done.",
         "Naming is not an access control."
-      ]
+      ],
+      "id": "ccdvq-061b61a6"
     },
     {
       "d": 5,
@@ -1116,7 +1177,8 @@
         "Correct. Untrusted content must not steer where data goes.",
         "Transport encryption says nothing about the destination's trustworthiness.",
         "Lookalike domains are a standard attack technique."
-      ]
+      ],
+      "id": "ccdvq-d092ce82"
     },
     {
       "d": 5,
@@ -1134,7 +1196,8 @@
         "Correct. Treat generated values as untrusted at every boundary they cross.",
         "Validation has no bearing on token cost.",
         "Schema conformance is not the same as being safe to execute."
-      ]
+      ],
+      "id": "ccdvq-58102ef9"
     },
     {
       "d": 6,
@@ -1152,7 +1215,8 @@
         "Correct. Pin the version and upgrade deliberately, as with any dependency.",
         "Guessing an interface is not a recovery strategy.",
         "Retrying a call to a tool that no longer exists cannot succeed."
-      ]
+      ],
+      "id": "ccdvq-2256a72f"
     },
     {
       "d": 6,
@@ -1170,7 +1234,8 @@
         "Correct. One standard interface replaces bespoke pairwise connectors.",
         "Integration standardization is not primarily a cost mechanism.",
         "MCP is a protocol layered over existing transports, not a replacement for them."
-      ]
+      ],
+      "id": "ccdvq-e0364a06"
     },
     {
       "d": 6,
@@ -1188,7 +1253,8 @@
         "Correct. Resources supply data; tools perform actions.",
         "Performance is an implementation property, not a distinction of kind.",
         "Both are described so the client knows how to use them."
-      ]
+      ],
+      "id": "ccdvq-f07e8567"
     },
     {
       "d": 6,
@@ -1206,7 +1272,8 @@
         "Correct. Audit exposed capability and grant the minimum required.",
         "Source availability helps review but is not itself an assessment.",
         "Latency is unrelated to safety."
-      ]
+      ],
+      "id": "ccdvq-66ac9a06"
     },
     {
       "d": 6,
@@ -1224,7 +1291,8 @@
         "Correct. A reusable parameterized template exposed by the server.",
         "User input is not a protocol primitive.",
         "Caching is unrelated to the prompt primitive."
-      ]
+      ],
+      "id": "ccdvq-72192c6b"
     },
     {
       "d": 6,
@@ -1242,7 +1310,8 @@
         "Correct. Servers become independently developed, reusable components.",
         "Descriptions still drive correct tool selection.",
         "Authentication remains essential and is part of a careful deployment."
-      ]
+      ],
+      "id": "ccdvq-aed75766"
     },
     {
       "d": 6,
@@ -1260,61 +1329,75 @@
         "Correct. Enforce permissions in your application; never let described intent grant capability.",
         "Models can be steered by injected instructions; detection is not a control.",
         "A compromised or malicious server is a realistic threat over any integration protocol."
-      ]
+      ],
+      "id": "ccdvq-f7d81deb"
     }
   ],
   "cards": [
     {
       "f": "Required Messages API fields",
-      "b": "model, max_tokens, and messages are required; system and tools are optional. Sampling parameters (temperature, top_p, top_k) are rejected on current Claude models — steer with prompting."
+      "b": "model, max_tokens, and messages are required; system and tools are optional. Sampling parameters (temperature, top_p, top_k) are rejected on current Claude models — steer with prompting.",
+      "id": "ccdvc-94b77d90"
     },
     {
       "f": "stop_reason values to know",
-      "b": "end_turn (natural finish) · max_tokens (truncated) · tool_use (Claude wants a tool run) · stop_sequence (hit your custom stop string) · refusal (declined on safety grounds — check stop_reason before reading content) · pause_turn (server-side tool loop paused; re-send to resume)"
+      "b": "end_turn (natural finish) · max_tokens (truncated) · tool_use (Claude wants a tool run) · stop_sequence (hit your custom stop string) · refusal (declined on safety grounds — check stop_reason before reading content) · pause_turn (server-side tool loop paused; re-send to resume)",
+      "id": "ccdvc-9210b11f"
     },
     {
       "f": "Tool-use loop",
-      "b": "1) Claude returns tool_use block → 2) your code executes the tool → 3) send tool_result back → 4) Claude continues. Repeat until end_turn."
+      "b": "1) Claude returns tool_use block → 2) your code executes the tool → 3) send tool_result back → 4) Claude continues. Repeat until end_turn.",
+      "id": "ccdvc-7436d53a"
     },
     {
       "f": "Prompt caching",
-      "b": "Reuses a cached prompt prefix (system prompt, docs, tool defs) across calls at heavily discounted input cost. Order stable content first."
+      "b": "Reuses a cached prompt prefix (system prompt, docs, tool defs) across calls at heavily discounted input cost. Order stable content first.",
+      "id": "ccdvc-c077fe03"
     },
     {
       "f": "Batches API",
-      "b": "Asynchronous bulk processing at a 50% discount — ideal for non-urgent, high-volume workloads."
+      "b": "Asynchronous bulk processing at a 50% discount — ideal for non-urgent, high-volume workloads.",
+      "id": "ccdvc-6ccc08c8"
     },
     {
       "f": "Streaming",
-      "b": "Server-sent events delivering tokens as generated — the fix for perceived latency in chat UIs."
+      "b": "Server-sent events delivering tokens as generated — the fix for perceived latency in chat UIs.",
+      "id": "ccdvc-9bad9f6f"
     },
     {
       "f": "Prompt injection",
-      "b": "Untrusted content (web pages, emails, docs) containing instructions that try to hijack the model. Treat fetched content as data; least-privilege tools; approval gates."
+      "b": "Untrusted content (web pages, emails, docs) containing instructions that try to hijack the model. Treat fetched content as data; least-privilege tools; approval gates.",
+      "id": "ccdvc-1563ea76"
     },
     {
       "f": "MCP in one line",
-      "b": "Open standard ('USB-C for AI') letting clients discover and call tools/resources/prompts exposed by MCP servers."
+      "b": "Open standard ('USB-C for AI') letting clients discover and call tools/resources/prompts exposed by MCP servers.",
+      "id": "ccdvc-88842ffb"
     },
     {
       "f": "MCP server primitives",
-      "b": "Tools (model-invoked actions) · Resources (data/context) · Prompts (reusable templates)"
+      "b": "Tools (model-invoked actions) · Resources (data/context) · Prompts (reusable templates)",
+      "id": "ccdvc-cc59e5ca"
     },
     {
       "f": "Agent vs workflow",
-      "b": "Workflow = fixed predefined steps (predictable, cheap). Agent = model-directed loop with tools (open-ended tasks). Use the simplest that works."
+      "b": "Workflow = fixed predefined steps (predictable, cheap). Agent = model-directed loop with tools (open-ended tasks). Use the simplest that works.",
+      "id": "ccdvc-c5a576e3"
     },
     {
       "f": "CLAUDE.md",
-      "b": "Project instruction file Claude Code loads automatically — conventions, build commands, architecture notes."
+      "b": "Project instruction file Claude Code loads automatically — conventions, build commands, architecture notes.",
+      "id": "ccdvc-17aea2e8"
     },
     {
       "f": "API key hygiene",
-      "b": "Server-side only, environment variables/secret manager, never in client code or repos, rotate on exposure."
+      "b": "Server-side only, environment variables/secret manager, never in client code or repos, rotate on exposure.",
+      "id": "ccdvc-af06cb9c"
     },
     {
       "f": "Long-context prompt order",
-      "b": "Long documents first, instructions/question at the end — improves accuracy on big contexts."
+      "b": "Long documents first, instructions/question at the end — improves accuracy on big contexts.",
+      "id": "ccdvc-756ca249"
     }
   ],
   "lessons": [

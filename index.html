@@ -395,7 +395,7 @@ const dayKey=d=>d.toISOString().slice(0,10);
 const today=()=>dayKey(new Date());
 function inDays(n){ const d=new Date(); d.setDate(d.getDate()+n); return dayKey(d); }
 function shuffleArr(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
-function cardBox(c,i){ const b=(S.cardBox[c.id]||{})[i]; return (b&&typeof b.b==="number")?b:{b:0,d:""}; }
+function cardBox(c,i){ const b=(S.cardBox[c.id]||{})[cardKey(c,i)]; return (b&&typeof b.b==="number")?b:{b:0,d:""}; }
 function dueCards(c){ const t=today(); return c.cards.map((_,i)=>i).filter(i=>{ const s=cardBox(c,i); return !s.d||s.d<=t; }); }
 function nextDueDate(c){
   const ds=c.cards.map((_,i)=>cardBox(c,i).d).filter(Boolean).sort();
@@ -406,7 +406,7 @@ function scheduleCard(c,i,knew){
   const s=cardBox(c,i);
   s.b = knew ? Math.min(5, s.b+1) : 1;
   s.d = knew ? inDays(BOX_DAYS[s.b]) : today();   // missed cards stay due
-  S.cardBox[c.id][i]=s;
+  S.cardBox[c.id][cardKey(c,i)]=s;
 }
 /* Fraction of a deck that has reached a durable box (3+ correct recalls). */
 function cardRetention(c){
@@ -503,8 +503,12 @@ function renderHeader(){
 function totalQs(c){ return c._loaded ? c.questions.length : ((c.counts&&c.counts.questions)||0); }
 function totalLessons(c){ return c._loaded ? c.lessons.length : ((c.counts&&c.counts.lessons)||0); }
 function certProgress(c){
-  const ans=S.answered[c.id]||{}; const seen=Object.keys(ans).length;
-  const correct=Object.values(ans).filter(v=>v).length;
+  const ans=S.answered[c.id]||{};
+  /* Once loaded, count only ids still present, so retired questions cannot
+     push "seen" past the size of the bank. */
+  const keys=c._loaded ? c.questions.map((q,i)=>qKey(c,i)).filter(k=>k in ans) : Object.keys(ans);
+  const seen=keys.length;
+  const correct=keys.filter(k=>ans[k]).length;
   const total=totalQs(c);
   return {seen, correct, total, pct: total?Math.round(seen/total*100):0,
           acc: seen?Math.round(correct/seen*100):0};
@@ -596,7 +600,7 @@ function certViewRender(c){
   const rp=prepProgress(c);
   const due=dueCards(c).length, nd=nextDueDate(c);
   const ans=S.answered[c.id]||{};
-  const misses=Object.keys(ans).filter(k=>ans[k]===false&&k<c.questions.length).length;
+  const misses=c.questions.filter((q,i)=>ans[qKey(c,i)]===false).length;
   let doms='';
   c.domains.forEach((d,i)=>{
     const st=(S.domStats[c.id]||{})[i]||{s:0,c:0};
@@ -709,9 +713,9 @@ function noContent(c,kind){
 }
 function pickQuestions(c,n){
   const ans=S.answered[c.id]||{};
-  const unseen=c.questions.map((q,i)=>i).filter(i=>!(i in ans));
-  const wrong=c.questions.map((q,i)=>i).filter(i=>ans[i]===false);
-  const rest=c.questions.map((q,i)=>i).filter(i=>ans[i]===true);
+  const unseen=c.questions.map((q,i)=>i).filter(i=>!(qKey(c,i) in ans));
+  const wrong=c.questions.map((q,i)=>i).filter(i=>ans[qKey(c,i)]===false);
+  const rest=c.questions.map((q,i)=>i).filter(i=>ans[qKey(c,i)]===true);
   const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
   const pool=[...shuffle(unseen),...shuffle(wrong),...shuffle(rest)];
   return pool.slice(0,n);
@@ -739,9 +743,9 @@ function quizQ(){
    +'</div>';
 }
 function recordAnswer(c,qi,ok){
-  S.answered[c.id]=S.answered[c.id]||{};
-  S.answered[c.id][qi]=ok;
   const q=c.questions[qi];
+  S.answered[c.id]=S.answered[c.id]||{};
+  S.answered[c.id][qKey(c,qi)]=ok;
   S.domStats[c.id]=S.domStats[c.id]||{};
   const st=S.domStats[c.id][q.d]=S.domStats[c.id][q.d]||{s:0,c:0};
   st.s++; if(ok)st.c++;
@@ -892,7 +896,7 @@ function startWeakest(id){
 function startReview(id){
   const c=CERTS.find(x=>x.id===id);
   const ans=S.answered[c.id]||{};
-  const pool=Object.keys(ans).filter(k=>ans[k]===false).map(Number).filter(i=>i<c.questions.length);
+  const pool=c.questions.map((q,i)=>i).filter(i=>ans[qKey(c,i)]===false);
   if(!pool.length){
     renderHeader();
     $("app").innerHTML='<button class="back" onclick="certView(\''+c.id+'\')">← Back to '+esc(c.code)+'</button>'
@@ -1105,6 +1109,37 @@ function shuffleOptions(c){
 /* Content for one certification, fetched the first time it is opened. The
    home screen runs off the manifest counts, so a first visit downloads a few
    hundred bytes instead of every certification's question bank. */
+/* Progress is keyed by a question's stable id, not its position, so editing or
+   reordering the bank cannot reattach a learner's history to a different
+   question. Falls back to the index only for content without an id. */
+function qKey(c,qi){ const q=c.questions[qi]; return (q&&q.id)||String(qi); }
+function cardKey(c,ci){ const x=c.cards[ci]; return (x&&x.id)||String(ci); }
+/* Saves written before ids existed keyed everything by position. Remap them
+   once, when the bank is available, using the order as it stands now. */
+function migrateCertKeys(c){
+  const ans=S.answered[c.id];
+  if(ans){
+    let changed=false;
+    for(const k of Object.keys(ans)){
+      if(!/^\d+$/.test(k)) continue;
+      const q=c.questions[+k];
+      if(q&&q.id&&!(q.id in ans)) ans[q.id]=ans[k];
+      delete ans[k]; changed=true;
+    }
+    if(changed) save();
+  }
+  const box=S.cardBox[c.id];
+  if(box){
+    let changed=false;
+    for(const k of Object.keys(box)){
+      if(!/^\d+$/.test(k)) continue;
+      const x=c.cards[+k];
+      if(x&&x.id&&!(x.id in box)) box[x.id]=box[k];
+      delete box[k]; changed=true;
+    }
+    if(changed) save();
+  }
+}
 function loadCert(c){
   if(c._loaded) return Promise.resolve(c);
   if(c._loading) return c._loading;
@@ -1113,6 +1148,7 @@ function loadCert(c){
     return r.json();
   }).then(d=>{
     c.questions=d.questions||[]; c.cards=d.cards||[]; c.lessons=d.lessons||[];
+    migrateCertKeys(c);
     shuffleOptions(c);
     c._loaded=true; c._loading=null;
     return c;

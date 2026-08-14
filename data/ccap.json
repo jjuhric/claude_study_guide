@@ -18,7 +18,8 @@
         "Correct. Disjoint subtask boundaries plus a shared ledger stop workers repeating each other.",
         "Free negotiation reintroduces the coordination overhead isolation avoids.",
         "Collapsing to one worker discards the parallelism entirely."
-      ]
+      ],
+      "id": "ccapq-3cfdf0d1"
     },
     {
       "d": 0,
@@ -36,7 +37,8 @@
         "Correct. Compact structured results against the assigned subtask contract.",
         "Withholding results until the end removes the orchestrator's ability to steer.",
         "Raw tool logs belong with the worker that produced them."
-      ]
+      ],
+      "id": "ccapq-5a050b57"
     },
     {
       "d": 0,
@@ -54,7 +56,8 @@
         "Correct. Smaller focused tool sets reduce selection errors and context bloat.",
         "Diagram aesthetics are not an engineering argument.",
         "Routing costs a classification call; it is not free."
-      ]
+      ],
+      "id": "ccapq-344753aa"
     },
     {
       "d": 0,
@@ -72,7 +75,8 @@
         "Correct. Externalize state so a run can resume from the last known-good step.",
         "Restarts cannot be prevented, only survived.",
         "Rerunning from scratch wastes all completed work."
-      ]
+      ],
+      "id": "ccapq-442aa11c"
     },
     {
       "d": 0,
@@ -90,7 +94,8 @@
         "Correct. Independent subtopics explored in parallel and then synthesized.",
         "Formatting is trivially sequential.",
         "One lookup needs no parallel decomposition."
-      ]
+      ],
+      "id": "ccapq-f485b73a"
     },
     {
       "d": 1,
@@ -108,7 +113,8 @@
         "Correct. Validate invariants on tool output in code and surface or halt on anomalies.",
         "Prompt length cannot detect wrong data.",
         "Retrying returns the same wrong data."
-      ]
+      ],
+      "id": "ccapq-92368569"
     },
     {
       "d": 1,
@@ -126,7 +132,8 @@
         "Correct. Backoff, fallback tier, cached response, then human handoff, each logged.",
         "Infinite retries amplify the outage.",
         "Silent provider switching produces unpredictable behavior and unclear data handling."
-      ]
+      ],
+      "id": "ccapq-0753d6c4"
     },
     {
       "d": 1,
@@ -144,7 +151,8 @@
         "Correct. Idempotent steps with checkpoints let reruns resume at the failure point.",
         "Removing a step changes the result silently.",
         "Running less often does not make the failure cheaper."
-      ]
+      ],
+      "id": "ccapq-7af06afe"
     },
     {
       "d": 1,
@@ -162,7 +170,8 @@
         "Correct. Detect ambiguity and clarify or route to a human rather than assume.",
         "Cost is the wrong tiebreaker for a high-stakes ambiguity.",
         "Blanket refusal removes the capability rather than handling the edge case."
-      ]
+      ],
+      "id": "ccapq-27fda815"
     },
     {
       "d": 2,
@@ -180,7 +189,8 @@
         "Correct. Route each step to the cheapest model that meets its quality bar, verified by evals.",
         "Removing quality checks trades correctness for cost.",
         "Formatting steps are usually necessary; the tier is what is wrong."
-      ]
+      ],
+      "id": "ccapq-aefed9a1"
     },
     {
       "d": 2,
@@ -198,7 +208,8 @@
         "Correct. At that volume the repeated prefix dominates spend, so cache it.",
         "Parallelism changes throughput, not cost per call.",
         "A ten-token output reduction is irrelevant against a large repeated input."
-      ]
+      ],
+      "id": "ccapq-1b81ac8d"
     },
     {
       "d": 2,
@@ -216,7 +227,8 @@
         "Correct. Optimize each step for its own latency or quality constraint.",
         "Maximum capability everywhere wastes money on the latency-bound path.",
         "Maximum speed everywhere sacrifices the quality-critical step."
-      ]
+      ],
+      "id": "ccapq-38106206"
     },
     {
       "d": 2,
@@ -234,7 +246,8 @@
         "Correct. Set effort per task class from evals showing where reasoning changes outcomes.",
         "Never revisiting the setting guarantees it is wrong somewhere.",
         "Disabling reasoning entirely degrades the tasks that need it."
-      ]
+      ],
+      "id": "ccapq-94415d76"
     },
     {
       "d": 3,
@@ -252,7 +265,8 @@
         "Correct. Compare against the incumbent on a versioned eval suite before shipping.",
         "A single opinion is not a measurement.",
         "Production is where the cost of being wrong is highest."
-      ]
+      ],
+      "id": "ccapq-43077848"
     },
     {
       "d": 3,
@@ -270,7 +284,8 @@
         "Correct. Step traces, outcome metrics, and sampled human review together.",
         "Host metrics say nothing about agent behavior.",
         "Screenshots do not explain multi-step reasoning."
-      ]
+      ],
+      "id": "ccapq-d95801bd"
     },
     {
       "d": 3,
@@ -288,7 +303,8 @@
         "Correct. Calibrate the rubric against human labels, or keep humans for that axis.",
         "Deleting the eval leaves no signal at all.",
         "Averaging a calibrated and an uncalibrated source obscures both."
-      ]
+      ],
+      "id": "ccapq-bc564f06"
     },
     {
       "d": 3,
@@ -306,7 +322,8 @@
         "Correct. Rerun the evals, isolate failing segments, then patch or pin accordingly.",
         "Ignoring a known regression compounds the damage.",
         "Attribution is not remediation."
-      ]
+      ],
+      "id": "ccapq-d14e89dd"
     },
     {
       "d": 4,
@@ -324,7 +341,8 @@
         "Correct. Least privilege, approval gates for irreversible actions, immutable audit logs.",
         "Speed is irrelevant to governance.",
         "Removing logs destroys the audit trail that accountability depends on."
-      ]
+      ],
+      "id": "ccapq-eab170c9"
     },
     {
       "d": 4,
@@ -342,7 +360,8 @@
         "Correct. Injection from fetched content steering internal tools is the core threat.",
         "Media weight is a performance detail.",
         "Consent dialogs are a nuisance, not the risk to design against."
-      ]
+      ],
+      "id": "ccapq-ad675c2f"
     },
     {
       "d": 4,
@@ -360,7 +379,8 @@
         "Correct. Minimize, redact where feasible, set retention, and control access to traces.",
         "Emailing logs spreads personal data further with no controls.",
         "Avoiding documentation makes governance impossible."
-      ]
+      ],
+      "id": "ccapq-9d0780b8"
     },
     {
       "d": 4,
@@ -378,7 +398,8 @@
         "Correct. Authorized roles, review, eval gate, and versioned deploy.",
         "Self-modification removes human accountability.",
         "Freezing prompts prevents necessary fixes."
-      ]
+      ],
+      "id": "ccapq-777cef68"
     },
     {
       "d": 1,
@@ -396,7 +417,8 @@
         "Correct. Persist intermediate results so completed work survives a late failure.",
         "Hardware is not the constraint.",
         "Full retries discard the work already paid for."
-      ]
+      ],
+      "id": "ccapq-a074c728"
     },
     {
       "d": 0,
@@ -414,7 +436,8 @@
         "Correct. Queues, per-session budgets, and backpressure make degradation fair.",
         "More keys does not create fair scheduling and may breach terms.",
         "Prompt size is unrelated to shared-resource contention."
-      ]
+      ],
+      "id": "ccapq-ffc7f1a5"
     },
     {
       "d": 3,
@@ -432,7 +455,8 @@
         "Correct. Real representative cases plus curated hard ones and past failures, refreshed over time.",
         "One transcript cannot characterize a distribution.",
         "Marketing copy is not a workload."
-      ]
+      ],
+      "id": "ccapq-ad30b874"
     },
     {
       "d": 0,
@@ -450,7 +474,8 @@
         "Correct. Bound each worker's return and synthesize hierarchically.",
         "Cutting workers sacrifices coverage to work around a format problem.",
         "Discarding by arrival order loses information arbitrarily."
-      ]
+      ],
+      "id": "ccapq-f6079985"
     },
     {
       "d": 0,
@@ -468,7 +493,8 @@
         "Correct. Measured outcome gains must exceed the added spend.",
         "Marketing is not evidence for your workload.",
         "Duration alone does not imply parallel decomposition helps."
-      ]
+      ],
+      "id": "ccapq-e7379757"
     },
     {
       "d": 0,
@@ -486,7 +512,8 @@
         "Correct. Cross-talk reintroduces the coupling isolation was meant to remove.",
         "Latency is a secondary concern next to the architectural cost.",
         "Nothing forbids it; the argument is design, not permission."
-      ]
+      ],
+      "id": "ccapq-c2f73e7f"
     },
     {
       "d": 0,
@@ -504,7 +531,8 @@
         "Correct. Compact results plus decision state is what it actually needs.",
         "Dropping subagent results leaves nothing to synthesize.",
         "Raw tool payloads belong with the subagent that requested them."
-      ]
+      ],
+      "id": "ccapq-36cdb6fa"
     },
     {
       "d": 0,
@@ -522,7 +550,8 @@
         "Correct. Retries, loops, and redundant context are the usual causes.",
         "Model changes are deliberate and would be a known event.",
         "Application logging does not consume model tokens."
-      ]
+      ],
+      "id": "ccapq-34d2ef39"
     },
     {
       "d": 1,
@@ -540,7 +569,8 @@
         "Correct. Persist as you go so partial progress survives failure.",
         "Longer timeouts postpone rather than prevent total loss.",
         "Full retries discard the ninety percent already paid for."
-      ]
+      ],
+      "id": "ccapq-03cd4197"
     },
     {
       "d": 1,
@@ -558,7 +588,8 @@
         "Correct. Resume from the failure point using stored outputs.",
         "Skipping a step changes the result silently.",
         "Duplicate runs multiply cost without addressing the failure."
-      ]
+      ],
+      "id": "ccapq-dea95f96"
     },
     {
       "d": 1,
@@ -576,7 +607,8 @@
         "Correct. Bounded, jittered retries with a defined fallback.",
         "Failing immediately on a transient error is needlessly brittle.",
         "Ignoring errors yields confidently wrong output."
-      ]
+      ],
+      "id": "ccapq-6f60cf3d"
     },
     {
       "d": 1,
@@ -594,7 +626,8 @@
         "Correct. Class determines whether to retry or escalate.",
         "Log volume is incidental.",
         "This is application design, not an API requirement."
-      ]
+      ],
+      "id": "ccapq-d0e605f9"
     },
     {
       "d": 1,
@@ -612,7 +645,8 @@
         "Correct. Without outcome metrics, quality regressions are invisible.",
         "Prompt length is unrelated to detecting regressions.",
         "Relying on complaints means detecting damage after it lands."
-      ]
+      ],
+      "id": "ccapq-e3da06f5"
     },
     {
       "d": 2,
@@ -630,7 +664,8 @@
         "Correct. Optimize each step for its own constraint.",
         "Uniform maximum capability wastes money on the latency-bound step.",
         "Uniform speed sacrifices quality where quality is the requirement."
-      ]
+      ],
+      "id": "ccapq-8d2a2ddc"
     },
     {
       "d": 2,
@@ -648,7 +683,8 @@
         "Correct. Caching the stable prefix removes the repeated cost.",
         "Output caps do not address input processing.",
         "Concurrency raises throughput without reducing per-call latency."
-      ]
+      ],
+      "id": "ccapq-46d93d7c"
     },
     {
       "d": 2,
@@ -666,7 +702,8 @@
         "Correct. Validate on representative cases before switching.",
         "A different task is not evidence for yours.",
         "Recency is not a quality guarantee."
-      ]
+      ],
+      "id": "ccapq-0efaa22c"
     },
     {
       "d": 2,
@@ -684,7 +721,8 @@
         "Correct. Spend reasoning where it demonstrably improves outcomes.",
         "Global configuration is possible; it is just wasteful.",
         "Per-class tuning can raise cost where high effort is warranted."
-      ]
+      ],
+      "id": "ccapq-84d1599f"
     },
     {
       "d": 2,
@@ -702,7 +740,8 @@
         "Correct. Derive the cap from the real distribution, plus headroom.",
         "The minimum would terminate most legitimate runs.",
         "No cap means a loop can run until someone notices the bill."
-      ]
+      ],
+      "id": "ccapq-6903a914"
     },
     {
       "d": 3,
@@ -720,7 +759,8 @@
         "Correct. A stale eval set measures a distribution that no longer exists.",
         "Dismissing consistent user reports discards your best signal.",
         "Version changes are deliberate events, not silent ones."
-      ]
+      ],
+      "id": "ccapq-78221971"
     },
     {
       "d": 3,
@@ -738,7 +778,8 @@
         "Correct. Traces, outcome metrics, and sampled human review together.",
         "UI captures do not explain agent behavior.",
         "The final answer hides where a multi-step run went wrong."
-      ]
+      ],
+      "id": "ccapq-864c7a14"
     },
     {
       "d": 3,
@@ -756,7 +797,8 @@
         "Correct. Mirror production, and deliberately include known failures.",
         "A set you always pass cannot detect regressions.",
         "A constantly changing set makes results incomparable over time."
-      ]
+      ],
+      "id": "ccapq-ea426762"
     },
     {
       "d": 3,
@@ -774,7 +816,8 @@
         "Correct. Reading real transcripts reveals unmodeled failure modes.",
         "Human review is more expensive per item, not less.",
         "It complements automated evaluation rather than replacing it."
-      ]
+      ],
+      "id": "ccapq-2f014a29"
     },
     {
       "d": 3,
@@ -792,7 +835,8 @@
         "Correct. A baseline before rollout makes every later change measurable.",
         "Evaluation is core engineering, not discretionary.",
         "Prompts change constantly; that is precisely why evals are needed."
-      ]
+      ],
+      "id": "ccapq-3f40c29a"
     },
     {
       "d": 4,
@@ -810,7 +854,8 @@
         "Correct. Enforce tenancy at the data and tool layer, below the model.",
         "Context capacity has no bearing on isolation.",
         "Repeating the run does not create a boundary."
-      ]
+      ],
+      "id": "ccapq-c13846bb"
     },
     {
       "d": 4,
@@ -828,7 +873,8 @@
         "Correct. Unreviewed writes propagate to every consuming agent.",
         "Latency is an operational detail.",
         "Duplication is untidy but not a security risk."
-      ]
+      ],
+      "id": "ccapq-8b1e2d36"
     },
     {
       "d": 4,
@@ -846,7 +892,8 @@
         "Correct. Enforce the requesting user's permissions server-side.",
         "Prompt-level checks can be overridden by injected content.",
         "User-independent permissions ignore who is actually asking."
-      ]
+      ],
+      "id": "ccapq-76e98da1"
     },
     {
       "d": 4,
@@ -864,7 +911,8 @@
         "Correct. Requester, actions, tool inputs, and approvals together.",
         "Usage metrics are not an audit trail.",
         "Automation increases rather than removes the need for auditability."
-      ]
+      ],
+      "id": "ccapq-cd97990d"
     },
     {
       "d": 4,
@@ -882,7 +930,8 @@
         "Correct. Define limits and thresholds, and gate high-value or irreversible actions.",
         "Agents routinely take actions within appropriate controls.",
         "Capability does not determine what authority should be delegated."
-      ]
+      ],
+      "id": "ccapq-ecc8d1a9"
     },
     {
       "d": 2,
@@ -900,7 +949,8 @@
         "Correct. Faster tier plus streaming, then measure again before optimizing further.",
         "Retries add latency; they do not reduce it.",
         "More reasoning increases time to answer."
-      ]
+      ],
+      "id": "ccapq-b8d8eb14"
     },
     {
       "d": 4,
@@ -918,57 +968,70 @@
         "Correct. The tool holds the credential; the model only requests the action.",
         "A readable document spreads the secret further and is equally exposed.",
         "Tool descriptions are supplied to the model and are just as exposed."
-      ]
+      ],
+      "id": "ccapq-c62867af"
     }
   ],
   "cards": [
     {
       "f": "CCAR-P vs CCAR-F",
-      "b": "Professional assumes Foundations knowledge and tests production-scale judgment: fleets of agents, reliability engineering, cost strategy, evals, governance. $175."
+      "b": "Professional assumes Foundations knowledge and tests production-scale judgment: fleets of agents, reliability engineering, cost strategy, evals, governance. $175.",
+      "id": "ccapc-eb110cf2"
     },
     {
       "f": "Orchestrator-workers at scale",
-      "b": "Orchestrator owns decomposition into disjoint subtasks; workers return compact structured artifacts; shared ledger prevents duplication."
+      "b": "Orchestrator owns decomposition into disjoint subtasks; workers return compact structured artifacts; shared ledger prevents duplication.",
+      "id": "ccapc-376ebcc2"
     },
     {
       "f": "Resumability",
-      "b": "Externalized durable state + idempotent checkpointed steps → any crash resumes from last known-good point."
+      "b": "Externalized durable state + idempotent checkpointed steps → any crash resumes from last known-good point.",
+      "id": "ccapc-05efecd4"
     },
     {
       "f": "Graceful degradation chain",
-      "b": "Retry w/ backoff → fallback model tier → cached/template response → human handoff. Log every step."
+      "b": "Retry w/ backoff → fallback model tier → cached/template response → human handoff. Log every step.",
+      "id": "ccapc-7ca2a33d"
     },
     {
       "f": "Model tiering",
-      "b": "Route each pipeline step to the cheapest model meeting its eval-verified quality bar; reserve top tiers for hard steps."
+      "b": "Route each pipeline step to the cheapest model meeting its eval-verified quality bar; reserve top tiers for hard steps.",
+      "id": "ccapc-6d35ee8a"
     },
     {
       "f": "The 3 big cost levers",
-      "b": "Prompt caching (stable prefixes) · Batches API (50% off async) · right-sized models per step"
+      "b": "Prompt caching (stable prefixes) · Batches API (50% off async) · right-sized models per step",
+      "id": "ccapc-66759e4a"
     },
     {
       "f": "LLM-as-judge",
-      "b": "Using a model to grade outputs at scale — must be calibrated against human ratings before trusting it as a gate."
+      "b": "Using a model to grade outputs at scale — must be calibrated against human ratings before trusting it as a gate.",
+      "id": "ccapc-c96903e1"
     },
     {
       "f": "Agent observability",
-      "b": "Per-step traces (tools, tokens, latency) + outcome metrics + sampled human transcript review."
+      "b": "Per-step traces (tools, tokens, latency) + outcome metrics + sampled human transcript review.",
+      "id": "ccapc-543dddc5"
     },
     {
       "f": "Injection kill-chain",
-      "b": "Untrusted content → model → powerful tools. Break it: sanitize/isolate content, restrict tools in exposed contexts, gate sensitive actions."
+      "b": "Untrusted content → model → powerful tools. Break it: sanitize/isolate content, restrict tools in exposed contexts, gate sensitive actions.",
+      "id": "ccapc-898a6811"
     },
     {
       "f": "PII in agent pipelines",
-      "b": "Minimize, mask before model calls where possible, control access to traces, enforce retention limits."
+      "b": "Minimize, mask before model calls where possible, control access to traces, enforce retention limits.",
+      "id": "ccapc-c3446a00"
     },
     {
       "f": "Prompts are production config",
-      "b": "Change control: authorized roles, review, eval gates, versioned deploys, rollback plans."
+      "b": "Change control: authorized roles, review, eval gates, versioned deploys, rollback plans.",
+      "id": "ccapc-c5adc98d"
     },
     {
       "f": "Partial delivery principle",
-      "b": "Persist intermediate results as you go — a 95%-done failure should still deliver 95% of the value."
+      "b": "Persist intermediate results as you go — a 95%-done failure should still deliver 95% of the value.",
+      "id": "ccapc-6f7ecdd0"
     }
   ],
   "lessons": [

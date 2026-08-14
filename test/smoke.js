@@ -7,13 +7,18 @@
  * serves data/*.json off disk, so the actual loader path runs — then renders
  * every screen for every certification.
  *
- * Guards four things that have bitten this project before:
+ * Guards the things that have bitten this project before:
  *   1. Saved state of the wrong shape crashing or silently going NaN.
  *   2. Unverified exam claims (domain weightings, question counts, pass marks)
  *      creeping back into content. Only facts confirmed on Anthropic's public
  *      pages may be stated as fact — see FINDINGS.md §0.
  *   3. A screen throwing at render for some certification.
- *   4. Content files going missing, malformed, or empty.
+ *   4. Content files going missing, malformed, empty, or thin in a domain.
+ *   5. Per-option rationales drifting out of alignment with their options.
+ *   6. Duplicate questions making the bank feel smaller than it is.
+ *   7. Progress being keyed by array position, so editing content silently
+ *      reattaches a learner's history to a different question.
+ *   8. The manifest disagreeing with the content files it summarises.
  */
 const fs = require("fs");
 const vm = require("vm");
@@ -253,14 +258,16 @@ vm.createContext(sandbox);
 
   /* ---------- 7. spaced repetition ---------- */
   evalIn(`S.cardBox={}; scheduleCard(CERTS[0],0,true)`);
-  check(evalIn(`S.cardBox.ccao["0"].b`) === 1, "scheduleCard: a correct recall advances to box 1");
+  // cardBox is keyed by the card's stable id, not its position
+  const ck = JSON.stringify(evalIn(`CERTS[0].cards[0].id`));
+  check(evalIn(`S.cardBox.ccao[${ck}].b`) === 1, "scheduleCard: a correct recall advances to box 1");
   evalIn(`scheduleCard(CERTS[0],0,true); scheduleCard(CERTS[0],0,true)`);
-  check(evalIn(`S.cardBox.ccao["0"].b`) === 3, "scheduleCard: consecutive recalls climb boxes");
-  check(evalIn(`S.cardBox.ccao["0"].d > today()`), "scheduleCard: a known card is scheduled forward");
+  check(evalIn(`S.cardBox.ccao[${ck}].b`) === 3, "scheduleCard: consecutive recalls climb boxes");
+  check(evalIn(`S.cardBox.ccao[${ck}].d > today()`), "scheduleCard: a known card is scheduled forward");
   evalIn(`scheduleCard(CERTS[0],0,false)`);
-  check(evalIn(`S.cardBox.ccao["0"].b`) === 1, "scheduleCard: a miss drops back to box 1");
-  check(evalIn(`S.cardBox.ccao["0"].d === today()`), "scheduleCard: a missed card stays due today");
-  check(evalIn(`S.cardBox.ccao["0"].b <= 5`), "scheduleCard: box never exceeds the ladder length");
+  check(evalIn(`S.cardBox.ccao[${ck}].b`) === 1, "scheduleCard: a miss drops back to box 1");
+  check(evalIn(`S.cardBox.ccao[${ck}].d === today()`), "scheduleCard: a missed card stays due today");
+  check(evalIn(`S.cardBox.ccao[${ck}].b <= 5`), "scheduleCard: box never exceeds the ladder length");
 
   evalIn(`S.cardBox={}`);
   check(evalIn(`dueCards(CERTS[0]).length`) === data.ccao.cards.length, "dueCards: an unseen deck is entirely due");
@@ -533,6 +540,39 @@ vm.createContext(sandbox);
   evalIn(`Q.idxs.forEach((qi,k)=>{Q.i=k; answer(Q.cert.questions[qi].a); })`);
   evalIn(`Q.i=Q.idxs.length-1; nextQ()`);
   check(!/Where you dropped marks/.test(els.app.innerHTML), "a perfect round shows no weak-domain section");
+
+  /* ---------- 16. progress is keyed by stable id, not position ---------- */
+  const noId = [];
+  const allIds = new Set();
+  let dupId = 0;
+  for (const [id, d] of Object.entries(data)) {
+    d.questions.forEach((qq, i) => { if (!qq.id) noId.push(`${id} q[${i}]`); else { if (allIds.has(qq.id)) dupId++; allIds.add(qq.id); } });
+    d.cards.forEach((cc, i) => { if (!cc.id) noId.push(`${id} card[${i}]`); else { if (allIds.has(cc.id)) dupId++; allIds.add(cc.id); } });
+  }
+  check(noId.length === 0, `every question and card has a stable id (${noId.slice(0, 3).join(", ") || "all present"})`);
+  check(dupId === 0, `ids are unique across all content (${allIds.size} ids, ${dupId} collisions)`);
+
+  // Answering must record against the id, so reordering cannot remap history.
+  evalIn(`S.answered={}; S.domStats={}; startQuiz("ccao")`);
+  const firstId = evalIn(`Q.cert.questions[Q.idxs[0]].id`);
+  evalIn(`Q.i=0; answer(Q.cert.questions[Q.idxs[0]].a)`);
+  check(evalIn(`S.answered.ccao[${JSON.stringify(firstId)}] === true`), "an answer is recorded against the question's id");
+  check(evalIn(`Object.keys(S.answered.ccao).every(k=>!/^\\d+$/.test(k))`), "no positional keys are written");
+
+  // A legacy save keyed by position is remapped on load, not silently misread.
+  evalIn(`S.answered={ccao:{"0":false,"1":true}}; S.cardBox={ccao:{"0":{b:3,d:"2030-01-01"}}}; S.v=1`);
+  const q0 = evalIn(`CERTS.find(x=>x.id==="ccao").questions[0].id`);
+  const c0 = evalIn(`CERTS.find(x=>x.id==="ccao").cards[0].id`);
+  evalIn(`migrateCertKeys(CERTS.find(x=>x.id==="ccao"))`);
+  check(evalIn(`S.answered.ccao[${JSON.stringify(q0)}] === false`), "legacy positional answers migrate onto ids");
+  check(evalIn(`!("0" in S.answered.ccao)`), "legacy positional keys are removed after migration");
+  check(evalIn(`S.cardBox.ccao[${JSON.stringify(c0)}].b === 3`), "legacy flashcard schedule migrates onto ids");
+
+  // Stale ids from retired questions must not inflate the "seen" count.
+  evalIn(`S.answered={ccao:{"gone-1":true,"gone-2":false}}`);
+  const cp = JSON.parse(evalIn(`JSON.stringify(certProgress(CERTS.find(x=>x.id==="ccao")))`));
+  check(cp.seen === 0, `progress ignores ids no longer in the bank (seen=${cp.seen})`);
+  evalIn(`S.answered={}; S.domStats={}; S.cardBox={}`);
 
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
