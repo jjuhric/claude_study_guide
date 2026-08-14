@@ -88,10 +88,21 @@ node test/links.js
 ## Layout
 
 ```
-index.html      app shell: UI, gameplay, progress tracking (localStorage)
-data/*.json     questions, flashcards, and lessons, one file per certification
-test/smoke.js   dependency-free smoke test
-FINDINGS.md     code review, known gaps, and the content-integrity policy
+index.html              app shell: UI, gameplay, progress tracking (localStorage)
+data/manifest.json      per-cert counts, loaded at boot for the home screen
+data/*.json             questions, flashcards, and lessons, one per certification
+tools/build-manifest.js regenerates the manifest from the content files
+test/smoke.js           dependency-free smoke test
+test/links.js           checks recommended videos are still live
+FINDINGS.md             code review, known gaps, and the content-integrity policy
+```
+
+Certification content loads **on demand**. A first visit fetches only the
+manifest (a few hundred bytes) and the app shell; a certification's question
+bank arrives when you open it. After changing content, regenerate the manifest:
+
+```bash
+node tools/build-manifest.js
 ```
 
 ## Contributing content

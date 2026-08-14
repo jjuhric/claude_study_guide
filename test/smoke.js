@@ -92,6 +92,7 @@ for (const id of ["hdr", "app", "toast"]) els[id] = mkEl(id);
 
 const storage = {};
 const downloads = [];
+const fetched = [];          // every URL the app requests, in order
 let lastBlob = null;
 const sandbox = {
   console,
@@ -120,6 +121,7 @@ const sandbox = {
   },
   // Serve data/*.json off disk, mimicking the browser fetch the loader uses.
   fetch: url => {
+    fetched.push(String(url));
     const f = path.join(ROOT, String(url).split("?")[0]);
     if (!fs.existsSync(f)) return Promise.resolve({ ok: false, status: 404 });
     return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(fs.readFileSync(f, "utf8"))) });
@@ -143,6 +145,45 @@ vm.createContext(sandbox);
   check(!/Could not load study content/.test(els.app.innerHTML), "loader did not fall into its error state");
   check(/Claude Certified Associate/.test(els.app.innerHTML), "home screen renders cert cards after load");
   check(/Level/.test(els.hdr.innerHTML), "header renders");
+
+  /* ---------- on-demand loading ---------- */
+  // Boot must fetch only the manifest — not every certification's bank.
+  const bootFetches = fetched.slice();
+  check(bootFetches.length === 1 && /manifest\.json$/.test(bootFetches[0]),
+    `boot fetches only the manifest (${bootFetches.join(", ") || "nothing"})`);
+  check(CERTS.every(c => !c._loaded), "no certification content is loaded at boot");
+  // ...yet the home screen still shows real totals, from the manifest.
+  check(/\/\s*70\s*questions seen|70 questions seen|0\/70/.test(els.app.innerHTML) || /70/.test(els.app.innerHTML),
+    "home screen shows manifest-derived question totals before any bank loads");
+
+  const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "manifest.json"), "utf8"));
+  const drift = [];
+  for (const [id, d] of Object.entries(data)) {
+    const m = manifest[id];
+    if (!m) { drift.push(`${id} missing from manifest`); continue; }
+    if (m.questions !== d.questions.length) drift.push(`${id} questions ${m.questions}≠${d.questions.length}`);
+    if (m.cards !== d.cards.length) drift.push(`${id} cards ${m.cards}≠${d.cards.length}`);
+    if (m.lessons !== d.lessons.length) drift.push(`${id} lessons ${m.lessons}≠${d.lessons.length}`);
+    if (m.code !== d.code) drift.push(`${id} code ${m.code}≠${d.code}`);
+  }
+  check(drift.length === 0, `manifest matches the content files (${drift.join(", ") || "no drift"})`);
+
+  // Opening a certification fetches exactly that one.
+  fetched.length = 0;
+  call("certView", "ccao");
+  for (let i = 0; i < 10; i++) await new Promise(r => setImmediate(r));
+  check(fetched.length === 1 && /ccao\.json$/.test(fetched[0]), `opening a cert fetches only its own bank (${fetched.join(", ")})`);
+  check(evalIn(`CERTS.find(x=>x.id==="ccao")._loaded === true`), "the opened certification is marked loaded");
+  check(evalIn(`CERTS.filter(c=>c._loaded).length`) === 1, "opening one certification does not load the others");
+  // Re-opening must not refetch.
+  fetched.length = 0;
+  call("certView", "ccao");
+  for (let i = 0; i < 5; i++) await new Promise(r => setImmediate(r));
+  check(fetched.length === 0, "re-opening a loaded certification does not refetch");
+
+  // Load the rest so the remaining checks can exercise every certification.
+  for (const c of CERTS) await evalIn(`loadCert(CERTS.find(x=>x.id==="${c.id}"))`);
+  for (let i = 0; i < 10; i++) await new Promise(r => setImmediate(r));
 
   for (const c of CERTS) {
     check(c.questions.length > 0 && c.cards.length > 0 && (c.lessons || []).length > 0,

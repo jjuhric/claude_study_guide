@@ -494,10 +494,15 @@ function renderHeader(){
 }
 
 /* ================= SCREENS ================= */
+/* Totals come from the manifest so the home screen is accurate before a
+   certification's content has been fetched. */
+function totalQs(c){ return c._loaded ? c.questions.length : ((c.counts&&c.counts.questions)||0); }
+function totalLessons(c){ return c._loaded ? c.lessons.length : ((c.counts&&c.counts.lessons)||0); }
 function certProgress(c){
   const ans=S.answered[c.id]||{}; const seen=Object.keys(ans).length;
   const correct=Object.values(ans).filter(v=>v).length;
-  return {seen, correct, total:c.questions.length, pct: c.questions.length?Math.round(seen/c.questions.length*100):0,
+  const total=totalQs(c);
+  return {seen, correct, total, pct: total?Math.round(seen/total*100):0,
           acc: seen?Math.round(correct/seen*100):0};
 }
 function home(){
@@ -538,11 +543,24 @@ function badgesView(){
 function lessonProgress(c){
   const read=S.lessonsRead[c.id]||[];
   const done=read.filter(Boolean).length;
-  const total=(c.lessons||c.domains).length;
+  const total=totalLessons(c);
   return {done, total, pct: total?Math.round(done/total*100):0};
 }
+/* Single gate for a certification's content. Every study mode is reached from
+   certView, so ensuring the fetch here covers all of them. */
 function certView(id){
   const c=CERTS.find(x=>x.id===id);
+  if(!c._loaded){
+    renderHeader();
+    $("app").innerHTML='<button class="back" onclick="home()">← All certifications</button>'
+      +'<div class="panel center" style="color:var(--muted); font-size:14px;">Loading '+esc(c.code)+'…</div>';
+    loadCert(c).then(()=>certView(id)).catch(e=>loadError(e,"certView('"+c.id+"')"));
+    return;
+  }
+  certViewRender(c);
+}
+function certViewRender(c){
+  const id=c.id;
   if(!S.seenCerts.includes(id)){ S.seenCerts.push(id); save(); if(S.seenCerts.length===4) award("allseen"); }
   renderHeader();
   const p=certProgress(c);
@@ -1036,30 +1054,54 @@ document.addEventListener("keydown", e=>{
 /* Study content lives in data/<id>.json so it can be reviewed, diffed, and
    expanded without editing this file. This needs to be served over HTTP —
    browsers block fetch() on file:// URLs. */
+/* Shuffle option order per load so the correct answer position varies.
+   Length-agnostic, so questions with other than 4 options stay correct. */
+function shuffleOptions(c){
+  for(const q of c.questions){
+    const n=q.opts.length, idx=Array.from({length:n},(_,i)=>i);
+    for(let i=n-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; }
+    /* Per-option rationales must ride the same permutation as the options,
+       or every explanation ends up attached to the wrong answer. */
+    if(Array.isArray(q.why)&&q.why.length===n) q.why=idx.map(k=>q.why[k]);
+    q.opts=idx.map(k=>q.opts[k]);
+    q.a=idx.indexOf(q.a);
+  }
+}
+/* Content for one certification, fetched the first time it is opened. The
+   home screen runs off the manifest counts, so a first visit downloads a few
+   hundred bytes instead of every certification's question bank. */
+function loadCert(c){
+  if(c._loaded) return Promise.resolve(c);
+  if(c._loading) return c._loading;
+  c._loading = fetch("data/"+c.id+".json",{cache:"no-cache"}).then(r=>{
+    if(!r.ok) throw new Error("data/"+c.id+".json returned HTTP "+r.status);
+    return r.json();
+  }).then(d=>{
+    c.questions=d.questions||[]; c.cards=d.cards||[]; c.lessons=d.lessons||[];
+    shuffleOptions(c);
+    c._loaded=true; c._loading=null;
+    return c;
+  }).catch(e=>{ c._loading=null; throw e; });
+  return c._loading;
+}
+function loadError(e,retry){
+  $("app").innerHTML='<div class="panel"><h2 style="font-size:17px;">Could not load study content</h2>'
+   +'<p style="font-size:13px; color:var(--muted); margin-top:8px;">'+esc(String(e&&e.message||e))+'</p>'
+   +'<p style="font-size:13.5px; line-height:1.6; margin-top:12px;">Questions and lessons load from <code>data/*.json</code>, which browsers block when a page is opened directly from disk. Serve the folder over HTTP instead:</p>'
+   +'<pre style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px 12px; font-size:12.5px; overflow-x:auto; margin:8px 0 0;">npx serve .</pre>'
+   +'<p style="font-size:13.5px; color:var(--muted); margin-top:12px;">Or use the hosted copy at <b>jjuhric.github.io/claude_study_guide</b>.</p>'
+   +(retry?'<div class="rowbtns"><button class="btn" onclick="'+retry+'">Try again</button></div>':'')+'</div>';
+}
 (async function(){
   const app=document.getElementById("app");
   applyTheme();
   renderHeader();
-  app.innerHTML='<div class="panel center" style="color:var(--muted); font-size:14px;">Loading study content…</div>';
+  app.innerHTML='<div class="panel center" style="color:var(--muted); font-size:14px;">Loading…</div>';
   try{
-    const loaded=await Promise.all(CERTS.map(async c=>{
-      const r=await fetch("data/"+c.id+".json",{cache:"no-cache"});
-      if(!r.ok) throw new Error("data/"+c.id+".json returned HTTP "+r.status);
-      return [c, await r.json()];
-    }));
-    for(const [c,d] of loaded){ c.questions=d.questions||[]; c.cards=d.cards||[]; c.lessons=d.lessons||[]; }
-
-    /* Shuffle option order per load so the correct answer position varies.
-       Length-agnostic, so questions with other than 4 options stay correct. */
-    for(const c of CERTS){ for(const q of c.questions){
-      const n=q.opts.length, idx=Array.from({length:n},(_,i)=>i);
-      for(let i=n-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; }
-      /* Per-option rationales must ride the same permutation as the options,
-         or every explanation ends up attached to the wrong answer. */
-      if(Array.isArray(q.why)&&q.why.length===n) q.why=idx.map(k=>q.why[k]);
-      q.opts=idx.map(k=>q.opts[k]);
-      q.a=idx.indexOf(q.a);
-    } }
+    const r=await fetch("data/manifest.json",{cache:"no-cache"});
+    if(!r.ok) throw new Error("data/manifest.json returned HTTP "+r.status);
+    const m=await r.json();
+    for(const c of CERTS){ c.counts=m[c.id]||{questions:0,cards:0,lessons:0}; }
     home();
   }catch(e){
     app.innerHTML='<div class="panel"><h2 style="font-size:17px;">Could not load study content</h2>'
