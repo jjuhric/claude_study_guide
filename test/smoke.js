@@ -626,6 +626,22 @@ vm.createContext(sandbox);
   }
   check(noLessonId.length === 0, `every lesson has a stable string id (${noLessonId.slice(0, 3).join(", ") || "all present"})`);
 
+  /* ---------- 19. Study Guide Mastery Features ---------- */
+  call("lessonView", "ccao", 0);
+  check(/lesson-toc/.test(els.app.innerHTML), "lesson view renders Table of Contents");
+  check(/ttsPlayBtn/.test(els.app.innerHTML), "lesson view renders Web Speech audio player");
+  check(/bmBtn/.test(els.app.innerHTML), "lesson view renders bookmark button");
+  check(/notesDrawer/.test(els.app.innerHTML), "lesson view renders study notes drawer");
+
+  call("fullHandbookView", "ccao");
+  check(/Full Printable Study Guide Handbook/.test(els.app.innerHTML), "full printable handbook view renders all lessons");
+
+  call("notesView");
+  check(/My Study Notes & Bookmarks/.test(els.app.innerHTML) || /No Study Notes/.test(els.app.innerHTML), "notes & bookmarks hub renders");
+
+  call("labToolsModal");
+  check(/model-decision-tree/.test(els.app.innerHTML) && /rag-visualizer/.test(els.app.innerHTML), "lab tools modal renders decision trees and visualizers");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
