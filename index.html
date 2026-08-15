@@ -253,6 +253,11 @@
   .widget-box h5{font-size:13.5px; font-weight:700; margin-bottom:10px; color:var(--coral-dark);}
   .widget-box label{font-size:12px; color:var(--muted); display:block; margin-bottom:4px;}
   .widget-box input, .widget-box select, .widget-box textarea{width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-size:13px; background:var(--bg); color:var(--ink); font-family:inherit; margin-bottom:10px;}
+  .scenario-box{border-left:4px solid var(--blue); background:rgba(91,127,166,.1); border-radius:0 12px 12px 0; padding:14px 16px; margin:16px 0; font-size:13.5px;}
+  .scenario-box .lbl{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--coral-dark); margin-bottom:6px;}
+  .code-wrapper{position:relative; margin:12px 0;}
+  .code-copy-btn{position:absolute; top:8px; right:8px; background:var(--card); border:1px solid var(--border); border-radius:6px; padding:4px 8px; font-size:11px; color:var(--muted); cursor:pointer; font-family:inherit; z-index:2;}
+  .code-copy-btn:hover{color:var(--coral); border-color:var(--coral);}
 
   /* Modals */
   .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; z-index:100; padding:16px;}
@@ -987,6 +992,24 @@ function lessonView(id,i){
   initLessonWidgets();
 }
 
+function copyCode(btn){
+  const pre = btn.nextElementSibling || btn.parentElement.querySelector('pre');
+  if(!pre) return;
+  const txt = pre.innerText || pre.textContent;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>{
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => { btn.textContent = '📋 Copy'; }, 2000);
+    }).catch(()=>{
+      btn.textContent = '✓ Copied';
+      setTimeout(() => { btn.textContent = '📋 Copy'; }, 2000);
+    });
+  } else {
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => { btn.textContent = '📋 Copy'; }, 2000);
+  }
+}
+
 /* ================= LESSON WIDGETS ================= */
 function initLessonWidgets(){
   const boxes = document.querySelectorAll('.widget-box');
@@ -995,6 +1018,21 @@ function initLessonWidgets(){
     if(type === 'token-cost') renderTokenCostCalculator(box);
     else if(type === 'xml-prompt') renderXmlPromptChecker(box);
     else if(type === 'stop-reason') renderStopReasonSimulator(box);
+  });
+
+  const pres = document.querySelectorAll('.lesson-body pre');
+  pres.forEach(pre => {
+    if(!pre.parentElement.classList.contains('code-wrapper')){
+      const wrap = document.createElement('div');
+      wrap.className = 'code-wrapper';
+      pre.parentNode.insertBefore(wrap, pre);
+      const btn = document.createElement('button');
+      btn.className = 'code-copy-btn';
+      btn.textContent = '📋 Copy';
+      btn.onclick = () => copyCode(btn);
+      wrap.appendChild(btn);
+      wrap.appendChild(pre);
+    }
   });
 }
 function renderTokenCostCalculator(container){
