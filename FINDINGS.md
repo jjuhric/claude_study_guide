@@ -63,6 +63,26 @@ Live at https://jjuhric.github.io/claude_study_guide/ · **170 checks** in
 - Content extracted to `data/*.json`; `index.html` 193KB → 39KB
 - `test/smoke.js` added — 62 checks, dependency-free
 
+### Done on 2026-08-15
+
+- **Dashboard wiring**: 64 tools existed as callable functions with no UI entry
+  point. The grid is now a registry (`TOOLS` in `js/03-home.js`) with 76 tools
+  across six groups, and the suite fails if a tool view is unreachable.
+- **Duplicate-definition state bug**: `getFreshState` was defined twice and the
+  live copy had dropped 21 keys, so `profile`, `dailyTarget`, `voiceNotes` and
+  others were never initialised (`S.profile` had 18 unguarded reads of
+  `undefined`). Merged; `S_DEFAULTS` is now derived from it so they cannot
+  drift again. Two further bugs surfaced: `migrate()` coerced a `null` default
+  to `{}` (every new user had a truthy empty study plan), and the Forgetting
+  Curve read a key nothing writes, so its chart showed zeros for everyone.
+- **Model accuracy**: 125 references to *retired* Claude 3.x models corrected,
+  including 7 to `Claude 3.5 Opus`, which never existed. Stale Haiku and Opus
+  pricing fixed; the universal "200,000 token context window" claim corrected
+  (current Opus/Sonnet are 1M; Haiku 4.5 is the 200K exception). Three dead
+  Masterclass videos replaced.
+- **Restructure**: `index.html` went from 11,288 lines to a 37-line shell, with
+  styles in `css/app.css` and the app in twelve ordered classic scripts.
+
 ### Still open
 
 1. **Content validation against the official blueprints** — the domain lists
