@@ -179,11 +179,11 @@ existing boundaries rather than inventing new ones.
       mode.
 
 ### Phase 4 — documentation
-- [ ] **4.1** Rewrite `README.md`: new structure, accurate tool count, how to
+- [x] **4.1** Rewrite `README.md`: new structure, accurate tool count, how to
       add a tool (registry + test), how to add questions, the model-accuracy
       policy, and the local-server requirement.
-- [ ] **4.2** Update `FINDINGS.md` with what Phases 1–3 fixed and what remains.
-- [ ] **4.3** Commit.
+- [x] **4.2** Update `FINDINGS.md` with what Phases 1–3 fixed and what remains.
+- [x] **4.3** Commit.
 
 ### Phase 5 — final verification
 - [ ] **5.1** `node test/smoke.js` and `node test/links.js` both green.
