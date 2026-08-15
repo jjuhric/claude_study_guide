@@ -268,6 +268,48 @@
   .cram-card h4{font-size:14px; font-weight:700; color:var(--coral-dark); margin-bottom:10px; display:flex; align-items:center; gap:6px;}
   .cram-card ul{margin:0; padding-left:18px; font-size:12.5px; line-height:1.6;}
   .cram-card li{margin-bottom:6px;}
+  
+  /* Accessibility & Font Modes */
+  body.font-lexend { font-family: 'Lexend', system-ui, -apple-system, sans-serif !important; }
+  body.font-dyslexic { font-family: 'OpenDyslexic', 'Comic Sans MS', sans-serif !important; letter-spacing: 0.03em !important; word-spacing: 0.08em !important; }
+  body.font-mono { font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace !important; }
+  
+  [data-contrast="oled"] {
+    --bg: #000000 !important;
+    --card: #0a0a0a !important;
+    --border: #222222 !important;
+    --ink: #f0f0f0 !important;
+    --muted: #888888 !important;
+  }
+  [data-contrast="sepia"] {
+    --bg: #fbf0d9 !important;
+    --card: #f4e4c1 !important;
+    --border: #dfcaa4 !important;
+    --ink: #3d3024 !important;
+    --muted: #7c6853 !important;
+  }
+  
+  /* Certificate Styles */
+  .cert-frame {
+    background: #fff;
+    color: #1a1a1a;
+    border: 8px double #c65b4e;
+    border-radius: 16px;
+    padding: 36px 28px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  .cert-frame h2 { font-size: 24px; color: #c65b4e; font-family: Georgia, serif; letter-spacing: 1px; margin: 10px 0 4px; }
+  .cert-seal { width: 64px; height: 64px; border-radius: 50%; background: #c65b4e; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 12px; }
+  
+  /* Speed Run Stage */
+  .speed-timer-bar { height: 10px; border-radius: 5px; background: var(--border); overflow: hidden; margin: 10px 0; }
+  .speed-timer-fill { height: 100%; background: var(--green); transition: width 0.1s linear, background-color 0.3s ease; }
+  .speed-timer-fill.urgent { background: var(--coral) !important; animation: pulse 0.5s infinite alternate; }
+
   /* Enhanced Cram Sheet & Active Recall Styles */
   .cram-grid.active-recall-active .cram-item-list li {
     filter: blur(5px);
@@ -437,6 +479,10 @@ const store = {
   set(d){ try{ localStorage.setItem("certquest", JSON.stringify(d)); }catch(e){ mem.d=d; } }
 };
 const S_DEFAULTS = {
+  studyPlan: null,
+  speedRunScores: {},
+  fontMode: "default",
+  contrastMode: "default",
   customCards: {},v:1, xp:0, badges:[], seenCerts:[], answered:{}, cardsSeen:0, days:[], mocks:{}, domStats:{}, lessonsRead:{}, cardBox:{}, theme:"auto", sound:false, customDecks:[], notes:{}, bookmarks:[]};
 /* Repair any saved field with a missing or wrong-shaped value, so older or partial
    saves can't throw (badges/answered) or silently go NaN (xp/cardsSeen). */
@@ -2599,6 +2645,552 @@ function renderDagUi(bbData){
   if (bb) {
     bb.textContent = JSON.stringify(bbData, null, 2);
   }
+}
+
+/* ================= 1. ARCHITECT WAR ROOM (ENTERPRISE SCENARIOS) ================= */
+const WAR_ROOM_SCENARIOS = [
+  {
+    id: "sc_health",
+    name: "🏥 Healthcare Patient Triage & Diagnostics Agent",
+    prompt: "A hospital network needs an AI assistant to triage incoming emergency symptoms, cross-reference medical EHR history, and draft clinician notes for 80,000 queries/day. Strict HIPAA compliance and sub-second triage routing required.",
+    constraints: { max_budget_monthly: 2000, max_latency_ms: 1200, compliance: "HIPAA / ZDR" },
+    options: {
+      model: [
+        { id: "haiku_router", label: "Haiku Router + Specialist Sonnet", cost: 420, lat: 680, comp: 95, correct: true, note: "Optimal architecture: Fast Haiku classifier dispatches simple cases; Sonnet handles clinical synthesis." },
+        { id: "opus_direct", label: "Opus Direct for All Inquiries", cost: 6200, lat: 3800, comp: 80, correct: false, note: "Severe budget overrun ($6,200/mo > $2,000 cap) and high latency." },
+        { id: "sonnet_raw", label: "Sonnet Direct for Everything", cost: 2100, lat: 1400, comp: 90, correct: false, note: "Slightly over budget without router filtering simple questions." }
+      ],
+      context: [
+        { id: "hybrid_rag_cache", label: "Prompt Caching on Medical Guidelines + Hybrid RAG for EHR", cost: -150, lat: -200, comp: 98, correct: true, note: "85% savings on static hospital guidelines with precise BM25 lookup for ICD-10 error codes." },
+        { id: "dump_full_ehr", label: "Dump Entire 50-Page Patient History into Prompt Context", cost: 900, lat: 1200, comp: 60, correct: false, note: "Wastes context window and risks context amnesia." }
+      ],
+      security: [
+        { id: "gvisor_zdr", label: "gVisor MicroVM + Client-side PII Masking + Commercial API ZDR", comp: 100, correct: true, note: "Zero Data Retention terms guaranteed with kernel-level microVM isolation." },
+        { id: "consumer_chat", label: "Consumer API Webhook with Disclaimer", comp: 15, correct: false, note: "Catastrophic HIPAA breach: Consumer endpoints are not covered by Enterprise BAAs." }
+      ],
+      resilience: [
+        { id: "breaker_jitter", label: "Circuit Breaker on EHR Database + Jittered Exponential Backoff", comp: 95, correct: true, note: "Prevents thundering herd retries and isolates hospital database outages." },
+        { id: "infinite_retry", label: "Tight While-Loop Retry on 500 Errors", comp: 30, correct: false, note: "Anti-pattern: Crashes thread pool during hospital database maintenance." }
+      ]
+    }
+  },
+  {
+    id: "sc_fintech",
+    name: "💳 Real-Time Payment Fraud Interceptor",
+    prompt: "An international fintech handles 500 transactions/sec. The agent must inspect transaction metadata, detect velocity anomalies, and authorize or freeze credit card holds under 300ms SLA.",
+    constraints: { max_budget_monthly: 1500, max_latency_ms: 350, compliance: "PCI-DSS / Idempotency" },
+    options: {
+      model: [
+        { id: "haiku_stream", label: "Claude 3.5 Haiku Streaming", cost: 380, lat: 180, comp: 98, correct: true, note: "Haiku delivers sub-200ms latency necessary for payment gateway SLAs." },
+        { id: "sonnet_sync", label: "Claude 3.5 Sonnet Synchronous", cost: 1800, lat: 850, comp: 90, correct: false, note: "Violates 350ms payment gateway timeout." }
+      ],
+      context: [
+        { id: "redis_blackboard", label: "Redis State Snapshot with Typed Velocity Features", cost: 50, lat: 20, comp: 95, correct: true, note: "Sub-millisecond state access without parsing conversational history." },
+        { id: "chat_history", label: "Pass Last 20 Transactions as Markdown Chat Transcript", cost: 400, lat: 250, comp: 50, correct: false, note: "High latency and parsing ambiguity." }
+      ],
+      security: [
+        { id: "idempotent_gate", label: "Idempotency UUIDs on Mutation Tools + Human Review for >$5,000", comp: 100, correct: true, note: "Prevents double-charging on network dropouts." },
+        { id: "auto_charge", label: "Direct Autonomous Refund Execution without Idempotency Keys", comp: 40, correct: false, note: "Risk of duplicate charges during network timeouts." }
+      ],
+      resilience: [
+        { id: "graceful_fallback", label: "Haiku -> Rule-Based Fallback Engine if LLM times out", comp: 100, correct: true, note: "Ensures 100% payment uptime with graceful degradation." },
+        { id: "fail_closed_hang", label: "Hold Customer Transaction Indefinitely on Timeout", comp: 20, correct: false, note: "Terrible customer experience; breaches card network SLA." }
+      ]
+    }
+  }
+];
+
+let warRoomState = { scenarioIdx: 0, picks: { model: 0, context: 0, security: 0, resilience: 0 } };
+
+function warRoomView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  const sc = WAR_ROOM_SCENARIOS[warRoomState.scenarioIdx];
+  const picks = warRoomState.picks;
+  
+  const mOpt = sc.options.model[picks.model] || sc.options.model[0];
+  const cOpt = sc.options.context[picks.context] || sc.options.context[0];
+  const sOpt = sc.options.security[picks.security] || sc.options.security[0];
+  const rOpt = sc.options.resilience[picks.resilience] || sc.options.resilience[0];
+  
+  const totalCost = Math.max(0, mOpt.cost + (cOpt.cost || 0));
+  const totalLat = Math.max(80, mOpt.lat + (cOpt.lat || 0));
+  const compScore = Math.round((mOpt.comp + cOpt.comp + sOpt.comp + rOpt.comp) / 4);
+  const isBudgetOk = totalCost <= sc.constraints.max_budget_monthly;
+  const isLatOk = totalLat <= sc.constraints.max_latency_ms;
+  const allCorrect = mOpt.correct && cOpt.correct && sOpt.correct && rOpt.correct;
+  
+  function renderGroup(key, title, icon){
+    let items = '';
+    sc.options[key].forEach((opt, idx) => {
+      const isSel = picks[key] === idx;
+      items += '<div class="tree-opt' + (isSel ? ' active' : '') + '" style="margin:0; text-align:left;" onclick="setWarRoomPick(\''+key+'\','+idx+')">'
+        + '<b>' + opt.label + '</b>'
+        + (isSel ? '<div style="font-size:11.5px; color:var(--ink); margin-top:4px; font-weight:normal;">' + opt.note + '</div>' : '')
+        + '</div>';
+    });
+    return '<div style="margin-bottom:14px;">'
+      + '<label style="font-size:12.5px; font-weight:700; display:flex; align-items:center; gap:6px; margin-bottom:6px;">' + icon + ' ' + title + '</label>'
+      + '<div style="display:flex; flex-direction:column; gap:6px;">' + items + '</div></div>';
+  }
+
+  let h = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">'
+    + '<div><span class="ltag" style="background:var(--purple); color:#fff;">Enterprise Challenge</span><h2 style="font-size:20px; margin-top:4px;">🏛️ Architect War Room</h2></div>'
+    + '<select onchange="setWarRoomScenario(this.value)" style="padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:13px;">'
+    + WAR_ROOM_SCENARIOS.map((s, idx) => '<option value="'+idx+'"'+(idx===warRoomState.scenarioIdx?' selected':'')+'>'+s.name+'</option>').join('')
+    + '</select>'
+    + '</div>'
+    + '<p style="font-size:13px; line-height:1.5; margin:10px 0 16px; color:var(--muted); background:var(--bg); padding:10px 12px; border-radius:8px; border:1px solid var(--border);">'
+    + '<b>Target Mission:</b> ' + sc.prompt
+    + '<br><span style="font-size:11.5px; color:var(--coral-dark);">🎯 Constraints: Max Budget: $' + sc.constraints.max_budget_monthly + '/mo · Max Latency: ' + sc.constraints.max_latency_ms + 'ms · Compliance: ' + sc.constraints.compliance + '</span>'
+    + '</p>'
+    + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px;">'
+    + '<div>'
+    + renderGroup('model', '1. Model Selection & Routing Tier', '🧠')
+    + renderGroup('context', '2. Context & Retrieval Engineering', '📚')
+    + renderGroup('security', '3. Zero-Trust Sandboxing & Privacy', '🔒')
+    + renderGroup('resilience', '4. Resilience & Fallback Cascades', '⚡')
+    + '</div>'
+    + '<div>'
+    + '<div style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card); position:sticky; top:16px;">'
+    + '<h4 style="font-size:14px; margin-bottom:12px; color:var(--coral-dark);">📊 Live Architecture Scorecard</h4>'
+    + '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">'
+    + '<div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px; text-align:center;">'
+    + '<div style="font-size:18px; font-weight:800; color:'+(isBudgetOk?'var(--green)':'var(--coral)')+';">$'+totalCost+'/mo</div>'
+    + '<div style="font-size:11px; color:var(--muted);">Estimated Token Spend</div>'
+    + '</div>'
+    + '<div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px; text-align:center;">'
+    + '<div style="font-size:18px; font-weight:800; color:'+(isLatOk?'var(--green)':'var(--coral)')+';">'+totalLat+' ms</div>'
+    + '<div style="font-size:11px; color:var(--muted);">P99 Clock Latency</div>'
+    + '</div>'
+    + '</div>'
+    + '<div style="margin-bottom:10px;">'
+    + '<div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; margin-bottom:4px;"><span>Security & Compliance Score:</span><span>'+compScore+'%</span></div>'
+    + '<div class="pbar" style="height:8px;"><div style="width:'+compScore+'%; background:'+(compScore>=90?'var(--green)':compScore>=70?'var(--blue)':'var(--coral)')+';"></div></div>'
+    + '</div>'
+    + '<div style="margin-top:14px; padding:12px; border-radius:8px; background:'+(allCorrect?'rgba(90,158,111,0.12)':'rgba(217,119,87,0.12)')+'; border:1px solid '+(allCorrect?'var(--green)':'var(--coral)')+';">'
+    + '<div style="font-size:13px; font-weight:800; color:'+(allCorrect?'var(--green)':'var(--coral)')+'; margin-bottom:4px;">'
+    + (allCorrect ? '🎉 Production-Ready Architecture Approved!' : '⚠️ Architectural Flaws Detected')
+    + '</div>'
+    + '<div style="font-size:12px; line-height:1.4; color:var(--ink);">'
+    + (allCorrect
+        ? 'Your system satisfies all SLAs, operates under budget, and enforces zero-trust safety guardrails.'
+        : 'Refine your component selections to satisfy budget ceilings, latency bounds, and compliance standards.')
+    + '</div>'
+    + '</div>'
+    + (allCorrect ? '<div style="margin-top:12px; text-align:center;"><button class="btn sm" onclick="award(\'war_room\'); addXP(30,\'War Room cleared\'); toast(\'🏅 War Room Master badge earned!\');">Claim Architect XP (+30 XP) 🏆</button></div>' : '')
+    + '</div>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+  $("app").innerHTML = h;
+}
+
+function setWarRoomScenario(idx){
+  warRoomState.scenarioIdx = parseInt(idx, 10);
+  warRoomState.picks = { model: 0, context: 0, security: 0, resilience: 0 };
+  warRoomView();
+}
+function setWarRoomPick(key, val){
+  warRoomState.picks[key] = val;
+  warRoomView();
+}
+
+/* ================= 2. STUDY PLAN GENERATOR & COUNTDOWN ================= */
+function studyPlanView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  const plan = S.studyPlan;
+  
+  let content = '';
+  if (!plan || !Array.isArray(plan.schedule)) {
+    content = '<div class="panel center">'
+      + '<div style="font-size:38px;">⏱️</div>'
+      + '<h2 style="font-size:20px; margin-top:8px;">Generate Your Personalized Study Roadmap</h2>'
+      + '<p class="subtext" style="margin-top:6px;">Select your target certification and timeline to create an adaptive daily curriculum.</p>'
+      + '<div style="max-width:380px; margin:20px auto; text-align:left;">'
+      + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Target Certification:</label>'
+      + '<select id="spCert" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:13px; margin-bottom:14px;">'
+      + CERTS.map(c => '<option value="'+c.id+'">'+c.code+' — '+c.name+'</option>').join('')
+      + '</select>'
+      + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Target Exam Timeline:</label>'
+      + '<select id="spDays" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:13px; margin-bottom:18px;">'
+      + '<option value="7">⚡ 7-Day Sprint (Intensive · 60m/day)</option>'
+      + '<option value="14" selected>🎯 14-Day Balanced Track (Recommended · 30m/day)</option>'
+      + '<option value="30">📅 30-Day Mastery Track (Thorough · 15m/day)</option>'
+      + '</select>'
+      + '<button class="btn" style="width:100%;" onclick="createStudyPlan()">Generate My Custom Plan 🚀</button>'
+      + '</div>'
+      + '</div>';
+  } else {
+    const c = CERTS.find(x => x.id === plan.certId) || CERTS[0];
+    const target = new Date(plan.targetDate);
+    const now = new Date();
+    const diffDays = Math.max(0, Math.ceil((target - now) / (1000 * 60 * 60 * 24)));
+    
+    let daysHtml = '';
+    plan.schedule.forEach((day, idx) => {
+      const isDone = plan.completedDays && plan.completedDays.includes(idx);
+      daysHtml += '<div style="border:1px solid '+(isDone?'var(--green)':'var(--border)')+'; background:var(--card); border-radius:10px; padding:12px; margin-bottom:10px;">'
+        + '<div style="display:flex; justify-content:space-between; align-items:center;">'
+        + '<b>Day ' + (idx + 1) + ': ' + day.title + '</b>'
+        + '<button class="btn sm '+(isDone?'ghost':'')+'" onclick="togglePlanDay('+idx+')">' + (isDone ? '✓ Completed' : 'Mark Done') + '</button>'
+        + '</div>'
+        + '<ul style="margin:8px 0 0; padding-left:18px; font-size:12.5px; color:var(--muted); line-height:1.5;">'
+        + day.tasks.map(t => '<li>' + t + '</li>').join('')
+        + '</ul>'
+        + '</div>';
+    });
+
+    content = '<div class="panel">'
+      + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">'
+      + '<div><span class="ltag" style="background:'+c.color+'; color:#fff;">Target: '+c.code+'</span><h2 style="font-size:20px; margin-top:4px;">⏱️ Your '+plan.totalDays+'-Day Study Roadmap</h2></div>'
+      + '<div style="text-align:right;"><span style="font-size:24px; font-weight:800; color:var(--coral);">' + diffDays + ' Days Left</span><br><button class="btn ghost sm" onclick="resetStudyPlan()">↺ Change Target Date</button></div>'
+      + '</div>'
+      + daysHtml
+      + '</div>';
+  }
+
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>' + content;
+}
+
+function createStudyPlan(){
+  const certId = document.getElementById("spCert") ? document.getElementById("spCert").value : "ccao";
+  const days = parseInt(document.getElementById("spDays") ? document.getElementById("spDays").value : "14", 10);
+  const targetDate = new Date();
+  targetDate.setDate(targetDate.getDate() + days);
+  
+  const schedule = [];
+  for (let i = 0; i < days; i++) {
+    if (i === 0) schedule.push({ title: "Foundations & Orientation", tasks: ["Read Lesson 0 (Foundations)", "Review 15 Spaced Repetition Flashcards", "Take initial Quiz Battle"] });
+    else if (i === days - 1) schedule.push({ title: "Final Readiness & Mock Simulation", tasks: ["Read Cram Sheet (All 8 Modules)", "Sit Full Timed Mock Exam (Target >= 720)", "Review any remaining misses"] });
+    else if (i === Math.floor(days / 2)) schedule.push({ title: "Mid-Point Diagnostic", tasks: ["Take 20-Question Mid-Point Mock Exam", "Drill weakest identified domain", "Review due flashcards"] });
+    else schedule.push({ title: "Domain Deep Dive " + i, tasks: ["Read Domain Lesson " + ((i % 8) + 1), "Drill 10 domain questions", "Flip 15 flashcards in Leitner queue"] });
+  }
+  
+  S.studyPlan = { certId, totalDays: days, created: new Date().toISOString(), targetDate: targetDate.toISOString(), schedule, completedDays: [] };
+  save();
+  toast("✨ Custom " + days + "-day roadmap generated!");
+  studyPlanView();
+}
+
+function togglePlanDay(idx){
+  if (!S.studyPlan) return;
+  S.studyPlan.completedDays = S.studyPlan.completedDays || [];
+  const at = S.studyPlan.completedDays.indexOf(idx);
+  if (at >= 0) S.studyPlan.completedDays.splice(at, 1);
+  else { S.studyPlan.completedDays.push(idx); addXP(15, "Daily study goal reached"); }
+  save();
+  studyPlanView();
+}
+
+function resetStudyPlan(){
+  if (confirm("Reset current study plan?")) {
+    S.studyPlan = null;
+    save();
+    studyPlanView();
+  }
+}
+
+/* ================= 3. GLOBAL QUESTION BANK EXPLORER ================= */
+let explorerFilterCert = "all";
+let explorerFilterStatus = "all";
+let explorerQuery = "";
+
+function questionExplorerView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  let allQs = [];
+  CERTS.forEach(c => {
+    if (c._loaded && c.questions) {
+      c.questions.forEach((q, idx) => {
+        allQs.push({ q, certId: c.id, certCode: c.code, certColor: c.color, domainName: c.domains[q.d] || "Domain", idx });
+      });
+    }
+  });
+
+  if (!allQs.length) {
+    loadCert(CERTS[0]).then(() => questionExplorerView());
+    return;
+  }
+
+  const qStr = (explorerQuery || '').toLowerCase().trim();
+  const filtered = allQs.filter(item => {
+    if (explorerFilterCert !== "all" && item.certId !== explorerFilterCert) return false;
+    const ans = (S.answered[item.certId] || {})[qKey(CERTS.find(x => x.id === item.certId), item.idx)];
+    if (explorerFilterStatus === "unseen" && ans !== undefined) return false;
+    if (explorerFilterStatus === "correct" && ans !== true) return false;
+    if (explorerFilterStatus === "missed" && ans !== false) return false;
+    if (qStr) {
+      const matchQ = (item.q.q || '').toLowerCase().includes(qStr);
+      const matchExp = (item.q.exp || '').toLowerCase().includes(qStr);
+      const matchOpts = (item.q.opts || []).some(o => o.toLowerCase().includes(qStr));
+      if (!matchQ && !matchExp && !matchOpts) return false;
+    }
+    return true;
+  });
+
+  let cardsHtml = '';
+  filtered.slice(0, 30).forEach((item) => {
+    const q = item.q;
+    const ans = (S.answered[item.certId] || {})[qKey(CERTS.find(x => x.id === item.certId), item.idx)];
+    const statusPill = ans === true ? '<span style="color:var(--green); font-weight:700;">✓ Mastered</span>' : ans === false ? '<span style="color:var(--coral); font-weight:700;">✗ Missed</span>' : '<span style="color:var(--muted);">Unseen</span>';
+    
+    cardsHtml += '<div style="border:1px solid var(--border); background:var(--card); border-radius:10px; padding:14px; margin-bottom:10px;">'
+      + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:11.5px;">'
+      + '<span><b style="color:'+item.certColor+';">'+item.certCode+'</b> · '+item.domainName+'</span>'
+      + '<span>' + statusPill + '</span>'
+      + '</div>'
+      + '<div style="font-size:13.5px; font-weight:700; margin-bottom:8px;">' + esc(q.q) + '</div>'
+      + '<div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:12px; margin-bottom:8px;">'
+      + q.opts.map((o, optIdx) => '<div style="padding:6px 8px; border-radius:6px; background:'+(optIdx===q.a?'rgba(90,158,111,0.15); font-weight:700; border:1px solid var(--green)':'var(--bg)')+';">' + (optIdx+1) + '. ' + esc(o) + (optIdx===q.a?' ✓':'') + '</div>').join('')
+      + '</div>'
+      + '<div style="font-size:11.5px; color:var(--muted); background:var(--bg); padding:6px 8px; border-radius:6px;">💡 <b>Explanation:</b> ' + esc(q.exp) + '</div>'
+      + '</div>';
+  });
+
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><h2 style="font-size:20px;">🔍 Global Question Bank Explorer</h2><p style="font-size:12.5px; color:var(--muted);">Search and review all 400 questions with complete per-option explanations.</p></div>'
+    + '<div style="font-weight:700; font-size:13px; color:var(--coral);">' + filtered.length + ' matching questions</div>'
+    + '</div>'
+    + '<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">'
+    + '<input type="text" placeholder="🔍 Search keyword (e.g. isError, HyDE, gVisor, 429, TTL)..." value="'+esc(explorerQuery)+'" oninput="explorerQuery=this.value; questionExplorerView();" style="flex:1; min-width:240px; padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:13px;" />'
+    + '<select onchange="explorerFilterCert=this.value; questionExplorerView();" style="padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:13px;">'
+    + '<option value="all"'+(explorerFilterCert==='all'?' selected':'')+'>All Tracks</option>'
+    + CERTS.map(c => '<option value="'+c.id+'"'+(explorerFilterCert===c.id?' selected':'')+'>'+c.code+'</option>').join('')
+    + '</select>'
+    + '<select onchange="explorerFilterStatus=this.value; questionExplorerView();" style="padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:13px;">'
+    + '<option value="all"'+(explorerFilterStatus==='all'?' selected':'')+'>All Statuses</option>'
+    + '<option value="unseen"'+(explorerFilterStatus==='unseen'?' selected':'')+'>Unseen</option>'
+    + '<option value="correct"'+(explorerFilterStatus==='correct'?' selected':'')+'>Mastered</option>'
+    + '<option value="missed"'+(explorerFilterStatus==='missed'?' selected':'')+'>Missed</option>'
+    + '</select>'
+    + '</div>'
+    + cardsHtml
+    + (filtered.length > 30 ? '<div style="text-align:center; font-size:12px; color:var(--muted); margin:10px 0;">Showing first 30 of ' + filtered.length + ' questions. Narrow search above for more specific results.</div>' : '')
+    + '</div>';
+}
+
+/* ================= 4. SUDDEN-DEATH EXAM SPEED RUN ================= */
+let speedRunState = { cert: null, questions: [], idx: 0, streak: 0, timeLeft: 30, timer: null, score: 0 };
+
+function speedRunSelect(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">⚡</div>'
+    + '<h2 style="font-size:20px; margin-top:8px;">⚡ Sudden-Death Speed Run</h2>'
+    + '<p class="subtext" style="margin-top:6px;">High-intensity rapid recall training. 30-second ticking timer per question. Correct answers add +5s bonus time. One miss ends the run!</p>'
+    + '<div class="certs" style="margin-top:18px;">'
+    + CERTS.map(c => {
+        const hs = (S.speedRunScores || {})[c.id] || 0;
+        return '<div class="cert" onclick="startSpeedRun(\''+c.id+'\')">'
+          + '<div style="display:flex; justify-content:space-between;"><span class="code" style="color:'+c.color+';">'+c.code+'</span><span style="font-size:11.5px; font-weight:700; color:var(--gold);">🏆 Record: '+hs+' streak</span></div>'
+          + '<h3 style="font-size:15px; margin:6px 0;">'+c.name+'</h3>'
+          + '<div class="rowbtns" style="margin-top:10px;"><button class="btn sm">Start Speed Run ⚡</button></div>'
+          + '</div>';
+      }).join('')
+    + '</div>'
+    + '</div>';
+}
+
+function startSpeedRun(certId){
+  const c = CERTS.find(x => x.id === certId);
+  if (!c) return;
+  if (!c._loaded) {
+    loadCert(c).then(() => startSpeedRun(certId));
+    return;
+  }
+  const pool = shuffleArr(c.questions.slice());
+  speedRunState = { cert: c, questions: pool, idx: 0, streak: 0, timeLeft: 30, timer: null, score: 0 };
+  clearInterval(speedRunState.timer);
+  speedRunState.timer = setInterval(() => {
+    speedRunState.timeLeft--;
+    updateSpeedRunTimerUi();
+    if (speedRunState.timeLeft <= 0) {
+      endSpeedRun(false, "⏰ Time Expired!");
+    }
+  }, 1000);
+  renderSpeedRunQuestion();
+}
+
+function updateSpeedRunTimerUi(){
+  const tEl = document.getElementById("speedTimerText");
+  const fill = document.getElementById("speedTimerFill");
+  if (tEl) tEl.textContent = speedRunState.timeLeft + "s";
+  if (fill) {
+    const pct = Math.max(0, Math.min(100, (speedRunState.timeLeft / 30) * 100));
+    fill.style.width = pct + "%";
+    if (speedRunState.timeLeft <= 8) fill.classList.add("urgent");
+    else fill.classList.remove("urgent");
+  }
+}
+
+function renderSpeedRunQuestion(){
+  renderHeader();
+  const q = speedRunState.questions[speedRunState.idx];
+  const c = speedRunState.cert;
+  $("app").innerHTML = '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center;">'
+    + '<span style="font-size:13px; font-weight:800; color:var(--coral);">⚡ Speed Run · '+c.code+'</span>'
+    + '<span style="font-size:15px; font-weight:900; color:var(--gold);">🔥 Streak: ' + speedRunState.streak + '</span>'
+    + '</div>'
+    + '<div class="speed-timer-bar"><div id="speedTimerFill" class="speed-timer-fill" style="width:100%;"></div></div>'
+    + '<div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:10px;">'
+    + '<span>Question ' + (speedRunState.idx + 1) + '</span>'
+    + '<span id="speedTimerText" style="font-weight:800; color:var(--coral);">' + speedRunState.timeLeft + 's</span>'
+    + '</div>'
+    + '<div class="qtext" style="font-size:15px;">' + esc(q.q) + '</div>'
+    + q.opts.map((o, j) => '<button class="opt" onclick="answerSpeedRun('+j+')"><b class="okey">'+(j+1)+'</b>' + esc(o) + '</button>').join('')
+    + '</div>';
+}
+
+function answerSpeedRun(pickIdx){
+  const q = speedRunState.questions[speedRunState.idx];
+  const ok = (pickIdx === q.a);
+  if (ok) {
+    playSound('correct');
+    speedRunState.streak++;
+    speedRunState.timeLeft = Math.min(45, speedRunState.timeLeft + 5);
+    speedRunState.score += (10 + speedRunState.streak * 2);
+    addXP(8, "Speed Run answer");
+    toast('⚡ +5s Bonus! Streak: ' + speedRunState.streak);
+    speedRunState.idx = (speedRunState.idx + 1) % speedRunState.questions.length;
+    renderSpeedRunQuestion();
+  } else {
+    playSound('wrong');
+    endSpeedRun(false, "❌ Incorrect Answer");
+  }
+}
+
+function endSpeedRun(timeout, reason){
+  clearInterval(speedRunState.timer);
+  const c = speedRunState.cert;
+  S.speedRunScores = S.speedRunScores || {};
+  const prevBest = S.speedRunScores[c.id] || 0;
+  if (speedRunState.streak > prevBest) {
+    S.speedRunScores[c.id] = speedRunState.streak;
+    save();
+    toast('🏆 New Speed Run High Score: ' + speedRunState.streak + ' streak!');
+  }
+  renderHeader();
+  $("app").innerHTML = '<div class="panel center">'
+    + '<div style="font-size:38px;">🏁</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Speed Run Ended</h2>'
+    + '<div style="font-size:13px; color:var(--coral); font-weight:700; margin-top:4px;">' + reason + '</div>'
+    + '<div class="bigscore" style="color:var(--gold); font-size:42px; margin:12px 0;">' + speedRunState.streak + '<span style="font-size:18px; color:var(--muted);"> streak</span></div>'
+    + '<p class="subtext">Personal Best on '+c.code+': <b>' + (S.speedRunScores[c.id] || speedRunState.streak) + ' streak</b></p>'
+    + '<div class="rowbtns" style="justify-content:center; margin-top:16px;">'
+    + '<button class="btn" onclick="startSpeedRun(\''+c.id+'\')">⚡ Try Again</button>'
+    + '<button class="btn ghost" onclick="speedRunSelect()">Speed Run Hub</button>'
+    + '<button class="btn ghost" onclick="home()">Home</button>'
+    + '</div>'
+    + '</div>';
+}
+
+/* ================= 5. VERIFIED READINESS DIPLOMA / CERTIFICATE ================= */
+function certificateSelect(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">🎓</div>'
+    + '<h2 style="font-size:20px; margin-top:8px;">Verified Readiness Diplomas</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Official credentials generated once you clear mock exams and master the study guide.</p>'
+    + '<div class="certs" style="margin-top:18px;">'
+    + CERTS.map(c => {
+        const rp = prepProgress(c);
+        const mocks = S.mocks[c.id] || [];
+        const bestMock = mocks.length ? Math.max(...mocks) : 0;
+        const isReady = rp.score >= 70 || bestMock >= 720;
+        return '<div class="cert" onclick="renderCertificate(\''+c.id+'\')">'
+          + '<div style="display:flex; justify-content:space-between;"><span class="code" style="color:'+c.color+';">'+c.code+'</span><span style="font-size:11px; font-weight:800; color:'+(isReady?'var(--green)':'var(--muted)')+';">'+(isReady?'✓ UNLOCKED':'🔒 In Progress ('+rp.score+'%)')+'</span></div>'
+          + '<h3 style="font-size:15px; margin:6px 0;">'+c.name+'</h3>'
+          + '<div class="rowbtns" style="margin-top:10px;"><button class="btn sm '+(isReady?'':'ghost')+'">View Certificate 🎓</button></div>'
+          + '</div>';
+      }).join('')
+    + '</div>'
+    + '</div>';
+}
+
+function renderCertificate(certId){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  const c = CERTS.find(x => x.id === certId) || CERTS[0];
+  const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const hash = "CQ-" + c.code.replace(/[^A-Z]/g, '') + "-" + Math.abs((S.xp * 7919) % 999999).toString(16).toUpperCase();
+  
+  $("app").innerHTML = '<button class="back" onclick="certificateSelect()">← Back to Certificates</button>'
+    + '<div style="margin-bottom:16px; display:flex; justify-content:flex-end; gap:8px;">'
+    + '<button class="btn sm" onclick="window.print()">🖨️ Print / Save PDF</button>'
+    + '</div>'
+    + '<div class="cert-frame" id="diplomaFrame">'
+    + '<div class="cert-seal">✓</div>'
+    + '<div style="font-size:11px; font-weight:800; letter-spacing:2px; color:var(--muted); text-transform:uppercase;">Certificate of Exam Readiness</div>'
+    + '<h2>' + c.name + '</h2>'
+    + '<div style="font-size:13px; color:var(--muted); margin-bottom:18px;">Official Prep Mastery Verification · Track ' + c.code + '</div>'
+    + '<p style="font-size:14px; line-height:1.6; max-width:520px; margin:0 auto 18px;">This credential verifies that candidate has completed the comprehensive curriculum, demonstrated multi-domain accuracy, and successfully cleared the practice benchmark.</p>'
+    + '<div style="display:flex; justify-content:space-around; align-items:center; border-top:1px solid #ddd; padding-top:16px; margin-top:18px; font-size:12px;">'
+    + '<div><b>Date Issued:</b><br>' + dateStr + '</div>'
+    + '<div><b>Credential ID:</b><br><code>' + hash + '</code></div>'
+    + '<div><b>Candidate XP:</b><br>' + S.xp + ' Level ' + level() + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+/* ================= 6. COGNITIVE & ACCESSIBILITY MODES ================= */
+function accessibilityModal(){
+  const modal = document.createElement("div");
+  modal.id = "accessModal";
+  modal.className = "modal-overlay";
+  modal.innerHTML = '<div class="modal-content" style="max-width:440px; background:var(--card); border:2px solid var(--border); border-radius:14px; padding:20px; box-shadow:0 8px 30px rgba(0,0,0,0.35);">'
+    + '<h3 style="font-size:17px; margin-bottom:6px;">🔠 Accessibility & Visual Comfort</h3>'
+    + '<p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Tailor typography and color contrast for late-night study sessions or cognitive reading preferences.</p>'
+    + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Typography Font Family:</label>'
+    + '<select id="accFontSel" onchange="applyFontMode(this.value)" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:13px; margin-bottom:14px;">'
+    + '<option value="default" '+(S.fontMode==='default'?'selected':'')+'>System Clean (Inter / San Francisco)</option>'
+    + '<option value="lexend" '+(S.fontMode==='lexend'?'selected':'')+'>Lexend (Enhanced Reading Fluency)</option>'
+    + '<option value="dyslexic" '+(S.fontMode==='dyslexic'?'selected':'')+'>OpenDyslexic (Cognitive Spacing)</option>'
+    + '<option value="mono" '+(S.fontMode==='mono'?'selected':'')+'>JetBrains Mono (Technical Monospace)</option>'
+    + '</select>'
+    + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Display Contrast Mode:</label>'
+    + '<select id="accContrastSel" onchange="applyContrastMode(this.value)" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:13px; margin-bottom:18px;">'
+    + '<option value="default" '+(S.contrastMode==='default'?'selected':'')+'>Standard Contrast</option>'
+    + '<option value="oled" '+(S.contrastMode==='oled'?'selected':'')+'>OLED True Black (Eye Comfort)</option>'
+    + '<option value="sepia" '+(S.contrastMode==='sepia'?'selected':'')+'>Warm Sepia Paper (Night Reading)</option>'
+    + '</select>'
+    + '<div style="display:flex; justify-content:flex-end;">'
+    + '<button class="btn sm" onclick="document.getElementById(\'accessModal\').remove()">Done</button>'
+    + '</div>'
+    + '</div>';
+  document.body.appendChild(modal);
+}
+
+function applyFontMode(mode){
+  S.fontMode = mode;
+  save();
+  document.body.classList.remove('font-lexend', 'font-dyslexic', 'font-mono');
+  if (mode !== 'default') document.body.classList.add('font-' + mode);
+  toast('Font mode: ' + mode);
+}
+
+function applyContrastMode(mode){
+  S.contrastMode = mode;
+  save();
+  if (mode === 'default') document.documentElement.removeAttribute('data-contrast');
+  else document.documentElement.setAttribute('data-contrast', mode);
+  toast('Contrast mode: ' + mode);
+}
+
+if (typeof window !== 'undefined') {
+  if (S.fontMode && S.fontMode !== 'default') document.body.classList.add('font-' + S.fontMode);
+  if (S.contrastMode && S.contrastMode !== 'default') document.documentElement.setAttribute('data-contrast', S.contrastMode);
 }
 
 /* ================= LESSON WIDGETS ================= */

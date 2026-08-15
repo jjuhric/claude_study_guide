@@ -662,6 +662,25 @@ vm.createContext(sandbox);
     check(/recallToggleBtn/.test(els.app.innerHTML), `${cid.toUpperCase()} cram sheet renders Active Recall mode button`);
   }
 
+  /* ---------- 21. Ultimate Study Suites ---------- */
+  call("warRoomView");
+  check(/Architect War Room/.test(els.app.innerHTML) && /Live Architecture Scorecard/.test(els.app.innerHTML), "war room view renders enterprise scenario and live scorecard");
+
+  call("studyPlanView");
+  check(/Personalized Study Roadmap/.test(els.app.innerHTML) || /Study Roadmap/.test(els.app.innerHTML), "study plan view renders plan generator");
+
+  call("questionExplorerView");
+  check(/Global Question Bank Explorer/.test(els.app.innerHTML), "question explorer view renders searchable directory");
+
+  call("speedRunSelect");
+  check(/Sudden-Death Speed Run/.test(els.app.innerHTML), "speed run select renders mode selection");
+
+  call("certificateSelect");
+  check(/Verified Readiness Diplomas/.test(els.app.innerHTML), "certificate hub renders credential list");
+
+  call("renderCertificate", "ccao");
+  check(/Certificate of Exam Readiness/.test(els.app.innerHTML) && /diplomaFrame/.test(els.app.innerHTML), "renderCertificate displays official printable diploma frame");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
