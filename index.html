@@ -473,7 +473,7 @@ const BADGES = [
  {id:"dag_orchestrator", em:"🧩", name:"DAG Orchestrator", desc:"Build and validate multi-agent DAG topologies with SDK export"},
  {id:"red_team_defender", em:"⚡", name:"Red Team Defender", desc:"Defend against indirect prompt injection and tool hijacking attacks"},
  {id:"dossier_analyst", em:"📊", name:"Dossier Analyst", desc:"Generate comprehensive diagnostic readiness scorecard PDF report"},
- {id:"hybrid_architect", em:"📊", name:"Hybrid Reasoning Architect", desc:"Evaluate Claude 3.7 Sonnet extended thinking vs Haiku model tradeoffs"},
+ {id:"hybrid_architect", em:"📊", name:"Hybrid Reasoning Architect", desc:"Compare adaptive thinking and effort levels against Haiku-tier tradeoffs"},
  {id:"compaction_wizard", em:"🧩", name:"Compaction Wizard", desc:"Simulate multi-turn rolling state context compaction"},
  {id:"finops_master", em:"⚡", name:"FinOps Master", desc:"Calculate real-time API bills with thinking budget token profiler"},
  {id:"board_certified", em:"🎙️", name:"Board Certified Architect", desc:"Pass the multi-persona executive architectural defense board"},
@@ -2102,9 +2102,9 @@ function renderModelDecisionTree(){
       </div>
       
       <div class="tree-result" id="treeModelResult">
-        <b>Recommended Architecture:</b> <span style="color:var(--coral-dark); font-weight:700;">Claude 3.5 Haiku + Prompt Caching</span><br>
+        <b>Recommended Architecture:</b> <span style="color:var(--coral-dark); font-weight:700;">Claude Haiku 4.5 + Prompt Caching</span><br>
         <span style="font-size:12.5px; line-height:1.5; color:var(--ink);">
-          • <b>Model:</b> Claude 3.5 Haiku ($0.80 / $4.00 per MTok)<br>
+          • <b>Model:</b> Claude Haiku 4.5 ($1.00 / $5.00 per MTok)<br>
           • <b>Optimization:</b> Ephemeral Prompt Caching saves 85% on cached input tokens ($0.08 / MTok read).<br>
           • <b>Key Exam Rationale:</b> Lightweight classification, routing, and high-throughput tagging should always default to Haiku.
         </span>
@@ -2128,8 +2128,8 @@ function updateTreeModelResult(){
   const res = document.getElementById("treeModelResult");
   if(!res) return;
   
-  let model = treeState.q1 === 'speed' ? 'Claude 3.5 Haiku' : treeState.q1 === 'code' ? 'Claude 3.5 Sonnet' : 'Claude 3.5 Opus';
-  let pricing = treeState.q1 === 'speed' ? '$0.80 / $4.00' : treeState.q1 === 'code' ? '$3.00 / $15.00' : '$15.00 / $75.00';
+  let model = treeState.q1 === 'speed' ? 'Claude Haiku 4.5' : treeState.q1 === 'code' ? 'Claude Sonnet 5' : 'Claude Opus 5';
+  let pricing = treeState.q1 === 'speed' ? '$1.00 / $5.00' : treeState.q1 === 'code' ? '$3.00 / $15.00' : '$5.00 / $25.00';
   let batchStr = treeState.q2 === 'batch' ? ' + Batches API (50% overall discount)' : '';
   let cacheStr = treeState.q3 === 'caching' ? ' + Prompt Caching (85% input discount)' : '';
   
@@ -2334,8 +2334,8 @@ const CRAM_DATA = {
         items: [
           "<b>Tokenization Math:</b> 100 English words ≈ 130 tokens; 1KB of raw JSON ≈ 250-350 tokens (~0.75 words per token).",
           "<b>Vision Token Formula:</b> <code>Tokens = (Width × Height) / 750</code>. Max dimension scale: 1568px.",
-          "<b>Context Window:</b> 200,000 tokens standard across Claude 3.5 family (~150,000 words).",
-          "<b>Pricing Tiers:</b> Haiku ($0.80/$4.00) · Sonnet ($3.00/$15.00) · Opus ($15.00/$75.00) per million tokens.",
+          "<b>Context Window:</b> 1M tokens on current Opus and Sonnet models; 200,000 on Haiku 4.5.",
+          "<b>Pricing Tiers:</b> Haiku ($1.00/$5.00) · Sonnet ($3.00/$15.00) · Opus ($5.00/$25.00) per million tokens.",
           "<b>Prompt Caching Minimums:</b> 1,024 tokens for Sonnet/Opus; 2,048 tokens for Haiku. 5-minute TTL refreshed on cache hit. <b>85% discount</b> on cached input reads."
         ]
       },
@@ -2353,9 +2353,9 @@ const CRAM_DATA = {
       {
         title: "⚖️ 4. Model Selection & Sampling Parameters",
         items: [
-          "<b>Claude 3.5 Haiku:</b> Fast, economical tier. Ideal for high-volume routing, classification, extraction, and simple RAG summaries.",
-          "<b>Claude 3.5 Sonnet:</b> Balanced enterprise default. Best for coding, tool use, multimodal vision, and complex multi-step reasoning.",
-          "<b>Claude 3.5 Opus:</b> Maximum capability tier. Deep research, multi-day novel problem analysis, and high-consequence compliance audit.",
+          "<b>Claude Haiku 4.5:</b> Fast, economical tier. Ideal for high-volume routing, classification, extraction, and simple RAG summaries.",
+          "<b>Claude Sonnet 5:</b> Balanced enterprise default. Best for coding, tool use, multimodal vision, and complex multi-step reasoning.",
+          "<b>Claude Opus 5:</b> Maximum capability tier. Deep research, multi-day novel problem analysis, and high-consequence compliance audit.",
           "<b>Temperature:</b> <code>0.0</code> for deterministic code, math, and JSON extraction; <code>0.7-1.0</code> for creative ideation. Adjust Temperature OR Top-P, never both simultaneously.",
           "<b>Current Information:</b> LLM training data has a fixed cutoff. Current real-time data requires a web search tool or database connection, not a larger model tier."
         ]
@@ -2364,7 +2364,7 @@ const CRAM_DATA = {
         title: "🛡️ 5. AI Governance, Risk & Policy Compliance",
         items: [
           "<b>Zero Data Retention (ZDR):</b> Commercial API inputs and outputs are never stored on persistent disk after processing and are <b>never used to train future Anthropic models</b>.",
-          "<b>Anthropic RSP Tiers:</b> ASL-1 (Basic LLMs) → ASL-2 (Current frontier / Claude 3.5) → ASL-3 (Autonomous cyber/CBRN containment) → ASL-4 (Nation-state level risk).",
+          "<b>Anthropic RSP Tiers:</b> ASL-1 (Basic LLMs) → ASL-2 (current frontier models) → ASL-3 (Autonomous cyber/CBRN containment) → ASL-4 (Nation-state level risk).",
           "<b>Scrutiny Scaling:</b> External, contractual, financial, and regulatory outputs require 100% human-in-the-loop audit.",
           "<b>Refusal Handling:</b> A safety refusal is signal about the request. Adjust the prompt to clarify legitimate business intent or escalate through official channels; do not spam jailbreaks.",
           "<b>Regulated PII/PHI:</b> Mask sensitive identifiers (SSN, medical records) on the client side before sending API payloads; execute formal enterprise BAAs for HIPAA."
@@ -2832,9 +2832,9 @@ function renderPromptCachingSimulator(container){
       <div>
         <label><b>Model Tier:</b></label>
         <select id="wCacheModel" onchange="calcCacheSim()" style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:12.5px;">
-          <option value="sonnet" selected>Claude 3.5 Sonnet ($3.00 base / $0.30 cached)</option>
-          <option value="haiku">Claude 3.5 Haiku ($0.80 base / $0.08 cached)</option>
-          <option value="opus">Claude 3.5 Opus ($15.00 base / $1.50 cached)</option>
+          <option value="sonnet" selected>Claude Sonnet 5 ($3.00 base / $0.30 cached)</option>
+          <option value="haiku">Claude Haiku 4.5 ($0.80 base / $0.08 cached)</option>
+          <option value="opus">Claude Opus 5 ($15.00 base / $1.50 cached)</option>
         </select>
       </div>
       <div>
@@ -3048,8 +3048,8 @@ const WAR_ROOM_SCENARIOS = [
     constraints: { max_budget_monthly: 1500, max_latency_ms: 350, compliance: "PCI-DSS / Idempotency" },
     options: {
       model: [
-        { id: "haiku_stream", label: "Claude 3.5 Haiku Streaming", cost: 380, lat: 180, comp: 98, correct: true, note: "Haiku delivers sub-200ms latency necessary for payment gateway SLAs." },
-        { id: "sonnet_sync", label: "Claude 3.5 Sonnet Synchronous", cost: 1800, lat: 850, comp: 90, correct: false, note: "Violates 350ms payment gateway timeout." }
+        { id: "haiku_stream", label: "Claude Haiku 4.5 Streaming", cost: 380, lat: 180, comp: 98, correct: true, note: "Haiku delivers sub-200ms latency necessary for payment gateway SLAs." },
+        { id: "sonnet_sync", label: "Claude Sonnet 5 Synchronous", cost: 1800, lat: 850, comp: 90, correct: false, note: "Violates 350ms payment gateway timeout." }
       ],
       context: [
         { id: "redis_blackboard", label: "Redis State Snapshot with Typed Velocity Features", cost: 50, lat: 20, comp: 95, correct: true, note: "Sub-millisecond state access without parsing conversational history." },
@@ -3912,14 +3912,14 @@ function sdkPlaygroundView(){
     + '<button class="btn sm '+(sdkState.lang==='ts'?'':'ghost')+'" onclick="setSdkLang(\'ts\')">TypeScript (@anthropic-ai/sdk)</button>'
     + '</div>'
     + '</div>'
-    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Generate production-grade boilerplate for Claude 3.5 Sonnet & Haiku with Prompt Caching, Extended Thinking, and Streaming tool use.</p>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Generate production-grade boilerplate for Claude Sonnet 5 & Haiku with Prompt Caching, Extended Thinking, and Streaming tool use.</p>'
     + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:14px; margin-bottom:14px;">'
     + '<div>'
     + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Model Selection:</label>'
     + '<select id="sdkModelSel" onchange="setSdkOpt(\'model\', this.value)" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:13px;">'
-    + '<option value="sonnet" '+(sdkState.model==='sonnet'?'selected':'')+'>Claude 3.5 Sonnet (claude-3-5-sonnet-20241022)</option>'
-    + '<option value="haiku" '+(sdkState.model==='haiku'?'selected':'')+'>Claude 3.5 Haiku (claude-3-5-haiku-20241022)</option>'
-    + '<option value="opus" '+(sdkState.model==='opus'?'selected':'')+'>Claude 3 Opus (claude-3-opus-20240229)</option>'
+    + '<option value="sonnet" '+(sdkState.model==='sonnet'?'selected':'')+'>Claude Sonnet 5 (claude-sonnet-5)</option>'
+    + '<option value="haiku" '+(sdkState.model==='haiku'?'selected':'')+'>Claude Haiku 4.5 (claude-haiku-4-5)</option>'
+    + '<option value="opus" '+(sdkState.model==='opus'?'selected':'')+'>Claude Opus 5 (claude-opus-5)</option>'
     + '</select>'
     + '</div>'
     + '<div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; padding-top:18px;">'
@@ -3944,7 +3944,7 @@ function setSdkOpt(k, v){ sdkState[k] = v; renderSdkCode(); }
 function renderSdkCode(){
   const out = document.getElementById("sdkCodeOutput");
   if (!out) return;
-  const mStr = sdkState.model === "haiku" ? "claude-3-5-haiku-20241022" : sdkState.model === "opus" ? "claude-3-opus-20240229" : "claude-3-5-sonnet-20241022";
+  const mStr = sdkState.model === "haiku" ? "claude-haiku-4-5" : sdkState.model === "opus" ? "claude-opus-5" : "claude-sonnet-5";
   
   let code = "";
   if (sdkState.lang === "python") {
@@ -4203,7 +4203,7 @@ const ORAL_DEFENSE_SCENARIOS = [
         feedback: "✅ Optimal: Slicing tables across arbitrary character boundaries destroys relational headers. Semantic chunking + contextual headers + Reciprocal Rank Fusion (RRF) eliminates table hallucination."
       },
       {
-        text: "Switch primary model from Claude 3.5 Sonnet to Claude 3 Opus without modifying chunk boundaries.",
+        text: "Switch primary model from Claude Sonnet 5 to Claude Opus 5 without modifying chunk boundaries.",
         score: 45,
         feedback: "⚠️ Ineffective: Model capability cannot compensate for corrupted or severed relational table chunks."
       }
@@ -4290,7 +4290,7 @@ function modelRoiCalculatorView(){
     + '<div><span class="ltag" style="background:var(--gold); color:#1a1a1a;">FinOps Workbench</span><h2 style="font-size:20px; margin-top:4px;">💰 Model Cost & Latency ROI Calculator</h2></div>'
     + '<button class="btn ghost sm" onclick="copyRoiSummary()">📋 Copy Executive Brief</button>'
     + '</div>'
-    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Calculate exact monthly token spend and latency tradeoffs across Claude 3.5 Sonnet, Haiku, and Opus with Prompt Caching (85% off) and Batch API (50% off).</p>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Calculate exact monthly token spend and latency tradeoffs across Claude Sonnet 5, Haiku, and Opus with Prompt Caching (85% off) and Batch API (50% off).</p>'
     + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-bottom:16px;">'
     + '<div style="border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--card);">'
     + '<h4 style="font-size:13.5px; margin-bottom:10px;">📊 Workload Parameters</h4>'
@@ -4334,9 +4334,9 @@ function renderRoiCalculations(){
   
   // Pricing: [Base In, Cached In, Base Out, P99 Latency]
   const models = [
-    { name: "Claude 3.5 Haiku", inRate: 0.80, cacheRate: 0.08, outRate: 4.00, p99: "420ms", color: "var(--blue)" },
-    { name: "Claude 3.5 Sonnet", inRate: 3.00, cacheRate: 0.30, outRate: 15.00, p99: "880ms", color: "var(--coral)" },
-    { name: "Claude 3 Opus", inRate: 15.00, cacheRate: 1.50, outRate: 75.00, p99: "2,400ms", color: "var(--purple)" }
+    { name: "Claude Haiku 4.5", inRate: 0.80, cacheRate: 0.08, outRate: 4.00, p99: "420ms", color: "var(--blue)" },
+    { name: "Claude Sonnet 5", inRate: 3.00, cacheRate: 0.30, outRate: 15.00, p99: "880ms", color: "var(--coral)" },
+    { name: "Claude Opus 5", inRate: 15.00, cacheRate: 1.50, outRate: 75.00, p99: "2,400ms", color: "var(--purple)" }
   ];
   
   let rowsHtml = '';
@@ -4427,7 +4427,7 @@ function renderContextBudget(){
   const isOver80 = totalUsed >= 160000;
   
   barEl.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;">'
-    + '<div><span style="font-size:26px; font-weight:900; color:' + (isOver80 ? 'var(--coral)' : 'var(--green)') + ';">' + totalUsed.toLocaleString() + '</span><span style="font-size:13px; color:var(--muted);"> / 200,000 tokens (' + pctUsed + '%)</span></div>'
+    + '<div><span style="font-size:26px; font-weight:900; color:' + (isOver80 ? 'var(--coral)' : 'var(--green)') + ';">' + totalUsed.toLocaleString() + '</span><span style="font-size:13px; color:var(--muted);"> / 1,000,000 tokens (' + pctUsed + '%)</span></div>'
     + '<span style="font-size:12px; font-weight:700; color:' + (isOver80 ? 'var(--coral)' : 'var(--green)') + ';">' + (isOver80 ? '🚨 Over 80% Threshold — Compaction Required' : '🟢 Healthy Execution Headroom') + '</span>'
     + '</div>'
     + '<div style="height:20px; width:100%; border-radius:6px; background:var(--border); overflow:hidden; display:flex; margin-bottom:12px;">'
@@ -4840,7 +4840,7 @@ const TRAP_SCENARIOS = [
       { t: "import anthropic", err: false },
       { t: "client = anthropic.Anthropic()", err: false },
       { t: "response = client.messages.create(", err: false },
-      { t: "    model='claude-3-5-sonnet-20241022',", err: false },
+      { t: "    model='claude-sonnet-5',", err: false },
       { t: "    max_tokens=4000,", err: false },
       { t: "    thinking={'type': 'enabled', 'budget_tokens': 4096},", err: true, reason: "FATAL ERROR: budget_tokens (4096) must be STRICTLY LESS than max_tokens (4000). Setting budget >= max_tokens causes an immediate HTTP 400 bad request error." },
       { t: "    messages=[{'role': 'user', 'content': 'Prove the Riemann Hypothesis'}]", err: false },
@@ -4853,7 +4853,7 @@ const TRAP_SCENARIOS = [
     lines: [
       { t: "def call_claude_with_retry(prompt, attempt=0):", err: false },
       { t: "    try:", err: false },
-      { t: "        return client.messages.create(model='claude-3-5-haiku-20241022', max_tokens=1000, ...)", err: false },
+      { t: "        return client.messages.create(model='claude-haiku-4-5', max_tokens=1000, ...)", err: false },
       { t: "    except anthropic.RateLimitError:", err: false },
       { t: "        if attempt >= 5: raise", err: false },
       { t: "        time.sleep(2 ** attempt)", err: true, reason: "FATAL ERROR: Standard deterministic exponential backoff synchronizes retries across thousands of clients. You MUST implement Full Jitter: random.uniform(0, min(max_backoff, base * 2**attempt))." },
@@ -5092,7 +5092,7 @@ function thinkingTraceExplorer(){
     + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
     + '<div><span class="ltag" style="background:var(--purple); color:#fff;">Reasoning Architecture</span><h2 style="font-size:20px; margin-top:4px;">🧠 Extended Thinking & Reasoning Trace Visualizer</h2></div>'
     + '</div>'
-    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Simulate Claude 3.5 Sonnet\'s internal chain-of-thought generation inside private <code>&lt;thinking&gt;</code> blocks.</p>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Simulate Claude Sonnet 5\'s internal chain-of-thought generation inside private <code>&lt;thinking&gt;</code> blocks.</p>'
     + '<div style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card); margin-bottom:16px;">'
     + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">'
     + '<label style="font-size:12.5px; font-weight:700;">Select <code>budget_tokens</code> Ceiling: <span id="traceBudgetVal" style="color:var(--purple); font-size:15px;">' + traceBudget.toLocaleString() + ' tokens</span></label>'
@@ -6634,10 +6634,10 @@ const SOCRATIC_TOPICS = [
   {
     id: "caching_thresholds",
     title: "Prompt Caching 1024 Token Minimum Threshold",
-    scenario: "Candidate asks: 'Why didn't my 300-token system prompt trigger a cache hit on Claude 3.5 Sonnet?'",
+    scenario: "Candidate asks: 'Why didn't my 300-token system prompt trigger a cache hit on Claude Sonnet 5?'",
     socraticSteps: [
       { speaker: "Candidate", text: "I added cache_control to my 300-token prompt, but cache_read_input_tokens was 0." },
-      { speaker: "Claude Socratic Tutor", text: "Let's inspect the Prompt Caching specifications. What is the minimum prefix token threshold for Claude 3.5 Sonnet and Opus?" },
+      { speaker: "Claude Socratic Tutor", text: "Let's inspect the Prompt Caching specifications. What is the minimum prefix token threshold for Claude Sonnet 5 and Opus?" },
       { speaker: "Candidate", text: "It requires at least 1,024 tokens." },
       { speaker: "Claude Socratic Tutor", text: "Spot on! Prompts under 1,024 tokens for Sonnet/Opus (or 2,048 for Haiku) cannot be cached. Static guidelines and tool definitions must exceed that floor to trigger the 85% discount." }
     ]
@@ -7865,7 +7865,7 @@ function cramSheetCustomizer(){
 }
 
 
-/* ================= 1. CLAUDE 3.5 VS 3.7 HYBRID REASONING MATRIX ================= */
+/* ================= 1. CLAUDE VS 3.7 HYBRID REASONING MATRIX ================= */
 function modelMatrixView(){
   if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
   renderHeader();
@@ -7873,16 +7873,16 @@ function modelMatrixView(){
   award("hybrid_architect");
   
   const models = [
-    { name: "Claude 3.7 Sonnet", type: "Hybrid Reasoning", input: "$3.00", output: "$15.00", cacheRead: "$0.30", maxThinking: "128,000t", P99: "1.2s - 8s", useCase: "Complex Coding, Math & Deep Architectural Tradeoffs" },
-    { name: "Claude 3.5 Sonnet", type: "Standard LLM", input: "$3.00", output: "$15.00", cacheRead: "$0.30", maxThinking: "N/A", P99: "800ms", useCase: "General Enterprise Reasoning, Vision & RAG" },
-    { name: "Claude 3.5 Haiku", type: "Fast Classifier", input: "$0.80", output: "$4.00", cacheRead: "$0.08", maxThinking: "N/A", P99: "250ms", useCase: "Sub-second Triage, Formatting & High-Volume Routing" },
-    { name: "Claude 3 Opus", type: "Frontier Intelligence", input: "$15.00", output: "$75.00", cacheRead: "$1.50", maxThinking: "N/A", P99: "2.5s", useCase: "Executive Strategy & Deep Multi-Lingual Synthesis" }
+    { name: "Claude Sonnet 5", type: "Hybrid Reasoning", input: "$3.00", output: "$15.00", cacheRead: "$0.30", maxThinking: "128,000t", P99: "1.2s - 8s", useCase: "Complex Coding, Math & Deep Architectural Tradeoffs" },
+    { name: "Claude Sonnet 5", type: "Standard LLM", input: "$3.00", output: "$15.00", cacheRead: "$0.30", maxThinking: "N/A", P99: "800ms", useCase: "General Enterprise Reasoning, Vision & RAG" },
+    { name: "Claude Haiku 4.5", type: "Fast Classifier", input: "$0.80", output: "$4.00", cacheRead: "$0.08", maxThinking: "N/A", P99: "250ms", useCase: "Sub-second Triage, Formatting & High-Volume Routing" },
+    { name: "Claude Opus 5", type: "Frontier Intelligence", input: "$15.00", output: "$75.00", cacheRead: "$1.50", maxThinking: "N/A", P99: "2.5s", useCase: "Executive Strategy & Deep Multi-Lingual Synthesis" }
   ];
   
   $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
     + '<div class="panel">'
     + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
-    + '<div><span class="ltag" style="background:var(--coral); color:#fff;">Model Selection</span><h2 style="font-size:20px; margin-top:4px;">📊 Claude 3.5 vs 3.7 Hybrid Reasoning Matrix</h2></div>'
+    + '<div><span class="ltag" style="background:var(--coral); color:#fff;">Model Selection</span><h2 style="font-size:20px; margin-top:4px;">📊 Claude Model Capability & Cost Matrix</h2></div>'
     + '</div>'
     + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">Side-by-side architectural decision matrix evaluating model pricing, latency P99, and extended thinking budgets.</p>'
     + '<div style="overflow-x:auto; border:1px solid var(--border); border-radius:12px; background:var(--card); margin-bottom:16px;">'
@@ -7941,7 +7941,7 @@ function multiTurnCompactionLab(){
     + '</div>'
     + '<div id="compactionTextPreview" style="font-family:Consolas,monospace; font-size:11.5px; background:var(--bg); padding:12px; border-radius:8px; border:1px solid var(--border); margin-bottom:16px; white-space:pre-wrap;">'
     + (compactionState.compacted
-        ? '<span style="color:var(--green);">✓ STRUCTURED COMPACTION SUCCESS (&lt;rolling_state&gt;):\n&lt;key_facts&gt;\n - User ID: 94821\n - Patient EHR Query: Amoxicillin 500mg\n - Selected Model: Claude 3.7 Sonnet\n - Active MicroVM Container: ID #vmm-8812\n&lt;/key_facts&gt;</span>'
+        ? '<span style="color:var(--green);">✓ STRUCTURED COMPACTION SUCCESS (&lt;rolling_state&gt;):\n&lt;key_facts&gt;\n - User ID: 94821\n - Patient EHR Query: Amoxicillin 500mg\n - Selected Model: Claude Sonnet 5\n - Active MicroVM Container: ID #vmm-8812\n&lt;/key_facts&gt;</span>'
         : '<span style="color:var(--coral);">⚠️ 80% THRESHOLD REACHED (160,000 / 200,000 Tokens)\n10 Raw Multi-Turn Payload Messages Accumulated.\n[Turn 1] User query...\n[Turn 2] Assistant response...\n...\n[Turn 10] Assistant response...</span>')
     + '</div>'
     + '<button class="btn sm" onclick="triggerCompactionDemo()">' + (compactionState.compacted ? '🔄 Reset Context Payload' : '⚡ Trigger 80% Semantic Compaction') + '</button>'
@@ -7975,7 +7975,7 @@ function tokenProfilerLab(){
   const thinking = tokenProfilerState.thinkingTokens;
   const output = tokenProfilerState.outputTokens;
   
-  // Cost calculation for Claude 3.7 Sonnet
+  // Cost calculation for Claude Sonnet 5
   // Uncached Input: $3.00 / 1M
   // Cached Input Read: $0.30 / 1M
   // Output + Thinking: $15.00 / 1M
@@ -8010,7 +8010,7 @@ function tokenProfilerLab(){
     + '</div>'
     + '</div>'
     + '<div style="background:var(--bg); border:1.5px solid var(--border); border-radius:10px; padding:16px; text-align:center; margin-bottom:14px;">'
-    + '<div style="font-size:11.5px; color:var(--muted); font-weight:700; text-transform:uppercase;">Calculated Request Cost (Claude 3.7 Sonnet)</div>'
+    + '<div style="font-size:11.5px; color:var(--muted); font-weight:700; text-transform:uppercase;">Calculated Request Cost (Claude Sonnet 5)</div>'
     + '<div style="font-size:32px; font-weight:900; color:var(--green); margin:4px 0;">$' + totalCost + '</div>'
     + '<div style="font-size:12px; color:var(--blue); font-weight:700;">💰 Prompt Caching Saved: $' + maxSavings + ' (85% Read Discount)</div>'
     + '</div>'
@@ -8046,7 +8046,7 @@ function oralDefenseBoardView(){
       opts: [
         "Enable Prompt Caching with cache_control breakpoints to get 85% read discounts.",
         "Truncate system prompt down to 10 tokens regardless of accuracy.",
-        "Switch all requests to Claude 3 Opus without prompt caching."
+        "Switch all requests to Claude Opus 5 without prompt caching."
       ],
       correct: 0
     }
@@ -8181,7 +8181,7 @@ function dagVisualizerView(){
     + '<div id="dagCodeOutputBox" style="border:1px solid var(--border); border-radius:10px; padding:12px; background:var(--card); display:none;">'
     + '<b style="font-size:12.5px; color:var(--green); display:block; margin-bottom:6px;">Generated Python SDK Orchestration Code:</b>'
     + '<pre style="font-family:Consolas,monospace; font-size:11.5px; background:var(--bg); padding:10px; border-radius:6px; margin:0; white-space:pre-wrap;">'
-    + esc('import anthropic\nclient = anthropic.Anthropic()\n\n# Main Supervisor Task Allocation\nresponse = client.messages.create(\n    model="claude-3-7-sonnet-20250219",\n    max_tokens=1024,\n    system="You are the lead supervisor. Delegate sub-tasks to specialist agents.",\n    messages=[{"role": "user", "content": "Audit security and performance of this repository."}]\n)')
+    + esc('import anthropic\nclient = anthropic.Anthropic()\n\n# Main Supervisor Task Allocation\nresponse = client.messages.create(\n    model="claude-sonnet-5",\n    max_tokens=1024,\n    system="You are the lead supervisor. Delegate sub-tasks to specialist agents.",\n    messages=[{"role": "user", "content": "Audit security and performance of this repository."}]\n)')
     + '</pre>'
     + '</div>'
     + '</div>';
@@ -8368,10 +8368,10 @@ function paretoFrontierView(){
   award("pareto_pioneer");
   
   const points = [
-    { name: "Claude 3.5 Haiku", latency: "250ms", cost: "$0.80", pareto: true },
-    { name: "Claude 3.5 Sonnet (Cached)", latency: "400ms", cost: "$0.75", pareto: true },
-    { name: "Claude 3.7 Sonnet (Thinking)", latency: "1800ms", cost: "$3.45", pareto: true },
-    { name: "Claude 3 Opus (Uncached)", latency: "2500ms", cost: "$15.00", pareto: false }
+    { name: "Claude Haiku 4.5", latency: "250ms", cost: "$0.80", pareto: true },
+    { name: "Claude Sonnet 5 (Cached)", latency: "400ms", cost: "$0.75", pareto: true },
+    { name: "Claude Sonnet 5 (Thinking)", latency: "1800ms", cost: "$3.45", pareto: true },
+    { name: "Claude Opus 5 (Uncached)", latency: "2500ms", cost: "$15.00", pareto: false }
   ];
   
   $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
@@ -8434,7 +8434,7 @@ function audioPodcastExporter(){
 function togglePodcastPlayback(){
   podcastState.playing = !podcastState.playing;
   if (podcastState.playing) {
-    speakText("Welcome to the Anthropic Claude Certification Audio Briefing. Item 1: What is the minimum token floor for Prompt Caching on Claude 3.5 Sonnet? Pause for answer... The answer is 1,024 tokens.");
+    speakText("Welcome to the Anthropic Claude Certification Audio Briefing. Item 1: What is the minimum token floor for Prompt Caching on Claude Sonnet 5? Pause for answer... The answer is 1,024 tokens.");
     toast("🎧 Audio podcast streaming started!");
   } else {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
@@ -8483,7 +8483,7 @@ function runCliCommand(cmd){
   } else if (raw === "/help") {
     cliHistory.push("Available Slash Commands:\n /cost - View session API cost\n /compact - Compact multi-turn context\n /bug - File diagnostic report");
   } else {
-    cliHistory.push("⚡ Executed: " + raw + " (Claude 3.7 Sonnet)");
+    cliHistory.push("⚡ Executed: " + raw + " (Claude Sonnet 5)");
   }
   
   const input = document.getElementById("cliCmdInput");
@@ -8783,7 +8783,7 @@ function codeSnippetAnnotator(){
     + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:640px; margin:20px auto; text-align:left;">'
     + '<b style="font-size:13.5px; color:var(--blue); display:block; margin-bottom:8px;">Annotated Python SDK Implementation:</b>'
     + '<pre style="font-family:Consolas,monospace; font-size:11.5px; background:var(--bg); padding:12px; border-radius:8px; border:1px solid var(--border); white-space:pre-wrap; margin-bottom:12px;">'
-    + esc('import anthropic\nclient = anthropic.Anthropic()\n\nresponse = client.messages.create(\n    model="claude-3-7-sonnet-20250219",\n    max_tokens=4096,\n    thinking={"type": "enabled", "budget_tokens": 2048},\n    extra_headers={"anthropic-beta": "prompt-caching-2024-07-25"}\n)')
+    + esc('import anthropic\nclient = anthropic.Anthropic()\n\nresponse = client.messages.create(\n    model="claude-sonnet-5",\n    max_tokens=4096,\n    thinking={"type": "enabled", "budget_tokens": 2048},\n    extra_headers={"anthropic-beta": "prompt-caching-2024-07-25"}\n)')
     + '</pre>'
     + '<div style="font-size:12px; color:var(--muted); line-height:1.5;">'
     + '🔍 <b>Key Annotations:</b><br>'
@@ -8813,7 +8813,7 @@ function lessonAudioNarrator(){
     + '</div>'
     + '<div style="background:var(--bg); padding:14px; border-radius:8px; border:1px solid var(--border); font-size:12px; line-height:1.5; margin-bottom:14px;">'
     + '📖 <b>Synchronized Lecture Transcript:</b><br>'
-    + '<i>"Welcome to Lesson 12: Extended Thinking & Reasoning Traces. Claude 3.7 Sonnet introduces controllable reasoning budgets via thinking blocks..."</i>'
+    + '<i>"Welcome to Lesson 12: Extended Thinking & Reasoning Traces. Claude Sonnet 5 introduces controllable reasoning budgets via thinking blocks..."</i>'
     + '</div>'
     + '<button class="btn sm" onclick="toast(&quot;🎙️ Audio lecture narration started!&quot;)" style="width:100%;">▶️ Play Synchronized Audio Lecture</button>'
     + '</div>'
@@ -10217,7 +10217,7 @@ function misconceptionDebunker(){
      field:"Message Batches API endpoint: POST /v1/messages/batches. Results polled via GET /v1/messages/batches/{id}."},
     {myth:"context_window and max_tokens refer to the same limit.",
      why:"Both involve token limits, so they seem interchangeable.",
-     truth:"context_window (200k tokens) is the TOTAL input limit. max_tokens is the limit on the OUTPUT only. They are completely separate parameters.",
+     truth:"The context window (1M tokens on current Opus and Sonnet models) is the TOTAL input limit. max_tokens is the limit on the OUTPUT only. They are completely separate parameters.",
      field:"context_window: total input capacity. max_tokens: maximum output length. Both count toward total cost."},
     {myth:"Claude can remember conversations between separate API sessions.",
      why:"ChatGPT-style apps have memory, so APIs must too.",
@@ -10251,9 +10251,9 @@ function misconceptionDebunker(){
      why:"The top model should be used for anything that matters.",
      truth:"Sonnet 4.5 + Extended Thinking outperforms Opus 4 on many reasoning benchmarks at lower cost. Model choice depends on task type, latency needs, and budget — not prestige.",
      field:"Model selection matrix: Haiku=speed/cost, Sonnet=balance, Sonnet+Thinking=complex reasoning, Opus=highest-stakes judgment."},
-    {myth:"The 200k context window means you can always use 200k tokens.",
-     why:"The limit is 200k, so you can use 200k.",
-     truth:"The USABLE context is 200k minus your max_tokens allocation. If max_tokens=32k, your effective input budget is 168k. You cannot use 200k for input AND 32k for output simultaneously.",
+    {myth:"The full context window is always usable for your input.",
+     why:"The window is the total, so all of it must be available for input.",
+     truth:"The USABLE context is the window minus your max_tokens allocation. If max_tokens=32k, your effective input budget is 168k. You cannot use 200k for input AND 32k for output simultaneously.",
      field:"Effective input = context_window - max_tokens. Total = input + output, capped at context_window."},
     {myth:"Rate limits reset every second.",
      why:"Tokens per minute sounds like it resets per minute.",
@@ -10321,7 +10321,7 @@ function cheatSheetGenerator(){
   award("cheat_sheet_master");
   const SECTIONS={
     numbers:{label:"Key Numbers & Thresholds",items:[
-      {k:"Context Window",v:"200,000 tokens (all current models)"},
+      {k:"Context Window",v:"1M tokens (Opus/Sonnet); 200K (Haiku 4.5)"},
       {k:"Cache min — Sonnet/Opus",v:"1,024 tokens"},
       {k:"Cache min — Haiku",v:"2,048 tokens"},
       {k:"Cache TTL",v:"5 minutes (resets on each read)"},

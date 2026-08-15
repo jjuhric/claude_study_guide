@@ -133,19 +133,27 @@ existing boundaries rather than inventing new ones.
       truthy empty study plan. `migrate()` is now null-aware.
 
 ### Phase 2 — accuracy pass (before the split: one file, not twelve)
-- [ ] **2.1** Re-verify the current model lineup against the `claude-api` skill
+- [x] **2.1** Re-verify the current model lineup against the `claude-api` skill
       / official docs. Do **not** write model facts from memory.
-- [ ] **2.2** Remove every `Claude 3.5 Opus` reference — the model never
+- [x] **2.2** Remove every `Claude 3.5 Opus` reference — the model never
       existed. Replace with a real model or drop the claim.
-- [ ] **2.3** Update stale model names and ids in `index.html` (~56).
-- [ ] **2.4** Update stale model names and ids in `data/*.json` (~63).
-- [ ] **2.5** Re-check API-surface claims added since the last audit (prefill,
+- [x] **2.3** Update stale model names and ids in `index.html` (~56).
+- [x] **2.4** Update stale model names and ids in `data/*.json` (~63).
+- [x] **2.5** Re-check API-surface claims added since the last audit (prefill,
       sampling params, thinking budget vs effort, stop reasons).
-- [ ] **2.6** Test: assert no reference to a non-existent model, and that
+- [x] **2.6** Test: assert no reference to a non-existent model, and that
       version-pinned model names are on an allow-list.
-- [ ] **2.7** Verify + commit.
-- [ ] **2.8** Replace the 3 dead Masterclass videos found in 0.1 with
-      verified-live equivalents; `node test/links.js` must exit clean.
+- [x] **2.7** Verify + commit.
+- [x] **2.8** Replaced the 3 dead Masterclass videos (7 references) with
+      topically-matched, individually verified-live equivalents.
+      `node test/links.js` now exits clean.
+- [x] **2.9** *(added)* The rename surfaced two further errors: a CCDV-F
+      question asked Sonnet's context window with **200,000** as the correct
+      answer (current Opus/Sonnet are **1M**; only Haiku 4.5 is 200K), and a
+      lesson credited "Claude 3.5" with Extended Thinking — a feature it never
+      had. Both corrected. Stale pricing was also wrong: Haiku listed at
+      $0.80/$4.00 (now $1.00/$5.00) and Opus at $15.00/$75.00 (now $5.00/$25.00);
+      Sonnet's $3.00/$15.00 was already correct and deliberately left alone.
 
 ### Phase 3 — file restructure (largest; strictly mechanical)
 - [ ] **3.1** Create `css/app.css` from the inline `<style>` block; link it.

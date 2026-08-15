@@ -886,7 +886,7 @@ vm.createContext(sandbox);
 
   /* ---------- 35. Valkyrie Suite ---------- */
   call("modelMatrixView");
-  check(/Claude 3\.5 vs 3\.7 Hybrid Reasoning Matrix/.test(els.app.innerHTML), "modelMatrixView renders model comparative matrix");
+  check(/Claude Model Capability &amp; Cost Matrix|Claude Model Capability & Cost Matrix/.test(els.app.innerHTML), "modelMatrixView renders model comparative matrix");
 
   call("multiTurnCompactionLab");
   check(/Multi-Turn Context Compaction Playground/.test(els.app.innerHTML) && /compactionProgressBar/.test(els.app.innerHTML), "multiTurnCompactionLab renders compaction simulator");
@@ -1102,6 +1102,23 @@ vm.createContext(sandbox);
   check(evalIn(`migrate({studyPlan:"junk"}).studyPlan === null`), "migrate repairs a wrong-typed null-default field");
   check(evalIn(`!!migrate({}).profile && typeof migrate({}).profile.handle === "string"`), "fresh state initialises the user profile");
   check(evalIn(`typeof migrate({}).dailyTarget === "object" && migrate({}).dailyTarget !== null`), "fresh state initialises dailyTarget");
+
+  /* ---------- no retired or non-existent models ----------
+     Every Claude 3.x model is retired and 404s today, so naming one as current
+     teaches an API call that fails. "Claude 3.5 Opus" is worse — it never
+     existed at all. Model names appear in both code and content, so scan both. */
+  const RETIRED = [
+    /Claude 3\.5 Sonnet/, /Claude 3\.5 Haiku/, /Claude 3\.7 Sonnet/, /Claude 3 Opus/,
+    /claude-3-5-sonnet/, /claude-3-5-haiku/, /claude-3-7-sonnet/, /claude-3-opus/,
+  ];
+  const corpus = html + JSON.stringify(data);
+  const retiredHits = RETIRED.filter(re => re.test(corpus)).map(re => re.source);
+  check(retiredHits.length === 0, `no retired Claude models referenced (${retiredHits.join(", ") || "none"})`);
+  check(!/Claude 3\.5 Opus/.test(corpus), "no reference to Claude 3.5 Opus, a model that never existed");
+  check(/Claude (Fable 5|Mythos 5|Opus 5|Opus 4\.[678]|Sonnet 5|Sonnet 4\.6|Haiku 4\.5)/.test(corpus),
+    "content names at least one current Claude model");
+  check(!/200,?000 tokens \(all current models\)/.test(corpus),
+    "no claim that 200K is the context window on all current models");
 
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
