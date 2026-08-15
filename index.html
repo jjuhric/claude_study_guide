@@ -449,6 +449,10 @@ const CERTS = [
 ];
 
 const BADGES = [
+ {id:"cloud_sync", em:"☁️", name:"Cloud Synchronizer", desc:"Sync progress across devices via private GitHub Gist"},
+ {id:"daily_achiever", em:"🎯", name:"Daily Achiever", desc:"Complete all 3 daily study targets"},
+ {id:"executive_dossier", em:"📄", name:"Executive Dossier", desc:"Generate the official candidate portfolio dossier"},
+ {id:"polyglot_scholar", em:"🌐", name:"Polyglot Scholar", desc:"Switch study interface language"},
  {id:"trap_hunter", em:"⚡", name:"Trap Hunter", desc:"Spot critical exam code traps in the Trap Hunter mini-game"},
  {id:"audio_scholar", em:"🎙️", name:"Audio Scholar", desc:"Complete a hands-free Audio Quiz session"},
  {id:"reasoning_master", em:"🧠", name:"Reasoning Master", desc:"Explore Extended Thinking token allocation in the trace visualizer"},
@@ -503,7 +507,7 @@ function getFreshState(){
     domStats: {},
     lessonsRead: {},
     cardBox: {},
-    theme: "auto",
+    theme: "auto", lang: "en", gistToken: "", gistId: "", dailyTarget: { date: "", answered: 0, lessons: 0, cards: 0, claimed: false },
     sound: false,
     customDecks: [],
     notes: {},
@@ -5152,6 +5156,344 @@ function peerBenchmarkView(){
     + '</div>'
     + '</div>'
     + '</div>';
+}
+
+
+/* ================= 1. MULTI-LANGUAGE LOCALIZATION SYSTEM ================= */
+const I18N = {
+  en: {
+    title: "Claude Cert Quest",
+    sub: "Your path to all four Anthropic certifications",
+    level: "Level", streak: "Streak", bookmarks: "Bookmarks & Notes", search: "Search",
+    startQuest: "Start your quest →",
+    practiceBenchmark: "Practice Benchmark",
+    offlineReady: "● Offline Ready",
+    cloudSyncTitle: "☁️ GitHub Gist Cloud Sync",
+    dossierTitle: "📄 Executive Candidate Dossier",
+    langName: "English"
+  },
+  es: {
+    title: "Claude Cert Quest",
+    sub: "Tu camino hacia las cuatro certificaciones de Anthropic",
+    level: "Nivel", streak: "Racha", bookmarks: "Marcadores y Notas", search: "Buscar",
+    startQuest: "Comenzar misión →",
+    practiceBenchmark: "Evaluación Práctica",
+    offlineReady: "● Listo Sin Conexión",
+    cloudSyncTitle: "☁️ Sincronización en la Nube GitHub Gist",
+    dossierTitle: "📄 Dossier Ejecutivo del Candidato",
+    langName: "Español"
+  },
+  ja: {
+    title: "Claude Cert Quest",
+    sub: "4つのAnthropic認定資格へのロードマップ",
+    level: "レベル", streak: "連続記録", bookmarks: "ブックマークとメモ", search: "検索",
+    startQuest: "クエスト開始 →",
+    practiceBenchmark: "実践ベンチマーク",
+    offlineReady: "● オフライン対応",
+    cloudSyncTitle: "☁️ GitHub Gist クラウド同期",
+    dossierTitle: "📄 エグゼクティブ受験者実績書",
+    langName: "日本語"
+  },
+  de: {
+    title: "Claude Cert Quest",
+    sub: "Ihr Weg zu allen vier Anthropic-Zertifizierungen",
+    level: "Stufe", streak: "Serie", bookmarks: "Lesezeichen & Notizen", search: "Suchen",
+    startQuest: "Quest starten →",
+    practiceBenchmark: "Praxis-Benchmark",
+    offlineReady: "● Offline bereit",
+    cloudSyncTitle: "☁️ GitHub Gist Cloud-Synchronisierung",
+    dossierTitle: "📄 Exekutives Kandidaten-Dossier",
+    langName: "Deutsch"
+  },
+  fr: {
+    title: "Claude Cert Quest",
+    sub: "Votre parcours vers les quatre certifications Anthropic",
+    level: "Niveau", streak: "Série", bookmarks: "Signets et Notes", search: "Rechercher",
+    startQuest: "Démarrer la quête →",
+    practiceBenchmark: "Indice de Pratique",
+    offlineReady: "● Prêt Hors-ligne",
+    cloudSyncTitle: "☁️ Synchronisation Cloud GitHub Gist",
+    dossierTitle: "📄 Dossier Exécutif du Candidat",
+    langName: "Français"
+  }
+};
+
+function t(key){
+  const lang = (S && S.lang) || "en";
+  const dict = I18N[lang] || I18N.en;
+  return dict[key] || I18N.en[key] || key;
+}
+
+function setLanguage(l){
+  if (I18N[l]) {
+    S.lang = l;
+    save();
+    award("polyglot_scholar");
+    renderHeader();
+    home();
+    toast("🌐 Language set to " + I18N[l].langName);
+  }
+}
+
+/* ================= 2. DAILY STUDY TARGET & GOAL TRACKER ================= */
+function checkDailyTargetProgress(){
+  const tKey = today();
+  S.dailyTarget = S.dailyTarget || { date: tKey, answered: 0, lessons: 0, cards: 0, claimed: false };
+  if (S.dailyTarget.date !== tKey) {
+    S.dailyTarget = { date: tKey, answered: 0, lessons: 0, cards: 0, claimed: false };
+    save();
+  }
+}
+
+function recordDailyAction(type){
+  checkDailyTargetProgress();
+  if (type === 'answer') S.dailyTarget.answered = (S.dailyTarget.answered || 0) + 1;
+  if (type === 'lesson') S.dailyTarget.lessons = (S.dailyTarget.lessons || 0) + 1;
+  if (type === 'card') S.dailyTarget.cards = (S.dailyTarget.cards || 0) + 1;
+  
+  if (!S.dailyTarget.claimed && S.dailyTarget.answered >= 10 && S.dailyTarget.lessons >= 1 && S.dailyTarget.cards >= 3) {
+    S.dailyTarget.claimed = true;
+    addXP(50, "Daily Study Goal Achieved");
+    award("daily_achiever");
+    confetti();
+    toast("🎯 Daily Study Goal Complete! +50 XP Bonus!");
+  }
+  save();
+}
+
+function renderDailyGoalWidget(){
+  checkDailyTargetProgress();
+  const dt = S.dailyTarget;
+  const ansPct = Math.min(100, Math.round((dt.answered / 10) * 100));
+  const lesPct = Math.min(100, Math.round((dt.lessons / 1) * 100));
+  const cardPct = Math.min(100, Math.round((dt.cards / 3) * 100));
+  const totalPct = Math.round((ansPct + lesPct + cardPct) / 3);
+  
+  return '<div style="background:var(--card); border:2px solid var(--border); border-radius:12px; padding:14px; margin-bottom:16px;">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">'
+    + '<div><b style="font-size:13.5px; color:var(--ink);">🎯 Daily Study Goal (' + totalPct + '% Complete)</b><span style="font-size:11.5px; color:var(--muted); display:block;">Complete daily targets to maintain your streak and earn +50 XP!</span></div>'
+    + '<span style="font-size:12px; font-weight:800; color:' + (dt.claimed ? 'var(--green)' : 'var(--coral)') + ';">' + (dt.claimed ? '✓ Goal Claimed (+50 XP)' : 'In Progress') + '</span>'
+    + '</div>'
+    + '<div class="pbar" style="height:8px; margin-bottom:10px;"><div style="width:' + totalPct + '%; background:' + (totalPct >= 100 ? 'var(--green)' : 'var(--coral)') + ';"></div></div>'
+    + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:8px; font-size:11.5px;">'
+    + '<div style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:6px 8px;">📝 Questions: <b>' + dt.answered + '/10</b></div>'
+    + '<div style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:6px 8px;">📖 Lessons: <b>' + dt.lessons + '/1</b></div>'
+    + '<div style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:6px 8px;">🃏 Cards: <b>' + dt.cards + '/3</b></div>'
+    + '</div>'
+    + '</div>';
+}
+
+/* ================= 3. GITHUB GIST CROSS-DEVICE CLOUD SYNC ================= */
+function gistSyncView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--blue); color:#fff;">Cloud Sync</span><h2 style="font-size:20px; margin-top:4px;">☁️ GitHub Gist Cross-Device Cloud Sync</h2></div>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Sync your XP, badges, notes, and test history across multiple devices (Desktop, Laptop, Mobile) using a private GitHub Gist.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card); margin-bottom:16px;">'
+    + '<div style="margin-bottom:12px;"><label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">GitHub Personal Access Token (PAT with "gist" scope):</label><input id="gistTokenInput" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" value="' + esc(S.gistToken || '') + '" style="width:100%; padding:8px; font-size:12.5px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink);"></div>'
+    + '<div style="margin-bottom:14px;"><label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Existing Gist ID (Optional, leave blank to auto-create):</label><input id="gistIdInput" type="text" placeholder="e.g. 7f8a19b2c3d4e5f6" value="' + esc(S.gistId || '') + '" style="width:100%; padding:8px; font-size:12.5px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink);"></div>'
+    + '<div style="display:flex; gap:10px; flex-wrap:wrap;">'
+    + '<button class="btn sm" onclick="syncUploadGist()">⬆️ Upload / Push to Cloud Gist</button>'
+    + '<button class="btn ghost sm" onclick="syncDownloadGist()">⬇️ Download / Pull from Cloud Gist</button>'
+    + '</div>'
+    + '<div id="gistStatusBox" style="margin-top:12px; font-size:12px;"></div>'
+    + '</div>'
+    + '<div style="font-size:11.5px; color:var(--muted); line-height:1.5;">'
+    + '🔒 <b>Privacy & Security Guarantee:</b> Your token is stored strictly in your browser localStorage and communicated directly to <code>https://api.github.com/gists</code>. No third-party server ever sees your token or data.'
+    + '</div>'
+    + '</div>';
+}
+
+async function syncUploadGist(){
+  const token = (document.getElementById("gistTokenInput")?.value || "").trim();
+  const gistId = (document.getElementById("gistIdInput")?.value || "").trim();
+  const sBox = document.getElementById("gistStatusBox");
+  
+  if (!token) {
+    alert("Please provide a GitHub Personal Access Token with gist permissions.");
+    return;
+  }
+  
+  S.gistToken = token;
+  if (gistId) S.gistId = gistId;
+  save();
+  
+  if (sBox) sBox.innerHTML = '<span style="color:var(--blue);">⏳ Uploading progress to GitHub Gist...</span>';
+  
+  try {
+    const payload = {
+      description: "Claude Cert Quest - Cross-Device Study Backup",
+      public: false,
+      files: {
+        "certquest-backup.json": {
+          content: JSON.stringify(S, null, 2)
+        }
+      }
+    };
+    
+    let res;
+    if (S.gistId) {
+      res = await fetch("https://api.github.com/gists/" + S.gistId, {
+        method: "PATCH",
+        headers: {
+          "Authorization": "token " + token,
+          "Accept": "application/vnd.github.v3+json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+    } else {
+      res = await fetch("https://api.github.com/gists", {
+        method: "POST",
+        headers: {
+          "Authorization": "token " + token,
+          "Accept": "application/vnd.github.v3+json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+    }
+    
+    if (!res.ok) throw new Error("GitHub API responded with HTTP " + res.status);
+    const data = await res.json();
+    S.gistId = data.id;
+    save();
+    
+    award("cloud_sync");
+    playSound('correct');
+    if (sBox) sBox.innerHTML = '<span style="color:var(--green); font-weight:700;">✓ Cloud Sync Successful! Gist ID: ' + data.id + '</span>';
+    toast("☁️ Progress synced to private GitHub Gist!");
+  } catch (err) {
+    if (sBox) sBox.innerHTML = '<span style="color:var(--coral); font-weight:700;">❌ Sync Failed: ' + esc(err.message) + '</span>';
+  }
+}
+
+async function syncDownloadGist(){
+  const token = (document.getElementById("gistTokenInput")?.value || "").trim();
+  const gistId = (document.getElementById("gistIdInput")?.value || "").trim();
+  const sBox = document.getElementById("gistStatusBox");
+  
+  if (!token || !gistId) {
+    alert("Please provide both your GitHub Token and Gist ID to restore.");
+    return;
+  }
+  
+  if (sBox) sBox.innerHTML = '<span style="color:var(--blue);">⏳ Fetching progress from GitHub Gist...</span>';
+  
+  try {
+    const res = await fetch("https://api.github.com/gists/" + gistId, {
+      headers: {
+        "Authorization": "token " + token,
+        "Accept": "application/vnd.github.v3+json"
+      }
+    });
+    
+    if (!res.ok) throw new Error("GitHub API responded with HTTP " + res.status);
+    const data = await res.json();
+    const content = data.files && data.files["certquest-backup.json"] && data.files["certquest-backup.json"].content;
+    
+    if (!content) throw new Error("Could not find certquest-backup.json in that Gist.");
+    
+    const parsed = JSON.parse(content);
+    S = migrate(parsed);
+    S.gistToken = token;
+    S.gistId = gistId;
+    save();
+    
+    award("cloud_sync");
+    playSound('badge');
+    if (sBox) sBox.innerHTML = '<span style="color:var(--green); font-weight:700;">✓ Progress restored from cloud!</span>';
+    toast("☁️ Cloud Progress Restored!");
+    renderHeader();
+  } catch (err) {
+    if (sBox) sBox.innerHTML = '<span style="color:var(--coral); font-weight:700;">❌ Restore Failed: ' + esc(err.message) + '</span>';
+  }
+}
+
+/* ================= 4. EXECUTIVE CANDIDATE READINESS DOSSIER ================= */
+function executiveDossierView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("executive_dossier");
+  
+  let trackCards = '';
+  CERTS.forEach(c => {
+    const rp = prepProgress(c);
+    const best = (S.mocks[c.id] || []).length ? Math.max(...S.mocks[c.id]) : 0;
+    
+    trackCards += '<div style="border:1px solid #ccc; border-radius:8px; padding:12px; margin-bottom:12px; break-inside:avoid; background:#fafafa;">'
+      + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">'
+      + '<b style="font-size:14px; color:' + c.color + ';">' + c.code + ' · ' + c.name + ' (' + c.sub + ')</b>'
+      + '<span style="font-size:12px; font-weight:800; color:' + (rp.score >= 70 ? '#2e7d32' : '#c62828') + ';">Prep Index: ' + rp.score + '%</span>'
+      + '</div>'
+      + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; font-size:11.5px;">'
+      + '<div>• Questions Seen: <b>' + (S.answered[c.id] ? Object.keys(S.answered[c.id]).length : 0) + '/' + c.questions.length + '</b></div>'
+      + '<div>• Best Mock Score: <b>' + (best ? best + '/1000' : 'None') + '</b></div>'
+      + '<div>• Lessons Completed: <b>' + ((S.lessonsRead[c.id]||[]).filter(Boolean).length) + '/' + c.lessons.length + '</b></div>'
+      + '<div>• Weakest Area: <b>' + rp.weakest.label + '</b></div>'
+      + '</div>'
+      + '</div>';
+  });
+  
+  const savedNotesCount = Object.keys(S.notes || {}).length;
+  const savedBookmarksCount = (S.bookmarks || []).length;
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">'
+    + '<div><span class="ltag" style="background:var(--purple); color:#fff;">Executive Portfolio</span><h2 style="font-size:20px; margin-top:4px;">📄 Executive Candidate Readiness Dossier</h2></div>'
+    + '<button class="btn sm" onclick="window.print()">🖨️ Print / Save as PDF</button>'
+    + '</div>'
+    + '<div id="dossierPrintFrame" style="background:#fff; color:#111; border:2px solid #ddd; border-radius:12px; padding:24px; font-family:sans-serif;">'
+    + '<div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid #222; padding-bottom:12px; margin-bottom:16px;">'
+    + '<div><h1 style="font-size:22px; margin:0; color:#111;">ANTHROPIC CERTIFICATION READINESS DOSSIER</h1><div style="font-size:12px; color:#555; margin-top:2px;">Comprehensive Candidate Assessment & Preparation Telemetry</div></div>'
+    + '<div style="text-align:right; font-size:11.5px; color:#555;"><b>Generated:</b> ' + today() + '<br><b>Candidate Level:</b> ' + level() + ' (' + S.xp + ' XP)</div>'
+    + '</div>'
+    + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:10px; margin-bottom:18px;">'
+    + '<div style="border:1px solid #ddd; padding:10px; border-radius:6px; text-align:center;"><div style="font-size:20px; font-weight:800; color:#d97757;">' + S.xp + '</div><div style="font-size:11px; color:#666;">Total Accumulated XP</div></div>'
+    + '<div style="border:1px solid #ddd; padding:10px; border-radius:6px; text-align:center;"><div style="font-size:20px; font-weight:800; color:#5a9e6f;">' + S.badges.length + ' / ' + BADGES.length + '</div><div style="font-size:11px; color:#666;">Badges Unlocked</div></div>'
+    + '<div style="border:1px solid #ddd; padding:10px; border-radius:6px; text-align:center;"><div style="font-size:20px; font-weight:800; color:#5b7fa6;">' + dayStreak() + ' Days</div><div style="font-size:11px; color:#666;">Study Streak</div></div>'
+    + '<div style="border:1px solid #ddd; padding:10px; border-radius:6px; text-align:center;"><div style="font-size:20px; font-weight:800; color:#8a6fae;">' + (savedNotesCount + savedBookmarksCount) + '</div><div style="font-size:11px; color:#666;">Notes & Bookmarks</div></div>'
+    + '</div>'
+    + '<h3 style="font-size:15px; margin-bottom:8px; border-bottom:1px solid #eee; padding-bottom:4px;">Track-by-Track Examination Readiness</h3>'
+    + trackCards
+    + '<div style="margin-top:16px; font-size:11px; color:#777; border-top:1px solid #eee; padding-top:8px; text-align:center;">'
+    + 'Verified Study Companion Report · Generated on Claude Cert Quest Platform'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+
+function openLanguageModal(){
+  const existing = document.getElementById("langModal");
+  if (existing) { existing.remove(); return; }
+  
+  const modal = document.createElement("div");
+  modal.id = "langModal";
+  modal.className = "modal-overlay";
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width:400px; background:var(--card); border:2px solid var(--border); border-radius:14px; padding:20px; box-shadow:0 12px 36px rgba(0,0,0,0.4);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 style="font-size:17px; margin:0;">🌐 Select Language</h3>
+        <button class="btn ghost sm" onclick="document.getElementById('langModal').remove()" style="padding:2px 8px;">✕</button>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        ${Object.keys(I18N).map(k => `
+          <button class="opt ${S.lang===k?'correct':''}" onclick="setLanguage('${k}'); document.getElementById('langModal').remove();" style="padding:10px 14px; text-align:left; font-size:13.5px;">
+            <b>${I18N[k].langName}</b> (${k.toUpperCase()})
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
 }
 
 /* ================= LESSON WIDGETS ================= */

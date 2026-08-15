@@ -739,6 +739,23 @@ vm.createContext(sandbox);
   call("peerBenchmarkView");
   check(/Global Candidate Benchmark/.test(els.app.innerHTML) && /svg/.test(els.app.innerHTML), "peerBenchmarkView renders Gaussian Bell curve");
 
+  /* ---------- 26. Enterprise Systems & Cross-Device Cloud Sync ---------- */
+  call("openLanguageModal");
+  check(true, "openLanguageModal executes without throwing");
+
+  call("setLanguage", "es");
+  call("setLanguage", "en");
+  check(true, "setLanguage updates language state without throwing");
+
+  call("gistSyncView");
+  check(/GitHub Gist/.test(els.app.innerHTML) && /gistTokenInput/.test(els.app.innerHTML), "gistSyncView renders cross-device cloud sync panel");
+
+  call("executiveDossierView");
+  check(/ANTHROPIC CERTIFICATION READINESS DOSSIER/.test(els.app.innerHTML), "executiveDossierView renders candidate portfolio dossier");
+
+  call("recordDailyAction", "answer");
+  check(true, "recordDailyAction updates daily study target without throwing");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
