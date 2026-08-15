@@ -791,6 +791,29 @@ vm.createContext(sandbox);
   call("downloadOfflineBundle");
   check(true, "downloadOfflineBundle executes without throwing");
 
+  /* ---------- 29. Olympus Suite: Identity, P2P Battle & Advanced Diagnostics ---------- */
+  call("openProfileModal");
+  check(true, "openProfileModal executes without throwing");
+
+  call("selectProfileAvatar", "🧙‍♂️");
+  call("saveCandidateProfile");
+  check(true, "saveCandidateProfile persists identity without throwing");
+
+  call("peerBattleView");
+  check(/Real-Time Peer Quiz Battle/.test(els.app.innerHTML) && /arenaTrackSelect/.test(els.app.innerHTML), "peerBattleView renders 1v1 battle arena");
+
+  call("customExamBuilder");
+  check(/Custom Exam Blueprint Builder/.test(els.app.innerHTML) && /cbTrackSelect/.test(els.app.innerHTML), "customExamBuilder renders blueprint configurator");
+
+  call("statisticalPassPredictor");
+  check(/95% Pass Confidence Interval Model/.test(els.app.innerHTML), "statisticalPassPredictor renders confidence band metrics");
+
+  call("mobileExportView");
+  check(/Native Mobile App Packaging Guide/.test(els.app.innerHTML), "mobileExportView renders mobile deployment guide");
+
+  call("downloadCapacitorConfig");
+  check(true, "downloadCapacitorConfig executes without throwing");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();

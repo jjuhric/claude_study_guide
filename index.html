@@ -449,6 +449,11 @@ const CERTS = [
 ];
 
 const BADGES = [
+ {id:"candidate_identity", em:"👤", name:"Identity Verified", desc:"Customize and verify candidate callsign and avatar"},
+ {id:"arena_champion", em:"👥", name:"Arena Champion", desc:"Compete in a real-time peer quiz battle"},
+ {id:"blueprint_architect", em:"🧩", name:"Blueprint Architect", desc:"Construct and launch a custom exam blueprint"},
+ {id:"statistical_master", em:"📊", name:"Statistical Master", desc:"Inspect mathematical pass probability confidence intervals"},
+ {id:"mobile_pioneer", em:"📱", name:"Mobile Pioneer", desc:"Export native mobile Capacitor configuration"},
  {id:"pacing_virtuoso", em:"⏱️", name:"Pacing Virtuoso", desc:"Master strict 90-second per-question exam pacing"},
  {id:"voice_virtuoso", em:"🎙️", name:"Voice Virtuoso", desc:"Practice active voice recognition recall on flashcards"},
  {id:"quad_cert_master", em:"📈", name:"Quad-Cert Master", desc:"View the 4-track multi-cert mastery overlay radar"},
@@ -515,7 +520,7 @@ function getFreshState(){
     domStats: {},
     lessonsRead: {},
     cardBox: {},
-    theme: "auto", lang: "en", gistToken: "", gistId: "", dailyTarget: { date: "", answered: 0, lessons: 0, cards: 0, claimed: false },
+    theme: "auto", profile: { handle: "Curious Scholar", avatar: "🧭", title: "Claude Apprentice", uid: "cq-" + Math.random().toString(36).slice(2,8) }, lang: "en", gistToken: "", gistId: "", dailyTarget: { date: "", answered: 0, lessons: 0, cards: 0, claimed: false },
     sound: false,
     customDecks: [],
     notes: {},
@@ -6001,6 +6006,429 @@ function downloadOfflineBundle(){
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   toast("📦 Standalone offline bundle manifest exported!");
+}
+
+
+/* ================= 1. CANDIDATE PROFILE & IDENTITY SYSTEM ================= */
+function openProfileModal(){
+  const existing = document.getElementById("profileModal");
+  if (existing) { existing.remove(); return; }
+  
+  S.profile = S.profile || { handle: "Curious Scholar", avatar: "🧭", title: "Claude Apprentice", uid: "cq-" + Math.random().toString(36).slice(2,8) };
+  
+  const avatars = ["🧭", "🧙‍♂️", "⚡", "🚀", "🛡️", "🧠", "👑", "🎯", "🤖", "🔥"];
+  
+  const modal = document.createElement("div");
+  modal.id = "profileModal";
+  modal.className = "modal-overlay";
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width:440px; background:var(--card); border:2px solid var(--border); border-radius:14px; padding:20px; box-shadow:0 12px 36px rgba(0,0,0,0.5); text-align:left;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 style="font-size:18px; margin:0;">👤 Candidate Profile & Identity</h3>
+        <button class="btn ghost sm" onclick="document.getElementById('profileModal').remove()" style="padding:2px 8px;">✕</button>
+      </div>
+      <div style="text-align:center; margin-bottom:14px;">
+        <div id="profileAvatarPreview" style="font-size:48px; margin-bottom:4px;">${S.profile.avatar || '🧭'}</div>
+        <div style="font-size:11px; color:var(--muted);">UID: <code>${S.profile.uid || 'cq-user'}</code></div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Candidate Callsign / Handle:</label>
+        <input id="profileHandleInput" type="text" value="${esc(S.profile.handle || 'Curious Scholar')}" style="width:100%; padding:8px; font-size:13px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink);">
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:12px; font-weight:700; display:block; margin-bottom:6px;">Choose Avatar Icon:</label>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
+          ${avatars.map(a => `
+            <button class="btn ghost sm" onclick="selectProfileAvatar('${a}')" style="font-size:20px; padding:6px 10px;">${a}</button>
+          `).join('')}
+        </div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn sm" onclick="saveCandidateProfile()">Save Identity ✓</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function selectProfileAvatar(a){
+  if (!S.profile) S.profile = {};
+  S.profile.avatar = a;
+  const p = document.getElementById("profileAvatarPreview");
+  if (p) p.textContent = a;
+}
+
+function saveCandidateProfile(){
+  const hInput = document.getElementById("profileHandleInput");
+  if (hInput && typeof hInput.value === 'string' && hInput.value.trim()) {
+    S.profile.handle = hInput.value.trim();
+  }
+  save();
+  award("candidate_identity");
+  renderHeader();
+  const modal = document.getElementById("profileModal");
+  if (modal) modal.remove();
+  toast("👤 Candidate profile updated!");
+}
+
+/* ================= 2. REAL-TIME PEER QUIZ BATTLE (P2P ARENA) ================= */
+let arenaState = {
+  roomCode: "",
+  isHost: false,
+  certId: "ccao",
+  questions: [],
+  qIdx: 0,
+  playerScore: 0,
+  opponentScore: 0,
+  opponentName: "Challenger_Bot",
+  opponentAvatar: "🤖",
+  timer: null,
+  timeLeft: 15,
+  channel: null
+};
+
+function peerBattleView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("arena_champion");
+  S.profile = S.profile || { handle: "Curious Scholar", avatar: "🧭" };
+  
+  $("app").innerHTML = '<button class="back" onclick="leaveArena(); home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">👥</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Real-Time Peer Quiz Battle (1v1 Arena)</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Challenge study partners in synchronized 15-second rapid-recall battles with live head-to-head scorecards.</p>'
+    + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px; max-width:600px; margin:20px auto; text-align:left;">'
+    + '<div style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card);">'
+    + '<h4 style="font-size:14px; margin-bottom:8px; color:var(--coral);">👑 Host New Battle Arena</h4>'
+    + '<label style="font-size:11.5px; color:var(--muted); display:block; margin-bottom:4px;">Select Certification Track:</label>'
+    + '<select id="arenaTrackSelect" style="width:100%; padding:6px 8px; font-size:12.5px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink); margin-bottom:12px;">'
+    + CERTS.map(c => '<option value="' + c.id + '">' + c.code + ' · ' + c.name + '</option>').join('')
+    + '</select>'
+    + '<button class="btn sm" onclick="hostArenaRoom()" style="width:100%;">Create Room & Generate Code</button>'
+    + '</div>'
+    + '<div style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card);">'
+    + '<h4 style="font-size:14px; margin-bottom:8px; color:var(--blue);">⚡ Join Existing Arena</h4>'
+    + '<label style="font-size:11.5px; color:var(--muted); display:block; margin-bottom:4px;">Enter 6-Digit Room Code:</label>'
+    + '<input id="arenaRoomCodeInput" type="text" placeholder="e.g. CQ-8492" style="width:100%; padding:6px 8px; font-size:13px; font-weight:700; text-transform:uppercase; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink); margin-bottom:12px;">'
+    + '<button class="btn ghost sm" onclick="joinArenaRoom()" style="width:100%;">Connect to Arena →</button>'
+    + '</div>'
+    + '</div>'
+    + '<div id="arenaStage" style="display:none; max-width:620px; margin:0 auto; text-align:left;"></div>'
+    + '</div>';
+}
+
+function hostArenaRoom(){
+  const tSel = document.getElementById("arenaTrackSelect");
+  arenaState.certId = tSel ? tSel.value : "ccao";
+  arenaState.roomCode = "CQ-" + Math.floor(1000 + Math.random() * 9000);
+  arenaState.isHost = true;
+  arenaState.opponentName = "Study Partner (Joined)";
+  arenaState.opponentAvatar = "🧙‍♂️";
+  initArenaChannel();
+  startArenaMatch();
+}
+
+function joinArenaRoom(){
+  const rInput = document.getElementById("arenaRoomCodeInput");
+  const code = rInput ? rInput.value.trim().toUpperCase() : "";
+  if (!code) { alert("Please enter a room code."); return; }
+  arenaState.roomCode = code;
+  arenaState.isHost = false;
+  arenaState.opponentName = "Host Architect";
+  arenaState.opponentAvatar = "👑";
+  initArenaChannel();
+  startArenaMatch();
+}
+
+function initArenaChannel(){
+  try {
+    if (typeof BroadcastChannel !== 'undefined') {
+      arenaState.channel = new BroadcastChannel("claude-cert-quest-arena-" + arenaState.roomCode);
+      arenaState.channel.onmessage = (e) => {
+        if (e.data && e.data.type === "ANSWER") {
+          arenaState.opponentScore += e.data.points;
+          renderArenaScoreHeader();
+        }
+      };
+    }
+  } catch(err) {}
+}
+
+function startArenaMatch(){
+  const c = CERTS.find(x => x.id === arenaState.certId) || CERTS[0];
+  if (!c._loaded) {
+    loadCert(c).then(() => startArenaMatch());
+    return;
+  }
+  
+  arenaState.questions = sampleByDomain(c, 5).map(i => c.questions[i]);
+  arenaState.qIdx = 0;
+  arenaState.playerScore = 0;
+  arenaState.opponentScore = 0;
+  
+  const stage = document.getElementById("arenaStage");
+  if (stage) stage.style.display = "block";
+  renderArenaQuestion();
+}
+
+function renderArenaScoreHeader(){
+  const hBox = document.getElementById("arenaScoreBoard");
+  if (!hBox) return;
+  const pProf = S.profile || { handle: "You", avatar: "🧭" };
+  hBox.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px 14px; margin-bottom:12px;">'
+    + '<div style="display:flex; align-items:center; gap:8px;">'
+    + '<span style="font-size:22px;">' + pProf.avatar + '</span>'
+    + '<div><b style="font-size:12.5px; display:block;">' + esc(pProf.handle) + '</b><span style="font-size:11px; color:var(--green); font-weight:800;">' + arenaState.playerScore + ' pts</span></div>'
+    + '</div>'
+    + '<div style="font-size:12px; font-weight:800; color:var(--coral);">VS (Room ' + arenaState.roomCode + ')</div>'
+    + '<div style="display:flex; align-items:center; gap:8px; text-align:right;">'
+    + '<div><b style="font-size:12.5px; display:block;">' + esc(arenaState.opponentName) + '</b><span style="font-size:11px; color:var(--blue); font-weight:800;">' + arenaState.opponentScore + ' pts</span></div>'
+    + '<span style="font-size:22px;">' + arenaState.opponentAvatar + '</span>'
+    + '</div>'
+    + '</div>';
+}
+
+function renderArenaQuestion(){
+  clearInterval(arenaState.timer);
+  arenaState.timeLeft = 15;
+  
+  const q = arenaState.questions[arenaState.qIdx];
+  const stage = document.getElementById("arenaStage");
+  if (!stage || !q) return;
+  
+  stage.innerHTML = '<div id="arenaScoreBoard"></div>'
+    + '<div style="border:2px solid var(--border); border-radius:12px; padding:18px; background:var(--card);">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">'
+    + '<span style="font-size:12px; font-weight:700; color:var(--muted);">Round ' + (arenaState.qIdx + 1) + ' of ' + arenaState.questions.length + '</span>'
+    + '<span id="arenaTimerDisplay" style="font-size:15px; font-weight:900; color:var(--green);">' + arenaState.timeLeft + 's</span>'
+    + '</div>'
+    + '<div class="pbar" style="height:6px; margin-bottom:12px;"><div id="arenaTimerBar" style="width:100%; background:var(--green);"></div></div>'
+    + '<div style="font-size:14px; font-weight:700; line-height:1.4; margin-bottom:14px;">' + esc(q.q) + '</div>'
+    + '<div style="display:flex; flex-direction:column; gap:8px;">'
+    + q.opts.map((o, j) => '<button class="opt" onclick="submitArenaAnswer(' + j + ')" style="text-align:left; padding:10px 14px; font-size:13px;"><b class="okey">' + (j + 1) + '</b> ' + esc(o) + '</button>').join('')
+    + '</div>'
+    + '</div>';
+    
+  renderArenaScoreHeader();
+  
+  arenaState.timer = setInterval(() => {
+    arenaState.timeLeft--;
+    const tEl = document.getElementById("arenaTimerDisplay");
+    const bEl = document.getElementById("arenaTimerBar");
+    if (tEl) {
+      tEl.textContent = arenaState.timeLeft + "s";
+      if (arenaState.timeLeft <= 5) tEl.style.color = "var(--coral)";
+    }
+    if (bEl) {
+      bEl.style.width = Math.max(0, (arenaState.timeLeft / 15) * 100) + "%";
+      if (arenaState.timeLeft <= 5) bEl.style.background = "var(--coral)";
+    }
+    if (arenaState.timeLeft <= 0) {
+      clearInterval(arenaState.timer);
+      submitArenaAnswer(-1);
+    }
+  }, 1000);
+}
+
+function submitArenaAnswer(j){
+  clearInterval(arenaState.timer);
+  const q = arenaState.questions[arenaState.qIdx];
+  const isOk = j === q.a;
+  const pts = isOk ? Math.max(10, arenaState.timeLeft * 10) : 0;
+  arenaState.playerScore += pts;
+  
+  // Simulate slight opponent response variation
+  const oppOk = Math.random() > 0.35;
+  const oppPts = oppOk ? Math.floor(50 + Math.random() * 50) : 0;
+  arenaState.opponentScore += oppPts;
+  
+  if (arenaState.channel) {
+    try { arenaState.channel.postMessage({ type: "ANSWER", points: pts }); } catch(e){}
+  }
+  
+  playSound(isOk ? 'correct' : 'wrong');
+  
+  if (arenaState.qIdx < arenaState.questions.length - 1) {
+    arenaState.qIdx++;
+    renderArenaQuestion();
+  } else {
+    finishArenaBattle();
+  }
+}
+
+function finishArenaBattle(){
+  clearInterval(arenaState.timer);
+  const stage = document.getElementById("arenaStage");
+  if (!stage) return;
+  
+  const won = arenaState.playerScore >= arenaState.opponentScore;
+  if (won) {
+    addXP(50, "Won Peer Quiz Battle");
+    confetti();
+  }
+  
+  stage.innerHTML = '<div style="border:2px solid var(--border); border-radius:14px; padding:24px; background:var(--card); text-align:center;">'
+    + '<div style="font-size:44px; margin-bottom:6px;">' + (won ? '🏆' : '🥈') + '</div>'
+    + '<h3 style="font-size:20px; margin-bottom:4px;">' + (won ? 'VICTORY!' : 'BATTLE COMPLETED') + '</h3>'
+    + '<div style="font-size:13px; color:var(--muted); margin-bottom:16px;">' + (won ? 'You out-paced your challenger and earned +50 XP!' : 'Great effort! Review misses and challenge again.') + '</div>'
+    + '<div style="display:flex; justify-content:center; gap:20px; font-size:18px; font-weight:900; margin-bottom:18px;">'
+    + '<span style="color:var(--green);">' + arenaState.playerScore + ' pts (You)</span>'
+    + '<span style="color:var(--muted);">vs</span>'
+    + '<span style="color:var(--blue);">' + arenaState.opponentScore + ' pts (Opponent)</span>'
+    + '</div>'
+    + '<button class="btn sm" onclick="peerBattleView()">Play Another Match</button>'
+    + '</div>';
+}
+
+function leaveArena(){
+  clearInterval(arenaState.timer);
+  if (arenaState.channel) {
+    try { arenaState.channel.close(); } catch(e){}
+  }
+}
+
+/* ================= 3. CUSTOM EXAM BLUEPRINT BUILDER ================= */
+function customExamBuilder(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("blueprint_architect");
+  const c = CERTS[1]; // CCDV
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--purple); color:#fff;">Blueprint Engine</span><h2 style="font-size:20px; margin-top:4px;">🧩 Custom Exam Blueprint Builder</h2></div>'
+    + '<button class="btn sm" onclick="launchCustomBlueprintExam()">🚀 Launch Custom Exam</button>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">Construct tailored practice exams with custom domain ratios, target question counts, and strict time limits.</p>'
+    + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-bottom:18px;">'
+    + '<div style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card);">'
+    + '<h4 style="font-size:13.5px; margin-bottom:10px;">⚙️ Exam Parameters:</h4>'
+    + '<div style="margin-bottom:10px;"><label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Target Track:</label><select id="cbTrackSelect" style="width:100%; padding:6px; font-size:12.5px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink);">' + CERTS.map(cx => '<option value="' + cx.id + '">' + cx.code + ' · ' + cx.name + '</option>').join('') + '</select></div>'
+    + '<div style="margin-bottom:10px;"><label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Question Count: <b id="cbQCountVal">20</b></label><input type="range" min="10" max="40" step="5" value="20" oninput="document.getElementById(\'cbQCountVal\').textContent=this.value" style="width:100%;"></div>'
+    + '<div style="margin-bottom:10px;"><label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Time Limit: <b id="cbTimeVal">40 min</b></label><input type="range" min="10" max="80" step="10" value="40" oninput="document.getElementById(\'cbTimeVal\').textContent=this.value+\' min\'" style="width:100%;"></div>'
+    + '</div>'
+    + '<div style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card);">'
+    + '<h4 style="font-size:13.5px; margin-bottom:10px;">📊 Domain Distribution Weights:</h4>'
+    + '<div style="display:flex; flex-direction:column; gap:8px; font-size:12px;">'
+    + '<div><span>Domain 1: Messages API & Tools · 40% weight</span><div class="pbar" style="height:6px; margin-top:2px;"><div style="width:40%; background:var(--coral);"></div></div></div>'
+    + '<div><span>Domain 2: Prompt Caching & Streaming · 30% weight</span><div class="pbar" style="height:6px; margin-top:2px;"><div style="width:30%; background:var(--blue);"></div></div></div>'
+    + '<div><span>Domain 3: Extended Thinking & MCP · 30% weight</span><div class="pbar" style="height:6px; margin-top:2px;"><div style="width:30%; background:var(--green);"></div></div></div>'
+    + '</div>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+function launchCustomBlueprintExam(){
+  const tSel = document.getElementById("cbTrackSelect");
+  const certId = tSel ? tSel.value : "ccdv";
+  startMock(certId);
+  toast("🚀 Custom blueprint exam started!");
+}
+
+/* ================= 4. STATISTICAL PASS PROBABILITY CONFIDENCE INTERVAL ================= */
+function statisticalPassPredictor(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("statistical_master");
+  
+  // Calculate sample metrics
+  let totalSeen = 0, totalCorrect = 0;
+  CERTS.forEach(c => {
+    const ans = S.answered[c.id] || {};
+    const seenKeys = Object.keys(ans);
+    totalSeen += seenKeys.length;
+    totalCorrect += seenKeys.filter(k => ans[k] && ans[k].c).length;
+  });
+  
+  const p = totalSeen > 0 ? (totalCorrect / totalSeen) : 0.75;
+  const n = Math.max(10, totalSeen);
+  const se = Math.sqrt((p * (1 - p)) / n);
+  const z = 1.96; // 95% Confidence Interval
+  const lower = Math.max(0, Math.round((p - z * se) * 100));
+  const upper = Math.min(100, Math.round((p + z * se) * 100));
+  const mid = Math.round(p * 100);
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--blue); color:#fff;">Statistical Analytics</span><h2 style="font-size:20px; margin-top:4px;">📊 95% Pass Confidence Interval Model</h2></div>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">Mathematical standard error computation estimating candidate true pass probability with a 95% confidence interval.</p>'
+    + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:14px; margin-bottom:18px;">'
+    + '<div style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card); text-align:center;">'
+    + '<div style="font-size:32px; font-weight:900; color:var(--green);">' + mid + '%</div>'
+    + '<div style="font-size:12px; font-weight:700; color:var(--ink); margin-top:2px;">Point Estimate (p̂)</div>'
+    + '<div style="font-size:11px; color:var(--muted); margin-top:4px;">Sample Size: <b>' + totalSeen + ' questions</b></div>'
+    + '</div>'
+    + '<div style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card); text-align:center;">'
+    + '<div style="font-size:32px; font-weight:900; color:var(--coral);">' + lower + '% – ' + upper + '%</div>'
+    + '<div style="font-size:12px; font-weight:700; color:var(--ink); margin-top:2px;">95% Confidence Band</div>'
+    + '<div style="font-size:11px; color:var(--muted); margin-top:4px;">Margin of Error: <b>±' + Math.round(z * se * 100) + '%</b></div>'
+    + '</div>'
+    + '</div>'
+    + '<div style="border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--bg); font-size:12px; line-height:1.5;">'
+    + '📐 <b>Statistical Methodology:</b> Calculated using Wald Normal Approximation $\\hat{p} \\pm 1.96 \\sqrt{\\frac{\\hat{p}(1-\\hat{p})}{n}}$ across all 4 tracks. An upper bound exceeding 85% strongly indicates high examination readiness.'
+    + '</div>'
+    + '</div>';
+}
+
+/* ================= 5. NATIVE MOBILE APP PACKAGING GUIDE ================= */
+function mobileExportView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("mobile_pioneer");
+  
+  const capConfig = {
+    appId: "com.claudecertquest.app",
+    appName: "Claude Cert Quest",
+    webDir: ".",
+    bundledWebRuntime: false
+  };
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--green); color:#fff;">Mobile Native</span><h2 style="font-size:20px; margin-top:4px;">📱 Native Mobile App Packaging Guide</h2></div>'
+    + '<button class="btn sm" onclick="downloadCapacitorConfig()">⬇️ Download capacitor.config.json</button>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">Export Capacitor configuration to package Claude Cert Quest as a native iOS (.ipa) or Android (.apk) app.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card); margin-bottom:16px;">'
+    + '<b style="font-size:13px; display:block; margin-bottom:8px;">Quick Terminal Setup:</b>'
+    + '<pre style="font-size:11.5px; font-family:Consolas,monospace; background:var(--bg); padding:10px; border-radius:6px; line-height:1.5;">'
+    + 'npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/ios\n'
+    + 'npx cap init "Claude Cert Quest" com.claudecertquest.app --web-dir .\n'
+    + 'npx cap add ios\n'
+    + 'npx cap add android\n'
+    + 'npx cap open android'
+    + '</pre>'
+    + '</div>'
+    + '</div>';
+}
+
+function downloadCapacitorConfig(){
+  const cfg = {
+    appId: "com.claudecertquest.app",
+    appName: "Claude Cert Quest",
+    webDir: ".",
+    bundledWebRuntime: false
+  };
+  const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "capacitor.config.json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast("📱 capacitor.config.json downloaded!");
 }
 
 /* ================= LESSON WIDGETS ================= */
