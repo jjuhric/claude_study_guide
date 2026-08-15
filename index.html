@@ -482,16 +482,83 @@ const store = {
   get(){ try{ return JSON.parse(localStorage.getItem("certquest")||"null"); }catch(e){ return mem.d||null; } },
   set(d){ try{ localStorage.setItem("certquest", JSON.stringify(d)); }catch(e){ mem.d=d; } }
 };
+function getFreshState(){
+  return {
+    v: 1,
+    xp: 0,
+    badges: [],
+    seenCerts: [],
+    answered: {},
+    cardsSeen: 0,
+    days: [],
+    mocks: {},
+    domStats: {},
+    lessonsRead: {},
+    cardBox: {},
+    theme: "auto",
+    sound: false,
+    customDecks: [],
+    notes: {},
+    bookmarks: [],
+    customCards: {},
+    studyPlan: null,
+    speedRunScores: {},
+    fontMode: "default",
+    contrastMode: "default"
+  };
+}
 const S_DEFAULTS = {
   studyPlan: null,
   speedRunScores: {},
   fontMode: "default",
   contrastMode: "default",
-  customCards: {},v:1, xp:0, badges:[], seenCerts:[], answered:{}, cardsSeen:0, days:[], mocks:{}, domStats:{}, lessonsRead:{}, cardBox:{}, theme:"auto", sound:false, customDecks:[], notes:{}, bookmarks:[]};
+  customCards: {},
+  v: 1,
+  xp: 0,
+  badges: [],
+  seenCerts: [],
+  answered: {},
+  cardsSeen: 0,
+  days: [],
+  mocks: {},
+  domStats: {},
+  lessonsRead: {},
+  cardBox: {},
+  theme: "auto",
+  sound: false,
+  customDecks: [],
+  notes: {},
+  bookmarks: []
+};
+function getFreshState(){
+  return {
+    studyPlan: null,
+    speedRunScores: {},
+    fontMode: "default",
+    contrastMode: "default",
+    customCards: {},
+    v: 1,
+    xp: 0,
+    badges: [],
+    seenCerts: [],
+    answered: {},
+    cardsSeen: 0,
+    days: [],
+    mocks: {},
+    domStats: {},
+    lessonsRead: {},
+    cardBox: {},
+    theme: "auto",
+    sound: false,
+    customDecks: [],
+    notes: {},
+    bookmarks: []
+  };
+}
 /* Repair any saved field with a missing or wrong-shaped value, so older or partial
    saves can't throw (badges/answered) or silently go NaN (xp/cardsSeen). */
 function migrate(raw){
-  const s = Object.assign({}, S_DEFAULTS, raw||{});
+  const s = Object.assign(getFreshState(), raw||{});
   for(const k of Object.keys(S_DEFAULTS)){
     const def = S_DEFAULTS[k];
     let ok;
@@ -501,7 +568,7 @@ function migrate(raw){
     else ok = typeof s[k] === typeof def;
     if(!ok) s[k] = Array.isArray(def) ? [] : (typeof def === "object" ? {} : def);
   }
-  s.v = S_DEFAULTS.v;
+  s.v = 1;
   return s;
 }
 let S = migrate(store.get());
@@ -523,76 +590,110 @@ function cycleTheme(){
 /* ================= AUDIO SYNTHESIZER (Web Audio API) ================= */
 let audioCtx = null;
 function getAudioContext(){
-  if(!audioCtx){
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if(AudioContext) audioCtx = new AudioContext();
+  if (!audioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) {
+      audioCtx = new AudioContextClass();
+    }
   }
-  if(audioCtx && audioCtx.state === 'suspended'){
+  if (audioCtx && audioCtx.state === 'suspended') {
     audioCtx.resume();
   }
   return audioCtx;
 }
+
+// Global unlock on first user gesture
+if (typeof window !== 'undefined') {
+  const unlockAudio = () => {
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  };
+  window.addEventListener('click', unlockAudio, { once: true });
+  window.addEventListener('keydown', unlockAudio, { once: true });
+}
+
 function playSound(type){
-  if(!S.sound) return;
+  if (!S.sound) return;
   try {
     const ctx = getAudioContext();
-    if(!ctx) return;
+    if (!ctx) return;
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
     const now = ctx.currentTime;
 
-    if(type === 'correct'){
+    if (type === 'correct') {
+      [523.25, 659.25, 783.99].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + i * 0.07);
+        gain.gain.setValueAtTime(0.18, now + i * 0.07);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.07 + 0.2);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(now + i * 0.07); osc.stop(now + i * 0.07 + 0.2);
+      });
+    } else if (type === 'wrong') {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(180, now);
+      osc.frequency.exponentialRampToValueAtTime(110, now + 0.22);
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
       osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(now); osc.stop(now + 0.22);
+    } else if (type === 'flip') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(523.25, now);
-      osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.12);
-      gain.gain.setValueAtTime(0.15, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-      osc.start(now); osc.stop(now + 0.3);
-    } else if(type === 'wrong'){
+      osc.frequency.setValueAtTime(400, now);
+      osc.frequency.exponentialRampToValueAtTime(700, now + 0.08);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(now); osc.stop(now + 0.09);
+    } else if (type === 'click') {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(220, now);
-      osc.frequency.exponentialRampToValueAtTime(140, now + 0.2);
-      gain.gain.setValueAtTime(0.2, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-      osc.start(now); osc.stop(now + 0.3);
-    } else if(type === 'flip'){
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(300, now);
-      osc.frequency.exponentialRampToValueAtTime(450, now + 0.08);
+      osc.frequency.setValueAtTime(880, now);
       gain.gain.setValueAtTime(0.08, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-      osc.start(now); osc.stop(now + 0.1);
-    } else if(type === 'level' || type === 'badge'){
-      const freqs = [523.25, 659.25, 783.99, 1046.50];
-      freqs.forEach((f, idx) => {
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(now); osc.stop(now + 0.04);
+    } else if (type === 'level' || type === 'badge') {
+      const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+      notes.forEach((f, idx) => {
         const o = ctx.createOscillator();
         const g = ctx.createGain();
-        o.type = 'sine';
+        o.type = 'triangle';
         o.frequency.setValueAtTime(f, now + idx * 0.08);
-        g.gain.setValueAtTime(0.15, now + idx * 0.08);
-        g.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.08 + 0.25);
+        g.gain.setValueAtTime(0.2, now + idx * 0.08);
+        g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.35);
         o.connect(g); g.connect(ctx.destination);
-        o.start(now + idx * 0.08); o.stop(now + idx * 0.08 + 0.25);
+        o.start(now + idx * 0.08); o.stop(now + idx * 0.08 + 0.35);
       });
     }
-  } catch(e){}
+  } catch (e) {
+    console.log("Web Audio notice:", e);
+  }
 }
+
 function toggleSound(){
+  const ctx = getAudioContext();
+  if (ctx && ctx.state === 'suspended') {
+    ctx.resume();
+  }
   S.sound = !S.sound;
   save();
   renderHeader();
-  if(S.sound){
-    playSound('correct');
-    toast("Sound: Enabled 🔊");
+  if (S.sound) {
+    setTimeout(() => playSound('level'), 50);
+    toast("🔊 Sound Enabled!");
   } else {
-    toast("Sound: Muted 🔇");
+    toast("🔇 Sound Muted");
   }
 }
 
@@ -991,6 +1092,7 @@ function renderHeader(){
    +'<div class="stat"><div class="v">'+S.xp+'</div><div class="l">XP</div></div>'
    +'<div class="stat"><div class="v">'+dayStreak()+'🔥</div><div class="l">Day streak</div></div>'
    +'<span id="pwaStatusBadge" style="font-size:11px; font-weight:700; padding:3px 7px; border-radius:6px; background:rgba(90,158,111,0.15); color:var(--green);" title="PWA Service Worker Offline Ready">● Offline Ready</span>'
+   +'<button class="themebtn" onclick="bookmarksView()" title="View Bookmarks & Notes" aria-label="Bookmarks">📌</button>'
    +'<button class="themebtn" onclick="openSearchModal()" title="Search study material (Ctrl+K)" aria-label="Search study material">🔍 Search</button>'
    +'<button class="themebtn" onclick="toggleSound()" title="Toggle sound ('+(S.sound?'On':'Muted')+')" aria-label="Toggle sound">'
    +(S.sound?'🔊':'🔇')+'</button>'
@@ -1041,7 +1143,17 @@ function home(){
   $("app").innerHTML=h;
 }
 function resetConfirm(){
-  if(confirm("Reset all XP, badges, and progress?")){ S=migrate(null); S.days=[new Date().toISOString().slice(0,10)]; save(); home(); toast("Progress reset"); }
+  if(confirm("⚠️ Reset ALL XP, badges, analytics, test history, bookmarks, and progress?\n\nThis will restore the app to brand-new condition.")){
+    try { localStorage.removeItem("certquest"); } catch(e){}
+    mem = {};
+    S = getFreshState();
+    S.days = [new Date().toISOString().slice(0,10)];
+    save();
+    applyTheme();
+    home();
+    playSound('badge');
+    toast("✨ All progress, badges, analytics, and history have been reset!");
+  }
 }
 function badgesView(){
   renderHeader();
@@ -1643,23 +1755,30 @@ function saveLessonNote(id, i, txt){
   }
 }
 
-function notesView(){
+/* ================= DEDICATED BOOKMARKS & NOTES HUB ================= */
+function bookmarksView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
   renderHeader();
-  let list = '';
+  
+  CERTS.forEach(c => { if (!c._loaded) loadCert(c); });
+  
   const notes = S.notes || {};
   const bms = S.bookmarks || [];
-  
   const allKeys = Array.from(new Set([...Object.keys(notes), ...bms]));
   
   if (!allKeys.length) {
     $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
-      + '<div class="panel center"><div style="font-size:38px;">📝</div>'
-      + '<h2 style="font-size:19px; margin-top:8px;">No Study Notes or Bookmarks Yet</h2>'
-      + '<p class="subtext" style="margin-top:6px;">While reading any lesson, click <b>🔖 Bookmark</b> or <b>📝 Study Note</b> to save takeaways here.</p>'
-      + '<div class="rowbtns" style="justify-content:center; margin-top:14px;"><button class="btn" onclick="home()">Browse Certifications</button></div></div>';
+      + '<div class="panel center"><div style="font-size:38px;">📌</div>'
+      + '<h2 style="font-size:20px; margin-top:8px;">No Study Notes or Bookmarks Yet</h2>'
+      + '<p class="subtext" style="margin-top:6px;">While reading any study guide lesson, click <b>🔖 Bookmark</b> or <b>📝 Study Note</b> to save takeaways here for rapid pre-exam review.</p>'
+      + '<div class="rowbtns" style="justify-content:center; margin-top:16px;">'
+      + '<button class="btn" onclick="learnList(\'ccao\')">📖 Open Associate Lessons</button>'
+      + '<button class="btn ghost" onclick="home()">Back to Home</button>'
+      + '</div></div>';
     return;
   }
   
+  let list = '';
   allKeys.forEach(k => {
     const parts = k.split("_l_");
     const certId = parts[0];
@@ -1667,26 +1786,44 @@ function notesView(){
     const c = CERTS.find(x => x.id === certId);
     if (!c) return;
     const les = c.lessons && c.lessons[lidx];
-    const title = les ? les.h : ('Lesson ' + lidx);
+    const title = les ? les.h : ('Lesson ' + (lidx + 1));
     const noteTxt = notes[k] || '';
     const isBm = bms.includes(k);
     
-    list += '<div class="panel" style="margin-bottom:14px;">'
-      + '<div style="display:flex; justify-content:space-between; align-items:center;">'
-      + '<div><span class="ltag">' + c.code + ' · Lesson ' + lidx + '</span>'
-      + '<h3 style="font-size:15px; margin-top:4px;">' + esc(title) + '</h3></div>'
-      + '<div><button class="btn ghost sm" onclick="lessonView(\'' + certId + '\',' + lidx + ')">Open Lesson →</button></div>'
+    list += '<div class="panel" style="margin-bottom:14px; border:1px solid var(--border);">'
+      + '<div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">'
+      + '<div><span class="ltag" style="background:'+c.color+'; color:#fff;">' + c.code + ' · Lesson ' + (lidx + 1) + '</span>'
+      + '<h3 style="font-size:16px; margin-top:6px;">' + esc(title) + '</h3></div>'
+      + '<div style="display:flex; gap:6px;">'
+      + '<button class="btn sm" onclick="lessonView(\'' + certId + '\',' + lidx + ')">Open Lesson →</button>'
+      + '<button class="btn ghost sm" onclick="removeBookmark(\'' + k + '\')" title="Remove bookmark">🗑️</button>'
       + '</div>'
-      + (isBm ? '<div style="font-size:11.5px; color:var(--coral); font-weight:700; margin-top:6px;">📌 Bookmarked</div>' : '')
-      + (noteTxt ? '<div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px; margin-top:10px; font-size:13px; font-family:inherit;"><b>My Notes:</b><br>' + esc(noteTxt).replace(/\n/g, '<br>') + '</div>' : '')
+      + '</div>'
+      + (isBm ? '<div style="font-size:11.5px; color:var(--coral); font-weight:700; margin-top:6px;">📌 Bookmarked for Review</div>' : '')
+      + (noteTxt ? '<div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px; margin-top:10px; font-size:13px; line-height:1.5;"><b>📝 My Study Takeaways:</b><br>' + esc(noteTxt).replace(/\n/g, '<br>') + '</div>' : '')
       + '</div>';
   });
   
   $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
-    + '<div class="panel"><h2 style="font-size:19px; margin-bottom:6px;">📝 My Study Notes & Bookmarks</h2>'
-    + '<p class="subtext">Personal notes and bookmarked lessons stored locally.</p></div>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:6px;">'
+    + '<div><h2 style="font-size:20px;">📌 My Study Notes & Bookmarks (' + allKeys.length + ')</h2><p class="subtext">All bookmarked sections and personal lesson notes across all 4 certification tracks.</p></div>'
+    + '<button class="btn ghost sm" onclick="window.print()">🖨️ Print Notes</button>'
+    + '</div>'
+    + '</div>'
     + list;
 }
+
+function removeBookmark(key){
+  if (confirm("Remove this bookmark?")) {
+    S.bookmarks = (S.bookmarks || []).filter(k => k !== key);
+    if (S.notes && S.notes[key]) delete S.notes[key];
+    save();
+    toast("Bookmark removed");
+    bookmarksView();
+  }
+}
+function notesView(){ bookmarksView(); }
 
 /* ================= INTERACTIVE DECISION TREES ================= */
 function renderModelDecisionTree(){
