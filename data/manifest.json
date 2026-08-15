@@ -3,24 +3,24 @@
     "code": "CCAO-F",
     "questions": 100,
     "cards": 25,
-    "lessons": 8
+    "lessons": 12
   },
   "ccdv": {
     "code": "CCDV-F",
     "questions": 100,
     "cards": 25,
-    "lessons": 8
+    "lessons": 12
   },
   "ccaf": {
     "code": "CCAR-F",
     "questions": 100,
     "cards": 25,
-    "lessons": 6
+    "lessons": 10
   },
   "ccap": {
     "code": "CCAR-P",
     "questions": 100,
     "cards": 25,
-    "lessons": 6
+    "lessons": 10
   }
 }

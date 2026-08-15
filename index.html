@@ -239,6 +239,8 @@
   .lesson-toc span{font-size:10.5px; background:var(--border); color:var(--muted); padding:3px 9px; border-radius:7px;}
   .lesson-row.found{border-color:var(--gold); background:rgba(232,180,72,.06);}
   .lesson-row.found .lchk{background:var(--gold); color:#fff;}
+  .lesson-row.masterclass-row{border-color:var(--coral); background:rgba(217,119,87,.05);}
+  .lesson-row.masterclass-row .lchk{background:var(--coral); color:#fff;}
   .vbox{border-left:4px solid #c4302b; background:rgba(196,48,43,.06); border-radius:0 12px 12px 0; padding:13px 16px; margin:14px 0;}
   .vbox .lbl{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#c4302b; margin-bottom:8px;}
   .vbox a{display:flex; align-items:flex-start; gap:8px; text-decoration:none; color:var(--ink); font-size:13px; margin-bottom:8px; line-height:1.4;}
@@ -1058,7 +1060,9 @@ function certViewRender(c){
 function startLearn(id){ learnList(id); }
 function lessonLabel(c,i){
   const les=c.lessons[i];
-  return les.foundation ? "🌱 Start here" : "Domain "+i+" of "+c.domains.length;
+  if(les.foundation) return "🌱 Start here";
+  if(i<=c.domains.length) return "Domain "+i+" of "+c.domains.length;
+  return "🚀 Masterclass Deep Dive "+(i-c.domains.length);
 }
 function learnList(id){
   const c=CERTS.find(x=>x.id===id);
@@ -1068,8 +1072,10 @@ function learnList(id){
   let rows='';
   c.lessons.forEach((les,i)=>{
     const done=!!read[i];
-    rows+='<div class="lesson-row'+(done?" done":"")+(les.foundation?" found":"")+'" onclick="lessonView(\''+id+'\','+i+')">'
-      +'<div class="lchk">'+(done?"✓":(les.foundation?"🌱":i))+'</div>'
+    const isMasterclass=i>c.domains.length;
+    const badgeText=done?"✓":(les.foundation?"🌱":isMasterclass?"🚀":i);
+    rows+='<div class="lesson-row'+(done?" done":"")+(les.foundation?" found":"")+(isMasterclass?" masterclass-row":"")+'" onclick="lessonView(\''+id+'\','+i+')">'
+      +'<div class="lchk">'+badgeText+'</div>'
       +'<div class="ltext"><div class="ltitle">'+esc(les.h)+'</div><div class="lnum">'+lessonLabel(c,i)+'</div></div>'
       +'<div class="larrow">→</div></div>';
   });
