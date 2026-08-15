@@ -987,7 +987,21 @@ vm.createContext(sandbox);
   call("glossaryTermCallouts");
   check(/Glossary Term Callouts & Hover Definitions/.test(els.app.innerHTML) && /glossBody/.test(els.app.innerHTML), "glossaryTermCallouts renders glossary with search");
 
+  /* ---------- 43. Aurora Teaching Suite ---------- */
+  call("studyRoadmapView");
+  check(/Interactive Study Roadmap with Progress Milestones/.test(els.app.innerHTML), "studyRoadmapView renders roadmap milestones");
+
+  call("architecturePatternLibrary");
+  check(/Architecture Pattern Library/.test(els.app.innerHTML) && /aplGrid/.test(els.app.innerHTML), "architecturePatternLibrary renders 12-pattern grid");
+
+  call("promptTransformGallery");
+  check(/Before \/ After Prompt Transformation Gallery/.test(els.app.innerHTML) && /ptgBody/.test(els.app.innerHTML), "promptTransformGallery renders transformation cards");
+
+  call("knowledgeGraphView");
+  check(/Concept Relationship Knowledge Graph/.test(els.app.innerHTML) && /kgDetail/.test(els.app.innerHTML), "knowledgeGraphView renders knowledge graph");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
+
 
