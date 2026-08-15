@@ -449,6 +449,10 @@ const CERTS = [
 ];
 
 const BADGES = [
+ {id:"hybrid_architect", em:"📊", name:"Hybrid Reasoning Architect", desc:"Evaluate Claude 3.7 Sonnet extended thinking vs Haiku model tradeoffs"},
+ {id:"compaction_wizard", em:"🧩", name:"Compaction Wizard", desc:"Simulate multi-turn rolling state context compaction"},
+ {id:"finops_master", em:"⚡", name:"FinOps Master", desc:"Calculate real-time API bills with thinking budget token profiler"},
+ {id:"board_certified", em:"🎙️", name:"Board Certified Architect", desc:"Pass the multi-persona executive architectural defense board"},
  {id:"memory_master", em:"📉", name:"Memory Master", desc:"Simulate Ebbinghaus forgetting curve retention decay"},
  {id:"cache_optimizer", em:"⚡", name:"Cache Optimizer", desc:"Debug and resolve prompt caching breakpoint invalidations"},
  {id:"blitz_champion", em:"🎮", name:"Blitz Champion", desc:"Complete a 60-second rapid flashcard blitz session"},
@@ -7839,6 +7843,229 @@ function cramSheetCustomizer(){
     + '</div>'
     + '</div>'
     + '</div>';
+}
+
+
+/* ================= 1. CLAUDE 3.5 VS 3.7 HYBRID REASONING MATRIX ================= */
+function modelMatrixView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("hybrid_architect");
+  
+  const models = [
+    { name: "Claude 3.7 Sonnet", type: "Hybrid Reasoning", input: "$3.00", output: "$15.00", cacheRead: "$0.30", maxThinking: "128,000t", P99: "1.2s - 8s", useCase: "Complex Coding, Math & Deep Architectural Tradeoffs" },
+    { name: "Claude 3.5 Sonnet", type: "Standard LLM", input: "$3.00", output: "$15.00", cacheRead: "$0.30", maxThinking: "N/A", P99: "800ms", useCase: "General Enterprise Reasoning, Vision & RAG" },
+    { name: "Claude 3.5 Haiku", type: "Fast Classifier", input: "$0.80", output: "$4.00", cacheRead: "$0.08", maxThinking: "N/A", P99: "250ms", useCase: "Sub-second Triage, Formatting & High-Volume Routing" },
+    { name: "Claude 3 Opus", type: "Frontier Intelligence", input: "$15.00", output: "$75.00", cacheRead: "$1.50", maxThinking: "N/A", P99: "2.5s", useCase: "Executive Strategy & Deep Multi-Lingual Synthesis" }
+  ];
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--coral); color:#fff;">Model Selection</span><h2 style="font-size:20px; margin-top:4px;">📊 Claude 3.5 vs 3.7 Hybrid Reasoning Matrix</h2></div>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">Side-by-side architectural decision matrix evaluating model pricing, latency P99, and extended thinking budgets.</p>'
+    + '<div style="overflow-x:auto; border:1px solid var(--border); border-radius:12px; background:var(--card); margin-bottom:16px;">'
+    + '<table style="width:100%; border-collapse:collapse; font-size:12px; text-align:left;">'
+    + '<thead style="background:var(--bg); border-bottom:1.5px solid var(--border);">'
+    + '<tr>'
+    + '<th style="padding:10px 12px;">Model Name</th>'
+    + '<th style="padding:10px 12px;">Architecture</th>'
+    + '<th style="padding:10px 12px;">Input / 1M</th>'
+    + '<th style="padding:10px 12px;">Output / 1M</th>'
+    + '<th style="padding:10px 12px;">Cache Read</th>'
+    + '<th style="padding:10px 12px;">Thinking Budget</th>'
+    + '<th style="padding:10px 12px;">P99 Latency</th>'
+    + '</tr>'
+    + '</thead>'
+    + '<tbody>'
+    + models.map(m => '<tr style="border-bottom:1px solid var(--border);">'
+        + '<td style="padding:10px 12px; font-weight:800; color:var(--ink);">' + m.name + '</td>'
+        + '<td style="padding:10px 12px;"><span class="ltag" style="font-size:10px; padding:2px 6px;">' + m.type + '</span></td>'
+        + '<td style="padding:10px 12px; color:var(--green); font-weight:700;">' + m.input + '</td>'
+        + '<td style="padding:10px 12px; color:var(--coral); font-weight:700;">' + m.output + '</td>'
+        + '<td style="padding:10px 12px; color:var(--blue); font-weight:700;">' + m.cacheRead + '</td>'
+        + '<td style="padding:10px 12px; font-weight:700;">' + m.maxThinking + '</td>'
+        + '<td style="padding:10px 12px; color:var(--muted);">' + m.P99 + '</td>'
+        + '</tr>').join('')
+    + '</tbody>'
+    + '</table>'
+    + '</div>'
+    + '<div style="font-size:12px; background:var(--bg); padding:12px; border-radius:8px; border:1px solid var(--border);">'
+    + '🎯 <b>Architectural Rule:</b> Use <b>Haiku 3.5</b> for high-volume entry routing, <b>Sonnet 3.5</b> for standard tool calls, and <b>Sonnet 3.7</b> with <code>budget_tokens</code> for complex multi-step reasoning.'
+    + '</div>'
+    + '</div>';
+}
+
+/* ================= 2. MULTI-TURN CONTEXT COMPACTION PLAYGROUND ================= */
+let compactionState = { turns: 10, totalTokens: 160000, compacted: false };
+
+function multiTurnCompactionLab(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("compaction_wizard");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">🧩</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Multi-Turn Context Compaction Playground</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Simulate token accumulation over 10 conversational turns and observe 80% capacity semantic compaction.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:580px; margin:20px auto; text-align:left;">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">'
+    + '<b style="font-size:13.5px;">Context Budget Allocation (200,000 Max):</b>'
+    + '<b id="compactionStatusLabel" style="font-size:13px; color:' + (compactionState.compacted ? 'var(--green)' : 'var(--coral)') + ';">' + (compactionState.compacted ? 'Compacted: 12,500 Tokens (6.2%)' : 'Accumulated: 160,000 Tokens (80.0%)') + '</b>'
+    + '</div>'
+    + '<div style="background:var(--bg); border-radius:8px; height:18px; overflow:hidden; border:1px solid var(--border); margin-bottom:16px;">'
+    + '<div id="compactionProgressBar" style="background:' + (compactionState.compacted ? 'var(--green)' : 'var(--coral)') + '; width:' + (compactionState.compacted ? '6.2' : '80') + '%; height:100%; transition:width 0.4s ease;"></div>'
+    + '</div>'
+    + '<div id="compactionTextPreview" style="font-family:Consolas,monospace; font-size:11.5px; background:var(--bg); padding:12px; border-radius:8px; border:1px solid var(--border); margin-bottom:16px; white-space:pre-wrap;">'
+    + (compactionState.compacted
+        ? '<span style="color:var(--green);">✓ STRUCTURED COMPACTION SUCCESS (&lt;rolling_state&gt;):\n&lt;key_facts&gt;\n - User ID: 94821\n - Patient EHR Query: Amoxicillin 500mg\n - Selected Model: Claude 3.7 Sonnet\n - Active MicroVM Container: ID #vmm-8812\n&lt;/key_facts&gt;</span>'
+        : '<span style="color:var(--coral);">⚠️ 80% THRESHOLD REACHED (160,000 / 200,000 Tokens)\n10 Raw Multi-Turn Payload Messages Accumulated.\n[Turn 1] User query...\n[Turn 2] Assistant response...\n...\n[Turn 10] Assistant response...</span>')
+    + '</div>'
+    + '<button class="btn sm" onclick="triggerCompactionDemo()">' + (compactionState.compacted ? '🔄 Reset Context Payload' : '⚡ Trigger 80% Semantic Compaction') + '</button>'
+    + '</div>'
+    + '</div>';
+}
+
+function triggerCompactionDemo(){
+  compactionState.compacted = !compactionState.compacted;
+  playSound(compactionState.compacted ? 'correct' : 'click');
+  multiTurnCompactionLab();
+}
+
+/* ================= 3. LIVE TOKEN BUDGET PROFILER & API COST ESTIMATOR ================= */
+let tokenProfilerState = {
+  inputTokens: 50000,
+  cachedTokens: 40000,
+  thinkingTokens: 8000,
+  outputTokens: 2000
+};
+
+function tokenProfilerLab(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("finops_master");
+  
+  const rawInput = tokenProfilerState.inputTokens;
+  const cachedInput = tokenProfilerState.cachedTokens;
+  const unCachedInput = Math.max(0, rawInput - cachedInput);
+  const thinking = tokenProfilerState.thinkingTokens;
+  const output = tokenProfilerState.outputTokens;
+  
+  // Cost calculation for Claude 3.7 Sonnet
+  // Uncached Input: $3.00 / 1M
+  // Cached Input Read: $0.30 / 1M
+  // Output + Thinking: $15.00 / 1M
+  const costInput = (unCachedInput / 1000000) * 3.00;
+  const costCache = (cachedInput / 1000000) * 0.30;
+  const costOutput = ((output + thinking) / 1000000) * 15.00;
+  const totalCost = (costInput + costCache + costOutput).toFixed(4);
+  const maxSavings = (((cachedInput / 1000000) * 2.70)).toFixed(4);
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">⚡</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Live Token Budget Profiler & API Cost Calculator</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Real-time API billing profiler across prompt caching and extended thinking token budgets.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:580px; margin:20px auto; text-align:left;">'
+    + '<div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">'
+    + '<div>'
+    + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Input Tokens: ' + rawInput.toLocaleString() + '</label>'
+    + '<input type="range" min="1000" max="200000" step="5000" value="' + rawInput + '" oninput="tokenProfilerState.inputTokens=parseInt(this.value,10); tokenProfilerLab()" style="width:100%;">'
+    + '</div>'
+    + '<div>'
+    + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Cached Tokens: ' + cachedInput.toLocaleString() + '</label>'
+    + '<input type="range" min="0" max="' + rawInput + '" step="5000" value="' + cachedInput + '" oninput="tokenProfilerState.cachedTokens=parseInt(this.value,10); tokenProfilerLab()" style="width:100%;">'
+    + '</div>'
+    + '<div>'
+    + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Thinking Budget: ' + thinking.toLocaleString() + '</label>'
+    + '<input type="range" min="0" max="32000" step="1000" value="' + thinking + '" oninput="tokenProfilerState.thinkingTokens=parseInt(this.value,10); tokenProfilerLab()" style="width:100%;">'
+    + '</div>'
+    + '<div>'
+    + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Output Tokens: ' + output.toLocaleString() + '</label>'
+    + '<input type="range" min="100" max="8000" step="500" value="' + output + '" oninput="tokenProfilerState.outputTokens=parseInt(this.value,10); tokenProfilerLab()" style="width:100%;">'
+    + '</div>'
+    + '</div>'
+    + '<div style="background:var(--bg); border:1.5px solid var(--border); border-radius:10px; padding:16px; text-align:center; margin-bottom:14px;">'
+    + '<div style="font-size:11.5px; color:var(--muted); font-weight:700; text-transform:uppercase;">Calculated Request Cost (Claude 3.7 Sonnet)</div>'
+    + '<div style="font-size:32px; font-weight:900; color:var(--green); margin:4px 0;">$' + totalCost + '</div>'
+    + '<div style="font-size:12px; color:var(--blue); font-weight:700;">💰 Prompt Caching Saved: $' + maxSavings + ' (85% Read Discount)</div>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+/* ================= 4. MULTI-PERSONA EXECUTIVE ORAL DEFENSE BOARD ================= */
+let boardState = { step: 0, score: 0 };
+
+function oralDefenseBoardView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("board_certified");
+  
+  const scenarios = [
+    {
+      persona: "🛡️ CISO",
+      title: "Zero-Trust Tool Execution Security",
+      question: "How do you prevent malicious tool payloads from breaking out of host memory during untrusted tool execution?",
+      opts: [
+        "Run tools inside ephemeral Firecracker MicroVM containers with no network egress.",
+        "Execute tools directly in main application Node.js process using eval().",
+        "Rely on prompt instructions telling Claude not to run dangerous code."
+      ],
+      correct: 0
+    },
+    {
+      persona: "💰 FinOps Director",
+      title: "Cost Management & Prompt Caching",
+      question: "Our monthly Messages API bill jumped 3x. How do you optimize repetitive 50k-token system prompts?",
+      opts: [
+        "Enable Prompt Caching with cache_control breakpoints to get 85% read discounts.",
+        "Truncate system prompt down to 10 tokens regardless of accuracy.",
+        "Switch all requests to Claude 3 Opus without prompt caching."
+      ],
+      correct: 0
+    }
+  ];
+  
+  const sc = scenarios[boardState.step % scenarios.length];
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">🎙️</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Executive Architectural Defense Board</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Defend enterprise system design decisions before a simulated panel of CISO, FinOps, and Chief Architect executives.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:620px; margin:20px auto; text-align:left;">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">'
+    + '<span style="font-size:14px; font-weight:800; color:var(--coral);">' + sc.persona + ' — ' + sc.title + '</span>'
+    + '<span style="font-size:12px; color:var(--muted);">Board Defense #' + (boardState.step + 1) + '</span>'
+    + '</div>'
+    + '<div style="font-size:14.5px; font-weight:700; line-height:1.4; margin-bottom:14px; background:var(--bg); padding:12px; border-radius:8px; border:1px solid var(--border);">'
+    + esc(sc.question)
+    + '</div>'
+    + '<div style="display:flex; flex-direction:column; gap:8px;">'
+    + sc.opts.map((o, j) => '<button class="opt" onclick="submitBoardAnswer(' + j + ', ' + sc.correct + ')" style="text-align:left; padding:10px 14px; font-size:13px;"><b class="okey">' + (j + 1) + '</b> ' + esc(o) + '</button>').join('')
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+function submitBoardAnswer(j, correctJ){
+  if (j === correctJ) {
+    boardState.score += 50;
+    playSound('correct');
+    toast("✓ Board Panel Approved Solution! (+50 XP)");
+  } else {
+    playSound('wrong');
+    toast("❌ Board Panel Rejected Proposal");
+  }
+  boardState.step++;
+  oralDefenseBoardView();
 }
 
 /* ================= LESSON WIDGETS ================= */

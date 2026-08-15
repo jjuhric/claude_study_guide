@@ -883,6 +883,19 @@ vm.createContext(sandbox);
   call("cramSheetCustomizer");
   check(/Custom Exam Day Cram Sheet/.test(els.app.innerHTML) && /customCramSheetFrame/.test(els.app.innerHTML), "cramSheetCustomizer renders printable 1-page reference");
 
+  /* ---------- 35. Valkyrie Suite ---------- */
+  call("modelMatrixView");
+  check(/Claude 3\.5 vs 3\.7 Hybrid Reasoning Matrix/.test(els.app.innerHTML), "modelMatrixView renders model comparative matrix");
+
+  call("multiTurnCompactionLab");
+  check(/Multi-Turn Context Compaction Playground/.test(els.app.innerHTML) && /compactionProgressBar/.test(els.app.innerHTML), "multiTurnCompactionLab renders compaction simulator");
+
+  call("tokenProfilerLab");
+  check(/Live Token Budget Profiler & API Cost Calculator/.test(els.app.innerHTML), "tokenProfilerLab renders API cost calculator");
+
+  call("oralDefenseBoardView");
+  check(/Executive Architectural Defense Board/.test(els.app.innerHTML), "oralDefenseBoardView renders oral defense panel");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
