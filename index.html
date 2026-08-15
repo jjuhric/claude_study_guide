@@ -1087,19 +1087,26 @@ function renderHeader(){
   const l=level(), cur=S.xp-xpForLevel(l), next=xpForLevel(l+1)-xpForLevel(l);
   const pct=l>=10?100:Math.min(100, Math.round(cur/next*100));
   $("hdr").innerHTML =
-   '<div class="logo">🧭</div><h1>Claude Cert Quest<small>Your path to all four Anthropic certifications</small></h1>'
-   +'<div class="stat"><div class="v">'+l+'</div><div class="l">Level</div></div>'
-   +'<div class="stat"><div class="v">'+S.xp+'</div><div class="l">XP</div></div>'
-   +'<div class="stat"><div class="v">'+dayStreak()+'🔥</div><div class="l">Day streak</div></div>'
-   +'<span id="pwaStatusBadge" style="font-size:11px; font-weight:700; padding:3px 7px; border-radius:6px; background:rgba(90,158,111,0.15); color:var(--green);" title="PWA Service Worker Offline Ready">● Offline Ready</span>'
-   +'<button class="themebtn" onclick="bookmarksView()" title="View Bookmarks & Notes" aria-label="Bookmarks">📌</button>'
-   +'<button class="themebtn" onclick="openSearchModal()" title="Search study material (Ctrl+K)" aria-label="Search study material">🔍 Search</button>'
-   +'<button class="themebtn" onclick="toggleSound()" title="Toggle sound ('+(S.sound?'On':'Muted')+')" aria-label="Toggle sound">'
-   +(S.sound?'🔊':'🔇')+'</button>'
-   +'<button class="themebtn" onclick="cycleTheme()" title="Theme: '+S.theme+'" aria-label="Change theme (currently '+S.theme+')">'
-   +(S.theme==="dark"?"🌙":S.theme==="light"?"☀️":"🌓")+'</button>'
-   +'<div class="xpbar"><div style="width:'+pct+'%" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100" aria-label="Progress to next level"></div></div>'
-   +'<div class="lvltitle">'+title()+(l<10?' · '+(next-cur)+' XP to next level':' · MAX')+'</div>';
+    '<div style="display:flex; justify-content:space-between; align-items:center; width:100%; gap:12px; flex-wrap:wrap;">'
+    + '<div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="home()">'
+    + '<div class="logo">🧭</div>'
+    + '<div><h1 style="font-size:18px; line-height:1.2; margin:0;">Claude Cert Quest</h1><small style="display:block; font-size:11px; color:var(--muted);">Your path to all four Anthropic certifications</small></div>'
+    + '</div>'
+    + '<div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-left:auto;">'
+    + '<div class="stat"><div class="v">'+l+'</div><div class="l">Level</div></div>'
+    + '<div class="stat"><div class="v">'+S.xp+'</div><div class="l">XP</div></div>'
+    + '<div class="stat"><div class="v">'+dayStreak()+'🔥</div><div class="l">Streak</div></div>'
+    + '<span id="pwaStatusBadge" style="font-size:11px; font-weight:700; padding:3px 7px; border-radius:6px; background:rgba(90,158,111,0.15); color:var(--green);" title="PWA Service Worker Offline Ready">● Offline Ready</span>'
+    + '<button class="themebtn" onclick="bookmarksView()" title="View Bookmarks & Notes" aria-label="Bookmarks">📌</button>'
+    + '<button class="themebtn" onclick="openSearchModal()" title="Search study material (Ctrl+K)" aria-label="Search study material">🔍 Search</button>'
+    + '<button class="themebtn" onclick="toggleSound()" title="Toggle sound ('+(S.sound?'On':'Muted')+')" aria-label="Toggle sound">'
+    + (S.sound?'🔊':'🔇')+'</button>'
+    + '<button class="themebtn" onclick="cycleTheme()" title="Theme: '+S.theme+'" aria-label="Change theme (currently '+S.theme+')">'
+    + (S.theme==="dark"?"🌙":S.theme==="light"?"☀️":"🌓")+'</button>'
+    + '</div>'
+    + '</div>'
+    + '<div class="xpbar"><div style="width:'+pct+'%" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100" aria-label="Progress to next level"></div></div>'
+    + '<div class="lvltitle">'+title()+(l<10?' · '+(next-cur)+' XP to next level':' · MAX')+'</div>';
 }
 
 /* ================= SCREENS ================= */
@@ -1133,15 +1140,115 @@ function home(){
      +'<div class="pmeta"><span>'+p.seen+'/'+p.total+' questions seen</span><span>'+(best?("Best mock: "+best):(p.seen?p.acc+"% accuracy":"Start your quest →"))+'</span></div>'
      +'</div>';
   }
-  h+='</div><div class="rowbtns" style="justify-content:center; margin-top:20px;">'
+  h+='</div>';
+
+  // Interactive Labs, Simulators & Toolkits Section
+  h+='<div style="margin-top:28px;">'
+    +'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">'
+    +'<div><h3 style="font-size:17px; font-weight:800; color:var(--ink);">🛠️ Interactive Labs, Simulators & Toolkits</h3>'
+    +'<p style="font-size:12px; color:var(--muted); margin-top:2px;">Hands-on sandboxes, prompt linters, protocol runners, code generators, and diagnostic engines.</p></div>'
+    +'</div>'
+    +'<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px;">'
+    
+    +'<div class="cert" style="padding:14px;" onclick="promptStudioView()">'
+    +'<div style="font-size:22px; margin-bottom:4px;">🧪</div>'
+    +'<h4 style="font-size:13.5px; margin:0 0 2px;">Golden Prompt Studio</h4>'
+    +'<p style="font-size:11px; color:var(--muted); line-height:1.3; margin:0 0 8px;">Live XML linter, positive framing check & token budget advisor.</p>'
+    +'<span class="btn sm" style="font-size:11px; padding:4px 8px;">Open Studio →</span>'
+    +'</div>'
+
+    +'<div class="cert" style="padding:14px;" onclick="sdkPlaygroundView()">'
+    +'<div style="font-size:22px; margin-bottom:4px;">💻</div>'
+    +'<h4 style="font-size:13.5px; margin:0 0 2px;">SDK Code Playground</h4>'
+    +'<p style="font-size:11px; color:var(--muted); line-height:1.3; margin:0 0 8px;">Python & TypeScript SDK generator with Caching & Thinking.</p>'
+    +'<span class="btn sm" style="font-size:11px; padding:4px 8px;">Generate Code →</span>'
+    +'</div>'
+
+    +'<div class="cert" style="padding:14px;" onclick="warRoomView()">'
+    +'<div style="font-size:22px; margin-bottom:4px;">🏛️</div>'
+    +'<h4 style="font-size:13.5px; margin:0 0 2px;">Architect War Room</h4>'
+    +'<p style="font-size:11px; color:var(--muted); line-height:1.3; margin:0 0 8px;">Interactive enterprise case studies & live architecture scorecard.</p>'
+    +'<span class="btn sm" style="font-size:11px; padding:4px 8px;">Enter War Room →</span>'
+    +'</div>'
+
+    +'<div class="cert" style="padding:14px;" onclick="mcpWorkbenchView()">'
+    +'<div style="font-size:22px; margin-bottom:4px;">🔌</div>'
+    +'<h4 style="font-size:13.5px; margin:0 0 2px;">MCP Protocol Inspector</h4>'
+    +'<p style="font-size:11px; color:var(--muted); line-height:1.3; margin:0 0 8px;">Step through JSON-RPC 2.0 tool execution loops.</p>'
+    +'<span class="btn sm" style="font-size:11px; padding:4px 8px;">Inspect Protocol →</span>'
+    +'</div>'
+
+    +'<div class="cert" style="padding:14px;" onclick="bossBattleSelect()">'
+    +'<div style="font-size:22px; margin-bottom:4px;">👑</div>'
+    +'<h4 style="font-size:13.5px; margin:0 0 2px;">Adaptive Boss Battle</h4>'
+    +'<p style="font-size:11px; color:var(--muted); line-height:1.3; margin:0 0 8px;">25-question computer-adaptive final mock simulation.</p>'
+    +'<span class="btn sm" style="font-size:11px; padding:4px 8px; background:var(--purple);">Battle Boss ⚔️</span>'
+    +'</div>'
+
+    +'<div class="cert" style="padding:14px;" onclick="examPrescriptionView()">'
+    +'<div style="font-size:22px; margin-bottom:4px;">🎯</div>'
+    +'<h4 style="font-size:13.5px; margin:0 0 2px;">Exam Prescription</h4>'
+    +'<p style="font-size:11px; color:var(--muted); line-height:1.3; margin:0 0 8px;">Diagnostic remediation targeting your exact weak spots.</p>'
+    +'<span class="btn sm" style="font-size:11px; padding:4px 8px;">View Diagnosis →</span>'
+    +'</div>'
+
+    +'<div class="cert" style="padding:14px;" onclick="speedRunSelect()">'
+    +'<div style="font-size:22px; margin-bottom:4px;">⚡</div>'
+    +'<h4 style="font-size:13.5px; margin:0 0 2px;">Sudden-Death Speed Run</h4>'
+    +'<p style="font-size:11px; color:var(--muted); line-height:1.3; margin:0 0 8px;">30s countdown rapid-recall active testing mode.</p>'
+    +'<span class="btn sm" style="font-size:11px; padding:4px 8px;">Start Speed Run ⚡</span>'
+    +'</div>'
+
+    +'<div class="cert" style="padding:14px;" onclick="studyPlanView()">'
+    +'<div style="font-size:22px; margin-bottom:4px;">⏱️</div>'
+    +'<h4 style="font-size:13.5px; margin:0 0 2px;">Study Plan & Countdown</h4>'
+    +'<p style="font-size:11px; color:var(--muted); line-height:1.3; margin:0 0 8px;">Adaptive 7/14/30-day curriculum with target countdown.</p>'
+    +'<span class="btn sm" style="font-size:11px; padding:4px 8px;">Plan Roadmap →</span>'
+    +'</div>'
+
+    +'<div class="cert" style="padding:14px;" onclick="questionExplorerView()">'
+    +'<div style="font-size:22px; margin-bottom:4px;">🔍</div>'
+    +'<h4 style="font-size:13.5px; margin:0 0 2px;">Question Bank Explorer</h4>'
+    +'<p style="font-size:11px; color:var(--muted); line-height:1.3; margin:0 0 8px;">Search and filter all 400 questions with 4-way rationales.</p>'
+    +'<span class="btn sm" style="font-size:11px; padding:4px 8px;">Explore Questions →</span>'
+    +'</div>'
+
+    +'<div class="cert" style="padding:14px;" onclick="cramSheetSelect()">'
+    +'<div style="font-size:22px; margin-bottom:4px;">📋</div>'
+    +'<h4 style="font-size:13.5px; margin:0 0 2px;">Exam Cram Sheets</h4>'
+    +'<p style="font-size:11px; color:var(--muted); line-height:1.3; margin:0 0 8px;">8-module quick reference cheat sheets with active recall.</p>'
+    +'<span class="btn sm" style="font-size:11px; padding:4px 8px;">View Cram Sheets →</span>'
+    +'</div>'
+
+    +'<div class="cert" style="padding:14px;" onclick="bookmarksView()">'
+    +'<div style="font-size:22px; margin-bottom:4px;">📌</div>'
+    +'<h4 style="font-size:13.5px; margin:0 0 2px;">Bookmarks & Notes ('+((S.bookmarks||[]).length + Object.keys(S.notes||{}).length)+')</h4>'
+    +'<p style="font-size:11px; color:var(--muted); line-height:1.3; margin:0 0 8px;">All saved lesson takeaways and bookmarked sections.</p>'
+    +'<span class="btn sm" style="font-size:11px; padding:4px 8px;">View Bookmarks 📌</span>'
+    +'</div>'
+
+    +'<div class="cert" style="padding:14px;" onclick="certificateSelect()">'
+    +'<div style="font-size:22px; margin-bottom:4px;">🎓</div>'
+    +'<h4 style="font-size:13.5px; margin:0 0 2px;">Verified Diplomas</h4>'
+    +'<p style="font-size:11px; color:var(--muted); line-height:1.3; margin:0 0 8px;">Official printable certificates of exam readiness.</p>'
+    +'<span class="btn sm" style="font-size:11px; padding:4px 8px;">View Diplomas 🎓</span>'
+    +'</div>'
+
+    +'</div></div>';
+
+  // Bottom utility bar
+  h+='<div class="rowbtns" style="justify-content:center; margin-top:24px; flex-wrap:wrap; gap:8px;">'
    +'<button class="btn ghost" onclick="badgesView()">🏅 Badges ('+S.badges.length+'/'+BADGES.length+')</button>'
-   +'<button class="btn ghost" onclick="analyticsView()">📊 Analytics</button>'
-   +'<button class="btn ghost" onclick="exportProgress()" title="Download your progress as a JSON file">⬇️ Export</button>'
-   +'<button class="btn ghost" onclick="document.getElementById(\'impf\').click()" title="Restore progress from a JSON file">⬆️ Import</button>'
-   +'<button class="btn ghost" onclick="resetConfirm()">↺ Reset progress</button></div>'
-   +'<div class="footer-note" style="margin-top:14px;">Progress is stored only in this browser. <b>Export</b> keeps a backup you can restore here or on another device.</div>';
+   +'<button class="btn ghost" onclick="analyticsView()">📊 Analytics & Readiness</button>'
+   +'<button class="btn ghost" onclick="accessibilityModal()">🔠 Visuals & Fonts</button>'
+   +'<button class="btn ghost" onclick="exportProgress()" title="Download your progress as a JSON file">⬇️ Export Backup</button>'
+   +'<button class="btn ghost" onclick="document.getElementById(\'impf\').click()" title="Restore progress from a JSON file">⬆️ Import Backup</button>'
+   +'<button class="btn ghost" onclick="resetConfirm()" style="color:var(--coral);">↺ Reset Progress</button></div>'
+   +'<div class="footer-note" style="margin-top:14px;">All progress, notes, and custom decks are stored securely in this browser. Use <b>Export Backup</b> to sync across devices.</div>';
+   
   $("app").innerHTML=h;
 }
+
 function resetConfirm(){
   if(confirm("⚠️ Reset ALL XP, badges, analytics, test history, bookmarks, and progress?\n\nThis will restore the app to brand-new condition.")){
     try { localStorage.removeItem("certquest"); } catch(e){}
