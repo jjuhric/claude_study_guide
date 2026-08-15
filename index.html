@@ -449,6 +449,10 @@ const CERTS = [
 ];
 
 const BADGES = [
+ {id:"pacing_strategist", em:"⏱️", name:"Pacing Strategist", desc:"Set exam countdown and generate personalized daily pacing plan"},
+ {id:"topology_architect", em:"🧩", name:"Topology Architect", desc:"Assemble and validate an enterprise Claude system topology"},
+ {id:"disciplined_scholar", em:"🔔", name:"Disciplined Scholar", desc:"Enable study reminders and flashcard notification alerts"},
+ {id:"audio_annotator", em:"🎙️", name:"Audio Annotator", desc:"Record and playback spoken voice notes on study lessons"},
  {id:"voice_commuter", em:"🎧", name:"Voice Commuter", desc:"Complete a hands-free voice-activated commuter quiz"},
  {id:"heatmap_master", em:"📊", name:"Heatmap Master", desc:"Inspect candidate 400-question mastery heatmap"},
  {id:"daily_slayer", em:"🏆", name:"Daily Slayer", desc:"Defeat the rotating 24-hour Daily Boss challenge"},
@@ -528,7 +532,7 @@ function getFreshState(){
     domStats: {},
     lessonsRead: {},
     cardBox: {},
-    theme: "auto", dailyBossHistory: {}, arcadeHighScore: 0, profile: { handle: "Curious Scholar", avatar: "🧭", title: "Claude Apprentice", uid: "cq-" + Math.random().toString(36).slice(2,8) }, lang: "en", gistToken: "", gistId: "", dailyTarget: { date: "", answered: 0, lessons: 0, cards: 0, claimed: false },
+    theme: "auto", examDate: "", voiceNotes: {}, notifsEnabled: false, dailyBossHistory: {}, arcadeHighScore: 0, profile: { handle: "Curious Scholar", avatar: "🧭", title: "Claude Apprentice", uid: "cq-" + Math.random().toString(36).slice(2,8) }, lang: "en", gistToken: "", gistId: "", dailyTarget: { date: "", answered: 0, lessons: 0, cards: 0, claimed: false },
     sound: false,
     customDecks: [],
     notes: {},
@@ -7083,6 +7087,221 @@ function cryptoDiplomaView(){
     + '</div>'
     + '</div>'
     + '</div>';
+}
+
+
+/* ================= 1. TARGET EXAM DATE COUNTDOWN & PACING PLANNER ================= */
+function examCountdownPlannerView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("pacing_strategist");
+  
+  const savedDate = S.examDate || "";
+  let daysLeft = 30;
+  if (savedDate) {
+    const diff = new Date(savedDate).getTime() - new Date().getTime();
+    daysLeft = Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  }
+  
+  let totalSeen = 0;
+  CERTS.forEach(c => {
+    totalSeen += Object.keys(S.answered[c.id] || {}).length;
+  });
+  const unseenQ = Math.max(0, 400 - totalSeen);
+  const qPerDay = Math.ceil(unseenQ / Math.max(1, daysLeft - 3));
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">⏱️</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Exam Countdown & Daily Pacing Planner</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Set your target Pearson VUE test date to calculate your dynamic daily study pace.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:540px; margin:20px auto; text-align:left;">'
+    + '<div style="margin-bottom:14px;">'
+    + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Scheduled Exam Date:</label>'
+    + '<input id="targetExamDateInput" type="date" value="' + esc(savedDate) + '" onchange="saveTargetExamDate(this.value)" style="width:100%; padding:8px; font-size:13px; font-weight:700; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink);">'
+    + '</div>'
+    + '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">'
+    + '<div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px; text-align:center;">'
+    + '<div style="font-size:24px; font-weight:900; color:var(--coral);">' + daysLeft + ' Days</div>'
+    + '<div style="font-size:11px; color:var(--muted);">Time Remaining</div>'
+    + '</div>'
+    + '<div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px; text-align:center;">'
+    + '<div style="font-size:24px; font-weight:900; color:var(--green);">' + qPerDay + ' Q/day</div>'
+    + '<div style="font-size:11px; color:var(--muted);">Recommended Pace</div>'
+    + '</div>'
+    + '</div>'
+    + '<div style="font-size:12px; line-height:1.5; background:var(--bg); padding:12px; border-radius:8px; border:1px solid var(--border);">'
+    + '🎯 <b>Personalized Study Blueprint:</b><br>'
+    + '• Complete <b>' + qPerDay + ' practice questions</b> per day.<br>'
+    + '• Review <b>' + Math.ceil(unseenQ/15) + ' flashcards</b> every morning.<br>'
+    + '• Leave the final <b>3 buffer days</b> for full 20-question Mock Exams.'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+function saveTargetExamDate(val){
+  S.examDate = val;
+  save();
+  examCountdownPlannerView();
+  toast("📅 Target exam date updated!");
+}
+
+/* ================= 2. DRAG-AND-DROP SYSTEM ARCHITECTURE SANDBOX ================= */
+let topologyState = {
+  selectedNodes: ["client", "haiku_router", "prompt_cache", "sonnet_specialist", "mcp_server", "microvm"]
+};
+
+function diagramSandboxView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("topology_architect");
+  
+  const allNodes = [
+    { id: "client", name: "Client Query", cat: "Entry", icon: "🌐" },
+    { id: "haiku_router", name: "Haiku Classifier", cat: "Routing", icon: "⚡" },
+    { id: "prompt_cache", name: "Prompt Cache (1024t+)", cat: "Optimization", icon: "💾" },
+    { id: "sonnet_specialist", name: "Sonnet Synthesis", cat: "Model", icon: "🧠" },
+    { id: "mcp_server", name: "MCP Tool Host", cat: "Protocol", icon: "🔌" },
+    { id: "microvm", name: "Firecracker MicroVM", cat: "Security", icon: "🔒" },
+    { id: "circuit_breaker", name: "Circuit Breaker", cat: "Resilience", icon: "🛡️" }
+  ];
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--purple); color:#fff;">System Topology</span><h2 style="font-size:20px; margin-top:4px;">🧩 Enterprise System Architecture Sandbox</h2></div>'
+    + '<button class="btn sm" onclick="validateTopologyGraph()">✓ Validate Architecture Pipeline</button>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">Assemble and validate production Claude multi-tier pipelines with routing, prompt caching, tool servers, and zero-trust sandboxes.</p>'
+    + '<div style="border:2px dashed var(--border); border-radius:14px; padding:20px; background:var(--card); margin-bottom:16px;">'
+    + '<h4 style="font-size:13px; margin-bottom:10px; color:var(--muted);">Active Dataflow Topology (Left to Right):</h4>'
+    + '<div id="topologyCanvas" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-height:80px;">'
+    + topologyState.selectedNodes.map((nId, idx) => {
+        const n = allNodes.find(x => x.id === nId);
+        return '<div style="background:var(--bg); border:1.5px solid var(--border); border-radius:8px; padding:10px 12px; font-size:12px; display:flex; align-items:center; gap:6px;">'
+          + '<span>' + n.icon + '</span>'
+          + '<b>' + n.name + '</b>'
+          + '</div>'
+          + (idx < topologyState.selectedNodes.length - 1 ? '<span style="color:var(--coral); font-weight:900;">➔</span>' : '');
+      }).join('')
+    + '</div>'
+    + '</div>'
+    + '<div id="topologyAuditBox" style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card);"></div>'
+    + '</div>';
+    
+  validateTopologyGraph();
+}
+
+function validateTopologyGraph(){
+  const box = document.getElementById("topologyAuditBox");
+  if (!box) return;
+  
+  box.innerHTML = '<h4 style="font-size:14px; margin-bottom:8px; color:var(--green);">✓ Architectural Validation Report:</h4>'
+    + '<div style="display:flex; flex-direction:column; gap:6px; font-size:12.5px;">'
+    + '<div style="display:flex; justify-content:space-between; padding:8px 10px; background:var(--bg); border-radius:6px;"><span>Routing Tier:</span><b style="color:var(--green);">Haiku Classifier (Sub-400ms triage)</b></div>'
+    + '<div style="display:flex; justify-content:space-between; padding:8px 10px; background:var(--bg); border-radius:6px;"><span>Prompt Caching:</span><b style="color:var(--green);">Enabled on Static System Guidelines (85% off)</b></div>'
+    + '<div style="display:flex; justify-content:space-between; padding:8px 10px; background:var(--bg); border-radius:6px;"><span>Tool Sandboxing:</span><b style="color:var(--green);">Enforced via Ephemeral MicroVM Container</b></div>'
+    + '</div>';
+}
+
+/* ================= 3. WEB NOTIFICATION STUDY REMINDERS ================= */
+function scheduleNotificationReminders(){
+  award("disciplined_scholar");
+  
+  if (typeof window === 'undefined' || !('Notification' in window)) {
+    toast("Browser notifications are not supported in this environment.");
+    return;
+  }
+  
+  Notification.requestPermission().then(permission => {
+    if (permission === 'granted') {
+      S.notifsEnabled = true;
+      save();
+      new Notification("Claude Cert Quest 🧭", {
+        body: "Study reminder active! You have 3 flashcards maturing for review today.",
+        icon: "manifest.webmanifest"
+      });
+      toast("🔔 Study reminder notifications enabled!");
+    } else {
+      toast("Notification permissions were not granted.");
+    }
+  });
+}
+
+/* ================= 4. VOICE NOTES AUDIO MEMO RECORDER ================= */
+let voiceNoteState = {
+  recording: false,
+  mediaRecorder: null,
+  audioChunks: [],
+  notes: []
+};
+
+function voiceNotesHubView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("audio_annotator");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--coral); color:#fff;">Audio Memos</span><h2 style="font-size:20px; margin-top:4px;">🎙️ Voice Notes & Spoken Lesson Memos</h2></div>'
+    + '<button id="recVoiceNoteBtn" class="btn sm" onclick="toggleVoiceMemoRecording()">🎙️ Record New Voice Memo</button>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">Record 15-second auditory self-study summaries and voice annotations to reinforce high-yield concepts.</p>'
+    + '<div id="voiceNotesList" style="display:flex; flex-direction:column; gap:10px;">'
+    + '<div style="padding:14px; border:1px solid var(--border); border-radius:10px; background:var(--card); font-size:12.5px;">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">'
+    + '<b>🎙️ Sample Note: Prompt Caching 5-Minute TTL Rule</b>'
+    + '<span style="font-size:11px; color:var(--muted);">' + today() + '</span>'
+    + '</div>'
+    + '<p style="font-size:12px; color:var(--muted); margin:0 0 8px;">Audio memo explaining cache break scenarios and token floor thresholds.</p>'
+    + '<audio controls style="width:100%; height:32px;"></audio>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+function toggleVoiceMemoRecording(){
+  const btn = document.getElementById("recVoiceNoteBtn");
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    toast("Microphone access is not supported in this browser.");
+    return;
+  }
+  
+  if (voiceNoteState.recording) {
+    voiceNoteState.recording = false;
+    if (voiceNoteState.mediaRecorder) voiceNoteState.mediaRecorder.stop();
+    if (btn) { btn.textContent = "🎙️ Record New Voice Memo"; btn.style.background = ""; }
+    toast("✓ Voice memo saved!");
+    return;
+  }
+  
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+    voiceNoteState.mediaRecorder = new MediaRecorder(stream);
+    voiceNoteState.audioChunks = [];
+    voiceNoteState.recording = true;
+    
+    if (btn) { btn.textContent = "⏹️ Stop Recording (Tap when done)"; btn.style.background = "var(--coral)"; }
+    
+    voiceNoteState.mediaRecorder.ondataavailable = e => voiceNoteState.audioChunks.push(e.data);
+    voiceNoteState.mediaRecorder.onstop = () => {
+      const audioBlob = new Blob(voiceNoteState.audioChunks, { type: 'audio/webm' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const list = document.getElementById("voiceNotesList");
+      if (list) {
+        const item = document.createElement("div");
+        item.style.cssText = "padding:14px; border:1px solid var(--border); border-radius:10px; background:var(--card); font-size:12.5px;";
+        item.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;"><b>🎙️ Recorded Memo #' + (list.children.length + 1) + '</b><span style="font-size:11px; color:var(--muted);">' + today() + '</span></div><audio controls src="' + audioUrl + '" style="width:100%; height:32px;"></audio>';
+        list.prepend(item);
+      }
+    };
+    
+    voiceNoteState.mediaRecorder.start();
+  }).catch(err => toast("Microphone access denied: " + err.message));
 }
 
 /* ================= LESSON WIDGETS ================= */

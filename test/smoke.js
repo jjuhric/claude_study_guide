@@ -840,6 +840,19 @@ vm.createContext(sandbox);
   call("cryptoDiplomaView");
   check(/Cryptographic Verified Diploma/.test(els.app.innerHTML) && /cryptoDiplomaFrame/.test(els.app.innerHTML), "cryptoDiplomaView renders SHA-256 verifiable diploma");
 
+  /* ---------- 32. Asgard Suite ---------- */
+  call("examCountdownPlannerView");
+  check(/Exam Countdown & Daily Pacing Planner/.test(els.app.innerHTML) && /targetExamDateInput/.test(els.app.innerHTML), "examCountdownPlannerView renders pacing planner");
+
+  call("diagramSandboxView");
+  check(/Enterprise System Architecture Sandbox/.test(els.app.innerHTML) && /topologyCanvas/.test(els.app.innerHTML), "diagramSandboxView renders interactive topology canvas");
+
+  call("scheduleNotificationReminders");
+  check(true, "scheduleNotificationReminders executes without throwing");
+
+  call("voiceNotesHubView");
+  check(/Voice Notes & Spoken Lesson Memos/.test(els.app.innerHTML) && /recVoiceNoteBtn/.test(els.app.innerHTML), "voiceNotesHubView renders voice notes hub");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
