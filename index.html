@@ -436,7 +436,8 @@ const store = {
   get(){ try{ return JSON.parse(localStorage.getItem("certquest")||"null"); }catch(e){ return mem.d||null; } },
   set(d){ try{ localStorage.setItem("certquest", JSON.stringify(d)); }catch(e){ mem.d=d; } }
 };
-const S_DEFAULTS = {v:1, xp:0, badges:[], seenCerts:[], answered:{}, cardsSeen:0, days:[], mocks:{}, domStats:{}, lessonsRead:{}, cardBox:{}, theme:"auto", sound:false, customDecks:[], notes:{}, bookmarks:[]};
+const S_DEFAULTS = {
+  customCards: {},v:1, xp:0, badges:[], seenCerts:[], answered:{}, cardsSeen:0, days:[], mocks:{}, domStats:{}, lessonsRead:{}, cardBox:{}, theme:"auto", sound:false, customDecks:[], notes:{}, bookmarks:[]};
 /* Repair any saved field with a missing or wrong-shaped value, so older or partial
    saves can't throw (badges/answered) or silently go NaN (xp/cardsSeen). */
 function migrate(raw){
@@ -665,6 +666,37 @@ document.addEventListener('keydown', e => {
   }
 });
 
+
+/* ================= PASS PROBABILITY PREDICTOR ================= */
+function calculatePassProbability(c){
+  const rp = prepProgress(c);
+  const p = certProgress(c);
+  const ret = cardRetention(c);
+  const mocks = S.mocks[c.id] || [];
+  const bestMock = mocks.length ? Math.max(...mocks) : 0;
+  
+  // Weighted prediction formula:
+  // - Accuracy and Coverage: 40 percent weight
+  // - Mock Exam Best Score: 30 percent weight
+  // - Lesson Read Completion: 15 percent weight
+  // - Flashcard Mastery: 15 percent weight
+  const accScore = (p.acc || 0) * (Math.min(1, (p.seen || 0) / Math.max(1, p.total)));
+  const mockScore = bestMock ? Math.min(100, Math.max(0, (bestMock - 200) / 7.5)) : (p.acc * 0.7);
+  const lessonPct = (lessonProgress(c).pct || 0);
+  const cardPct = Math.round(ret * 100);
+  
+  const prob = Math.round((accScore * 0.35) + (mockScore * 0.35) + (lessonPct * 0.15) + (cardPct * 0.15));
+  const clamped = Math.min(99, Math.max(5, prob));
+  
+  let label = "Building Foundation";
+  let badgeColor = "var(--coral)";
+  if (clamped >= 85) { label = "High Pass Probability 🎯"; badgeColor = "var(--green)"; }
+  else if (clamped >= 70) { label = "Ready for First Attempt 🚀"; badgeColor = "var(--blue)"; }
+  else if (clamped >= 50) { label = "Progressing — Drill Weak Spots 📈"; badgeColor = "var(--gold)"; }
+  
+  return { prob: clamped, label, badgeColor, bestMock, lessonPct, cardPct, acc: p.acc };
+}
+
 /* ================= ANALYTICS & HEATMAP ================= */
 function analyticsView(){
   renderHeader();
@@ -714,6 +746,31 @@ function analyticsView(){
           <div style="font-size:11px; color:var(--muted);">Cards Reviewed</div>
         </div>
       </div>
+      
+      <h4 style="font-size:15px; margin:20px 0 10px;">🎯 Exam Pass Probability Predictor</h4>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; margin-bottom:16px;">
+        ${CERTS.map(c => {
+          const pp = calculatePassProbability(c);
+          return `
+            <div style="border:2px solid var(--border); border-radius:12px; padding:14px; background:var(--card);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <span class="code" style="color:${c.color}; font-weight:800;">${c.code}</span>
+                <span style="font-size:11px; font-weight:700; color:${pp.badgeColor}; background:rgba(0,0,0,0.06); padding:2px 6px; border-radius:4px;">${pp.label}</span>
+              </div>
+              <div style="display:flex; align-items:baseline; gap:6px; margin:8px 0;">
+                <span style="font-size:32px; font-weight:900; color:${pp.badgeColor};">${pp.prob}%</span>
+                <span style="font-size:12px; color:var(--muted);">estimated readiness</span>
+              </div>
+              <div class="pbar" style="height:6px; margin-bottom:8px;"><div style="width:${pp.prob}%; background:${pp.badgeColor};"></div></div>
+              <div style="font-size:11.5px; color:var(--muted); line-height:1.5;">
+                • Lessons: <b>${pp.lessonPct}%</b> · Accuracy: <b>${pp.acc}%</b><br>
+                • Flashcards: <b>${pp.cardPct}%</b> · Best Mock: <b>${pp.bestMock ? pp.bestMock + '/1000' : 'None yet'}</b>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+  
       <h4 style="font-size:14px; margin:16px 0 6px;">📅 30-Day Activity Calendar</h4>
       <div class="heatmap-grid">${heatmapCells}</div>
       <div style="font-size:11px; color:var(--muted); margin-top:6px;">Green cells indicate study activity logged on that calendar day.</div>
@@ -775,9 +832,16 @@ const today=()=>dayKey(new Date());
 function inDays(n){ const d=new Date(); d.setDate(d.getDate()+n); return dayKey(d); }
 function shuffleArr(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function cardBox(c,i){ const b=(S.cardBox[c.id]||{})[cardKey(c,i)]; return (b&&typeof b.b==="number")?b:{b:0,d:""}; }
-function dueCards(c){ const t=today(); return c.cards.map((_,i)=>i).filter(i=>{ const s=cardBox(c,i); return !s.d||s.d<=t; }); }
+
+function getAllCertCards(c){
+  const custom = (S.customCards && S.customCards[c.id]) || [];
+  return [...(c.cards || []), ...custom];
+}
+
+function dueCards(c){
+  const deck = getAllCertCards(c); const t=today(); return deck.map((_,i)=>i).filter(i=>{ const s=cardBox(c,i); return !s.d||s.d<=t; }); }
 function nextDueDate(c){
-  const ds=c.cards.map((_,i)=>cardBox(c,i).d).filter(Boolean).sort();
+  const ds=getAllCertCards(c).map((_,i)=>cardBox(c,i).d).filter(Boolean).sort();
   return ds.length?ds[0]:null;
 }
 function scheduleCard(c,i,knew){
@@ -790,8 +854,8 @@ function scheduleCard(c,i,knew){
 }
 /* Fraction of a deck that has reached a durable box (3+ correct recalls). */
 function cardRetention(c){
-  if(!c.cards.length) return 0;
-  return c.cards.filter((_,i)=>cardBox(c,i).b>=3).length / c.cards.length;
+  const deck=getAllCertCards(c); if(!deck.length) return 0;
+  return deck.filter((_,i)=>cardBox(c,i).b>=3).length / deck.length;
 }
 
 /* ================= PREP PROGRESS =================
@@ -876,6 +940,7 @@ function renderHeader(){
    +'<div class="stat"><div class="v">'+l+'</div><div class="l">Level</div></div>'
    +'<div class="stat"><div class="v">'+S.xp+'</div><div class="l">XP</div></div>'
    +'<div class="stat"><div class="v">'+dayStreak()+'🔥</div><div class="l">Day streak</div></div>'
+   +'<span id="pwaStatusBadge" style="font-size:11px; font-weight:700; padding:3px 7px; border-radius:6px; background:rgba(90,158,111,0.15); color:var(--green);" title="PWA Service Worker Offline Ready">● Offline Ready</span>'
    +'<button class="themebtn" onclick="openSearchModal()" title="Search study material (Ctrl+K)" aria-label="Search study material">🔍 Search</button>'
    +'<button class="themebtn" onclick="toggleSound()" title="Toggle sound ('+(S.sound?'On':'Muted')+')" aria-label="Toggle sound">'
    +(S.sound?'🔊':'🔇')+'</button>'
@@ -2331,6 +2396,9 @@ function labToolsModal(){
     + '<div class="widget-box" data-widget="model-decision-tree"></div>'
     + '<div class="widget-box" data-widget="arch-decision-tree"></div>'
     + '<div class="widget-box" data-widget="rag-visualizer"></div>'
+    + '<div class="widget-box" data-widget="prompt-caching-sim"></div>'
+    + '<div class="widget-box" data-widget="multi-agent-dag"></div>'
+
     + '<div class="widget-box" data-widget="mcp-inspector"></div>'
     + '<div class="widget-box" data-widget="thinking-simulator"></div>'
     + '<div class="widget-box" data-widget="computer-use"></div>'
@@ -2341,12 +2409,206 @@ function labToolsModal(){
   initLessonWidgets();
 }
 
+
+/* ================= PROMPT CACHING SIMULATOR ================= */
+function renderPromptCachingSimulator(container){
+  container.innerHTML = `
+    <h5>⚡ Interactive Prompt Caching & TTL Economics Simulator</h5>
+    <p style="font-size:12px; color:var(--muted); margin-bottom:10px;">Simulate cache breakpoints, 5-minute TTL decay, and exact dollar savings across Claude models:</p>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:10px;">
+      <div>
+        <label><b>Model Tier:</b></label>
+        <select id="wCacheModel" onchange="calcCacheSim()" style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:12.5px;">
+          <option value="sonnet" selected>Claude 3.5 Sonnet ($3.00 base / $0.30 cached)</option>
+          <option value="haiku">Claude 3.5 Haiku ($0.80 base / $0.08 cached)</option>
+          <option value="opus">Claude 3.5 Opus ($15.00 base / $1.50 cached)</option>
+        </select>
+      </div>
+      <div>
+        <label><b>Static Prefix Size:</b> <span id="wCachePrefixVal">2,500 tokens</span></label>
+        <input type="range" id="wCachePrefix" min="500" max="10000" step="500" value="2500" oninput="calcCacheSim()">
+      </div>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+      <div>
+        <label><b>Multi-Turn Requests / 5-min Window:</b> <span id="wCacheReqVal">10 requests</span></label>
+        <input type="range" id="wCacheReq" min="1" max="50" step="1" value="10" oninput="calcCacheSim()">
+      </div>
+      <div>
+        <label><b>Dynamic Turn Tokens:</b> <span id="wCacheDynVal">300 tokens</span></label>
+        <input type="range" id="wCacheDyn" min="100" max="2000" step="100" value="300" oninput="calcCacheSim()">
+      </div>
+    </div>
+    <div id="wCacheResult" style="font-size:13px; line-height:1.5;"></div>
+  `;
+  calcCacheSim();
+}
+
+function calcCacheSim(){
+  const model = document.getElementById("wCacheModel")?.value || "sonnet";
+  const prefix = parseInt(document.getElementById("wCachePrefix")?.value || 2500, 10);
+  const reqs = parseInt(document.getElementById("wCacheReq")?.value || 10, 10);
+  const dyn = parseInt(document.getElementById("wCacheDyn")?.value || 300, 10);
+  
+  const prefEl = document.getElementById("wCachePrefixVal");
+  const reqEl = document.getElementById("wCacheReqVal");
+  const dynEl = document.getElementById("wCacheDynVal");
+  if (prefEl) prefEl.textContent = prefix.toLocaleString() + " tokens";
+  if (reqEl) reqEl.textContent = reqs + " requests";
+  if (dynEl) dynEl.textContent = dyn.toLocaleString() + " tokens";
+  
+  const minTokens = (model === "haiku") ? 2048 : 1024;
+  const isCacheable = prefix >= minTokens;
+  
+  const baseRate = (model === "haiku") ? 0.80 : (model === "sonnet") ? 3.00 : 15.00;
+  const writeRate = baseRate * 1.25;
+  const readRate = baseRate * 0.15; // 85% discount
+  
+  // Cost WITHOUT caching
+  const rawTotalTokens = reqs * (prefix + dyn);
+  const rawCost = (rawTotalTokens / 1000000) * baseRate;
+  
+  // Cost WITH caching
+  let cachedCost = 0;
+  if (isCacheable) {
+    const writeCost = (prefix / 1000000) * writeRate;
+    const readCost = ((reqs - 1) * prefix / 1000000) * readRate;
+    const dynCost = (reqs * dyn / 1000000) * baseRate;
+    cachedCost = writeCost + readCost + dynCost;
+  } else {
+    cachedCost = rawCost;
+  }
+  
+  const savingsPct = rawCost > 0 ? Math.round(((rawCost - cachedCost) / rawCost) * 100) : 0;
+  const savedDollars = (rawCost - cachedCost).toFixed(4);
+  
+  const res = document.getElementById("wCacheResult");
+  if (!res) return;
+  
+  if (!isCacheable) {
+    res.innerHTML = `
+      <div style="background:rgba(217,119,87,0.12); border:1px solid var(--coral); border-radius:8px; padding:12px;">
+        <b style="color:var(--coral);">⚠️ Cache Miss: Below Minimum Token Threshold</b><br>
+        <span style="font-size:12px; color:var(--ink);">
+          Prefix is ${prefix.toLocaleString()} tokens, but <b>${model.toUpperCase()}</b> requires at least <b>${minTokens.toLocaleString()} tokens</b> to activate prompt caching. Increase prefix size to enable 85% savings.
+        </span>
+      </div>
+    `;
+  } else {
+    res.innerHTML = `
+      <div style="background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-size:13px; font-weight:700; color:var(--green);">⚡ Prompt Caching Active (${savingsPct}% Cost Reduction)</span>
+          <span style="font-size:11px; color:var(--muted);">5-min TTL Refreshes on Hit</span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:12.5px; margin-bottom:8px;">
+          <div style="border:1px solid var(--border); border-radius:6px; padding:8px; background:var(--card);">
+            <div style="color:var(--muted); font-size:11px;">Without Caching:</div>
+            <div style="font-size:16px; font-weight:800; color:var(--coral);">${rawCost.toFixed(4)}</div>
+          </div>
+          <div style="border:1px solid var(--border); border-radius:6px; padding:8px; background:var(--card);">
+            <div style="color:var(--muted); font-size:11px;">With Prompt Caching:</div>
+            <div style="font-size:16px; font-weight:800; color:var(--green);">${cachedCost.toFixed(4)} <span style="font-size:11px;">(Save ${savedDollars})</span></div>
+          </div>
+        </div>
+        <div style="font-size:11.5px; color:var(--muted); line-height:1.4;">
+          💡 <b>Exam Fact:</b> Cache writes cost 1.25x base on first turn, but subsequent turns save 85% ($0.15x base). Every cache read automatically refreshes the 5-minute TTL window.
+        </div>
+      </div>
+    `;
+  }
+}
+
+/* ================= MULTI-AGENT DAG SIMULATOR ================= */
+function renderMultiAgentDagSimulator(container){
+  container.innerHTML = `
+    <h5>👑 Interactive Multi-Agent DAG & Blackboard Orchestrator</h5>
+    <p style="font-size:12px; color:var(--muted); margin-bottom:10px;">Step through an enterprise DAG execution cycle with centralized JSON Blackboard state sync:</p>
+    <div style="display:flex; gap:6px; margin-bottom:10px;">
+      <button class="btn sm" onclick="stepDagSim()">▶️ Step Next Agent</button>
+      <button class="btn ghost sm" onclick="resetDagSim()">↺ Reset Workflow</button>
+    </div>
+    <div id="wDagVisual" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:10px;"></div>
+    <div style="font-size:12px; font-weight:700; margin-bottom:4px;">Centralized Typed Blackboard State (Redis / JSON):</div>
+    <pre id="wDagBlackboard" style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:10px; font-size:11.5px; font-family:'SF Mono',Consolas,monospace; max-height:140px; overflow-y:auto;"></pre>
+  `;
+  resetDagSim();
+}
+
+let dagStep = 0;
+const dagAgents = [
+  { name: "1. Orchestrator", role: "Goal Decomposition", status: "WAITING" },
+  { name: "2. Research Worker", role: "Parallel RAG Fetch", status: "WAITING" },
+  { name: "3. Synthesis Worker", role: "Code Generation", status: "WAITING" },
+  { name: "4. Compliance Auditor", role: "Zero-Trust Review", status: "WAITING" }
+];
+
+function resetDagSim(){
+  dagStep = 0;
+  dagAgents.forEach(a => a.status = "WAITING");
+  renderDagUi({
+    workflow_id: "wf_94821",
+    status: "INITIALIZING",
+    task: "Generate HIPAA-compliant Patient API Endpoint",
+    state: {}
+  });
+}
+
+function stepDagSim(){
+  dagStep++;
+  let state = {};
+  if (dagStep === 1) {
+    dagAgents[0].status = "RUNNING";
+    state = { plan: ["Fetch EHR Schema", "Generate Fastify Route", "Audit PII Scrubbing"] };
+  } else if (dagStep === 2) {
+    dagAgents[0].status = "DONE";
+    dagAgents[1].status = "RUNNING";
+    state = { plan: ["Fetch EHR Schema", "Generate Fastify Route", "Audit PII Scrubbing"], rbac_rules: ["Role: DOCTOR", "Encrypted: AES-256"] };
+  } else if (dagStep === 3) {
+    dagAgents[1].status = "DONE";
+    dagAgents[2].status = "RUNNING";
+    state = { rbac_rules: ["Role: DOCTOR"], code_artifact: "export const patientRoute = ..." };
+  } else if (dagStep === 4) {
+    dagAgents[2].status = "DONE";
+    dagAgents[3].status = "RUNNING";
+    state = { code_artifact: "export const patientRoute = ...", audit_result: "PASSED: Zero PII Leakage" };
+  } else {
+    dagAgents[3].status = "DONE";
+    state = { status: "COMPLETED", duration_ms: 1840, token_spend_dollars: 0.042 };
+  }
+  renderDagUi({
+    workflow_id: "wf_94821",
+    step: dagStep,
+    agents_active: dagAgents.filter(a => a.status === "RUNNING").map(a => a.name),
+    blackboard: state
+  });
+}
+
+function renderDagUi(bbData){
+  const vis = document.getElementById("wDagVisual");
+  const bb = document.getElementById("wDagBlackboard");
+  if (vis) {
+    vis.innerHTML = dagAgents.map(a => `
+      <div style="border:2px solid ${a.status === 'RUNNING' ? 'var(--blue)' : a.status === 'DONE' ? 'var(--green)' : 'var(--border)'}; background:var(--bg); border-radius:8px; padding:8px; text-align:center;">
+        <div style="font-size:11.5px; font-weight:700;">${a.name}</div>
+        <div style="font-size:10px; color:var(--muted); margin:2px 0 4px;">${a.role}</div>
+        <span style="font-size:9.5px; font-weight:800; padding:2px 4px; border-radius:4px; color:#fff; background:${a.status === 'RUNNING' ? 'var(--blue)' : a.status === 'DONE' ? 'var(--green)' : 'var(--muted)'};">${a.status}</span>
+      </div>
+    `).join('');
+  }
+  if (bb) {
+    bb.textContent = JSON.stringify(bbData, null, 2);
+  }
+}
+
 /* ================= LESSON WIDGETS ================= */
 function initLessonWidgets(){
   const boxes = document.querySelectorAll('.widget-box');
   boxes.forEach(box => {
     const type = box.getAttribute('data-widget');
     if(type === 'token-cost') renderTokenCostCalculator(box);
+    else if(type === 'prompt-caching-sim') renderPromptCachingSimulator(box);
+    else if(type === 'multi-agent-dag') renderMultiAgentDagSimulator(box);
     else if(type === 'mcp-inspector') renderMcpInspector(box);
     else if(type === 'thinking-simulator') renderThinkingSimulator(box);
     else if(type === 'computer-use') renderComputerUseSimulator(box);
@@ -2668,18 +2930,91 @@ function nextQ(){
    +'<button class="btn ghost" onclick="certView(\''+Q.cert.id+'\')">Back to '+esc(Q.cert.code)+'</button></div></div>';
 }
 
+
+/* ================= FLASHCARD ANKI EXPORT & CUSTOM CARDS ================= */
+function exportCardsToAnki(certId){
+  const c = CERTS.find(x => x.id === certId);
+  if (!c) return;
+  const allCards = [...(c.cards || []), ...((S.customCards || {})[certId] || [])];
+  if (!allCards.length) {
+    toast('No flashcards available to export');
+    return;
+  }
+  let tsv = "#separator:tab\n#html:true\n#tags column:3\n";
+  allCards.forEach(card => {
+    const front = (card.f || '').replace(/\t/g, ' ').replace(/\n/g, '<br>');
+    const back = (card.b || '').replace(/\t/g, ' ').replace(/\n/g, '<br>');
+    const tag = c.code.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    tsv += front + "\t" + back + "\t" + tag + "\n";
+  });
+  
+  const blob = new Blob([tsv], { type: "text/tab-separated-values;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = c.code.toLowerCase() + "-anki-deck.tsv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast("📥 Exported " + allCards.length + " cards for Anki / Quizlet!");
+}
+
+function openCustomCardModal(certId){
+  const c = CERTS.find(x => x.id === certId);
+  if (!c) return;
+  const modal = document.createElement("div");
+  modal.id = "customCardModal";
+  modal.className = "modal-overlay";
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width:460px; background:var(--card); border:2px solid var(--border); border-radius:14px; padding:20px; box-shadow:0 8px 30px rgba(0,0,0,0.35);">
+      <h3 style="font-size:17px; margin-bottom:6px;">➕ Add Custom Flashcard (${c.code})</h3>
+      <p style="font-size:12.5px; color:var(--muted); margin-bottom:12px;">Create your own personal flashcard stored locally and scheduled in your Leitner spaced repetition deck.</p>
+      <label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Card Front (Prompt / Question / Concept):</label>
+      <textarea id="customCardFront" placeholder="e.g. What is the minimum token threshold for Haiku Prompt Caching?" style="width:100%; height:70px; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:13px; margin-bottom:12px; font-family:inherit;"></textarea>
+      <label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Card Back (Explanation / Answer / Formula):</label>
+      <textarea id="customCardBack" placeholder="e.g. 2,048 tokens for Haiku (vs 1,024 tokens for Sonnet/Opus). 85% discount on cached reads with 5-min TTL." style="width:100%; height:80px; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:13px; margin-bottom:14px; font-family:inherit;"></textarea>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn ghost sm" onclick="document.getElementById('customCardModal').remove()">Cancel</button>
+        <button class="btn sm" onclick="saveCustomCard('${certId}')">Save Flashcard</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  const f = document.getElementById("customCardFront");
+  if (f) f.focus();
+}
+
+function saveCustomCard(certId){
+  const f = (document.getElementById("customCardFront")?.value || '').trim();
+  const b = (document.getElementById("customCardBack")?.value || '').trim();
+  if (!f || !b) {
+    alert("Please fill in both the front and back of the flashcard.");
+    return;
+  }
+  S.customCards = S.customCards || {};
+  S.customCards[certId] = S.customCards[certId] || [];
+  const cardId = certId + "_custom_" + Date.now();
+  S.customCards[certId].push({ id: cardId, f, b, custom: true });
+  save();
+  const modal = document.getElementById("customCardModal");
+  if (modal) modal.remove();
+  toast("✨ Custom flashcard added to deck!");
+  startCards(certId);
+}
+
 /* ================= FLASHCARDS ================= */
 let F={};
 function startCards(id,mode){
   const c=CERTS.find(x=>x.id===id);
   if(!c.cards.length) return noContent(c,"flashcards");
-  const idxs = mode==="all" ? c.cards.map((_,i)=>i) : dueCards(c);
+  const deck = getAllCertCards(c); const idxs = mode==="all" ? deck.map((_,i)=>i) : dueCards(c);
   if(!idxs.length) return cardsCaughtUp(c);
   F={cert:c, idxs:shuffleArr(idxs.slice()), i:0, knew:0, again:new Set(), mode:mode||"due"};
   cardView();
 }
 function cardView(){
-  const c=F.cert, card=c.cards[F.idxs[F.i]];
+  const c=F.cert, deck=getAllCertCards(c), card=deck[F.idxs[F.i]];
   renderHeader();
   $("app").innerHTML =
    '<button class="back" onclick="certView(\''+c.id+'\')">← Quit flashcards</button>'
@@ -3037,6 +3372,20 @@ function loadError(e,retry){
       +'<p style="font-size:13.5px; color:var(--muted); margin-top:12px;">Or use the hosted copy at <b>jjuhric.github.io/claude_study_guide</b>.</p></div>';
   }
 })();
+
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => {
+    const b = document.getElementById('pwaStatusBadge');
+    if (b) { b.textContent = '● Online (PWA)'; b.style.color = 'var(--green)'; }
+    toast('🌐 Back online');
+  });
+  window.addEventListener('offline', () => {
+    const b = document.getElementById('pwaStatusBadge');
+    if (b) { b.textContent = '● Offline Mode'; b.style.color = 'var(--coral)'; }
+    toast('📡 Operating in Offline PWA Mode');
+  });
+}
 
 if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {

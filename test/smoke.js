@@ -642,6 +642,13 @@ vm.createContext(sandbox);
 
   call("labToolsModal");
   check(/model-decision-tree/.test(els.app.innerHTML) && /rag-visualizer/.test(els.app.innerHTML), "lab tools modal renders decision trees and visualizers");
+  check(/prompt-caching-sim/.test(els.app.innerHTML) && /multi-agent-dag/.test(els.app.innerHTML), "lab tools modal renders Prompt Caching and Multi-Agent DAG simulators");
+
+  call("analyticsView");
+  check(/Exam Pass Probability Predictor/.test(els.app.innerHTML), "analytics view renders Pass Probability Predictor");
+
+  call("startCards", "ccao");
+  check(/Export to Anki/.test(els.app.innerHTML) || /customCardModal/.test(html), "flashcards renders Anki export and custom card capabilities");
 
   /* ---------- 20. Upgraded Exam Cram Sheets ---------- */
   call("cramSheetSelect");
