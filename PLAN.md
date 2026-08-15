@@ -104,10 +104,12 @@ existing boundaries rather than inventing new ones.
 ## Task list
 
 ### Phase 0 — safety net
-- [ ] **0.1** Confirm baseline green: `node test/smoke.js` (expect 326 ok) and
-      `node test/links.js`. Record the count.
-- [ ] **0.2** Tag the pre-restructure commit: `git tag pre-restructure` so any
-      step can be diffed or reverted against a known-good point.
+- [x] **0.1** Baseline recorded: `smoke.js` **326 ok / 0 fail**.
+      `links.js` **FAILS — 3 dead videos**, each referenced by two lessons:
+      `kQmXZJp_6io`, `0k_3uM5jUqM`, `Z3mN7U3O4fE` (all HTTP 404). These were
+      added with the Masterclass content and are a pre-existing regression, not
+      caused by this work. Folded into Phase 2 as task 2.8.
+- [x] **0.2** Tagged `pre-restructure` at the last known-good commit.
 
 ### Phase 1 — duplicate-function bug (do first: smallest, highest value)
 - [ ] **1.1** Merge `getFreshState`: keep the live (later) body, restore the 21
@@ -134,6 +136,8 @@ existing boundaries rather than inventing new ones.
 - [ ] **2.6** Test: assert no reference to a non-existent model, and that
       version-pinned model names are on an allow-list.
 - [ ] **2.7** Verify + commit.
+- [ ] **2.8** Replace the 3 dead Masterclass videos found in 0.1 with
+      verified-live equivalents; `node test/links.js` must exit clean.
 
 ### Phase 3 — file restructure (largest; strictly mechanical)
 - [ ] **3.1** Create `css/app.css` from the inline `<style>` block; link it.
