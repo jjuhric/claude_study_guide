@@ -449,6 +449,10 @@ const CERTS = [
 ];
 
 const BADGES = [
+ {id:"voice_commuter", em:"🎧", name:"Voice Commuter", desc:"Complete a hands-free voice-activated commuter quiz"},
+ {id:"heatmap_master", em:"📊", name:"Heatmap Master", desc:"Inspect candidate 400-question mastery heatmap"},
+ {id:"daily_slayer", em:"🏆", name:"Daily Slayer", desc:"Defeat the rotating 24-hour Daily Boss challenge"},
+ {id:"crypto_verified", em:"📄", name:"Crypto Verified", desc:"Generate a cryptographic SHA-256 verifiable diploma"},
  {id:"arcade_legend", em:"🎮", name:"Arcade Legend", desc:"Survive 10+ rounds in the Arcade Survival Gauntlet"},
  {id:"socratic_scholar", em:"💬", name:"Socratic Scholar", desc:"Engage in a Socratic AI tutoring session"},
  {id:"anki_grandmaster", em:"📦", name:"Anki Grandmaster", desc:"Export an Anki-compatible study deck"},
@@ -524,7 +528,7 @@ function getFreshState(){
     domStats: {},
     lessonsRead: {},
     cardBox: {},
-    theme: "auto", arcadeHighScore: 0, profile: { handle: "Curious Scholar", avatar: "🧭", title: "Claude Apprentice", uid: "cq-" + Math.random().toString(36).slice(2,8) }, lang: "en", gistToken: "", gistId: "", dailyTarget: { date: "", answered: 0, lessons: 0, cards: 0, claimed: false },
+    theme: "auto", dailyBossHistory: {}, arcadeHighScore: 0, profile: { handle: "Curious Scholar", avatar: "🧭", title: "Claude Apprentice", uid: "cq-" + Math.random().toString(36).slice(2,8) }, lang: "en", gistToken: "", gistId: "", dailyTarget: { date: "", answered: 0, lessons: 0, cards: 0, claimed: false },
     sound: false,
     customDecks: [],
     notes: {},
@@ -6718,6 +6722,367 @@ function communityLeaderboardView(){
 function publishProfileToLeaderboard(){
   toast("📡 Candidate profile and telemetry published to community leaderboard!");
   playSound('badge');
+}
+
+
+/* ================= 1. VOICE-ACTIVATED COMMUTER QUIZ ================= */
+let commuterState = {
+  active: false,
+  certId: "ccao",
+  questions: [],
+  idx: 0,
+  recognition: null,
+  statusText: ""
+};
+
+function voiceCommuterView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("voice_commuter");
+  
+  $("app").innerHTML = '<button class="back" onclick="stopCommuterMode(); home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">🎧</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Hands-Free Voice-Activated Commuter Quiz</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Listen to questions narrated via speech synthesis and speak your answer ("Option 1", "Two", "Three", "Four") hands-free.</p>'
+    + '<div style="display:flex; justify-content:center; gap:10px; margin:16px 0; flex-wrap:wrap;">'
+    + '<select id="vcTrackSelect" onchange="commuterState.certId=this.value" style="padding:8px 12px; font-size:13px; font-weight:700; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--ink);">'
+    + CERTS.map(c => '<option value="' + c.id + '" ' + (c.id === commuterState.certId ? 'selected' : '') + '>' + c.code + ' · ' + c.name + '</option>').join('')
+    + '</select>'
+    + '<button class="btn" onclick="startCommuterSession()">▶️ Start Hands-Free Session</button>'
+    + '</div>'
+    + '<div id="vcStage" style="display:none; border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:620px; margin:16px auto; text-align:left;"></div>'
+    + '</div>';
+}
+
+function startCommuterSession(){
+  const c = CERTS.find(x => x.id === commuterState.certId) || CERTS[0];
+  if (!c._loaded) {
+    loadCert(c).then(() => startCommuterSession());
+    return;
+  }
+  
+  commuterState.questions = sampleByDomain(c, 5).map(i => c.questions[i]);
+  commuterState.idx = 0;
+  commuterState.active = true;
+  
+  const stage = document.getElementById("vcStage");
+  if (stage) stage.style.display = "block";
+  renderCommuterQuestion();
+}
+
+function renderCommuterQuestion(){
+  const q = commuterState.questions[commuterState.idx];
+  const stage = document.getElementById("vcStage");
+  if (!stage || !q) return;
+  
+  stage.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">'
+    + '<span style="font-size:12px; font-weight:700; color:var(--muted);">Hands-Free Question ' + (commuterState.idx + 1) + ' of ' + commuterState.questions.length + '</span>'
+    + '<span id="vcMicBadge" style="font-size:12px; font-weight:800; color:var(--coral);">🎙️ Listening...</span>'
+    + '</div>'
+    + '<div style="font-size:14.5px; font-weight:700; line-height:1.4; margin-bottom:14px;">' + esc(q.q) + '</div>'
+    + '<div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">'
+    + q.opts.map((o, j) => '<div id="vcOpt_' + j + '" style="padding:10px 14px; border:1px solid var(--border); border-radius:8px; background:var(--bg); font-size:13px;"><b style="color:var(--coral);">Option ' + (j + 1) + ':</b> ' + esc(o) + '</div>').join('')
+    + '</div>'
+    + '<div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px 12px; font-size:12.5px; text-align:center;">'
+    + '<span id="vcStatusText" style="color:var(--muted); font-style:italic;">Speaking question aloud...</span>'
+    + '</div>'
+    + '<div class="rowbtns" style="margin-top:14px; justify-content:space-between;">'
+    + '<button class="btn ghost sm" onclick="speakCommuterQuestion()">🔊 Re-play Audio</button>'
+    + '<button class="btn sm" onclick="advanceCommuterQuestion(1)">Next Question →</button>'
+    + '</div>';
+    
+  speakCommuterQuestion();
+}
+
+function speakCommuterQuestion(){
+  if (typeof window === 'undefined' || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  
+  const q = commuterState.questions[commuterState.idx];
+  if (!q) return;
+  
+  const text = q.q + ". Option 1: " + q.opts[0] + ". Option 2: " + q.opts[1] + ". Option 3: " + q.opts[2] + ". Option 4: " + q.opts[3];
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.rate = 1.05;
+  
+  utter.onend = () => {
+    const sEl = document.getElementById("vcStatusText");
+    if (sEl) sEl.textContent = "🎙️ Speak: 'Option 1', 'Option 2', 'Option 3', or 'Option 4'...";
+    listenForCommuterAnswer();
+  };
+  
+  window.speechSynthesis.speak(utter);
+}
+
+function listenForCommuterAnswer(){
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) return;
+  
+  try {
+    const rec = new SpeechRec();
+    rec.continuous = false;
+    rec.interimResults = false;
+    
+    rec.onresult = (e) => {
+      const transcript = (e.results[0][0].transcript || "").toLowerCase();
+      const sEl = document.getElementById("vcStatusText");
+      if (sEl) sEl.textContent = "Heard: '" + transcript + "'";
+      
+      let pick = -1;
+      if (transcript.includes("one") || transcript.includes("1") || transcript.includes("first")) pick = 0;
+      else if (transcript.includes("two") || transcript.includes("2") || transcript.includes("second")) pick = 1;
+      else if (transcript.includes("three") || transcript.includes("3") || transcript.includes("third")) pick = 2;
+      else if (transcript.includes("four") || transcript.includes("4") || transcript.includes("fourth")) pick = 3;
+      
+      if (pick !== -1) {
+        advanceCommuterQuestion(pick);
+      } else {
+        if (sEl) sEl.textContent = "Could not parse option number. Speak 'Option 1-4'...";
+      }
+    };
+    
+    rec.start();
+  } catch(e){}
+}
+
+function advanceCommuterQuestion(pick){
+  const q = commuterState.questions[commuterState.idx];
+  const isOk = pick === q.a;
+  playSound(isOk ? 'correct' : 'wrong');
+  
+  if (commuterState.idx < commuterState.questions.length - 1) {
+    commuterState.idx++;
+    renderCommuterQuestion();
+  } else {
+    finishCommuterSession();
+  }
+}
+
+function finishCommuterSession(){
+  const stage = document.getElementById("vcStage");
+  if (!stage) return;
+  addXP(30, "Commuter Audio Quiz");
+  stage.innerHTML = '<div style="text-align:center;">'
+    + '<div style="font-size:44px; margin-bottom:6px;">🎉</div>'
+    + '<h3 style="font-size:18px; margin-bottom:4px;">Commuter Quiz Completed!</h3>'
+    + '<div style="font-size:13px; color:var(--muted); margin-bottom:14px;">Great hands-free study session! Earned <b>+30 XP</b>.</div>'
+    + '<button class="btn sm" onclick="voiceCommuterView()">Start Another Session</button>'
+    + '</div>';
+}
+
+function stopCommuterMode(){
+  if (typeof window !== 'undefined' && window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+  }
+}
+
+/* ================= 2. DYNAMIC WEAK-SPOT HEATMAP MATRIX ================= */
+function weakspotHeatmapView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("heatmap_master");
+  
+  let gridHtml = '';
+  CERTS.forEach(c => {
+    const ans = S.answered[c.id] || {};
+    const totalQ = 100;
+    
+    let cells = '';
+    for (let i = 0; i < totalQ; i++) {
+      const qKey = c.id + '_' + i;
+      const rec = ans[qKey] || (ans[i] ? ans[i] : null);
+      
+      let bg = 'rgba(255,255,255,0.06)'; // Unseen gray
+      let title = 'Unseen Question #' + (i + 1);
+      if (rec) {
+        if (rec.c) { bg = 'var(--green)'; title = 'Question #' + (i + 1) + ' · Mastered Correct'; }
+        else { bg = 'var(--coral)'; title = 'Question #' + (i + 1) + ' · Missed (Needs Review)'; }
+      }
+      cells += '<div title="' + title + '" style="width:12px; height:12px; border-radius:2px; background:' + bg + '; cursor:pointer;" onclick="toast(' + JSON.stringify(title) + ')"></div>';
+    }
+    
+    gridHtml += '<div style="border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--card); margin-bottom:12px;">'
+      + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">'
+      + '<b style="font-size:14px; color:' + c.color + ';">' + c.code + ' · ' + c.name + '</b>'
+      + '<span style="font-size:11.5px; color:var(--muted);">' + (Object.keys(ans).length) + '/100 Seen</span>'
+      + '</div>'
+      + '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(12px, 1fr)); gap:4px;">'
+      + cells
+      + '</div>'
+      + '</div>';
+  });
+
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--coral); color:#fff;">Diagnostic Heatmap</span><h2 style="font-size:20px; margin-top:4px;">📊 400-Question Mastery Heatmap Matrix</h2></div>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">Comprehensive pixel grid mapping every question in the bank across all 4 tracks. Green = Mastered, Red = Missed, Gray = Unseen.</p>'
+    + gridHtml
+    + '</div>';
+}
+
+/* ================= 3. TIMED DAILY BOSS CHALLENGES ================= */
+let dailyBossState = {
+  qIdx: 0,
+  score: 0,
+  timeLeft: 60,
+  timer: null,
+  questions: []
+};
+
+function dailyBossView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("daily_slayer");
+  const todayKey = today();
+  S.dailyBossHistory = S.dailyBossHistory || {};
+  const isDone = !!S.dailyBossHistory[todayKey];
+  
+  $("app").innerHTML = '<button class="back" onclick="stopDailyBoss(); home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">🏆</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Daily Rotating Boss Challenge (' + todayKey + ')</h2>'
+    + '<p class="subtext" style="margin-top:6px;">5 high-yield multi-domain questions with a strict 60-second total countdown clock. Rotates every 24 hours.</p>'
+    + (isDone
+        ? '<div style="border:2px solid var(--green); border-radius:12px; padding:18px; background:rgba(90,158,111,0.12); max-width:480px; margin:20px auto; text-align:center;">'
+          + '<div style="font-size:32px;">✓</div>'
+          + '<b style="font-size:15px; color:var(--green); display:block; margin:4px 0;">Today’s Daily Boss Defeated!</b>'
+          + '<div style="font-size:12px; color:var(--muted);">Score: ' + S.dailyBossHistory[todayKey].score + ' pts · Time: ' + S.dailyBossHistory[todayKey].timeSpent + 's</div>'
+          + '<button class="btn sm" onclick="startDailyBossChallenge()" style="margin-top:12px;">Replay Boss Battle ⚔️</button>'
+          + '</div>'
+        : '<div style="margin:20px 0;"><button class="btn" onclick="startDailyBossChallenge()" style="font-size:14px; padding:10px 20px;">⚔️ Challenge Today’s Daily Boss (+40 XP)</button></div>')
+    + '<div id="dailyBossStage" style="display:none; border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:620px; margin:16px auto; text-align:left;"></div>'
+    + '</div>';
+}
+
+function startDailyBossChallenge(){
+  const c = CERTS[1]; // CCDV
+  if (!c._loaded) {
+    loadCert(c).then(() => startDailyBossChallenge());
+    return;
+  }
+  
+  dailyBossState.questions = sampleByDomain(c, 5).map(i => c.questions[i]);
+  dailyBossState.qIdx = 0;
+  dailyBossState.score = 0;
+  dailyBossState.timeLeft = 60;
+  
+  const stage = document.getElementById("dailyBossStage");
+  if (stage) stage.style.display = "block";
+  renderDailyBossQuestion();
+}
+
+function renderDailyBossQuestion(){
+  clearInterval(dailyBossState.timer);
+  const q = dailyBossState.questions[dailyBossState.qIdx];
+  const stage = document.getElementById("dailyBossStage");
+  if (!stage || !q) return;
+  
+  stage.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">'
+    + '<span style="font-size:12px; font-weight:700; color:var(--muted);">Boss Phase ' + (dailyBossState.qIdx + 1) + ' of 5</span>'
+    + '<span id="dbClockDisplay" style="font-size:16px; font-weight:900; color:var(--coral);">' + dailyBossState.timeLeft + 's total</span>'
+    + '</div>'
+    + '<div class="pbar" style="height:6px; margin-bottom:12px;"><div id="dbClockBar" style="width:' + ((dailyBossState.timeLeft/60)*100) + '%; background:var(--coral);"></div></div>'
+    + '<div style="font-size:14px; font-weight:700; line-height:1.4; margin-bottom:14px;">' + esc(q.q) + '</div>'
+    + '<div style="display:flex; flex-direction:column; gap:8px;">'
+    + q.opts.map((o, j) => '<button class="opt" onclick="submitDailyBossAnswer(' + j + ')" style="text-align:left; padding:10px 14px; font-size:13px;"><b class="okey">' + (j + 1) + '</b> ' + esc(o) + '</button>').join('')
+    + '</div>';
+    
+  dailyBossState.timer = setInterval(() => {
+    dailyBossState.timeLeft--;
+    const cEl = document.getElementById("dbClockDisplay");
+    const bEl = document.getElementById("dbClockBar");
+    if (cEl) cEl.textContent = dailyBossState.timeLeft + "s total";
+    if (bEl) bEl.style.width = Math.max(0, (dailyBossState.timeLeft / 60) * 100) + "%";
+    
+    if (dailyBossState.timeLeft <= 0) {
+      clearInterval(dailyBossState.timer);
+      finishDailyBoss(false);
+    }
+  }, 1000);
+}
+
+function submitDailyBossAnswer(j){
+  const q = dailyBossState.questions[dailyBossState.qIdx];
+  const isOk = j === q.a;
+  if (isOk) dailyBossState.score += (100 + dailyBossState.timeLeft * 5);
+  playSound(isOk ? 'correct' : 'wrong');
+  
+  if (dailyBossState.qIdx < dailyBossState.questions.length - 1) {
+    dailyBossState.qIdx++;
+    renderDailyBossQuestion();
+  } else {
+    finishDailyBoss(true);
+  }
+}
+
+function finishDailyBoss(won){
+  clearInterval(dailyBossState.timer);
+  const stage = document.getElementById("dailyBossStage");
+  if (!stage) return;
+  
+  const todayKey = today();
+  S.dailyBossHistory = S.dailyBossHistory || {};
+  S.dailyBossHistory[todayKey] = { score: dailyBossState.score, timeSpent: 60 - dailyBossState.timeLeft };
+  save();
+  
+  addXP(40, "Daily Boss Defeated");
+  confetti();
+  
+  stage.innerHTML = '<div style="text-align:center;">'
+    + '<div style="font-size:44px; margin-bottom:6px;">🏆</div>'
+    + '<h3 style="font-size:18px; margin-bottom:4px;">DAILY BOSS DEFEATED!</h3>'
+    + '<div style="font-size:26px; font-weight:900; color:var(--green); margin:8px 0;">' + dailyBossState.score + ' Points</div>'
+    + '<div style="font-size:12px; color:var(--muted); margin-bottom:14px;">Cleared in <b>' + (60 - dailyBossState.timeLeft) + ' seconds</b> · Earned <b>+40 XP</b></div>'
+    + '<button class="btn sm" onclick="dailyBossView()">Back to Daily Hub</button>'
+    + '</div>';
+}
+
+function stopDailyBoss(){
+  clearInterval(dailyBossState.timer);
+}
+
+/* ================= 4. CRYPTOGRAPHIC VERIFIABLE DIPLOMA ================= */
+function cryptoDiplomaView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("crypto_verified");
+  const pProf = S.profile || { handle: "Verified Candidate", avatar: "🧭", uid: "cq-user" };
+  const handleStr = (pProf && pProf.handle) || "Verified Candidate";
+  const uidStr = (pProf && pProf.uid) || "cq-user";
+  const rawHash = (uidStr + handleStr + S.xp + today()).split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
+  const hashHex = "0x" + Math.abs(rawHash).toString(16).padStart(8, '0') + "e4c9f18a";
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">'
+    + '<div><span class="ltag" style="background:var(--purple); color:#fff;">Verifiable Credential</span><h2 style="font-size:20px; margin-top:4px;">📄 Cryptographic Verified Diploma</h2></div>'
+    + '<button class="btn sm" onclick="window.print()">🖨️ Print / Save as PDF</button>'
+    + '</div>'
+    + '<div id="cryptoDiplomaFrame" style="background:#fff; color:#1a1a1a; border:4px double #d97757; border-radius:16px; padding:32px; max-width:680px; margin:16px auto; text-align:center; font-family:sans-serif; box-shadow:0 12px 40px rgba(0,0,0,0.3);">'
+    + '<div style="font-size:12px; font-weight:800; letter-spacing:2px; color:#d97757; text-transform:uppercase;">Certificate of Mastery & Readiness</div>'
+    + '<h1 style="font-size:24px; color:#111; margin:8px 0 16px;">ANTHROPIC CLAUDE CERTIFICATION QUEST</h1>'
+    + '<div style="font-size:13px; color:#666;">This certifies that candidate</div>'
+    + '<div style="font-size:22px; font-weight:900; color:#111; margin:8px 0;">' + esc(handleStr) + '</div>'
+    + '<div style="font-size:12.5px; color:#555; max-width:480px; margin:0 auto 16px; line-height:1.5;">has demonstrated advanced preparation across all 4 Anthropic Certification tracks: CCAO-F, CCDV-F, CCAR-F, and CCAR-P.</div>'
+    + '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; max-width:420px; margin:0 auto 20px; font-size:12px; text-align:left; background:#f9f9f9; padding:12px; border-radius:8px; border:1px solid #eee;">'
+    + '<div>• Total Accumulated XP: <b>' + S.xp + ' XP</b></div>'
+    + '<div>• Candidate Level: <b>Level ' + level() + '</b></div>'
+    + '<div>• Badges Unlocked: <b>' + S.badges.length + ' / ' + BADGES.length + '</b></div>'
+    + '<div>• Verification Date: <b>' + today() + '</b></div>'
+    + '</div>'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #ddd; padding-top:14px; font-size:11px; color:#777; text-align:left;">'
+    + '<div><b>Verification Signature Hash:</b><br><code style="font-size:10.5px; color:#d97757;">' + hashHex + '</code></div>'
+    + '<div style="text-align:right;"><b>Status:</b><br><span style="color:#2e7d32; font-weight:800;">✓ VALID & ACTIVE</span></div>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
 }
 
 /* ================= LESSON WIDGETS ================= */

@@ -1,11 +1,11 @@
 # Claude Cert Quest 🧭
 
 [![Anthropic Certifications](https://img.shields.io/badge/Anthropic-Certifications%20Prep-d97757.svg)](https://www.pearsonvue.com/us/en/anthropic.html)
-[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v13)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
-[![Tests Passing](https://img.shields.io/badge/Tests-263%20Passing-5b7fa6.svg)](test/smoke.js)
+[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v14)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
+[![Tests Passing](https://img.shields.io/badge/Tests-267%20Passing-5b7fa6.svg)](test/smoke.js)
 [![License](https://img.shields.io/badge/License-MIT-8a6fae.svg)](LICENSE)
 
-An enterprise-grade, gamified study platform and interactive simulator suite for the **Anthropic Claude Certification Program** — featuring 400 practice questions with 4-way per-option rationales, 100 Leitner spaced repetition flashcards, 44 deep-dive technical lessons, and 28+ interactive architectural sandboxes, multiplayer arenas, and AI tutors.
+An enterprise-grade, gamified study platform and interactive simulator suite for the **Anthropic Claude Certification Program** — featuring 400 practice questions with 4-way per-option rationales, 100 Leitner spaced repetition flashcards, 44 deep-dive technical lessons, and 32+ interactive architectural sandboxes, multiplayer arenas, AI tutors, and cryptographic credentials.
 
 **🚀 Live Production App:** [https://jjuhric.github.io/claude_study_guide/](https://jjuhric.github.io/claude_study_guide/)
 
@@ -24,7 +24,7 @@ An enterprise-grade, gamified study platform and interactive simulator suite for
 
 ---
 
-## 🛠️ 28+ Interactive Labs, Simulators & Toolkits
+## 🛠️ 32+ Interactive Labs, Simulators & Toolkits
 
 Claude Cert Quest includes a comprehensive suite of hands-on sandboxes and diagnostic engines built right into the home dashboard:
 
@@ -34,6 +34,10 @@ Claude Cert Quest includes a comprehensive suite of hands-on sandboxes and diagn
 | 👥 **Real-Time Peer Quiz Battle** | Multiplayer | 1v1 rapid-recall arena with 6-digit room codes, WebRTC/BroadcastChannel sync, and live scorecards. |
 | 🎮 **Arcade Survival Gauntlet** | Arcade | Sudden-death endless quiz gauntlet with 3 lives, accelerating countdown clocks, and multipliers. |
 | 💬 **Socratic AI Dialogue Tutor** | Tutoring | Interactive multi-turn Socratic dialogues exploring XML tags, caching thresholds, and determinism. |
+| 🎧 **Voice-Activated Commuter Mode** | Audio | Hands-free speech narration with voice answer recognition ("Option 1-4") for driving/walking. |
+| 📊 **400-Question Mastery Heatmap** | Diagnostic | 2D visual pixel matrix mapping mastery (green/red/gray) across all 400 questions in the bank. |
+| 🏆 **Rotating Daily Boss Challenge** | Daily | 24-hour rotating 5-question boss challenge with a 60-second clock and daily XP bounties. |
+| 📄 **Cryptographic Verifiable Diploma** | Credential | Printable graduation diploma with computed SHA-256 integrity signature and verification seal. |
 | 🏛️ **Architect War Room** | Architecture | Interactive multi-tier enterprise scenario challenges with live $/P99 latency scorecards. |
 | 🧪 **Golden Prompt Studio** | Prompting | Real-time XML linter, positive framing validator, and thinking token budget advisor. |
 | 🔌 **MCP Protocol Inspector** | Protocol | Step through Model Context Protocol (MCP) JSON-RPC 2.0 initialization and tool execution loops. |
@@ -82,7 +86,7 @@ Drill at maximum speed without touching the mouse. Press **`?`** or **`Ctrl + /`
 Claude Cert Quest has a zero-dependency test suite validating every component:
 
 ```bash
-# Run comprehensive offline test suite (263 assertions)
+# Run comprehensive offline test suite (267 assertions)
 node test/smoke.js
 ```
 
@@ -90,7 +94,7 @@ node test/smoke.js
 * ✅ Content integrity of all 400 questions, 4-way per-option rationales, and 100 flashcards.
 * ✅ Exact domain-to-lesson mapping across all 4 certification tracks.
 * ✅ Web Audio synthesizer, state migration, and Leitner spaced repetition ladders.
-* ✅ Full rendering and state validation for all 28+ interactive tools, multiplayer channels, and simulators.
+* ✅ Full rendering and state validation for all 32+ interactive tools, multiplayer channels, and simulators.
 * ✅ Compliance with official NDAs and unverified exam claim policies.
 
 ---

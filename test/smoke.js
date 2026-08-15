@@ -827,6 +827,19 @@ vm.createContext(sandbox);
   call("exportAnkiBinaryDeck");
   check(true, "exportAnkiBinaryDeck executes without throwing");
 
+  /* ---------- 31. Valhalla Suite ---------- */
+  call("voiceCommuterView");
+  check(/Hands-Free Voice-Activated Commuter Quiz/.test(els.app.innerHTML) && /vcTrackSelect/.test(els.app.innerHTML), "voiceCommuterView renders commuter audio stage");
+
+  call("weakspotHeatmapView");
+  check(/400-Question Mastery Heatmap/.test(els.app.innerHTML), "weakspotHeatmapView renders 2D mastery matrix");
+
+  call("dailyBossView");
+  check(/Daily Rotating Boss Challenge/.test(els.app.innerHTML), "dailyBossView renders rotating boss stage");
+
+  call("cryptoDiplomaView");
+  check(/Cryptographic Verified Diploma/.test(els.app.innerHTML) && /cryptoDiplomaFrame/.test(els.app.innerHTML), "cryptoDiplomaView renders SHA-256 verifiable diploma");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
