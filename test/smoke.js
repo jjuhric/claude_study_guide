@@ -681,6 +681,22 @@ vm.createContext(sandbox);
   call("renderCertificate", "ccao");
   check(/Certificate of Exam Readiness/.test(els.app.innerHTML) && /diplomaFrame/.test(els.app.innerHTML), "renderCertificate displays official printable diploma frame");
 
+  /* ---------- 22. Next-Level Systems ---------- */
+  call("promptStudioView");
+  check(/Prompt Engineering Linter/.test(els.app.innerHTML) && /promptDraftInput/.test(els.app.innerHTML), "prompt studio view renders linter and scorecard");
+
+  call("mcpWorkbenchView");
+  check(/MCP & Tool-Calling Protocol Inspector/.test(els.app.innerHTML) && /mcpClientMsg/.test(els.app.innerHTML), "mcp workbench view renders protocol inspector");
+
+  call("examPrescriptionView");
+  check(/Personalized Exam Prescription/.test(els.app.innerHTML) || /No Missed Questions Recorded/.test(els.app.innerHTML), "exam prescription view renders diagnostic report");
+
+  call("sdkPlaygroundView");
+  check(/SDK Code Generator/.test(els.app.innerHTML) && /sdkCodeOutput/.test(els.app.innerHTML), "sdk playground view renders side-by-side code generator");
+
+  call("bossBattleSelect");
+  check(/Adaptive Certification Boss Battle/.test(els.app.innerHTML), "boss battle hub renders final boss challenge");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();

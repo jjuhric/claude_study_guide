@@ -449,6 +449,10 @@ const CERTS = [
 ];
 
 const BADGES = [
+ {id:"war_room", em:"🏛️", name:"War Room Master", desc:"Successfully clear an enterprise architecture challenge"},
+ {id:"prompt_master", em:"🧪", name:"Golden Prompter", desc:"Achieve a 95%+ score in Golden Prompt Studio"},
+ {id:"mcp_engineer", em:"🔌", name:"Protocol Pioneer", desc:"Simulate full MCP tool-use lifecycle in the workbench"},
+ {id:"boss_slayer", em:"⚔️", name:"Boss Battle Victor", desc:"Conquer an adaptive 25-question final Boss Battle"},
  {id:"first", em:"🌱", name:"First Steps", desc:"Answer your first question"},
  {id:"combo5", em:"🔥", name:"On Fire", desc:"5 correct in a row"},
  {id:"combo10", em:"⚡", name:"Unstoppable", desc:"10 correct in a row"},
@@ -3191,6 +3195,576 @@ function applyContrastMode(mode){
 if (typeof window !== 'undefined') {
   if (S.fontMode && S.fontMode !== 'default') document.body.classList.add('font-' + S.fontMode);
   if (S.contrastMode && S.contrastMode !== 'default') document.documentElement.setAttribute('data-contrast', S.contrastMode);
+}
+
+/* ================= NEXT-LEVEL UPGRADE SUITES ================= */
+
+/* ================= 1. GOLDEN PROMPT STUDIO (LINTER & EVALUATOR) ================= */
+const SAMPLE_PROMPTS = {
+  custom: "",
+  code_analysis: `<context>
+You are an expert security engineer reviewing a Node.js microservice.
+Repository Guidelines:
+- Strict zero-trust input validation on all routes
+- All SQL queries must use parameterized bindings
+- Never store raw API keys in source control
+</context>
+
+<instructions>
+1. Identify all potential OWASP Top 10 vulnerabilities in the provided snippet.
+2. Provide a secure, refactored version of the code.
+3. Include an architectural explanation for why the refactored code prevents exploit vectors.
+</instructions>
+
+<code_to_review>
+const query = "SELECT * FROM users WHERE email = '" + req.body.email + "'";
+db.execute(query);
+</code_to_review>`,
+  extraction: `<context>
+Company Policy:
+- Standard refund window is 30 days from delivery.
+- Premium members receive 60-day refund window.
+</context>
+
+<instructions>
+Extract the following fields from the customer email into JSON:
+- customer_id (string)
+- tier (STANDARD | PREMIUM)
+- days_since_delivery (integer)
+- refund_eligible (boolean)
+</instructions>
+
+<email>
+Hi, my ID is CUST-8921. I bought this jacket 35 days ago. I have a Premium membership. Can I return it?
+</email>`
+};
+
+function promptStudioView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--coral); color:#fff;">Golden Prompt Studio</span><h2 style="font-size:20px; margin-top:4px;">🧪 Prompt Engineering Linter & Evaluator</h2></div>'
+    + '<select id="promptSampleSel" onchange="loadPromptSample(this.value)" style="padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:13px;">'
+    + '<option value="code_analysis">Template: Secure Code Review (XML & Context)</option>'
+    + '<option value="extraction">Template: Structured JSON Extraction</option>'
+    + '<option value="custom">Clear / Custom Prompt</option>'
+    + '</select>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Draft or test prompts in real-time against Anthropic official Prompt Engineering Best Practices (XML delimiters, positive framing, caching prefixes, and thinking token budgets).</p>'
+    + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:16px;">'
+    + '<div>'
+    + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Prompt Input (Markdown & XML):</label>'
+    + '<textarea id="promptDraftInput" oninput="lintPrompt()" style="width:100%; height:320px; padding:12px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:12.5px; font-family:\'SF Mono\',Consolas,monospace; line-height:1.5; resize:vertical;"></textarea>'
+    + '<div style="display:flex; justify-content:space-between; margin-top:6px; font-size:11.5px; color:var(--muted);">'
+    + '<span id="promptCharCount">0 characters · 0 estimated tokens</span>'
+    + '<button class="btn ghost sm" onclick="loadPromptSample(\'code_analysis\')">Reset to Golden Example</button>'
+    + '</div>'
+    + '</div>'
+    + '<div>'
+    + '<div style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card); position:sticky; top:16px;">'
+    + '<h4 style="font-size:14px; margin-bottom:10px; color:var(--coral-dark);">📊 Real-Time Linter Scorecard</h4>'
+    + '<div style="display:flex; align-items:baseline; gap:8px; margin-bottom:8px;">'
+    + '<span id="promptScoreNum" style="font-size:36px; font-weight:900; color:var(--green);">100%</span>'
+    + '<span id="promptScoreVerdict" style="font-size:12px; font-weight:700; color:var(--green);">Golden Standard Prompt</span>'
+    + '</div>'
+    + '<div class="pbar" style="height:8px; margin-bottom:14px;"><div id="promptScoreBar" style="width:100%; background:var(--green);"></div></div>'
+    + '<div id="promptLintIssues" style="display:flex; flex-direction:column; gap:8px; max-height:220px; overflow-y:auto;"></div>'
+    + '</div>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+  
+  loadPromptSample("code_analysis");
+}
+
+function loadPromptSample(key){
+  const input = document.getElementById("promptDraftInput");
+  if (input) {
+    input.value = SAMPLE_PROMPTS[key] || "";
+    lintPrompt();
+  }
+}
+
+function lintPrompt(){
+  const text = (document.getElementById("promptDraftInput")?.value || "").trim();
+  const charEl = document.getElementById("promptCharCount");
+  const scoreNum = document.getElementById("promptScoreNum");
+  const verdict = document.getElementById("promptScoreVerdict");
+  const bar = document.getElementById("promptScoreBar");
+  const issuesEl = document.getElementById("promptLintIssues");
+  
+  const estTokens = Math.round(text.length / 4);
+  if (charEl) charEl.textContent = text.length + " characters · ~" + estTokens.toLocaleString() + " tokens";
+  
+  if (!text) {
+    if (scoreNum) scoreNum.textContent = "0%";
+    if (verdict) verdict.textContent = "Empty Prompt";
+    if (bar) bar.style.width = "0%";
+    if (issuesEl) issuesEl.innerHTML = '<span style="font-size:12px; color:var(--muted);">Enter a prompt to inspect static heuristics.</span>';
+    return;
+  }
+
+  const issues = [];
+  let score = 100;
+
+  // 1. XML Tag Nesting Check
+  const openTags = (text.match(/<([a-z_0-9]+)>/gi) || []).map(t => t.replace(/[<>]/g, '').toLowerCase());
+  const closeTags = (text.match(/<\/([a-z_0-9]+)>/gi) || []).map(t => t.replace(/[<>/]/g, '').toLowerCase());
+  const hasXml = openTags.length > 0;
+  if (!hasXml) {
+    score -= 20;
+    issues.push({ type: "warn", icon: "🏷️", title: "Missing XML Structure", desc: "Anthropic models perform significantly better when context, instructions, and examples are demarcated using XML tags like &lt;context&gt; and &lt;instructions&gt;." });
+  } else {
+    const unclosed = openTags.filter(t => !closeTags.includes(t));
+    if (unclosed.length > 0) {
+      score -= 15;
+      issues.push({ type: "err", icon: "⚠️", title: "Unclosed XML Tags: &lt;" + unclosed.join("&gt;, &lt;") + "&gt;", desc: "Ensure every opening XML tag has a matching closing tag to avoid semantic confusion." });
+    }
+  }
+
+  // 2. Negative Framing Detector
+  const negativeRegex = /\b(do not|don't|never|avoid|stop)\b/gi;
+  const negMatches = text.match(negativeRegex);
+  if (negMatches && negMatches.length >= 2) {
+    score -= 10;
+    issues.push({ type: "tip", icon: "💡", title: "High Negative Directive Density (" + negMatches.length + "x)", desc: "Negative constraints ('Do not do X') are less reliable than positive instructions ('Only include Y' or 'Format as Z')." });
+  }
+
+  // 3. Static Context / Caching Placement
+  const contextIndex = text.toLowerCase().indexOf("<context>");
+  const instrIndex = text.toLowerCase().indexOf("<instructions>");
+  if (contextIndex > 0 && instrIndex > 0 && contextIndex > instrIndex) {
+    score -= 15;
+    issues.push({ type: "warn", icon: "⚡", title: "Sub-optimal Context Order for Caching", desc: "Static background context should be placed near the top before dynamic user instructions to maximize Prompt Caching hit rates." });
+  }
+
+  // 4. Extended Thinking Budget Recommendation
+  const hasReasoningKeywords = /\b(analyze|evaluate|step-by-step|diagnose|prove|debug|architect)\b/i.test(text);
+  if (hasReasoningKeywords && !text.includes("<thinking>")) {
+    issues.push({ type: "info", icon: "🧠", title: "Recommended: Extended Thinking Budget (2,048+ tokens)", desc: "This prompt requires deep multi-step deduction. Pair with <code>thinking: { type: 'enabled', budget_tokens: 2048 }</code>." });
+  }
+
+  const clamped = Math.max(10, Math.min(100, score));
+  let badgeColor = "var(--green)";
+  let vText = "Golden Standard Prompt ✨";
+  if (clamped < 60) { badgeColor = "var(--coral)"; vText = "Needs Refactoring ⚠️"; }
+  else if (clamped < 85) { badgeColor = "var(--gold)"; vText = "Good — Minor Improvements 📈"; }
+
+  if (scoreNum) { scoreNum.textContent = clamped + "%"; scoreNum.style.color = badgeColor; }
+  if (verdict) { verdict.textContent = vText; verdict.style.color = badgeColor; }
+  if (bar) { bar.style.width = clamped + "%"; bar.style.background = badgeColor; }
+  
+  if (clamped >= 95) award("prompt_master");
+
+  if (issuesEl) {
+    issuesEl.innerHTML = issues.map(iss => '<div style="border-left:3px solid '+(iss.type==='err'?'var(--coral)':iss.type==='warn'?'var(--gold)':'var(--blue)')+'; background:var(--bg); padding:8px 10px; border-radius:0 6px 6px 0; font-size:12px;">'
+      + '<b>' + iss.icon + ' ' + iss.title + '</b>'
+      + '<div style="color:var(--muted); margin-top:2px; line-height:1.4;">' + iss.desc + '</div>'
+      + '</div>').join('') || '<div style="font-size:12.5px; color:var(--green); font-weight:700;">✓ Perfect XML hygiene, positive task framing, and optimal context hierarchy!</div>';
+  }
+}
+
+/* ================= 2. MCP & TOOL CALLING PROTOCOL WORKBENCH ================= */
+let mcpWorkbenchStep = 0;
+
+function mcpWorkbenchView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--blue); color:#fff;">Protocol Workbench</span><h2 style="font-size:20px; margin-top:4px;">🔌 MCP & Tool-Calling Protocol Inspector</h2></div>'
+    + '<div style="display:flex; gap:6px;">'
+    + '<button class="btn sm" onclick="stepMcpWorkbench()">▶️ Next Protocol Turn</button>'
+    + '<button class="btn ghost sm" onclick="resetMcpWorkbench()">↺ Reset</button>'
+    + '</div>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Step through the Model Context Protocol (MCP) JSON-RPC 2.0 handshake, schema discovery, and multi-turn tool execution loop.</p>'
+    + '<div id="mcpTimelineVisual" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px;"></div>'
+    + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:14px;">'
+    + '<div>'
+    + '<div style="font-size:12px; font-weight:700; margin-bottom:4px;">Client -> Server JSON-RPC Message:</div>'
+    + '<pre id="mcpClientMsg" style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:10px; font-size:11.5px; font-family:\'SF Mono\',Consolas,monospace; max-height:220px; overflow-y:auto;"></pre>'
+    + '</div>'
+    + '<div>'
+    + '<div style="font-size:12px; font-weight:700; margin-bottom:4px;">Server / Claude Response Block:</div>'
+    + '<pre id="mcpServerMsg" style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:10px; font-size:11.5px; font-family:\'SF Mono\',Consolas,monospace; max-height:220px; overflow-y:auto;"></pre>'
+    + '</div>'
+    + '</div>'
+    + '<div id="mcpStepExplanation" style="margin-top:14px; padding:12px; border-radius:8px; background:var(--bg); border:1px solid var(--border); font-size:12.5px; line-height:1.5;"></div>'
+    + '</div>';
+  
+  resetMcpWorkbench();
+}
+
+const MCP_STEPS = [
+  {
+    name: "1. Handshake",
+    status: "Active",
+    client: { jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2024-11-05", capabilities: { tools: {}, resources: {}, roots: {} }, clientInfo: { name: "Claude Desktop", version: "1.0.0" } } },
+    server: { jsonrpc: "2.0", id: 1, result: { protocolVersion: "2024-11-05", capabilities: { tools: { listChanged: true } }, serverInfo: { name: "Postgres-MCP-Server", version: "2.1.0" } } },
+    exp: "<b>Step 1: Protocol Handshake (initialize):</b> The client negotiates capabilities with the server. Note that version agreement ensures backwards compatibility across transport channels (stdio / SSE)."
+  },
+  {
+    name: "2. Tool Discovery",
+    status: "Active",
+    client: { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} },
+    server: { jsonrpc: "2.0", id: 2, result: { tools: [{ name: "query_database", description: "Execute read-only SQL queries against Postgres", inputSchema: { type: "object", properties: { sql: { type: "string" } }, required: ["sql"] } }] } },
+    exp: "<b>Step 2: Schema Discovery (tools/list):</b> The MCP server declares available tools as standard JSON Schema. Claude injects these schemas into the system block."
+  },
+  {
+    name: "3. Tool Invocation",
+    status: "Active",
+    client: { role: "user", content: "What is the total revenue for Q3 2026?" },
+    server: { role: "assistant", content: [{ type: "text", text: "Let me query the sales database." }, { type: "tool_use", id: "toolu_0192X", name: "query_database", input: { sql: "SELECT SUM(amount) FROM transactions WHERE quarter = 'Q3-2026';" } }], stop_reason: "tool_use" },
+    exp: "<b>Step 3: Claude Emits tool_use:</b> When Claude determines a tool is needed, generation halts with <code>stop_reason: 'tool_use'</code>. The application executes the query locally."
+  },
+  {
+    name: "4. Result Synthesis",
+    status: "Active",
+    client: { role: "user", content: [{ type: "tool_result", tool_use_id: "toolu_0192X", content: JSON.stringify({ revenue: 4280500 }), is_error: false }] },
+    server: { role: "assistant", content: [{ type: "text", text: "The total revenue for Q3 2026 was $4,280,500." }], stop_reason: "end_turn" },
+    exp: "<b>Step 4: Tool Result Return:</b> The application responds with <code>type: 'tool_result'</code> referencing <code>tool_use_id</code>. Claude synthesizes the final answer and completes with <code>stop_reason: 'end_turn'</code>."
+  }
+];
+
+function resetMcpWorkbench(){
+  mcpWorkbenchStep = 0;
+  renderMcpStep();
+}
+
+function stepMcpWorkbench(){
+  mcpWorkbenchStep = (mcpWorkbenchStep + 1) % MCP_STEPS.length;
+  if (mcpWorkbenchStep === MCP_STEPS.length - 1) award("mcp_engineer");
+  renderMcpStep();
+}
+
+function renderMcpStep(){
+  const s = MCP_STEPS[mcpWorkbenchStep];
+  const vis = document.getElementById("mcpTimelineVisual");
+  const cEl = document.getElementById("mcpClientMsg");
+  const sEl = document.getElementById("mcpServerMsg");
+  const expEl = document.getElementById("mcpStepExplanation");
+  
+  if (vis) {
+    vis.innerHTML = MCP_STEPS.map((st, idx) => '<div style="border:2px solid '+(idx===mcpWorkbenchStep?'var(--blue)':idx<mcpWorkbenchStep?'var(--green)':'var(--border)')+'; background:var(--card); border-radius:8px; padding:8px; text-align:center;">'
+      + '<div style="font-size:11px; font-weight:700;">' + st.name + '</div>'
+      + '<span style="font-size:9px; font-weight:800; padding:2px 4px; border-radius:4px; color:#fff; background:'+(idx===mcpWorkbenchStep?'var(--blue)':idx<mcpWorkbenchStep?'var(--green)':'var(--muted)')+';">' + (idx===mcpWorkbenchStep?'ACTIVE':idx<mcpWorkbenchStep?'DONE':'PENDING') + '</span>'
+      + '</div>').join('');
+  }
+  if (cEl) cEl.textContent = JSON.stringify(s.client, null, 2);
+  if (sEl) sEl.textContent = JSON.stringify(s.server, null, 2);
+  if (expEl) expEl.innerHTML = s.exp;
+}
+
+/* ================= 3. PERSONALIZED EXAM PRESCRIPTION ================= */
+function examPrescriptionView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  // Analyze all missed questions
+  const missedByCert = {};
+  let totalMissed = 0;
+  
+  CERTS.forEach(c => {
+    const ans = S.answered[c.id] || {};
+    const misses = [];
+    if (c._loaded && c.questions) {
+      c.questions.forEach((q, idx) => {
+        if (ans[qKey(c, idx)] === false) misses.push({ q, idx, cert: c });
+      });
+    }
+    missedByCert[c.id] = misses;
+    totalMissed += misses.length;
+  });
+
+  let content = '';
+  if (totalMissed === 0) {
+    content = '<div class="panel center">'
+      + '<div style="font-size:38px;">✨</div>'
+      + '<h2 style="font-size:20px; margin-top:6px;">No Missed Questions Recorded</h2>'
+      + '<p class="subtext" style="margin-top:8px;">Your Diagnostic Prescription is generated automatically as you take Quizzes and Mock Exams. Once you encounter difficult questions, your tailored remediation playlist will appear here.</p>'
+      + '<div class="rowbtns" style="justify-content:center; margin-top:16px;">'
+      + '<button class="btn" onclick="startQuiz(\'ccao\')">⚔️ Launch Quiz Battle</button>'
+      + '<button class="btn ghost" onclick="home()">Back to Home</button>'
+      + '</div>'
+      + '</div>';
+  } else {
+    let prescCards = '';
+    CERTS.forEach(c => {
+      const misses = missedByCert[c.id] || [];
+      if (!misses.length) return;
+      
+      prescCards += '<div style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card); margin-bottom:16px;">'
+        + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">'
+        + '<span class="code" style="color:'+c.color+'; font-weight:800; font-size:14px;">'+c.code+' · '+c.name+'</span>'
+        + '<span style="font-size:12px; font-weight:700; color:var(--coral);">' + misses.length + ' weak spots identified</span>'
+        + '</div>'
+        + '<div style="margin-bottom:12px; font-size:12.5px; color:var(--muted);">'
+        + '<b>Key Prescribed Takeaways:</b> Review the 4-way explanations for your missed questions below, then drill them directly.'
+        + '</div>'
+        + misses.slice(0, 4).map(m => '<div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px; margin-bottom:8px; font-size:12px;">'
+            + '<div style="font-weight:700; color:var(--ink); margin-bottom:4px;">' + esc(m.q.q) + '</div>'
+            + '<div style="color:var(--green); margin-bottom:2px;">✓ Correct: ' + esc(m.q.opts[m.q.a]) + '</div>'
+            + '<div style="color:var(--muted); font-size:11.5px;">💡 ' + esc(m.q.exp) + '</div>'
+            + '</div>').join('')
+        + '<div class="rowbtns" style="margin-top:12px;">'
+        + '<button class="btn sm" onclick="startReview(\''+c.id+'\')">🩹 Drill '+c.code+' Missed Questions ('+misses.length+')</button>'
+        + '</div>'
+        + '</div>';
+    });
+
+    content = '<div class="panel">'
+      + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">'
+      + '<div><span class="ltag" style="background:var(--green); color:#fff;">Smart Remediation</span><h2 style="font-size:20px; margin-top:4px;">🎯 Personalized Exam Prescription</h2></div>'
+      + '<span style="font-size:13px; font-weight:700; color:var(--coral);">' + totalMissed + ' total focus areas across all tracks</span>'
+      + '</div>'
+      + prescCards
+      + '</div>';
+  }
+
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>' + content;
+}
+
+/* ================= 4. SDK CODE PLAYGROUND ================= */
+let sdkState = { lang: "python", model: "sonnet", caching: true, thinking: false, streaming: true, toolCall: false };
+
+function sdkPlaygroundView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--gold); color:#1a1a1a;">Developer Workbench</span><h2 style="font-size:20px; margin-top:4px;">💻 SDK Code Generator (Python & TypeScript)</h2></div>'
+    + '<div style="display:flex; gap:6px;">'
+    + '<button class="btn sm '+(sdkState.lang==='python'?'':'ghost')+'" onclick="setSdkLang(\'python\')">Python (anthropic)</button>'
+    + '<button class="btn sm '+(sdkState.lang==='ts'?'':'ghost')+'" onclick="setSdkLang(\'ts\')">TypeScript (@anthropic-ai/sdk)</button>'
+    + '</div>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Generate production-grade boilerplate for Claude 3.5 Sonnet & Haiku with Prompt Caching, Extended Thinking, and Streaming tool use.</p>'
+    + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:14px; margin-bottom:14px;">'
+    + '<div>'
+    + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Model Selection:</label>'
+    + '<select id="sdkModelSel" onchange="setSdkOpt(\'model\', this.value)" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:13px;">'
+    + '<option value="sonnet" '+(sdkState.model==='sonnet'?'selected':'')+'>Claude 3.5 Sonnet (claude-3-5-sonnet-20241022)</option>'
+    + '<option value="haiku" '+(sdkState.model==='haiku'?'selected':'')+'>Claude 3.5 Haiku (claude-3-5-haiku-20241022)</option>'
+    + '<option value="opus" '+(sdkState.model==='opus'?'selected':'')+'>Claude 3 Opus (claude-3-opus-20240229)</option>'
+    + '</select>'
+    + '</div>'
+    + '<div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; padding-top:18px;">'
+    + '<label style="font-size:12.5px; font-weight:700;"><input type="checkbox" '+(sdkState.caching?'checked':'')+' onchange="setSdkOpt(\'caching\', this.checked)"> Prompt Caching (85% off)</label>'
+    + '<label style="font-size:12.5px; font-weight:700;"><input type="checkbox" '+(sdkState.thinking?'checked':'')+' onchange="setSdkOpt(\'thinking\', this.checked)"> Extended Thinking (2,048t)</label>'
+    + '<label style="font-size:12.5px; font-weight:700;"><input type="checkbox" '+(sdkState.toolCall?'checked':'')+' onchange="setSdkOpt(\'toolCall\', this.checked)"> Tool Calling Schema</label>'
+    + '</div>'
+    + '</div>'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">'
+    + '<span style="font-size:12px; font-weight:700; color:var(--coral-dark);">Generated '+(sdkState.lang==='python'?'Python 3.10+':'TypeScript / Node.js')+' Code:</span>'
+    + '<button class="btn ghost sm" onclick="copySdkCode()">📋 Copy Snippet</button>'
+    + '</div>'
+    + '<pre id="sdkCodeOutput" style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px; font-size:12px; font-family:\'SF Mono\',Consolas,monospace; line-height:1.5; overflow-x:auto; max-height:360px;"></pre>'
+    + '</div>';
+  
+  renderSdkCode();
+}
+
+function setSdkLang(l){ sdkState.lang = l; sdkPlaygroundView(); }
+function setSdkOpt(k, v){ sdkState[k] = v; renderSdkCode(); }
+
+function renderSdkCode(){
+  const out = document.getElementById("sdkCodeOutput");
+  if (!out) return;
+  const mStr = sdkState.model === "haiku" ? "claude-3-5-haiku-20241022" : sdkState.model === "opus" ? "claude-3-opus-20240229" : "claude-3-5-sonnet-20241022";
+  
+  let code = "";
+  if (sdkState.lang === "python") {
+    code = `import os
+from anthropic import Anthropic
+
+client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+
+response = client.messages.create(
+    model="${mStr}",
+    max_tokens=4096,`
+    + (sdkState.thinking ? `\n    thinking={"type": "enabled", "budget_tokens": 2048},` : "")
+    + `\n    system=[`
+    + (sdkState.caching ? `\n        {"type": "text", "text": "You are an enterprise AI architect assistant.", "cache_control": {"type": "ephemeral"}}` : `\n        {"type": "text", "text": "You are an enterprise AI architect assistant."}`)
+    + `\n    ],`
+    + (sdkState.toolCall ? `\n    tools=[{
+        "name": "lookup_patient_record",
+        "description": "Fetch patient clinical history by ID",
+        "input_schema": {
+            "type": "object",
+            "properties": {"patient_id": {"type": "string"}},
+            "required": ["patient_id"]
+        }
+    }],` : "")
+    + `\n    messages=[
+        {"role": "user", "content": "Analyze the systemic implications of sub-second streaming."}
+    ]
+)
+
+print(response.content[0].text)`;
+  } else {
+    code = `import Anthropic from '@anthropic-ai/sdk';
+
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
+
+async function run() {
+  const response = await anthropic.messages.create({
+    model: '${mStr}',
+    max_tokens: 4096,`
+    + (sdkState.thinking ? `\n    thinking: { type: 'enabled', budget_tokens: 2048 },` : "")
+    + `\n    system: [`
+    + (sdkState.caching ? `\n      { type: 'text', text: 'You are an enterprise AI architect assistant.', cache_control: { type: 'ephemeral' } }` : `\n      { type: 'text', text: 'You are an enterprise AI architect assistant.' }`)
+    + `\n    ],`
+    + (sdkState.toolCall ? `\n    tools: [{
+      name: 'lookup_patient_record',
+      description: 'Fetch patient clinical history by ID',
+      input_schema: {
+        type: 'object',
+        properties: { patient_id: { type: 'string' } },
+        required: ['patient_id'],
+      },
+    }],` : "")
+    + `\n    messages: [
+      { role: 'user', content: 'Analyze the systemic implications of sub-second streaming.' }
+    ],
+  });
+
+  console.log(response.content[0].text);
+}
+
+run();`;
+  }
+  
+  out.textContent = code;
+}
+
+function copySdkCode(){
+  const text = document.getElementById("sdkCodeOutput")?.textContent || "";
+  navigator.clipboard.writeText(text).then(() => toast("📋 Code copied to clipboard!"));
+}
+
+/* ================= 5. ADAPTIVE BOSS BATTLE SIMULATION ================= */
+let bossState = { cert: null, questions: [], idx: 0, answers: [], startTime: 0, timer: null, elapsedSecs: 0 };
+
+function bossBattleSelect(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">👑</div>'
+    + '<h2 style="font-size:20px; margin-top:8px;">Adaptive Certification Boss Battle</h2>'
+    + '<p class="subtext" style="margin-top:6px;">The ultimate test of exam readiness. 25 computer-adaptive scenario questions with real-time pacing telemetry and a post-battle debrief.</p>'
+    + '<div class="certs" style="margin-top:18px;">'
+    + CERTS.map(c => '<div class="cert" onclick="startBossBattle(\''+c.id+'\')">'
+        + '<div style="display:flex; justify-content:space-between;"><span class="code" style="color:'+c.color+';">'+c.code+'</span><span style="font-size:11px; font-weight:800; color:var(--purple);">FINAL BOSS</span></div>'
+        + '<h3 style="font-size:15px; margin:6px 0;">'+c.name+'</h3>'
+        + '<div class="rowbtns" style="margin-top:10px;"><button class="btn sm" style="background:var(--purple);">Challenge Boss ⚔️</button></div>'
+        + '</div>').join('')
+    + '</div>'
+    + '</div>';
+}
+
+function startBossBattle(certId){
+  const c = CERTS.find(x => x.id === certId);
+  if (!c) return;
+  if (!c._loaded) {
+    loadCert(c).then(() => startBossBattle(certId));
+    return;
+  }
+  
+  const pool = sampleByDomain(c, 25);
+  bossState = { cert: c, questions: pool, idx: 0, answers: new Array(25).fill(null), startTime: Date.now(), timer: null, elapsedSecs: 0 };
+  clearInterval(bossState.timer);
+  bossState.timer = setInterval(() => {
+    bossState.elapsedSecs++;
+    const tEl = document.getElementById("bossTimerDisplay");
+    if (tEl) tEl.textContent = fmtT(bossState.elapsedSecs);
+  }, 1000);
+  
+  renderBossQuestion();
+}
+
+function renderBossQuestion(){
+  renderHeader();
+  const q = bossState.questions[bossState.idx];
+  const c = bossState.cert;
+  const ansCount = bossState.answers.filter(a => a !== null).length;
+  
+  $("app").innerHTML = '<button class="back" onclick="abandonBoss()">← Abandon Boss Battle</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">'
+    + '<span style="font-size:13px; font-weight:800; color:var(--purple);">👑 Boss Battle · '+c.code+'</span>'
+    + '<span id="bossTimerDisplay" style="font-size:14px; font-weight:800; color:var(--coral);">' + fmtT(bossState.elapsedSecs) + '</span>'
+    + '<span>' + ansCount + ' / 25 answered</span>'
+    + '</div>'
+    + '<div class="domtag">' + esc(c.domains[q.d]) + '</div>'
+    + '<div class="qtext" style="font-size:15px;">' + esc(q.q) + '</div>'
+    + q.opts.map((o, j) => {
+        const sel = bossState.answers[bossState.idx] === j;
+        return '<button class="opt'+(sel?' correct':'')+'" onclick="pickBossAnswer('+j+')"><b class="okey">'+(j+1)+'</b>' + esc(o) + '</button>';
+      }).join('')
+    + '<div class="rowbtns" style="margin-top:14px;">'
+    + (bossState.idx > 0 ? '<button class="btn ghost sm" onclick="bossState.idx--; renderBossQuestion()">← Prev</button>' : '')
+    + (bossState.idx < 24 ? '<button class="btn sm" onclick="bossState.idx++; renderBossQuestion()">Next →</button>' : '<button class="btn sm" style="background:var(--green); margin-left:auto;" onclick="finishBossBattle()">Submit Boss Exam 🏁</button>')
+    + '</div>'
+    + '</div>';
+}
+
+function pickBossAnswer(j){
+  bossState.answers[bossState.idx] = j;
+  if (bossState.idx < 24) {
+    bossState.idx++;
+    renderBossQuestion();
+  } else {
+    renderBossQuestion();
+  }
+}
+
+function abandonBoss(){
+  if (confirm("Abandon Boss Battle?")) {
+    clearInterval(bossState.timer);
+    home();
+  }
+}
+
+function finishBossBattle(){
+  clearInterval(bossState.timer);
+  const c = bossState.cert;
+  let correct = 0;
+  bossState.questions.forEach((q, k) => {
+    const isOk = bossState.answers[k] === q.a;
+    if (isOk) correct++;
+    recordAnswer(c, c.questions.indexOf(q), isOk);
+  });
+  
+  const score = Math.round((correct / 25) * 1000);
+  const pass = score >= 720;
+  
+  if (pass) {
+    award("boss_slayer");
+    addXP(100, "Boss Battle Victory");
+    confetti();
+  }
+  
+  renderHeader();
+  $("app").innerHTML = '<div class="panel center">'
+    + '<div style="font-size:42px;">' + (pass ? '🏆' : '⚔️') + '</div>'
+    + '<h2 style="font-size:22px; margin-top:6px;">' + (pass ? 'Boss Battle Conquered!' : 'Boss Battle Incomplete') + '</h2>'
+    + '<div class="bigscore" style="color:'+(pass?'var(--green)':'var(--coral)')+'; font-size:44px;">' + score + '<span style="font-size:18px; color:var(--muted);"> / 1000</span></div>'
+    + '<div class="verdict '+(pass?'pass':'fail')+'">' + (pass ? 'Cleared practice benchmark! You are ready for the real exam.' : 'Below the 720 benchmark. Review weaknesses and retry.') + '</div>'
+    + '<p class="subtext">Completed in ' + fmtT(bossState.elapsedSecs) + ' · ' + correct + '/25 correct answers</p>'
+    + '<div class="rowbtns" style="justify-content:center; margin-top:18px;">'
+    + '<button class="btn" onclick="startBossBattle(\''+c.id+'\')">⚔️ Replay Boss Battle</button>'
+    + '<button class="btn ghost" onclick="examPrescriptionView()">🎯 View Prescription</button>'
+    + '<button class="btn ghost" onclick="home()">Back to Home</button>'
+    + '</div>'
+    + '</div>';
 }
 
 /* ================= LESSON WIDGETS ================= */
