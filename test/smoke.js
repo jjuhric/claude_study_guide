@@ -896,6 +896,19 @@ vm.createContext(sandbox);
   call("oralDefenseBoardView");
   check(/Executive Architectural Defense Board/.test(els.app.innerHTML), "oralDefenseBoardView renders oral defense panel");
 
+  /* ---------- 36. Titan Suite ---------- */
+  call("openBadgeGenerator");
+  check(/OpenBadge Digital Credential Generator/.test(els.app.innerHTML) && /openBadgeJsonBox/.test(els.app.innerHTML), "openBadgeGenerator renders JSON-LD metadata box");
+
+  call("dagVisualizerView");
+  check(/Interactive Multi-Agent DAG Topology Builder/.test(els.app.innerHTML), "dagVisualizerView renders subagent DAG builder");
+
+  call("redTeamSimulatorView");
+  check(/Indirect Prompt Injection & Red-Teaming Simulator/.test(els.app.innerHTML), "redTeamSimulatorView renders security sandbox");
+
+  call("pdfScorecardExporter");
+  check(/Multi-Page PDF Diagnostic Readiness Scorecard/.test(els.app.innerHTML) && /pdfScorecardFrame/.test(els.app.innerHTML), "pdfScorecardExporter renders printable scorecard frame");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();

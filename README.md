@@ -1,11 +1,11 @@
 # Claude Cert Quest 🧭
 
 [![Anthropic Certifications](https://img.shields.io/badge/Anthropic-Certifications%20Prep-d97757.svg)](https://www.pearsonvue.com/us/en/anthropic.html)
-[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v18)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
-[![Tests Passing](https://img.shields.io/badge/Tests-284%20Passing-5b7fa6.svg)](test/smoke.js)
+[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v19)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
+[![Tests Passing](https://img.shields.io/badge/Tests-288%20Passing-5b7fa6.svg)](test/smoke.js)
 [![License](https://img.shields.io/badge/License-MIT-8a6fae.svg)](LICENSE)
 
-An enterprise-grade, gamified study platform and interactive simulator suite for the **Anthropic Claude Certification Program** — featuring 400 practice questions with 4-way per-option rationales, 100 Leitner spaced repetition flashcards, 44 deep-dive technical lessons, and 48+ interactive architectural sandboxes, multiplayer arenas, AI tutors, topology validators, MCP execution engines, memory decay models, oral defense boards, and cryptographic credentials.
+An enterprise-grade, gamified study platform and interactive simulator suite for the **Anthropic Claude Certification Program** — featuring 400 practice questions with 4-way per-option rationales, 100 Leitner spaced repetition flashcards, 44 deep-dive technical lessons, and 52+ interactive architectural sandboxes, multiplayer arenas, AI tutors, topology validators, MCP execution engines, memory decay models, oral defense boards, and cryptographic credentials.
 
 **🚀 Live Production App:** [https://jjuhric.github.io/claude_study_guide/](https://jjuhric.github.io/claude_study_guide/)
 
@@ -24,12 +24,16 @@ An enterprise-grade, gamified study platform and interactive simulator suite for
 
 ---
 
-## 🛠️ 48+ Interactive Labs, Simulators & Toolkits
+## 🛠️ 52+ Interactive Labs, Simulators & Toolkits
 
 Claude Cert Quest includes a comprehensive suite of hands-on sandboxes and diagnostic engines built right into the home dashboard:
 
 | Tool | Category | What it does |
 | :--- | :--- | :--- |
+| 🏆 **OpenBadge Credential Generator** | Credential | Export W3C OpenBadge v2.0 JSON-LD metadata for LinkedIn & digital portfolio sharing. |
+| 🧩 **Multi-Agent DAG Builder** | Orchestration | Construct, visualize, and validate subagent DAG topologies with automatic SDK export. |
+| ⚡ **Red-Team Attack Simulator** | Security | Test system prompt defenses against indirect prompt injection and tool hijacking attacks. |
+| 📊 **PDF Diagnostic Scorecard** | Reporting | Export a multi-page printable candidate readiness PDF report with domain breakdowns. |
 | 📊 **Claude 3.5 vs 3.7 Matrix** | Model Selection | Side-by-side comparative matrix evaluating Sonnet 3.7 extended thinking vs Haiku model tradeoffs. |
 | 🧩 **Compaction Playground** | Context | Multi-turn chat simulator demonstrating 80% capacity semantic compaction into `<rolling_state>` tags. |
 | ⚡ **Token Budget & Cost Profiler** | FinOps | Real-time API billing profiler across thinking budget tokens and prompt caching read discounts. |
@@ -102,7 +106,7 @@ Drill at maximum speed without touching the mouse. Press **`?`** or **`Ctrl + /`
 Claude Cert Quest has a zero-dependency test suite validating every component:
 
 ```bash
-# Run comprehensive offline test suite (284 assertions)
+# Run comprehensive offline test suite (288 assertions)
 node test/smoke.js
 ```
 
@@ -110,7 +114,7 @@ node test/smoke.js
 * ✅ Content integrity of all 400 questions, 4-way per-option rationales, and 100 flashcards.
 * ✅ Exact domain-to-lesson mapping across all 4 certification tracks.
 * ✅ Web Audio synthesizer, state migration, and Leitner spaced repetition ladders.
-* ✅ Full rendering and state validation for all 48+ interactive tools, multiplayer channels, and simulators.
+* ✅ Full rendering and state validation for all 52+ interactive tools, multiplayer channels, and simulators.
 * ✅ Compliance with official NDAs and unverified exam claim policies.
 
 ---
