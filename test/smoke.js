@@ -1013,9 +1013,23 @@ vm.createContext(sandbox);
   call("finopsCostCalculator");
   check(/FinOps Cost Calculator/.test(els.app.innerHTML) && /foTable/.test(els.app.innerHTML), "finopsCostCalculator renders cost comparison table");
 
+  /* ---------- 45. Vega Teaching Suite ---------- */
+  call("securityVectorEncyclopedia");
+  check(/Security Attack Vector Encyclopedia/.test(els.app.innerHTML) && /svDetail/.test(els.app.innerHTML), "securityVectorEncyclopedia renders attack vector grid");
+
+  call("modelCapabilityNavigator");
+  check(/Model Capability Navigator/.test(els.app.innerHTML) && /mcnDetail/.test(els.app.innerHTML), "modelCapabilityNavigator renders capability matrix");
+
+  call("lessonMarginNotes");
+  check(/Professor Mode/.test(els.app.innerHTML) && /lmnBody/.test(els.app.innerHTML), "lessonMarginNotes renders professor mode annotations");
+
+  call("examTopicPrioritizer");
+  check(/High-Yield Exam Topic Prioritizer/.test(els.app.innerHTML) && /etpBody/.test(els.app.innerHTML), "examTopicPrioritizer renders priority list");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
+
 
 
 

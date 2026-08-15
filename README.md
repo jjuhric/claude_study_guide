@@ -1,8 +1,8 @@
 # Claude Cert Quest 🧭
 
 [![Anthropic Certifications](https://img.shields.io/badge/Anthropic-Certifications%20Prep-d97757.svg)](https://www.pearsonvue.com/us/en/anthropic.html)
-[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v27)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
-[![Tests Passing](https://img.shields.io/badge/Tests-320%20Passing-5b7fa6.svg)](test/smoke.js)
+[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v28)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
+[![Tests Passing](https://img.shields.io/badge/Tests-324%20Passing-5b7fa6.svg)](test/smoke.js)
 [![License](https://img.shields.io/badge/License-MIT-8a6fae.svg)](LICENSE)
 
 An enterprise-grade, gamified study platform and interactive simulator suite for the **Anthropic Claude Certification Program** — featuring 400 practice questions with 4-way per-option rationales, 100 Leitner spaced repetition flashcards, 44 deep-dive technical lessons, and 80+ interactive architectural sandboxes, study roadmaps, architecture pattern libraries, prompt transformation galleries, knowledge graphs, animated concept cards, live API payload inspectors, interactive decision trees, glossary callout engines, mind mappers, inline lesson playgrounds, audio recaps, scenario explorers, sequence diagram visualizers, Socratic lesson probes, annotated SDK code walkthroughs, MicroVM execution models, Consensus voting engines, CLI emulators, rate limit visualizers, multiplayer arenas, AI tutors, topology validators, MCP execution engines, memory decay models, oral defense boards, and cryptographic credentials.
@@ -24,12 +24,16 @@ An enterprise-grade, gamified study platform and interactive simulator suite for
 
 ---
 
-## 🛠️ 84+ Interactive Labs, Simulators & Toolkits
+## 🛠️ 88+ Interactive Labs, Simulators & Toolkits
 
 Claude Cert Quest includes a comprehensive suite of hands-on sandboxes and diagnostic engines built right into the home dashboard:
 
 | Tool | Category | What it does |
 | :--- | :--- | :--- |
+| 🔐 **Security Attack Vector Encyclopedia** | Pedagogy | 8 attack types (Prompt Injection, Tool Hijacking, Jailbreak, etc.) with scenario, vulnerability, defense, and exam key point. |
+| 🦭 **Model Capability Navigator** | Pedagogy | Select a task type to see Haiku/Sonnet/Opus ranked with star ratings, notes, and recommended choice. |
+| 📖 **Professor Mode Annotations** | Pedagogy | Click margin-note buttons on lesson sentences to reveal why it matters for the exam, the common misconception, and question type. |
+| 🎯 **Exam Topic Prioritizer** | Pedagogy | 12 topics ranked by exam payoff and study effort, filterable by cert track, with direct lesson links and rationale. |
 | 🚨 **API Error Simulator** | Pedagogy | Click any of 11 HTTP error codes to see the exact JSON body, root cause, and correct recovery strategy. |
 | 📊 **Token Budget Visualizer** | Pedagogy | Live-slider bar chart allocating system prompt, context, and thinking tokens across the 200k window with cache eligibility alerts. |
 | 🔗 **Conversation Flow Diagrams** | Pedagogy | Step-by-step visual diagrams of Basic Multi-Turn, Tool Use, Extended Thinking, and Context Compaction flows. |
@@ -138,7 +142,7 @@ Drill at maximum speed without touching the mouse. Press **`?`** or **`Ctrl + /`
 Claude Cert Quest has a zero-dependency test suite validating every component:
 
 ```bash
-# Run comprehensive offline test suite (320 assertions)
+# Run comprehensive offline test suite (324 assertions)
 node test/smoke.js
 ```
 
@@ -146,7 +150,7 @@ node test/smoke.js
 * ✅ Content integrity of all 400 questions, 4-way per-option rationales, and 100 flashcards.
 * ✅ Exact domain-to-lesson mapping across all 4 certification tracks.
 * ✅ Web Audio synthesizer, state migration, and Leitner spaced repetition ladders.
-* ✅ Full rendering and state validation for all 84+ interactive tools, multiplayer channels, and simulators.
+* ✅ Full rendering and state validation for all 88+ interactive tools, multiplayer channels, and simulators.
 * ✅ Compliance with official NDAs and unverified exam claim policies.
 
 ---
