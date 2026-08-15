@@ -1033,6 +1033,53 @@ vm.createContext(sandbox);
   call("cheatSheetGenerator");
   check(/Quick Reference Cheat Sheet Generator/.test(els.app.innerHTML) && /csOutput/.test(els.app.innerHTML), "cheatSheetGenerator renders cheat sheet builder");
 
+  /* ---------- tool registry reaches every tool ----------
+     43 tools once existed as callable functions with no UI entry point: the
+     suite tested that they rendered, never that a user could reach them.
+     These checks close that gap in both directions. */
+  const TOOLS = evalIn("TOOLS");
+  const TOOL_GROUPS = evalIn("TOOL_GROUPS");
+
+  // 1. Every registry entry points at a function that actually exists.
+  const brokenEntries = TOOLS.filter(t => evalIn(`typeof ${t.fn}`) !== "function").map(t => t.fn);
+  check(brokenEntries.length === 0, `every TOOLS entry resolves to a function (${brokenEntries.join(", ") || TOOLS.length + " ok"})`);
+
+  // 2. No duplicates, and every entry sits in a declared group.
+  const fnList = TOOLS.map(t => t.fn);
+  check(new Set(fnList).size === fnList.length, "no tool is registered twice");
+  const groupIds = new Set(TOOL_GROUPS.map(g => g.id));
+  const strayGroup = TOOLS.filter(t => !groupIds.has(t.g)).map(t => t.fn);
+  check(strayGroup.length === 0, `every tool belongs to a declared group (${strayGroup.join(", ") || "all placed"})`);
+
+  // 3. The dashboard actually renders a card per tool, each wired to its fn.
+  call("home");
+  const homeHtml = els.app.innerHTML;
+  const missingCards = TOOLS.filter(t => homeHtml.indexOf(`onclick="${t.fn}()"`) < 0).map(t => t.fn);
+  check(missingCards.length === 0, `home() renders a clickable card for every tool (${missingCards.slice(0, 4).join(", ") || TOOLS.length + " cards"})`);
+  check((homeHtml.match(/data-tool="/g) || []).length === TOOLS.length,
+    `card count matches the registry (${(homeHtml.match(/data-tool="/g) || []).length}/${TOOLS.length})`);
+  check(/id="toolsearch"/.test(homeHtml), "the tool grid offers a filter box");
+
+  // 4. The direction that caused this bug: a zero-argument tool view that is
+  //    defined but absent from the registry has no way for a user to reach it.
+  const INTERNAL = new Set([
+    // sub-views of another flow: opened from inside it, never from the dashboard
+    "cardView", "lessonView", "cramSheetView", "renderMcpInspector",
+    "renderThinkingSimulator", "renderStopReasonSimulator",
+    "renderPromptCachingSimulator", "renderMultiAgentDagSimulator",
+    "stepMcpWorkbench", "resetMcpWorkbench",
+  ]);
+  const registered = new Set(fnList);
+  // Anything the dashboard itself links to counts as reachable, including the
+  // utility row (analytics, badges, export) that is not a tool card.
+  const linkedFromHome = new Set([...homeHtml.matchAll(/onclick="([A-Za-z_]\w*)\(/g)].map(m => m[1]));
+  const definedFns = [...html.matchAll(/^function ([A-Za-z_]\w*)\(\s*\)/gm)].map(m => m[1]);
+  const toolShaped = definedFns.filter(f =>
+    /(View|Studio|Workbench|Playground|Explorer|Lab|Simulator|Generator|Inspector|Builder|Navigator|Gallery|Mapper|Recap|Hub)$/.test(f));
+  const unreachable = toolShaped.filter(f => !registered.has(f) && !linkedFromHome.has(f) && !INTERNAL.has(f));
+  check(unreachable.length === 0,
+    `every tool view is reachable from the dashboard (${unreachable.slice(0, 5).join(", ") || toolShaped.length + " checked"})`);
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
