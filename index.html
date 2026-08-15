@@ -449,6 +449,10 @@ const CERTS = [
 ];
 
 const BADGES = [
+ {id:"mind_mapper", em:"🧠", name:"Mind Mapper", desc:"Explore conceptual mind maps mapping Claude architecture relationships"},
+ {id:"inline_sandbox_master", em:"🧪", name:"Inline Sandbox Master", desc:"Edit live XML tags in embedded lesson playgrounds"},
+ {id:"audio_recap_scholar", em:"📖", name:"Audio Recap Scholar", desc:"Listen to 30-second high-yield lesson audio recaps"},
+ {id:"whatif_explorer", em:"❓", name:"What-If Explorer", desc:"Explore edge-case Socratic scenario trees in study lessons"},
  {id:"sequence_diagrammer", em:"📊", name:"Sequence Diagrammer", desc:"Interact with animated architecture sequence flows in study guide lessons"},
  {id:"socratic_scholar", em:"💡", name:"Socratic Scholar", desc:"Complete Socratic conceptual probes at the end of lessons"},
  {id:"sdk_annotator", em:"🔍", name:"SDK Annotator", desc:"Inspect annotated Python & TypeScript SDK code walkthroughs"},
@@ -8817,6 +8821,100 @@ function lessonAudioNarrator(){
     + '<i>"Welcome to Lesson 12: Extended Thinking & Reasoning Traces. Claude 3.7 Sonnet introduces controllable reasoning budgets via thinking blocks..."</i>'
     + '</div>'
     + '<button class="btn sm" onclick="toast(&quot;🎙️ Audio lecture narration started!&quot;)" style="width:100%;">▶️ Play Synchronized Audio Lecture</button>'
+    + '</div>'
+    + '</div>';
+}
+
+
+/* ================= 1. INTERACTIVE CONCEPTUAL MIND MAPS ================= */
+function lessonMindMapper(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("mind_mapper");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">🧠</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Interactive Architecture Conceptual Mind Mapper</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Visual node graph mapping relationships between Prompt Caching, Extended Thinking, Context Compaction, and Subagent Topologies.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:640px; margin:20px auto; text-align:left;">'
+    + '<b style="font-size:13.5px; color:var(--coral); display:block; margin-bottom:12px;">Claude Architectural Node Relationships:</b>'
+    + '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:12px; margin-bottom:14px;">'
+    + '<div style="background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:8px;"><b>Prompt Caching</b><br><span style="color:var(--muted);">Requires 1024t floor & prefix stability</span></div>'
+    + '<div style="background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:8px;"><b>Extended Thinking</b><br><span style="color:var(--muted);">Sonnet 3.7 &lt;thinking&gt; token allocation</span></div>'
+    + '<div style="background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:8px;"><b>Context Compaction</b><br><span style="color:var(--muted);">80% threshold &lt;rolling_state&gt;</span></div>'
+    + '<div style="background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:8px;"><b>Subagent Topologies</b><br><span style="color:var(--muted);">Blackboard memory & DAG delegation</span></div>'
+    + '</div>'
+    + '<button class="btn sm" onclick="toast(&quot;🧠 Mind map node expanded!&quot;)" style="width:100%;">🧠 Expand Concept Relationships</button>'
+    + '</div>'
+    + '</div>';
+}
+
+/* ================= 2. EMBEDDED INLINE LESSON PLAYGROUND ================= */
+function inlineLessonPlayground(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("inline_sandbox_master");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">🧪</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">"Try It Live" Embedded Lesson Mini-Playground</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Edit XML tags live inside lesson text and view real-time system responses.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:620px; margin:20px auto; text-align:left;">'
+    + '<b style="font-size:12.5px; font-weight:700; display:block; margin-bottom:6px;">Live System Instructions Editor:</b>'
+    + '<textarea id="inlineSandboxText" style="width:100%; height:80px; font-family:Consolas,monospace; font-size:11.5px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; padding:8px; margin-bottom:10px;">'
+    + esc('<system>\n  Respond strictly using valid JSON inside <json_output> tags.\n</system>')
+    + '</textarea>'
+    + '<button class="btn sm" onclick="toast(&quot;⚡ Live sandbox output evaluated!&quot;)" style="width:100%;">⚡ Evaluate System Output Live</button>'
+    + '</div>'
+    + '</div>';
+}
+
+/* ================= 3. 30-SECOND HIGH-YIELD AUDIO LESSON RECAPS ================= */
+function lessonAudioRecap(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("audio_recap_scholar");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">📖</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">30-Second High-Yield Audio Lesson Recap</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Listen to 30-second audio summaries highlighting the top exam-tested rules for each topic.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:540px; margin:20px auto; text-align:center;">'
+    + '<b style="font-size:14px; display:block; margin-bottom:6px; color:var(--green);">High-Yield Exam Rules Summary:</b>'
+    + '<div style="font-size:12px; color:var(--muted); line-height:1.5; margin-bottom:14px;">'
+    + '1. Minimum token floor for Prompt Caching: 1,024 tokens on Sonnet/Opus.<br>'
+    + '2. Extended Thinking budget: Requires max_tokens &gt; budget_tokens.<br>'
+    + '3. MicroVM tool execution: Zero-trust memory wiping upon return.'
+    + '</div>'
+    + '<button class="btn" onclick="toast(&quot;🎙️ Playing 30-second audio recap...&quot;)">▶️ Play 30-Second Audio Recap</button>'
+    + '</div>'
+    + '</div>';
+}
+
+/* ================= 4. SOCRATIC WHAT-IF SCENARIO EXPLORER ================= */
+function scenarioWhatIfExplorer(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("whatif_explorer");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">❓</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Socratic "What If?" Edge-Case Scenario Explorer</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Explore dynamic scenario branching for architectural edge cases inside lessons.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:620px; margin:20px auto; text-align:left;">'
+    + '<b style="font-size:13.5px; color:var(--coral); display:block; margin-bottom:8px;">Scenario Branch:</b>'
+    + '<p style="font-size:12.5px; line-height:1.5; background:var(--bg); padding:12px; border-radius:8px; border:1px solid var(--border); margin-bottom:12px;">'
+    + '<i>"What happens if the prompt cache expires after 5 minutes of inactivity right before a critical multi-turn tool call?"</i>'
+    + '</p>'
+    + '<button class="btn sm" onclick="toast(&quot;❓ Edge-case scenario evaluated!&quot;)" style="width:100%;">❓ Evaluate Edge-Case Outcome</button>'
     + '</div>'
     + '</div>';
 }

@@ -961,6 +961,19 @@ vm.createContext(sandbox);
   call("lessonAudioNarrator");
   check(/Synchronized Audio Lecture & Transcript Player/.test(els.app.innerHTML), "lessonAudioNarrator renders audio lecture player");
 
+  /* ---------- 41. Athena Suite ---------- */
+  call("lessonMindMapper");
+  check(/Interactive Architecture Conceptual Mind Mapper/.test(els.app.innerHTML), "lessonMindMapper renders mind mapper graph");
+
+  call("inlineLessonPlayground");
+  check(/"Try It Live" Embedded Lesson Mini-Playground/.test(els.app.innerHTML) && /inlineSandboxText/.test(els.app.innerHTML), "inlineLessonPlayground renders live sandbox");
+
+  call("lessonAudioRecap");
+  check(/30-Second High-Yield Audio Lesson Recap/.test(els.app.innerHTML), "lessonAudioRecap renders audio recap player");
+
+  call("scenarioWhatIfExplorer");
+  check(/Socratic "What If\?" Edge-Case Scenario Explorer/.test(els.app.innerHTML), "scenarioWhatIfExplorer renders what-if scenario explorer");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
