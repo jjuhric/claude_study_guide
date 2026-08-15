@@ -9472,6 +9472,354 @@ function knowledgeGraphView(){
 }
 /* ================= END AURORA TEACHING SUITE ================= */
 
+
+/* ================= SOLARIS TEACHING SUITE ================= */
+
+/* ── 1. API ERROR SIMULATOR ── */
+function apiErrorSimulator(){
+  if(typeof window!=='undefined'&&window.scrollTo)window.scrollTo(0,0);
+  renderHeader();
+  award("error_debugger");
+  const ERRORS=[
+    {code:400,name:"Bad Request — invalid_request_error",color:"#c94f4f",
+     cause:"Missing required field (model or messages), wrong content type, or malformed JSON body.",
+     body:JSON.stringify({type:"error",error:{type:"invalid_request_error",message:"messages: field required"}},null,2),
+     fix:"Check that model and messages[] are present. Verify Content-Type: application/json header."},
+    {code:400,name:"Bad Request — max_tokens too large",color:"#c94f4f",
+     cause:"max_tokens exceeds the model output limit or the remaining context window space.",
+     body:JSON.stringify({type:"error",error:{type:"invalid_request_error",message:"max_tokens: 32001 > 32000 maximum"}},null,2),
+     fix:"Reduce max_tokens. For claude-haiku-4-5 the max is 8,192. For claude-sonnet-4-5 it is 64,000."},
+    {code:401,name:"Unauthorized — authentication_error",color:"#c94f4f",
+     cause:"API key is missing, malformed, or has been revoked.",
+     body:JSON.stringify({type:"error",error:{type:"authentication_error",message:"invalid x-api-key"}},null,2),
+     fix:"Check x-api-key header. Key must start with sk-ant-. Regenerate at console.anthropic.com if revoked."},
+    {code:403,name:"Permission Denied — permission_error",color:"#d97757",
+     cause:"Your API key does not have access to this model or feature (e.g. Extended Thinking on Tier 1).",
+     body:JSON.stringify({type:"error",error:{type:"permission_error",message:"Your API key does not have access to this model"}},null,2),
+     fix:"Upgrade your API Tier or use a model available to your current tier. Check Tier requirements in Anthropic docs."},
+    {code:404,name:"Not Found — not_found_error",color:"#d97757",
+     cause:"The API endpoint URL is incorrect or the resource (e.g. batch ID) does not exist.",
+     body:JSON.stringify({type:"error",error:{type:"not_found_error",message:"Not found"}},null,2),
+     fix:"Verify the endpoint URL is https://api.anthropic.com/v1/messages. Check batch IDs match your account."},
+    {code:413,name:"Request Too Large — request_too_large",color:"#d97757",
+     cause:"The total token count of your request (prompt + images) exceeds the model context window.",
+     body:JSON.stringify({type:"error",error:{type:"request_too_large",message:"Request exceeds maximum allowed number of bytes"}},null,2),
+     fix:"Apply semantic compaction to reduce context. Use cache_control to cache static prefixes. Trim old turns."},
+    {code:422,name:"Unprocessable — invalid_request_error",color:"#d97757",
+     cause:"Request structure is syntactically valid JSON but semantically wrong (e.g. alternating role violation).",
+     body:JSON.stringify({type:"error",error:{type:"invalid_request_error",message:"messages: roles must alternate between user and assistant"}},null,2),
+     fix:"Ensure messages alternate user/assistant. Inject a filler assistant turn if you need two user turns in a row."},
+    {code:429,name:"Rate Limited — rate_limit_error",color:"#8a6fae",
+     cause:"You have exceeded your Tier TPM (tokens per minute) or RPM (requests per minute) limit.",
+     body:JSON.stringify({type:"error",error:{type:"rate_limit_error",message:"Rate limit exceeded: requests per minute"}},null,2),
+     fix:"Implement exponential backoff with jitter: wait = min(base*2^attempt + rand(0,1), max_wait). Upgrade Tier for higher limits."},
+    {code:529,name:"Overloaded — overloaded_error",color:"#8a6fae",
+     cause:"Anthropic servers are temporarily overloaded. Occurs during peak traffic periods.",
+     body:JSON.stringify({type:"error",error:{type:"overloaded_error",message:"Overloaded"}},null,2),
+     fix:"Retry with exponential backoff. Unlike 429, this is not your quota — it is Anthropic capacity. 529 is a transient error."},
+    {code:500,name:"Internal Server Error — api_error",color:"#c94f4f",
+     cause:"Unexpected error on Anthropic side. Very rare — typically resolves within minutes.",
+     body:JSON.stringify({type:"error",error:{type:"api_error",message:"Internal server error"}},null,2),
+     fix:"Retry once after 5 seconds. If persistent, check status.anthropic.com and open a support ticket."},
+    {code:503,name:"Service Unavailable",color:"#c94f4f",
+     cause:"Anthropic API is temporarily down for maintenance or a major incident.",
+     body:JSON.stringify({type:"error",error:{type:"api_error",message:"Service Unavailable"}},null,2),
+     fix:"Monitor status.anthropic.com. Implement a circuit breaker that trips after 3 consecutive 5xx errors."}
+  ];
+  window._aeSel=function(i){
+    const e=ERRORS[i];
+    const d=document.getElementById("aeDetail");
+    d.style.display="block";
+    d.innerHTML="<div style=\"display:flex;align-items:center;gap:10px;margin-bottom:14px;\">"
+      +"<div style=\"font-size:28px;font-weight:800;color:"+e.color+";\">"+e.code+"</div>"
+      +"<h3 style=\"margin:0;font-size:14px;color:var(--text);\">"+e.name+"</h3></div>"
+      +"<p style=\"font-size:12.5px;color:var(--text);line-height:1.6;margin-bottom:10px;\"><strong>Root Cause:</strong> "+e.cause+"</p>"
+      +"<pre style=\"background:var(--bg);border:1px solid "+e.color+"44;border-radius:8px;padding:12px;font-size:10.5px;line-height:1.6;white-space:pre-wrap;margin-bottom:12px;\">"+e.body+"</pre>"
+      +"<div style=\"background:#5a9e6f11;border-left:3px solid #5a9e6f;padding:10px 14px;border-radius:0 8px 8px 0;\">"
+      +"<div style=\"font-size:11px;font-weight:700;color:#5a9e6f;margin-bottom:4px;\">✅ Recovery</div>"
+      +"<div style=\"font-size:12.5px;color:var(--text);line-height:1.6;\">"+e.fix+"</div></div>"
+      +"<button class=\"btn sm\" style=\"margin-top:12px;\" onclick=\"document.getElementById('aeDetail').style.display='none'\">✕ Close</button>";
+    d.scrollIntoView({behavior:"smooth",block:"nearest"});
+  };
+  const grid=ERRORS.map(function(e,i){
+    return "<div onclick=\"_aeSel("+i+")\" style=\"cursor:pointer;background:"+e.color+"11;border:2px solid "+e.color+"44;border-radius:10px;padding:12px;\""
+      +" onmouseover=\"this.style.borderColor='"+e.color+"'\" onmouseout=\"this.style.borderColor='"+e.color+"44'\">"
+      +"<div style=\"font-size:20px;font-weight:800;color:"+e.color+";\">"+e.code+"</div>"
+      +"<div style=\"font-size:11px;color:var(--text);margin-top:4px;line-height:1.4;\">"+e.name.split("—")[0].trim()+"</div>"
+      +"</div>";
+  }).join("");
+  $("app").innerHTML="<button class=\"back\" onclick=\"home()\">← Back</button>"
+    +"<div class=\"panel\">"
+    +"<div style=\"text-align:center;\"><div style=\"font-size:36px;\">🚨</div>"
+    +"<h2 style=\"font-size:20px;margin-top:6px;\">Interactive API Error Simulator</h2>"
+    +"<p class=\"subtext\" style=\"margin-top:6px;\">Click any HTTP error code to see the exact JSON body, root cause, and the correct recovery strategy.</p></div>"
+    +"<div style=\"display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin:16px 0;\">"+grid+"</div>"
+    +"<div id=\"aeDetail\" style=\"display:none;background:var(--card);border:2px solid var(--coral);border-radius:14px;padding:20px;\"></div>"
+    +"</div>";
+}
+
+/* ── 2. TOKEN BUDGET VISUALIZER ── */
+function tokenBudgetVisualizer(){
+  if(typeof window!=='undefined'&&window.scrollTo)window.scrollTo(0,0);
+  renderHeader();
+  award("token_budget_expert");
+  const TOTAL=200000;
+  window._tbUpdate=function(){
+    const sys=parseInt(document.getElementById("tbSys").value)||0;
+    const ctx=parseInt(document.getElementById("tbCtx").value)||0;
+    const think=parseInt(document.getElementById("tbThink").value)||0;
+    const used=sys+ctx+think;
+    const out=Math.max(0,TOTAL-used);
+    const pct=function(n){return Math.min(100,(n/TOTAL*100)).toFixed(1);};
+    document.getElementById("tbSysV").textContent=sys.toLocaleString();
+    document.getElementById("tbCtxV").textContent=ctx.toLocaleString();
+    document.getElementById("tbThinkV").textContent=think.toLocaleString();
+    document.getElementById("tbOutV").textContent=out.toLocaleString();
+    document.getElementById("tbSysBar").style.width=pct(sys)+"%";
+    document.getElementById("tbCtxBar").style.width=pct(ctx)+"%";
+    document.getElementById("tbThinkBar").style.width=pct(think)+"%";
+    document.getElementById("tbOutBar").style.width=pct(out)+"%";
+    document.getElementById("tbTotal").textContent=used.toLocaleString()+" / "+TOTAL.toLocaleString();
+    const pctUsed=used/TOTAL*100;
+    const warn=document.getElementById("tbWarn");
+    if(pctUsed>=80){
+      warn.textContent="⚠️ "+pctUsed.toFixed(0)+"% used — trigger semantic compaction now! Use <key_facts> tags to summarize old turns.";
+      warn.style.background="#c94f4f22";
+      warn.style.borderColor="#c94f4f";
+      warn.style.color="#c94f4f";
+    } else if(sys>=1024){
+      warn.textContent="💾 System prompt ≥ 1,024 tokens — eligible for cache_control! Potential 85% cost saving on re-sends.";
+      warn.style.background="#5a9e6f22";
+      warn.style.borderColor="#5a9e6f";
+      warn.style.color="#5a9e6f";
+    } else {
+      warn.textContent="ℹ️ System prompt < 1,024 tokens — not yet eligible for prompt caching. Pad with stable context to reach the threshold.";
+      warn.style.background="#5b7fa611";
+      warn.style.borderColor="#5b7fa6";
+      warn.style.color="#5b7fa6";
+    }
+    const cacheNote=document.getElementById("tbCacheNote");
+    if(sys>=1024){
+      const savings=Math.round(sys*0.85);
+      cacheNote.textContent="Cache savings on re-send: ~"+savings.toLocaleString()+" tokens at 15% cost. Monthly savings at 1k calls/day: significant.";
+    } else {
+      cacheNote.textContent="Add "+(1024-sys).toLocaleString()+" more tokens to system prompt to reach cache_control threshold.";
+    }
+  };
+  function bar(id,color,label){
+    return "<div style=\"margin-bottom:14px;\">"
+      +"<div style=\"display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-bottom:4px;\">"
+      +"<span style=\"color:"+color+"\">"+label+"</span><span id=\""+id+"V\" style=\"color:var(--muted);\">0</span></div>"
+      +"<div style=\"background:var(--bg);border-radius:8px;height:18px;overflow:hidden;border:1px solid var(--border);position:relative;\">"
+      +"<div id=\""+id+"Bar\" style=\"height:100%;width:0%;background:"+color+";border-radius:8px;transition:width 0.3s;\"></div>"
+      +"</div></div>";
+  }
+  $("app").innerHTML="<button class=\"back\" onclick=\"home()\">← Back</button>"
+    +"<div class=\"panel\">"
+    +"<div style=\"text-align:center;\"><div style=\"font-size:36px;\">📊</div>"
+    +"<h2 style=\"font-size:20px;margin-top:6px;\">Token Budget Visualizer with Live Sliders</h2>"
+    +"<p class=\"subtext\" style=\"margin-top:6px;\">Drag sliders to allocate tokens across your 200,000-token context window and see cache eligibility in real time.</p></div>"
+    +"<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:18px 0;\">"
+    +"<div>"
+    +"<div style=\"margin-bottom:16px;\">"
+    +"<label style=\"font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:6px;\">🖥️ System Prompt Tokens</label>"
+    +"<input id=\"tbSys\" type=\"range\" min=\"0\" max=\"20000\" value=\"800\" oninput=\"_tbUpdate()\" style=\"width:100%;\">"
+    +"</div>"
+    +"<div style=\"margin-bottom:16px;\">"
+    +"<label style=\"font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:6px;\">💬 Conversation Context Tokens</label>"
+    +"<input id=\"tbCtx\" type=\"range\" min=\"0\" max=\"160000\" value=\"20000\" oninput=\"_tbUpdate()\" style=\"width:100%;\">"
+    +"</div>"
+    +"<div style=\"margin-bottom:16px;\">"
+    +"<label style=\"font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:6px;\">🧠 Extended Thinking Budget Tokens</label>"
+    +"<input id=\"tbThink\" type=\"range\" min=\"0\" max=\"64000\" value=\"0\" oninput=\"_tbUpdate()\" style=\"width:100%;\">"
+    +"</div>"
+    +"</div>"
+    +"<div>"
+    +bar("tbSys","#d97757","System Prompt")
+    +bar("tbCtx","#5b7fa6","Context / Conversation")
+    +bar("tbThink","#8a6fae","Thinking Budget")
+    +bar("tbOut","#5a9e6f","Remaining Output Budget")
+    +"<div style=\"text-align:right;font-size:11px;color:var(--muted);margin-top:4px;\">Total used: <strong id=\"tbTotal\">0 / 200,000</strong></div>"
+    +"</div>"
+    +"</div>"
+    +"<div id=\"tbWarn\" style=\"border-radius:10px;padding:12px 16px;border:1px solid;margin-bottom:10px;font-size:12.5px;line-height:1.6;\"></div>"
+    +"<div id=\"tbCacheNote\" style=\"font-size:11.5px;color:var(--muted);text-align:center;\"></div>"
+    +"</div>";
+  window._tbUpdate();
+}
+
+/* ── 3. CONVERSATION FLOW DIAGRAM ── */
+function conversationFlowDiagram(){
+  if(typeof window!=='undefined'&&window.scrollTo)window.scrollTo(0,0);
+  renderHeader();
+  award("conversation_architect");
+  const FLOWS={
+    basic:{
+      label:"Basic Multi-Turn",
+      steps:[
+        {role:"user",color:"#5b7fa6",icon:"👤",label:"User Turn 1",body:"What is prompt caching?"},
+        {role:"assistant",color:"#d97757",icon:"🤖",label:"Assistant Turn 1 (stop_reason: end_turn)",body:"Prompt caching stores static prefix tokens server-side for 5 minutes..."},
+        {role:"user",color:"#5b7fa6",icon:"👤",label:"User Turn 2",body:"What is the minimum token threshold?"},
+        {role:"assistant",color:"#d97757",icon:"🤖",label:"Assistant Turn 2 (stop_reason: end_turn)",body:"The minimum is 1,024 tokens for Sonnet/Opus and 2,048 for Haiku..."},
+        {role:"system",color:"#5a9e6f",icon:"📋",label:"Context State",body:"messages[] grows with each turn. Monitor total tokens to avoid hitting the 200k limit."}
+      ]
+    },
+    tool:{
+      label:"Tool Use Flow",
+      steps:[
+        {role:"user",color:"#5b7fa6",icon:"👤",label:"User Turn",body:"What is the weather in NYC?"},
+        {role:"assistant",color:"#d97757",icon:"🤖",label:"Assistant (stop_reason: tool_use)",body:'content: [{type:"tool_use",id:"toolu_01",name:"get_weather",input:{location:"NYC"}}]'},
+        {role:"system",color:"#8a6fae",icon:"⚙️",label:"Your Code Executes Tool",body:"Call your get_weather API. Get result: 72°F, partly cloudy."},
+        {role:"user",color:"#5b7fa6",icon:"👤",label:"User Turn with tool_result",body:'content: [{type:"tool_result",tool_use_id:"toolu_01",content:"72°F, partly cloudy"}]'},
+        {role:"assistant",color:"#d97757",icon:"🤖",label:"Assistant Final (stop_reason: end_turn)",body:"The weather in NYC is currently 72°F and partly cloudy."}
+      ]
+    },
+    thinking:{
+      label:"Extended Thinking Flow",
+      steps:[
+        {role:"user",color:"#5b7fa6",icon:"👤",label:"User Turn",body:"Design a zero-trust multi-agent pipeline. [API: thinking:{type:enabled,budget_tokens:8000}]"},
+        {role:"system",color:"#8a6fae",icon:"🧠",label:"Thinking Block Generated (hidden reasoning)",body:'content[0]: {type:"thinking", thinking:"Considering MicroVM isolation, circuit breakers..."}'},
+        {role:"assistant",color:"#d97757",icon:"🤖",label:"Assistant Final Response",body:'content[1]: {type:"text", text:"Here is the zero-trust architecture: ..."}'},
+        {role:"system",color:"#5a9e6f",icon:"📋",label:"Note on Next Turn",body:"Include the thinking block in the next messages[] turn. Claude needs its own thinking to reason coherently."}
+      ]
+    },
+    compaction:{
+      label:"Context Compaction Flow",
+      steps:[
+        {role:"system",color:"#c94f4f",icon:"⚠️",label:"Context Monitor: 80% Capacity Reached",body:"Total tokens: 160,000 / 200,000. FIFO truncation would lose early instructions!"},
+        {role:"system",color:"#8a6fae",icon:"🗜️",label:"Semantic Compaction Triggered",body:"Summarize turns 1-15 into structured tags: <key_facts>, <decisions>, <open_questions>"},
+        {role:"user",color:"#5b7fa6",icon:"👤",label:"Compacted Context Injected",body:"[system]: <key_facts>User is building a PCI-DSS pipeline. Key decisions: MicroVM isolation chosen.</key_facts>"},
+        {role:"assistant",color:"#d97757",icon:"🤖",label:"Claude Continues with Full Context",body:"Context freed by ~60%. Continues coherently with preserved key decisions and facts."}
+      ]
+    }
+  };
+  window._cfdLoad=function(key){
+    const f=FLOWS[key];
+    const steps=f.steps.map(function(s,i){
+      return "<div style=\"display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;\">"
+        +"<div style=\"flex-shrink:0;width:36px;height:36px;border-radius:50%;background:"+s.color+"22;border:2px solid "+s.color+";display:flex;align-items:center;justify-content:center;font-size:16px;\">"+s.icon+"</div>"
+        +"<div style=\"flex:1;\">"
+        +"<div style=\"font-size:11px;font-weight:700;color:"+s.color+";margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;\">Step "+(i+1)+" · "+s.label+"</div>"
+        +"<pre style=\"background:var(--bg);border:1px solid "+s.color+"33;border-radius:8px;padding:10px;font-size:10.5px;white-space:pre-wrap;line-height:1.6;margin:0;\">"+s.body+"</pre>"
+        +"</div></div>"
+        +(i<f.steps.length-1?"<div style=\"margin-left:18px;width:2px;height:16px;background:var(--border);margin-bottom:4px;\"></div>":"");
+    }).join("");
+    document.getElementById("cfdBody").innerHTML=steps;
+    toast("📊 Loaded: "+f.label);
+  };
+  $("app").innerHTML="<button class=\"back\" onclick=\"home()\">← Back</button>"
+    +"<div class=\"panel\">"
+    +"<div style=\"text-align:center;\"><div style=\"font-size:36px;\">🔗</div>"
+    +"<h2 style=\"font-size:20px;margin-top:6px;\">Multi-Turn Conversation Flow Diagrams</h2>"
+    +"<p class=\"subtext\" style=\"margin-top:6px;\">Step-by-step visual diagrams of how conversation turns, tool calls, extended thinking, and compaction actually work in the Messages API.</p></div>"
+    +"<div style=\"display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:14px 0;\">"
+    +Object.entries(FLOWS).map(function(kv){
+      return "<button class=\"btn sm\" onclick=\"_cfdLoad('"+kv[0]+"')\">"+kv[1].label+"</button>";
+    }).join("")
+    +"</div>"
+    +"<div id=\"cfdBody\" style=\"padding:4px 0;\"></div>"
+    +"</div>";
+  window._cfdLoad("basic");
+}
+
+/* ── 4. FINOPS COST CALCULATOR ── */
+function finopsCostCalculator(){
+  if(typeof window!=='undefined'&&window.scrollTo)window.scrollTo(0,0);
+  renderHeader();
+  award("finops_optimizer");
+  /* Prices per million tokens (as of 2025) */
+  const MODELS=[
+    {name:"claude-haiku-4-5",label:"Haiku 4.5",inM:0.80,outM:4.00,speed:"Fastest"},
+    {name:"claude-sonnet-4-5",label:"Sonnet 4.5",inM:3.00,outM:15.00,speed:"Balanced"},
+    {name:"claude-opus-4",label:"Opus 4",inM:15.00,outM:75.00,speed:"Most Capable"}
+  ];
+  const CACHE_READ_DISC=0.10; /* cache read = 10% of input price */
+  const BATCH_DISC=0.50;      /* Batch API = 50% off */
+  window._foCalc=function(){
+    const calls=parseInt(document.getElementById("foCalls").value)||0;
+    const inp=parseInt(document.getElementById("foInput").value)||0;
+    const out=parseInt(document.getElementById("foOutput").value)||0;
+    const cacheHit=parseInt(document.getElementById("foCacheHit").value)||0;
+    const batch=document.getElementById("foBatch").checked;
+    const daily=calls;
+    const monthly=daily*30;
+    const eff=batch?BATCH_DISC:1.0;
+    function cost(m){
+      const cachedIn=Math.round(inp*cacheHit/100);
+      const freshIn=inp-cachedIn;
+      const inputCost=(freshIn/1e6*m.inM)+(cachedIn/1e6*m.inM*CACHE_READ_DISC);
+      const outputCost=out/1e6*m.outM;
+      const perCall=(inputCost+outputCost)*eff;
+      return {daily:(perCall*daily).toFixed(2),monthly:(perCall*monthly).toFixed(2),perCall:perCall.toFixed(5)};
+    }
+    const rows=MODELS.map(function(m){
+      const c=cost(m);
+      const savings=batch||cacheHit>0?Math.round((1-(c.monthly/cost({inM:m.inM,outM:m.outM}).monthly))*100):0;
+      return "<tr style=\"border-bottom:1px solid var(--border);\">"
+        +"<td style=\"padding:10px 8px;font-weight:600;color:var(--text);\">"+m.label+"</td>"
+        +"<td style=\"padding:10px 8px;font-size:11px;color:var(--muted);\">"+m.speed+"</td>"
+        +"<td style=\"padding:10px 8px;font-family:monospace;color:var(--text);\">$"+c.perCall+"</td>"
+        +"<td style=\"padding:10px 8px;font-family:monospace;color:var(--text);\">$"+c.daily+"</td>"
+        +"<td style=\"padding:10px 8px;font-family:monospace;font-weight:700;color:var(--coral);\">$"+c.monthly+"</td>"
+        +(savings>0?"<td style=\"padding:10px 8px;color:#5a9e6f;font-weight:700;\">-"+savings+"%</td>":"<td style=\"padding:10px 8px;color:var(--muted);\">baseline</td>")
+        +"</tr>";
+    }).join("");
+    document.getElementById("foTable").innerHTML=rows;
+    const haikuCost=cost(MODELS[0]);
+    const sonnetCost=cost(MODELS[1]);
+    const saving=((sonnetCost.monthly-haikuCost.monthly)).toFixed(2);
+    document.getElementById("foInsight").textContent=saving>0
+      ?"💡 Switching from Sonnet to Haiku saves ~$"+saving+"/month for this workload if quality requirements permit."
+      :"💡 Sonnet is cost-effective for this workload. Consider Batch API or increased caching for further savings.";
+  };
+  $("app").innerHTML="<button class=\"back\" onclick=\"home()\">← Back</button>"
+    +"<div class=\"panel\">"
+    +"<div style=\"text-align:center;\"><div style=\"font-size:36px;\">🧮</div>"
+    +"<h2 style=\"font-size:20px;margin-top:6px;\">FinOps Cost Calculator</h2>"
+    +"<p class=\"subtext\" style=\"margin-top:6px;\">Model your API workload and instantly compare monthly costs across Haiku, Sonnet, and Opus — with Prompt Caching and Batch API applied.</p></div>"
+    +"<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:18px 0;\">"
+    +"<div>"
+    +"<div style=\"margin-bottom:14px;\">"
+    +"<label style=\"font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:5px;\">📊 Daily API Calls</label>"
+    +"<input id=\"foCalls\" type=\"number\" value=\"1000\" min=\"1\" oninput=\"_foCalc()\" style=\"width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;box-sizing:border-box;\">"
+    +"</div>"
+    +"<div style=\"margin-bottom:14px;\">"
+    +"<label style=\"font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:5px;\">📤 Avg Input Tokens per Call</label>"
+    +"<input id=\"foInput\" type=\"number\" value=\"2000\" min=\"1\" oninput=\"_foCalc()\" style=\"width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;box-sizing:border-box;\">"
+    +"</div>"
+    +"<div style=\"margin-bottom:14px;\">"
+    +"<label style=\"font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:5px;\">📥 Avg Output Tokens per Call</label>"
+    +"<input id=\"foOutput\" type=\"number\" value=\"500\" min=\"1\" oninput=\"_foCalc()\" style=\"width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;box-sizing:border-box;\">"
+    +"</div>"
+    +"<div style=\"margin-bottom:14px;\">"
+    +"<label style=\"font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:5px;\">💾 Cache Hit Rate (% of input tokens cached)</label>"
+    +"<input id=\"foCacheHit\" type=\"range\" min=\"0\" max=\"90\" value=\"0\" oninput=\"_foCalc()\" style=\"width:100%;\">"
+    +"</div>"
+    +"<div style=\"margin-bottom:14px;display:flex;align-items:center;gap:10px;\">"
+    +"<input id=\"foBatch\" type=\"checkbox\" onchange=\"_foCalc()\">"
+    +"<label style=\"font-size:12px;font-weight:700;color:var(--text);\">📦 Apply Batch API (50% discount, async)</label>"
+    +"</div>"
+    +"</div>"
+    +"<div style=\"overflow-x:auto;\">"
+    +"<table style=\"width:100%;border-collapse:collapse;\">"
+    +"<thead><tr style=\"background:var(--card);\">"
+    +"<th style=\"padding:8px;text-align:left;font-size:11px;color:var(--muted);\">Model</th>"
+    +"<th style=\"padding:8px;text-align:left;font-size:11px;color:var(--muted);\">Speed</th>"
+    +"<th style=\"padding:8px;text-align:left;font-size:11px;color:var(--muted);\">Per Call</th>"
+    +"<th style=\"padding:8px;text-align:left;font-size:11px;color:var(--muted);\">Daily</th>"
+    +"<th style=\"padding:8px;text-align:left;font-size:11px;color:var(--muted);\">Monthly</th>"
+    +"<th style=\"padding:8px;text-align:left;font-size:11px;color:var(--muted);\">Savings</th>"
+    +"</tr></thead>"
+    +"<tbody id=\"foTable\"></tbody>"
+    +"</table>"
+    +"<div id=\"foInsight\" style=\"margin-top:14px;font-size:12px;color:var(--text);background:var(--card);border-radius:8px;padding:12px;line-height:1.6;\"></div>"
+    +"</div>"
+    +"</div>"
+    +"</div>";
+  window._foCalc();
+}
+/* ================= END SOLARIS TEACHING SUITE ================= */
+
 /* ================= LESSON WIDGETS ================= */
 function initLessonWidgets(){
   const boxes = document.querySelectorAll('.widget-box');

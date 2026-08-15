@@ -1,8 +1,8 @@
 # Claude Cert Quest 🧭
 
 [![Anthropic Certifications](https://img.shields.io/badge/Anthropic-Certifications%20Prep-d97757.svg)](https://www.pearsonvue.com/us/en/anthropic.html)
-[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v24)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
-[![Tests Passing](https://img.shields.io/badge/Tests-316%20Passing-5b7fa6.svg)](test/smoke.js)
+[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v27)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
+[![Tests Passing](https://img.shields.io/badge/Tests-320%20Passing-5b7fa6.svg)](test/smoke.js)
 [![License](https://img.shields.io/badge/License-MIT-8a6fae.svg)](LICENSE)
 
 An enterprise-grade, gamified study platform and interactive simulator suite for the **Anthropic Claude Certification Program** — featuring 400 practice questions with 4-way per-option rationales, 100 Leitner spaced repetition flashcards, 44 deep-dive technical lessons, and 80+ interactive architectural sandboxes, study roadmaps, architecture pattern libraries, prompt transformation galleries, knowledge graphs, animated concept cards, live API payload inspectors, interactive decision trees, glossary callout engines, mind mappers, inline lesson playgrounds, audio recaps, scenario explorers, sequence diagram visualizers, Socratic lesson probes, annotated SDK code walkthroughs, MicroVM execution models, Consensus voting engines, CLI emulators, rate limit visualizers, multiplayer arenas, AI tutors, topology validators, MCP execution engines, memory decay models, oral defense boards, and cryptographic credentials.
@@ -30,6 +30,10 @@ Claude Cert Quest includes a comprehensive suite of hands-on sandboxes and diagn
 
 | Tool | Category | What it does |
 | :--- | :--- | :--- |
+| 🚨 **API Error Simulator** | Pedagogy | Click any of 11 HTTP error codes to see the exact JSON body, root cause, and correct recovery strategy. |
+| 📊 **Token Budget Visualizer** | Pedagogy | Live-slider bar chart allocating system prompt, context, and thinking tokens across the 200k window with cache eligibility alerts. |
+| 🔗 **Conversation Flow Diagrams** | Pedagogy | Step-by-step visual diagrams of Basic Multi-Turn, Tool Use, Extended Thinking, and Context Compaction flows. |
+| 🧠 **FinOps Cost Calculator** | Pedagogy | Input daily calls, token counts, and cache hit rate to compare monthly bills across Haiku, Sonnet, and Opus with Batch API toggle. |
 | 🗺️ **Study Roadmap** | Pedagogy | 4-week milestone roadmap with per-week topic lists, completion tracking via localStorage, and a Reset button. |
 | 📐 **Architecture Pattern Library** | Pedagogy | 12 named patterns (Orchestrator-Worker, Circuit Breaker, MicroVM, etc.) each with ASCII diagram, exam definition, and click-to-expand detail. |
 | 🔄 **Prompt Transform Gallery** | Pedagogy | 6 before/after transformation cards showing bad vs correct prompt patterns with "Why This Matters" and Golden Rule annotations. |
@@ -134,7 +138,7 @@ Drill at maximum speed without touching the mouse. Press **`?`** or **`Ctrl + /`
 Claude Cert Quest has a zero-dependency test suite validating every component:
 
 ```bash
-# Run comprehensive offline test suite (316 assertions)
+# Run comprehensive offline test suite (320 assertions)
 node test/smoke.js
 ```
 
@@ -142,7 +146,7 @@ node test/smoke.js
 * ✅ Content integrity of all 400 questions, 4-way per-option rationales, and 100 flashcards.
 * ✅ Exact domain-to-lesson mapping across all 4 certification tracks.
 * ✅ Web Audio synthesizer, state migration, and Leitner spaced repetition ladders.
-* ✅ Full rendering and state validation for all 80+ interactive tools, multiplayer channels, and simulators.
+* ✅ Full rendering and state validation for all 84+ interactive tools, multiplayer channels, and simulators.
 * ✅ Compliance with official NDAs and unverified exam claim policies.
 
 ---

@@ -1000,8 +1000,22 @@ vm.createContext(sandbox);
   call("knowledgeGraphView");
   check(/Concept Relationship Knowledge Graph/.test(els.app.innerHTML) && /kgDetail/.test(els.app.innerHTML), "knowledgeGraphView renders knowledge graph");
 
+  /* ---------- 44. Solaris Teaching Suite ---------- */
+  call("apiErrorSimulator");
+  check(/Interactive API Error Simulator/.test(els.app.innerHTML) && /aeDetail/.test(els.app.innerHTML), "apiErrorSimulator renders error code grid");
+
+  call("tokenBudgetVisualizer");
+  check(/Token Budget Visualizer with Live Sliders/.test(els.app.innerHTML) && /tbWarn/.test(els.app.innerHTML), "tokenBudgetVisualizer renders budget bars");
+
+  call("conversationFlowDiagram");
+  check(/Multi-Turn Conversation Flow Diagrams/.test(els.app.innerHTML) && /cfdBody/.test(els.app.innerHTML), "conversationFlowDiagram renders flow diagram");
+
+  call("finopsCostCalculator");
+  check(/FinOps Cost Calculator/.test(els.app.innerHTML) && /foTable/.test(els.app.innerHTML), "finopsCostCalculator renders cost comparison table");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
+
 
 
