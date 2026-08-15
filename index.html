@@ -449,6 +449,10 @@ const CERTS = [
 ];
 
 const BADGES = [
+ {id:"pacing_virtuoso", em:"⏱️", name:"Pacing Virtuoso", desc:"Master strict 90-second per-question exam pacing"},
+ {id:"voice_virtuoso", em:"🎙️", name:"Voice Virtuoso", desc:"Practice active voice recognition recall on flashcards"},
+ {id:"quad_cert_master", em:"📈", name:"Quad-Cert Master", desc:"View the 4-track multi-cert mastery overlay radar"},
+ {id:"offline_sovereign", em:"📦", name:"Offline Sovereign", desc:"Download the self-contained standalone offline bundle"},
  {id:"pace_master", em:"🏆", name:"Pace Master", desc:"Log a sub-3 second response time in Speed Run"},
  {id:"forecast_planner", em:"📅", name:"Master Planner", desc:"Inspect 14-day spaced repetition card maturity in the forecast matrix"},
  {id:"social_certified", em:"🎓", name:"Social Certified", desc:"Generate a shareable verification badge card"},
@@ -5677,6 +5681,326 @@ function runRegressionSuite(){
     + '<span>Prompt A: <b style="color:var(--coral);">No Cache Prefix</b> · Prompt B: <b style="color:var(--green);">Cache-Ready XML</b></span>'
     + '</div>'
     + '</div>';
+}
+
+
+/* ================= 1. STRICT EXAM PACING SIMULATOR (90S CLOCK) ================= */
+let paceSimState = {
+  certId: "ccao",
+  questions: [],
+  idx: 0,
+  timeRemaining: 90,
+  timer: null,
+  spentTimes: [],
+  answers: []
+};
+
+function pacingSimulatorView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("pacing_virtuoso");
+  
+  $("app").innerHTML = '<button class="back" onclick="stopPacingSim(); home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">⏱️</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Strict Exam Pacing Simulator (90s Clock)</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Train under realistic exam pressure with per-question 90-second budget countdowns and post-run pacing telemetry.</p>'
+    + '<div style="display:flex; justify-content:center; gap:10px; margin:16px 0; flex-wrap:wrap;">'
+    + '<select id="psTrackSelect" onchange="paceSimState.certId=this.value" style="padding:8px 12px; font-size:13px; font-weight:700; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--ink);">'
+    + CERTS.map(c => '<option value="' + c.id + '" ' + (c.id === paceSimState.certId ? 'selected' : '') + '>' + c.code + ' · ' + c.name + '</option>').join('')
+    + '</select>'
+    + '<button class="btn" onclick="startPacingSimSession()">▶️ Start Timed Pacing Run</button>'
+    + '</div>'
+    + '<div id="psStage" style="display:none; border:2px solid var(--border); border-radius:12px; padding:18px; background:var(--card); max-width:620px; margin:0 auto; text-align:left;"></div>'
+    + '</div>';
+}
+
+function startPacingSimSession(){
+  const c = CERTS.find(x => x.id === paceSimState.certId);
+  if (!c) return;
+  if (!c._loaded) {
+    loadCert(c).then(() => startPacingSimSession());
+    return;
+  }
+  
+  const pool = sampleByDomain(c, 10).map(i => c.questions[i]);
+  paceSimState.questions = pool;
+  paceSimState.idx = 0;
+  paceSimState.spentTimes = [];
+  paceSimState.answers = [];
+  
+  document.getElementById("psStage") && (document.getElementById("psStage").style.display = "block");
+  renderPacingQuestion();
+}
+
+function renderPacingQuestion(){
+  clearInterval(paceSimState.timer);
+  paceSimState.timeRemaining = 90;
+  
+  const q = paceSimState.questions[paceSimState.idx];
+  const stage = document.getElementById("psStage");
+  if (!stage || !q) return;
+  
+  stage.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">'
+    + '<span style="font-size:12px; font-weight:700; color:var(--muted);">Question ' + (paceSimState.idx + 1) + ' of ' + paceSimState.questions.length + '</span>'
+    + '<span id="psClockDisplay" style="font-size:16px; font-weight:900; color:var(--green);">' + paceSimState.timeRemaining + 's remaining</span>'
+    + '</div>'
+    + '<div class="pbar" style="height:6px; margin-bottom:12px;"><div id="psClockBar" style="width:100%; background:var(--green);"></div></div>'
+    + '<div style="font-size:14.5px; font-weight:700; line-height:1.5; margin-bottom:14px;">' + esc(q.q) + '</div>'
+    + '<div style="display:flex; flex-direction:column; gap:8px;">'
+    + q.opts.map((o, j) => '<button class="opt" onclick="pickPacingAnswer(' + j + ')" style="text-align:left; padding:10px 14px; font-size:13px;"><b class="okey">' + (j + 1) + '</b> ' + esc(o) + '</button>').join('')
+    + '</div>';
+  
+  paceSimState.timer = setInterval(() => {
+    paceSimState.timeRemaining--;
+    const cEl = document.getElementById("psClockDisplay");
+    const bEl = document.getElementById("psClockBar");
+    if (cEl) {
+      cEl.textContent = paceSimState.timeRemaining + "s remaining";
+      if (paceSimState.timeRemaining <= 15) { cEl.style.color = "var(--coral)"; }
+      else if (paceSimState.timeRemaining <= 35) { cEl.style.color = "var(--gold)"; }
+    }
+    if (bEl) {
+      const pct = Math.max(0, (paceSimState.timeRemaining / 90) * 100);
+      bEl.style.width = pct + "%";
+      bEl.style.background = paceSimState.timeRemaining <= 15 ? "var(--coral)" : paceSimState.timeRemaining <= 35 ? "var(--gold)" : "var(--green)";
+    }
+    if (paceSimState.timeRemaining <= 0) {
+      clearInterval(paceSimState.timer);
+      pickPacingAnswer(-1); // Timeout
+    }
+  }, 1000);
+}
+
+function pickPacingAnswer(j){
+  clearInterval(paceSimState.timer);
+  const spent = 90 - paceSimState.timeRemaining;
+  paceSimState.spentTimes.push(spent);
+  paceSimState.answers.push(j);
+  
+  playSound(j === paceSimState.questions[paceSimState.idx].a ? 'correct' : 'wrong');
+  
+  if (paceSimState.idx < paceSimState.questions.length - 1) {
+    paceSimState.idx++;
+    renderPacingQuestion();
+  } else {
+    finishPacingSim();
+  }
+}
+
+function finishPacingSim(){
+  clearInterval(paceSimState.timer);
+  const stage = document.getElementById("psStage");
+  if (!stage) return;
+  
+  const avgTime = Math.round(paceSimState.spentTimes.reduce((a, b) => a + b, 0) / paceSimState.spentTimes.length);
+  const correctCount = paceSimState.answers.filter((ans, i) => ans === paceSimState.questions[i].a).length;
+  
+  stage.innerHTML = '<div style="text-align:center;">'
+    + '<h3 style="font-size:18px; margin-bottom:4px;">⏱️ Pacing Run Telemetry</h3>'
+    + '<div style="font-size:28px; font-weight:900; color:var(--coral); margin:8px 0;">' + correctCount + ' / 10 Correct · ' + avgTime + 's avg pace</div>'
+    + '<div style="font-size:12px; color:var(--muted); margin-bottom:14px;">Target pacing for 60-question 120-minute exams is <b>90 seconds per question</b>.</div>'
+    + '<div style="display:flex; flex-direction:column; gap:6px; text-align:left; font-size:12px; margin-bottom:14px;">'
+    + paceSimState.spentTimes.map((t, i) => {
+        const isOk = paceSimState.answers[i] === paceSimState.questions[i].a;
+        return '<div style="display:flex; justify-content:space-between; padding:6px 10px; background:var(--bg); border-radius:6px;">'
+          + '<span>Question ' + (i + 1) + ': ' + (isOk ? '✅ Correct' : '❌ Missed') + '</span>'
+          + '<b style="color:' + (t > 75 ? 'var(--coral)' : 'var(--green)') + ';">' + t + 's spent</b>'
+          + '</div>';
+      }).join('')
+    + '</div>'
+    + '<button class="btn sm" onclick="pacingSimulatorView()">Run Another Simulation</button>'
+    + '</div>';
+}
+
+function stopPacingSim(){
+  clearInterval(paceSimState.timer);
+}
+
+/* ================= 2. VOICE RECOGNITION FLASHCARD SELF-GRADING ================= */
+let voiceState = {
+  active: false,
+  transcript: "",
+  certId: "ccdv",
+  cardIdx: 0,
+  recognition: null
+};
+
+function voiceRecallView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("voice_virtuoso");
+  const c = CERTS.find(x => x.id === voiceState.certId) || CERTS[1];
+  const cards = getAllCertCards(c);
+  const card = cards[voiceState.cardIdx % cards.length] || { f: "What is Prompt Caching TTL?", b: "5 minutes ephemeral cache refreshed on each cache hit." };
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">🎙️</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Voice Recognition Active Recall</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Speak your flashcard answers aloud. Speech recognition automatically transcribes and highlights matched keywords.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:560px; margin:16px auto; text-align:left;">'
+    + '<div style="font-size:11px; font-weight:800; color:var(--coral); text-transform:uppercase; margin-bottom:6px;">' + c.code + ' Flashcard Prompt</div>'
+    + '<div style="font-size:16px; font-weight:700; line-height:1.4; margin-bottom:16px;">' + esc(card.f) + '</div>'
+    + '<div style="text-align:center; margin-bottom:14px;">'
+    + '<button id="vrMicBtn" class="btn" onclick="toggleVoiceRecognition()" style="font-size:14px; padding:10px 18px;">🎙️ Speak Answer</button>'
+    + '</div>'
+    + '<div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px; min-height:60px; font-size:13px; margin-bottom:12px;">'
+    + '<b style="font-size:11px; color:var(--muted); display:block; margin-bottom:4px;">Live Speech Transcript:</b>'
+    + '<span id="vrTranscriptText" style="color:var(--ink); font-style:italic;">Tap Speak Answer and talk into your mic...</span>'
+    + '</div>'
+    + '<div id="vrAnswerReveal" style="display:none; border-left:3px solid var(--green); padding:10px 12px; background:var(--bg); font-size:12.5px; line-height:1.5;">'
+    + '<b style="color:var(--green);">Card Back Key Facts:</b><br>'
+    + esc(card.b)
+    + '</div>'
+    + '<div class="rowbtns" style="margin-top:14px; justify-content:space-between;">'
+    + '<button class="btn ghost sm" onclick="revealVoiceAnswer()">👁️ Reveal Answer</button>'
+    + '<button class="btn sm" onclick="voiceState.cardIdx++; voiceRecallView()">Next Card →</button>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+function toggleVoiceRecognition(){
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const tEl = document.getElementById("vrTranscriptText");
+  const bEl = document.getElementById("vrMicBtn");
+  
+  if (!SpeechRec) {
+    if (tEl) tEl.textContent = "Speech recognition is not supported in this browser. (Chrome / Edge / Safari recommended).";
+    revealVoiceAnswer();
+    return;
+  }
+  
+  if (voiceState.active) {
+    voiceState.active = false;
+    if (voiceState.recognition) voiceState.recognition.stop();
+    if (bEl) bEl.textContent = "🎙️ Speak Answer";
+    revealVoiceAnswer();
+    return;
+  }
+  
+  voiceState.recognition = new SpeechRec();
+  voiceState.recognition.continuous = false;
+  voiceState.recognition.interimResults = true;
+  voiceState.active = true;
+  
+  if (bEl) { bEl.textContent = "⏹️ Listening... (Tap when done)"; bEl.style.background = "var(--coral)"; }
+  if (tEl) tEl.textContent = "Listening to your voice...";
+  
+  voiceState.recognition.onresult = (event) => {
+    let transcript = "";
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      transcript += event.results[i][0].transcript;
+    }
+    if (tEl) tEl.textContent = transcript;
+    voiceState.transcript = transcript;
+  };
+  
+  voiceState.recognition.onend = () => {
+    voiceState.active = false;
+    if (bEl) { bEl.textContent = "🎙️ Speak Answer"; bEl.style.background = ""; }
+    revealVoiceAnswer();
+  };
+  
+  voiceState.recognition.start();
+}
+
+function revealVoiceAnswer(){
+  const aEl = document.getElementById("vrAnswerReveal");
+  if (aEl) aEl.style.display = "block";
+  playSound('correct');
+}
+
+/* ================= 3. 4-TRACK MULTI-CERT MASTERY OVERLAY CHART ================= */
+function multiCertRadarOverlay(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("quad_cert_master");
+  
+  const cx = 150, cy = 150, r = 100;
+  const labels = ["Foundations", "API & Tools", "Prompt Arch", "Context & FinOps", "Security", "Reliability"];
+  const n = 6;
+  
+  let gridPaths = '';
+  [0.25, 0.5, 0.75, 1.0].forEach(level => {
+    let pts = [];
+    for(let i=0; i<n; i++){
+      const angle = (i * 2 * Math.PI / n) - (Math.PI / 2);
+      pts.push((cx + r * level * Math.cos(angle)).toFixed(1) + ',' + (cy + r * level * Math.sin(angle)).toFixed(1));
+    }
+    gridPaths += '<polygon points="' + pts.join(' ') + '" fill="none" stroke="var(--border)" stroke-width="1" stroke-dasharray="' + (level === 1 ? 'none' : '2,2') + '"/>';
+  });
+
+  let axes = '';
+  for(let i=0; i<n; i++){
+    const angle = (i * 2 * Math.PI / n) - (Math.PI / 2);
+    const x = cx + r * Math.cos(angle);
+    const y = cy + r * Math.sin(angle);
+    const lx = cx + (r + 20) * Math.cos(angle);
+    const ly = cy + (r + 20) * Math.sin(angle);
+    axes += '<line x1="' + cx + '" y1="' + cy + '" x2="' + x.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="var(--border)" stroke-width="1"/>';
+    axes += '<text x="' + lx.toFixed(1) + '" y="' + (ly + 3).toFixed(1) + '" text-anchor="middle" font-size="9.5" font-weight="700" fill="var(--muted)">' + labels[i] + '</text>';
+  }
+
+  // Draw overlay polygon for each of the 4 certs
+  let polyLayers = '';
+  CERTS.forEach((c, cIdx) => {
+    const rp = prepProgress(c);
+    let dataPts = [];
+    for(let i=0; i<n; i++){
+      const val = Math.max(0.1, Math.min(1.0, (rp.parts[i % rp.parts.length]?.v || 0.2)));
+      const angle = (i * 2 * Math.PI / n) - (Math.PI / 2);
+      dataPts.push((cx + r * val * Math.cos(angle)).toFixed(1) + ',' + (cy + r * val * Math.sin(angle)).toFixed(1));
+    }
+    polyLayers += '<polygon points="' + dataPts.join(' ') + '" fill="' + c.color + '" fill-opacity="0.2" stroke="' + c.color + '" stroke-width="2.5"/>';
+  });
+
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">'
+    + '<div><span class="ltag" style="background:var(--purple); color:#fff;">Quad-Track Telemetry</span><h2 style="font-size:20px; margin-top:4px;">📈 4-Track Multi-Cert Mastery Overlay Radar</h2></div>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">Simultaneous visual comparison of candidate mastery across all 4 certification tracks on a unified multi-axis radar chart.</p>'
+    + '<div style="display:flex; justify-content:center; margin-bottom:16px;">'
+    + '<svg viewBox="0 0 300 300" width="280" height="280" style="overflow:visible;">'
+    + gridPaths + axes + polyLayers
+    + '</svg>'
+    + '</div>'
+    + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; margin-top:14px;">'
+    + CERTS.map(c => '<div style="border-left:4px solid ' + c.color + '; background:var(--card); padding:10px 12px; border-radius:0 8px 8px 0; font-size:12px;">'
+        + '<b style="color:' + c.color + ';">' + c.code + ' · ' + c.name + '</b>'
+        + '<div style="color:var(--muted); margin-top:2px;">Prep Index: <b>' + prepProgress(c).score + '%</b></div>'
+        + '</div>').join('')
+    + '</div>'
+    + '</div>';
+}
+
+/* ================= 4. STANDALONE OFFLINE BUNDLE DOWNLOADER ================= */
+function downloadOfflineBundle(){
+  award("offline_sovereign");
+  
+  const packageMeta = {
+    app: "Claude Cert Quest Standalone Offline Bundle",
+    version: "v11",
+    timestamp: today(),
+    instructions: "Open index.html directly in any modern browser. All 400 questions, 44 lessons, flashcards, simulators, and offline caches run with 0 network dependencies.",
+    state: S
+  };
+  
+  const blob = new Blob([JSON.stringify(packageMeta, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "claude-cert-quest-offline-bundle.json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast("📦 Standalone offline bundle manifest exported!");
 }
 
 /* ================= LESSON WIDGETS ================= */

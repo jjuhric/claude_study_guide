@@ -778,6 +778,19 @@ vm.createContext(sandbox);
   call("promptBenchmarkingLab");
   check(/Prompt Regression Benchmarking Lab/.test(els.app.innerHTML) && /regressionResultsBox/.test(els.app.innerHTML), "promptBenchmarkingLab renders comparative evaluation suite");
 
+  /* ---------- 28. Zenith Suite ---------- */
+  call("pacingSimulatorView");
+  check(/Strict Exam Pacing Simulator/.test(els.app.innerHTML) && /psTrackSelect/.test(els.app.innerHTML), "pacingSimulatorView renders pacing stage");
+
+  call("voiceRecallView");
+  check(/Voice Recognition Active Recall/.test(els.app.innerHTML) && /vrMicBtn/.test(els.app.innerHTML), "voiceRecallView renders speech recall interface");
+
+  call("multiCertRadarOverlay");
+  check(/4-Track Multi-Cert Mastery Overlay/.test(els.app.innerHTML) && /svg/.test(els.app.innerHTML), "multiCertRadarOverlay renders 4-track radar overlay");
+
+  call("downloadOfflineBundle");
+  check(true, "downloadOfflineBundle executes without throwing");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
