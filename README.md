@@ -16,7 +16,7 @@ reachable from the dashboard.
 > lesson, and sandbox is original practice material — **not** real exam content.
 > Exam format, domain weightings, and passing scores are published only in the
 > official exam guides inside **Anthropic Partner Academy**. Verify there before
-> relying on any figure shown here. See [FINDINGS.md](FINDINGS.md) §0.
+> relying on any figure shown here — see [Accuracy policy](#-accuracy-policy).
 
 ---
 
@@ -101,14 +101,14 @@ js/11-boot.js            relocated init + content loader (loads last)
 data/manifest.json       per-cert counts, loaded at boot for the home screen
 data/<cert>.json         questions, flashcards, and lessons, one file per cert
 tools/build-manifest.js  regenerates the manifest from the content files
-tools/assign-ids.js      assigns stable ids to new questions and cards
+tools/check-lesson-lengths.js  prints per-lesson word counts
 test/smoke.js            dependency-free offline test suite
 test/links.js            checks recommended videos are still live
 sw.js                    service worker (offline PWA cache)
-FINDINGS.md              review notes, known gaps, content-integrity policy
+manifest.webmanifest     PWA install metadata
 ```
 
-**These are classic scripts, not ES modules.** The app uses ~474 inline event
+**These are classic scripts, not ES modules.** The app uses ~470 inline event
 handlers (`onclick="foo()"`) that resolve against **global scope**. Module scope
 would break every one of them. All files share one global scope, in the order
 `index.html` lists them — so **load order matters**, and `11-boot.js` must stay
@@ -154,7 +154,8 @@ node test/links.js
 - Unverified exam figures may appear only alongside an explicit hedge
 - No near-duplicate questions; every domain has at least 10
 - Per-option rationales stay aligned with their options through the shuffle
-- Lessons meet a word floor and carry ≥35 words of teaching per question
+- Lessons clear a word floor (400, or 250 for a foundation lesson), carry ≥35
+  words of teaching per question they cover, and have a video block and takeaways
 - Every modal opener puts a *visible* overlay on the page, with a way to close it
 - Font modes name the face they will really render in, not the one they are called
 
@@ -183,9 +184,19 @@ Questions live in `data/<cert-id>.json`:
   permuted with it, so the authored position does not matter
 - Write the correct option's `why` entry starting with **"Correct."** — the
   suite verifies it sits at the answer index
-- Run `node tools/assign-ids.js` to give new entries stable ids (progress is
-  keyed by id, so ids are never regenerated), then
-  `node tools/build-manifest.js`
+- Give every new entry an `id` by hand: `<cert><q|c>-<8 hex>`, e.g.
+  `ccaoq-380ef56e` for a question, `ccaoc-0d1d2a7c` for a card. Progress is
+  keyed by id, so **never change or reuse one** — editing a question in place
+  keeps its history, and a collision silently merges two questions' records.
+  The suite fails on a missing or duplicate id.
+- Then regenerate the manifest, which the home screen's counts come from:
+
+```bash
+node tools/build-manifest.js
+```
+
+Lesson depth is checked separately — `node tools/check-lesson-lengths.js` prints
+every lesson's word count, so a thin lesson is visible before the suite fails it.
 
 ### Adding a tool
 
@@ -193,19 +204,66 @@ Questions live in `data/<cert-id>.json`:
 2. Register it in the `TOOLS` array in `js/03-home.js`
 3. Run `node test/smoke.js` — it fails if a tool view exists but is unreachable
 
-### Model and exam accuracy
+### Adding a modal
 
-Two rules the suite enforces, both learned the hard way:
+Build the overlay and append it when you want it shown; the `.modal-overlay`
+class is visible by default. Give it an id and a control that calls
+`document.getElementById('<id>').remove()`, or it is a full-screen fixed layer
+with no way out. The suite checks both.
 
-- **Never name a retired model.** Every Claude 3.x model is retired and returns
-  404. `Claude 3.5 Opus` never existed at all.
-- **Never state an exam figure as fact.** Question counts, time limits, and pass
-  marks are corroborated only by third-party study sites, not by Anthropic —
-  they may appear only with an explicit hedge. Domain *weightings* have no
-  corroboration and are not stated at all.
+### Anything that runs at load time
 
-Keep all questions original. Pearson VUE exams are under NDA; reproducing real
-exam items is braindumping, which gets candidates decertified.
+Put it in `js/11-boot.js`. Each file hoists only its own declarations, so init
+code in an earlier file that calls a function defined in a later one throws at
+boot. The suite loads the files in declared order to catch exactly this.
+
+---
+
+## 🧾 Accuracy policy
+
+This app prepares people for a **real, paid** certification, so a
+confident-sounding invention costs someone real study time. An earlier version
+of this material stated precise exam facts — `60 questions · 120 min · pass
+720/1000`, and domain weightings of `27% · 20% · 20% · 18% · 15%` — that came
+from no source at all. Precise-but-invented weightings are worse than none: a
+learner allocates study time by them.
+
+Four rules, all enforced by `test/smoke.js`:
+
+1. **Never state an exam figure as fact.** Question counts, time limits, and
+   pass marks are corroborated only by third-party study sites, never by
+   Anthropic, so they may appear only next to an explicit hedge. Domain
+   weightings have no corroboration at all and are not stated anywhere.
+2. **Never name a retired or non-existent model.** Every Claude 3.x model is
+   retired and 404s. `Claude 3.5 Opus` never existed — that one was a
+   fabrication, not staleness.
+3. **Label this app's own constructs as its own.** The study domains are *this
+   app's* groupings; the 720 mock threshold is *this app's* practice benchmark,
+   not an official pass mark. Prep progress measures progress through this
+   material and is not a prediction about the exam.
+4. **Keep every question original.** Pearson VUE exams are under NDA;
+   reproducing real items is braindumping, and it gets candidates decertified.
+
+Only facts confirmed on Anthropic's public Pearson VUE and Skilljar pages are
+stated plainly: the four exam names, their codes, the prices, the target
+audiences, and the retake policy.
+
+## 🚧 Known gaps
+
+- **Domains are unvalidated.** The per-certification domain lists are this
+  project's own groupings, never reconciled against the official blueprints —
+  those live inside **Anthropic Partner Academy**, which needs Claude Partner
+  Network membership. Anyone with that access should pull the official guides
+  and reconcile; it is the highest-value work left.
+- **Single user, one browser.** Progress lives in `localStorage` under the key
+  `certquest`. There are no accounts and no sync, so clearing site data wipes
+  it — **Export Backup** is the only safety net. Multi-user support needs an
+  auth and storage tier (Supabase is the intended shape) that does not exist yet.
+- **Lesson depth is uneven.** The lessons were written when the bank was 99
+  questions; at 400, some are thin relative to what is tested against them.
+- **Lessons are still keyed by array index** (`lessonsRead`), the weakness that
+  was fixed for questions and cards. Low risk while lessons rarely change, but
+  the same fix applies.
 
 ---
 

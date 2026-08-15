@@ -11,7 +11,7 @@
  *   1. Saved state of the wrong shape crashing or silently going NaN.
  *   2. Unverified exam claims (domain weightings, question counts, pass marks)
  *      creeping back into content. Only facts confirmed on Anthropic's public
- *      pages may be stated as fact — see FINDINGS.md §0.
+ *      pages may be stated as fact — see the accuracy policy in README.md.
  *   3. A screen throwing at render for some certification.
  *   4. Content files going missing, malformed, empty, or thin in a domain.
  *   5. Per-option rationales drifting out of alignment with their options.
@@ -237,7 +237,7 @@ vm.createContext(sandbox);
   evalIn(`(function(){const c=CERTS.find(x=>x.id==="ccao"); c.questions=c.__q; c.cards=c.__c; delete c.__q; delete c.__c;})()`);
   check(evalIn(`CERTS.find(x=>x.id==="ccao").questions.length`) === data.ccao.questions.length, "content restored after guard test");
 
-  /* ---------- 6. no unverified exam claims (FINDINGS.md §0) ---------- */
+  /* ---------- 6. no unverified exam claims (README.md, accuracy policy) ---------- */
   const allText = JSON.stringify(CERTS) + JSON.stringify(data) + html;
   call("certView", "ccaf");
   const certHeader = els.app.innerHTML;
