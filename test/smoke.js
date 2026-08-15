@@ -643,6 +643,18 @@ vm.createContext(sandbox);
   call("labToolsModal");
   check(/model-decision-tree/.test(els.app.innerHTML) && /rag-visualizer/.test(els.app.innerHTML), "lab tools modal renders decision trees and visualizers");
 
+  /* ---------- 20. Upgraded Exam Cram Sheets ---------- */
+  call("cramSheetSelect");
+  check(/High-Yield Exam Cram Sheets/.test(els.app.innerHTML), "cram sheets selection hub renders all tracks");
+
+  for (const cid of ["ccao", "ccdv", "ccaf", "ccap"]) {
+    call("cramSheetView", cid);
+    check(/cram-grid/.test(els.app.innerHTML), `${cid.toUpperCase()} cram sheet renders grid`);
+    check((els.app.innerHTML.match(/class="cram-card"/g) || []).length === 8, `${cid.toUpperCase()} cram sheet has exactly 8 high-yield modules`);
+    check(/cramSearchInput/.test(els.app.innerHTML), `${cid.toUpperCase()} cram sheet renders live search filter`);
+    check(/recallToggleBtn/.test(els.app.innerHTML), `${cid.toUpperCase()} cram sheet renders Active Recall mode button`);
+  }
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
