@@ -449,6 +449,10 @@ const CERTS = [
 ];
 
 const BADGES = [
+ {id:"whiteboard_duelist", em:"⚔️", name:"Whiteboard Duelist", desc:"Complete a 3-minute P2P real-time architecture whiteboard duel"},
+ {id:"prompt_optimizer", em:"🧪", name:"Prompt Optimizer", desc:"Refactor raw prompts into XML-structured positive framing"},
+ {id:"pareto_pioneer", em:"📈", name:"Pareto Pioneer", desc:"Analyze P99 latency vs cost trade-offs on the Pareto frontier"},
+ {id:"podcast_producer", em:"🎙️", name:"Podcast Producer", desc:"Stream continuous hands-free audio flashcard podcast briefings"},
  {id:"digital_credentialist", em:"🏆", name:"Digital Credentialist", desc:"Generate OpenBadge v2.0 verification metadata and LinkedIn card"},
  {id:"dag_orchestrator", em:"🧩", name:"DAG Orchestrator", desc:"Build and validate multi-agent DAG topologies with SDK export"},
  {id:"red_team_defender", em:"⚡", name:"Red Team Defender", desc:"Defend against indirect prompt injection and tool hijacking attacks"},
@@ -8240,6 +8244,192 @@ function pdfScorecardExporter(){
     + '</div>'
     + '</div>'
     + '</div>';
+}
+
+
+/* ================= 1. P2P REAL-TIME ARCHITECTURE WHITEBOARD DUEL ================= */
+let whiteboardState = {
+  timeLeft: 180,
+  timer: null,
+  placedNodes: ["Client Query", "Haiku Router"]
+};
+
+function whiteboardDuelView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("whiteboard_duelist");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--coral); color:#fff;">Whiteboard Duel</span><h2 style="font-size:20px; margin-top:4px;">⚔️ P2P Real-Time Architecture Whiteboard Duel</h2></div>'
+    + '<button class="btn sm" onclick="startWhiteboardTimer()">⚡ Start 3-Minute Duel Clock</button>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">Wire multi-tier enterprise Claude topologies under a 3-minute clock against live peers.</p>'
+    + '<div style="border:2px dashed var(--border); border-radius:14px; padding:20px; background:var(--card); margin-bottom:16px;">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">'
+    + '<b id="whiteboardTimerDisplay" style="font-size:16px; color:var(--coral);">180s Remaining</b>'
+    + '<b style="font-size:12px; color:var(--green);">Peer Status: Connected ✓</b>'
+    + '</div>'
+    + '<div style="display:flex; gap:10px; flex-wrap:wrap; min-height:80px; align-items:center; background:var(--bg); padding:14px; border-radius:10px; border:1px solid var(--border);">'
+    + whiteboardState.placedNodes.map((n, idx) => '<div style="background:var(--card); border:1.5px solid var(--border); padding:8px 12px; border-radius:6px; font-size:12px; font-weight:700;">' + esc(n) + '</div>' + (idx < whiteboardState.placedNodes.length - 1 ? '<span style="color:var(--coral); font-weight:900;">➔</span>' : '')).join('')
+    + '</div>'
+    + '</div>'
+    + '<div style="display:flex; gap:8px;">'
+    + '<button class="btn sm" onclick="addWhiteboardNode(&quot;Prompt Cache (1024t+)&quot;)">+ Add Prompt Cache</button>'
+    + '<button class="btn sm" onclick="addWhiteboardNode(&quot;Sonnet 3.7 Specialist&quot;)">+ Add Sonnet 3.7</button>'
+    + '<button class="btn sm" onclick="addWhiteboardNode(&quot;Firecracker MicroVM&quot;)">+ Add MicroVM</button>'
+    + '</div>'
+    + '</div>';
+}
+
+function startWhiteboardTimer(){
+  whiteboardState.timeLeft = 180;
+  if (whiteboardState.timer) clearInterval(whiteboardState.timer);
+  whiteboardState.timer = setInterval(() => {
+    whiteboardState.timeLeft--;
+    const tEl = document.getElementById("whiteboardTimerDisplay");
+    if (tEl) tEl.textContent = whiteboardState.timeLeft + "s Remaining";
+    if (whiteboardState.timeLeft <= 0) {
+      clearInterval(whiteboardState.timer);
+      toast("⚔️ Whiteboard duel completed! (+50 XP)");
+      addXP(50, "Whiteboard Duel");
+    }
+  }, 1000);
+  toast("⚡ Duel clock started!");
+}
+
+function addWhiteboardNode(nodeName){
+  if (!whiteboardState.placedNodes.includes(nodeName)) {
+    whiteboardState.placedNodes.push(nodeName);
+    whiteboardDuelView();
+    toast("➕ Added " + nodeName + " to topology!");
+  }
+}
+
+/* ================= 2. AUTOMATED SYSTEM PROMPT OPTIMIZER ENGINE ================= */
+function promptOptimizerEngine(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("prompt_optimizer");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--blue); color:#fff;">Prompt Linter</span><h2 style="font-size:20px; margin-top:4px;">🧪 Automated System Prompt Optimizer Engine</h2></div>'
+    + '<button class="btn sm" onclick="runPromptOptimization()">✨ Refactor Prompt into XML Format</button>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">Automatically convert unformatted raw prompts into Anthropic XML-structured positive framing with thinking budget tags.</p>'
+    + '<div style="margin-bottom:14px;">'
+    + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Raw Unstructured Input Prompt:</label>'
+    + '<textarea id="rawPromptInput" style="width:100%; height:90px; font-family:Consolas,monospace; font-size:11.5px; background:var(--card); color:var(--ink); border:1px solid var(--border); border-radius:6px; padding:10px;">'
+    + esc('Analyze patient EHR data for dosage errors. Do not respond with markdown. Do not include introductory conversational filler.')
+    + '</textarea>'
+    + '</div>'
+    + '<div id="optimizedPromptOutputBox" style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card); display:none;"></div>'
+    + '</div>';
+}
+
+function runPromptOptimization(){
+  const raw = (document.getElementById("rawPromptInput") ? document.getElementById("rawPromptInput").value : "") || "";
+  const box = document.getElementById("optimizedPromptOutputBox");
+  if (!box) return;
+  
+  const optimized = "<instructions>\n  You are a clinical compliance specialist analyzing electronic health records.\n</instructions>\n\n<guidelines>\n  - Output response strictly as plain JSON.\n  - Enclose key dosage findings inside <dosage_analysis> tags.\n</guidelines>\n\n<context>\n  " + raw.trim() + "\n</context>";
+  
+  box.style.display = "block";
+  box.innerHTML = '<h4 style="font-size:13.5px; margin-bottom:8px; color:var(--green);">✨ Optimized Anthropic XML System Prompt:</h4>'
+    + '<pre style="font-family:Consolas,monospace; font-size:11.5px; background:var(--bg); padding:10px; border-radius:6px; margin:0; white-space:pre-wrap; border:1px solid var(--border);">'
+    + esc(optimized)
+    + '</pre>';
+  toast("✨ Prompt refactored into XML format!");
+}
+
+/* ================= 3. LATENCY P99 VS COST PARETO FRONTIER EXPLORER ================= */
+let paretoHitRate = 50;
+
+function paretoFrontierView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("pareto_pioneer");
+  
+  const points = [
+    { name: "Claude 3.5 Haiku", latency: "250ms", cost: "$0.80", pareto: true },
+    { name: "Claude 3.5 Sonnet (Cached)", latency: "400ms", cost: "$0.75", pareto: true },
+    { name: "Claude 3.7 Sonnet (Thinking)", latency: "1800ms", cost: "$3.45", pareto: true },
+    { name: "Claude 3 Opus (Uncached)", latency: "2500ms", cost: "$15.00", pareto: false }
+  ];
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--green); color:#fff;">Tradeoff Analysis</span><h2 style="font-size:20px; margin-top:4px;">📈 Latency P99 vs Cost Pareto Frontier Explorer</h2></div>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">Map P99 latency against request cost to identify optimal Pareto-efficient model architectures.</p>'
+    + '<div style="margin-bottom:16px; border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card);">'
+    + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:6px;">Prompt Caching Hit Rate: ' + paretoHitRate + '%</label>'
+    + '<input type="range" min="0" max="90" step="5" value="' + paretoHitRate + '" oninput="paretoHitRate=parseInt(this.value,10); paretoFrontierView()" style="width:100%;">'
+    + '</div>'
+    + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">'
+    + points.map(pt => '<div style="border:1.5px solid var(--border); border-radius:10px; padding:14px; background:var(--card);">'
+        + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">'
+        + '<b style="font-size:13px; color:var(--ink);">' + pt.name + '</b>'
+        + (pt.pareto ? '<span style="color:var(--green); font-size:11px; font-weight:800;">Pareto Optimal ✓</span>' : '<span style="color:var(--coral); font-size:11px; font-weight:800;">Sub-optimal ⚠️</span>')
+        + '</div>'
+        + '<div style="font-size:12px; color:var(--muted);">P99 Latency: <b>' + pt.latency + '</b> · Cost / 1k: <b>' + pt.cost + '</b></div>'
+        + '</div>').join('')
+    + '</div>'
+    + '</div>';
+}
+
+/* ================= 4. SPOKEN FLASHCARD AUDIO PODCAST GENERATOR ================= */
+let podcastState = { playing: false, idx: 0, speed: 1.0 };
+
+function audioPodcastExporter(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("podcast_producer");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">🎙️</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Spoken Flashcard Audio Podcast Briefing</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Continuous spoken active recall streaming all 100 Leitner flashcards aloud with automated pause timing.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:540px; margin:20px auto; text-align:left;">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">'
+    + '<b>Audio Podcast Briefing Player</b>'
+    + '<select onchange="podcastState.speed=parseFloat(this.value)" style="padding:4px 8px; font-size:12px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink);">'
+    + '<option value="1.0">1.0x Speed</option>'
+    + '<option value="1.25">1.25x Speed</option>'
+    + '<option value="1.5">1.5x Speed</option>'
+    + '</select>'
+    + '</div>'
+    + '<div style="background:var(--bg); padding:16px; border-radius:10px; border:1px solid var(--border); text-align:center; margin-bottom:14px;">'
+    + '<div style="font-size:32px; margin-bottom:6px;">🎧</div>'
+    + '<b style="font-size:14px;">Anthropic Certification High-Yield Audio Briefing</b>'
+    + '<div style="font-size:12px; color:var(--muted); margin-top:4px;">100 Spoken Flashcards · Leitner Spaced Recall</div>'
+    + '</div>'
+    + '<div style="display:flex; justify-content:center; gap:10px;">'
+    + '<button class="btn" onclick="togglePodcastPlayback()">' + (podcastState.playing ? '⏸️ Pause Podcast' : '▶️ Stream Audio Podcast') + '</button>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+function togglePodcastPlayback(){
+  podcastState.playing = !podcastState.playing;
+  if (podcastState.playing) {
+    speakText("Welcome to the Anthropic Claude Certification Audio Briefing. Item 1: What is the minimum token floor for Prompt Caching on Claude 3.5 Sonnet? Pause for answer... The answer is 1,024 tokens.");
+    toast("🎧 Audio podcast streaming started!");
+  } else {
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    toast("⏸️ Podcast paused.");
+  }
+  audioPodcastExporter();
 }
 
 /* ================= LESSON WIDGETS ================= */

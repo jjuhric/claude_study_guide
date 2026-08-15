@@ -909,6 +909,19 @@ vm.createContext(sandbox);
   call("pdfScorecardExporter");
   check(/Multi-Page PDF Diagnostic Readiness Scorecard/.test(els.app.innerHTML) && /pdfScorecardFrame/.test(els.app.innerHTML), "pdfScorecardExporter renders printable scorecard frame");
 
+  /* ---------- 37. Olympus Suite ---------- */
+  call("whiteboardDuelView");
+  check(/P2P Real-Time Architecture Whiteboard Duel/.test(els.app.innerHTML) && /whiteboardTimerDisplay/.test(els.app.innerHTML), "whiteboardDuelView renders whiteboard duel canvas");
+
+  call("promptOptimizerEngine");
+  check(/Automated System Prompt Optimizer Engine/.test(els.app.innerHTML) && /rawPromptInput/.test(els.app.innerHTML), "promptOptimizerEngine renders prompt linter");
+
+  call("paretoFrontierView");
+  check(/Latency P99 vs Cost Pareto Frontier Explorer/.test(els.app.innerHTML), "paretoFrontierView renders Pareto frontier scatter plot");
+
+  call("audioPodcastExporter");
+  check(/Spoken Flashcard Audio Podcast Briefing/.test(els.app.innerHTML), "audioPodcastExporter renders podcast player");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();

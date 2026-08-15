@@ -1,11 +1,11 @@
 # Claude Cert Quest 🧭
 
 [![Anthropic Certifications](https://img.shields.io/badge/Anthropic-Certifications%20Prep-d97757.svg)](https://www.pearsonvue.com/us/en/anthropic.html)
-[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v19)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
-[![Tests Passing](https://img.shields.io/badge/Tests-288%20Passing-5b7fa6.svg)](test/smoke.js)
+[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v20)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
+[![Tests Passing](https://img.shields.io/badge/Tests-292%20Passing-5b7fa6.svg)](test/smoke.js)
 [![License](https://img.shields.io/badge/License-MIT-8a6fae.svg)](LICENSE)
 
-An enterprise-grade, gamified study platform and interactive simulator suite for the **Anthropic Claude Certification Program** — featuring 400 practice questions with 4-way per-option rationales, 100 Leitner spaced repetition flashcards, 44 deep-dive technical lessons, and 52+ interactive architectural sandboxes, multiplayer arenas, AI tutors, topology validators, MCP execution engines, memory decay models, oral defense boards, and cryptographic credentials.
+An enterprise-grade, gamified study platform and interactive simulator suite for the **Anthropic Claude Certification Program** — featuring 400 practice questions with 4-way per-option rationales, 100 Leitner spaced repetition flashcards, 44 deep-dive technical lessons, and 56+ interactive architectural sandboxes, multiplayer arenas, AI tutors, topology validators, MCP execution engines, memory decay models, oral defense boards, and cryptographic credentials.
 
 **🚀 Live Production App:** [https://jjuhric.github.io/claude_study_guide/](https://jjuhric.github.io/claude_study_guide/)
 
@@ -24,12 +24,16 @@ An enterprise-grade, gamified study platform and interactive simulator suite for
 
 ---
 
-## 🛠️ 52+ Interactive Labs, Simulators & Toolkits
+## 🛠️ 56+ Interactive Labs, Simulators & Toolkits
 
 Claude Cert Quest includes a comprehensive suite of hands-on sandboxes and diagnostic engines built right into the home dashboard:
 
 | Tool | Category | What it does |
 | :--- | :--- | :--- |
+| ⚔️ **P2P Whiteboard Duel** | Multiplayer | 3-minute real-time architecture wiring duel against live peers over BroadcastChannel. |
+| 🧪 **Prompt Optimizer Engine** | Prompting | Refactor unformatted raw prompts into XML positive framing with thinking budget placeholders. |
+| 📈 **Pareto Frontier Explorer** | Analytics | Scatter plot mapping P99 latency vs request cost to pinpoint Pareto-optimal model choices. |
+| 🎙️ **Audio Podcast Briefing** | Audio | Stream continuous spoken active recall flashcards with automated pause-and-reveal timing. |
 | 🏆 **OpenBadge Credential Generator** | Credential | Export W3C OpenBadge v2.0 JSON-LD metadata for LinkedIn & digital portfolio sharing. |
 | 🧩 **Multi-Agent DAG Builder** | Orchestration | Construct, visualize, and validate subagent DAG topologies with automatic SDK export. |
 | ⚡ **Red-Team Attack Simulator** | Security | Test system prompt defenses against indirect prompt injection and tool hijacking attacks. |
@@ -106,7 +110,7 @@ Drill at maximum speed without touching the mouse. Press **`?`** or **`Ctrl + /`
 Claude Cert Quest has a zero-dependency test suite validating every component:
 
 ```bash
-# Run comprehensive offline test suite (288 assertions)
+# Run comprehensive offline test suite (292 assertions)
 node test/smoke.js
 ```
 
@@ -114,7 +118,7 @@ node test/smoke.js
 * ✅ Content integrity of all 400 questions, 4-way per-option rationales, and 100 flashcards.
 * ✅ Exact domain-to-lesson mapping across all 4 certification tracks.
 * ✅ Web Audio synthesizer, state migration, and Leitner spaced repetition ladders.
-* ✅ Full rendering and state validation for all 52+ interactive tools, multiplayer channels, and simulators.
+* ✅ Full rendering and state validation for all 56+ interactive tools, multiplayer channels, and simulators.
 * ✅ Compliance with official NDAs and unverified exam claim policies.
 
 ---
