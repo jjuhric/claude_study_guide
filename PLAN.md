@@ -112,17 +112,25 @@ existing boundaries rather than inventing new ones.
 - [x] **0.2** Tagged `pre-restructure` at the last known-good commit.
 
 ### Phase 1 — duplicate-function bug (do first: smallest, highest value)
-- [ ] **1.1** Merge `getFreshState`: keep the live (later) body, restore the 21
+- [x] **1.1** Merge `getFreshState`: keep the live (later) body, restore the 21
       missing keys from the dead one, delete the dead copy.
-- [ ] **1.2** Add the same 21 keys to `S_DEFAULTS` so `migrate()` repairs
+- [x] **1.2** Add the same 21 keys to `S_DEFAULTS` so `migrate()` repairs
       existing saves instead of leaving them `undefined`.
-- [ ] **1.3** Delete the four superseded copies (`cramSheetSelect`,
+- [x] **1.3** Delete the four superseded copies (`cramSheetSelect`,
       `startBossBattle`, `renderBossQuestion`, `pickBossAnswer`), keeping the
       later definition in each case.
-- [ ] **1.4** Test: assert no function is defined twice in the whole codebase.
-- [ ] **1.5** Test: assert every key read as `S.<key>` exists in `S_DEFAULTS`
+- [x] **1.4** Test: assert no function is defined twice in the whole codebase.
+- [x] **1.5** Test: assert every key read as `S.<key>` exists in `S_DEFAULTS`
       (this is the check that would have caught the bug).
-- [ ] **1.6** Verify + commit.
+- [x] **1.6** Verify + commit. Baseline 326 -> **332 checks**.
+- [x] **1.7** *(added)* The 1.5 check immediately found a sixth uninitialised
+      key, `flashSchedule`: the Forgetting Curve Simulator read it (never
+      written anywhere) with field `.box`, while Leitner state actually lives in
+      `S.cardBox` with field `.b`. The chart showed all zeros for every user.
+      Fixed to read the real schedule.
+- [x] **1.8** *(added)* `migrate()` coerced `studyPlan: null` to `{}`, so the
+      `if (!S.studyPlan) return;` guard never fired and every new user had a
+      truthy empty study plan. `migrate()` is now null-aware.
 
 ### Phase 2 — accuracy pass (before the split: one file, not twelve)
 - [ ] **2.1** Re-verify the current model lineup against the `claude-api` skill

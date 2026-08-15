@@ -568,7 +568,7 @@ function getFreshState(){
     domStats: {},
     lessonsRead: {},
     cardBox: {},
-    theme: "auto", blitzHighScore: 0, customTheme: "terracotta", cohortCode: "", examDate: "", voiceNotes: {}, notifsEnabled: false, dailyBossHistory: {}, arcadeHighScore: 0, profile: { handle: "Curious Scholar", avatar: "🧭", title: "Claude Apprentice", uid: "cq-" + Math.random().toString(36).slice(2,8) }, lang: "en", gistToken: "", gistId: "", dailyTarget: { date: "", answered: 0, lessons: 0, cards: 0, claimed: false },
+    theme: "auto",
     sound: false,
     customDecks: [],
     notes: {},
@@ -577,57 +577,32 @@ function getFreshState(){
     studyPlan: null,
     speedRunScores: {},
     fontMode: "default",
-    contrastMode: "default"
-  };
-}
-const S_DEFAULTS = {
-  studyPlan: null,
-  speedRunScores: {},
-  fontMode: "default",
-  contrastMode: "default",
-  customCards: {},
-  v: 1,
-  xp: 0,
-  badges: [],
-  seenCerts: [],
-  answered: {},
-  cardsSeen: 0,
-  days: [],
-  mocks: {},
-  domStats: {},
-  lessonsRead: {},
-  cardBox: {},
-  theme: "auto",
-  sound: false,
-  customDecks: [],
-  notes: {},
-  bookmarks: []
-};
-function getFreshState(){
-  return {
-    studyPlan: null,
-    speedRunScores: {},
-    fontMode: "default",
     contrastMode: "default",
-    customCards: {},
-    v: 1,
-    xp: 0,
-    badges: [],
-    seenCerts: [],
-    answered: {},
-    cardsSeen: 0,
-    days: [],
-    mocks: {},
-    domStats: {},
-    lessonsRead: {},
-    cardBox: {},
-    theme: "auto",
-    sound: false,
-    customDecks: [],
-    notes: {},
-    bookmarks: []
+    blitzHighScore: 0,
+    arcadeHighScore: 0,
+    customTheme: "terracotta",
+    cohortCode: "",
+    examDate: "",
+    voiceNotes: {},
+    notifsEnabled: false,
+    dailyBossHistory: {},
+    lang: "en",
+    gistToken: "",
+    gistId: "",
+    dailyTarget: { date: "", answered: 0, lessons: 0, cards: 0, claimed: false },
+    profile: {
+      handle: "Curious Scholar",
+      avatar: "\u{1F9ED}",
+      title: "Claude Apprentice",
+      uid: "cq-" + Math.random().toString(36).slice(2,8)
+    }
   };
 }
+/* Derived rather than duplicated. These two lists drifted apart once before: a
+   second getFreshState was added without 21 of the keys and S_DEFAULTS matched
+   the shorter one, so profile, dailyTarget, voiceNotes and others were never
+   initialised - S.profile alone had 18 unguarded reads of undefined. */
+const S_DEFAULTS = getFreshState();
 /* Repair any saved field with a missing or wrong-shaped value, so older or partial
    saves can't throw (badges/answered) or silently go NaN (xp/cardsSeen). */
 function migrate(raw){
@@ -635,6 +610,14 @@ function migrate(raw){
   for(const k of Object.keys(S_DEFAULTS)){
     const def = S_DEFAULTS[k];
     let ok;
+    if(def === null){
+      /* A null default means "absent is a real value" - studyPlan is null until
+         one is created. Coercing it to {} made the !S.studyPlan guard pass and
+         gave every new user a truthy empty plan. */
+      ok = s[k] === null || (!!s[k] && typeof s[k] === "object" && !Array.isArray(s[k]));
+      if(!ok) s[k] = null;
+      continue;
+    }
     if(Array.isArray(def)) ok = Array.isArray(s[k]);
     else if(typeof def === "object") ok = !!s[k] && typeof s[k] === "object" && !Array.isArray(s[k]);
     else if(typeof def === "number") ok = typeof s[k] === "number" && isFinite(s[k]);
@@ -2327,24 +2310,6 @@ function fullHandbookView(id){
     
   initLessonWidgets();
   if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
-}
-
-function cramSheetSelect(){
-  renderHeader();
-  let h = '<button class="back" onclick="home()">← Back to Home</button>'
-    + '<div class="panel"><h2 style="font-size:19px; margin-bottom:8px;">📋 Exam Cram Sheets</h2>'
-    + '<p class="subtext">Select a certification track for a high-density, printable 1-page reference sheet with all formulas, thresholds, and distractor traps.</p>'
-    + '<div class="cgrid" style="margin-top:16px;">';
-  for(const c of CERTS){
-    h += '<div class="cert" onclick="cramSheetView(\''+c.id+'\')">'
-      + '<div class="ribbon" style="background:'+c.color+'"></div>'
-      + '<div class="em">'+c.em+'</div><h3>'+c.name+'</h3>'
-      + '<div class="code">'+c.code+' · High-Yield Cram Sheet</div>'
-      + '<div class="rowbtns" style="margin-top:12px;"><button class="btn sm">View Cram Sheet →</button></div>'
-      + '</div>';
-  }
-  h += '</div></div>';
-  $("app").innerHTML = h;
 }
 
 const CRAM_DATA = {
@@ -4072,62 +4037,6 @@ function bossBattleSelect(){
         + '</div>').join('')
     + '</div>'
     + '</div>';
-}
-
-function startBossBattle(certId){
-  const c = CERTS.find(x => x.id === certId);
-  if (!c) return;
-  if (!c._loaded) {
-    loadCert(c).then(() => startBossBattle(certId));
-    return;
-  }
-  
-  const pool = sampleByDomain(c, 25);
-  bossState = { cert: c, questions: pool, idx: 0, answers: new Array(25).fill(null), startTime: Date.now(), timer: null, elapsedSecs: 0 };
-  clearInterval(bossState.timer);
-  bossState.timer = setInterval(() => {
-    bossState.elapsedSecs++;
-    const tEl = document.getElementById("bossTimerDisplay");
-    if (tEl) tEl.textContent = fmtT(bossState.elapsedSecs);
-  }, 1000);
-  
-  renderBossQuestion();
-}
-
-function renderBossQuestion(){
-  renderHeader();
-  const q = bossState.questions[bossState.idx];
-  const c = bossState.cert;
-  const ansCount = bossState.answers.filter(a => a !== null).length;
-  
-  $("app").innerHTML = '<button class="back" onclick="abandonBoss()">← Abandon Boss Battle</button>'
-    + '<div class="panel">'
-    + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">'
-    + '<span style="font-size:13px; font-weight:800; color:var(--purple);">👑 Boss Battle · '+c.code+'</span>'
-    + '<span id="bossTimerDisplay" style="font-size:14px; font-weight:800; color:var(--coral);">' + fmtT(bossState.elapsedSecs) + '</span>'
-    + '<span>' + ansCount + ' / 25 answered</span>'
-    + '</div>'
-    + '<div class="domtag">' + esc(c.domains[q.d]) + '</div>'
-    + '<div class="qtext" style="font-size:15px;">' + esc(q.q) + '</div>'
-    + q.opts.map((o, j) => {
-        const sel = bossState.answers[bossState.idx] === j;
-        return '<button class="opt'+(sel?' correct':'')+'" onclick="pickBossAnswer('+j+')"><b class="okey">'+(j+1)+'</b>' + esc(o) + '</button>';
-      }).join('')
-    + '<div class="rowbtns" style="margin-top:14px;">'
-    + (bossState.idx > 0 ? '<button class="btn ghost sm" onclick="bossState.idx--; renderBossQuestion()">← Prev</button>' : '')
-    + (bossState.idx < 24 ? '<button class="btn sm" onclick="bossState.idx++; renderBossQuestion()">Next →</button>' : '<button class="btn sm" style="background:var(--green); margin-left:auto;" onclick="finishBossBattle()">Submit Boss Exam 🏁</button>')
-    + '</div>'
-    + '</div>';
-}
-
-function pickBossAnswer(j){
-  bossState.answers[bossState.idx] = j;
-  if (bossState.idx < 24) {
-    bossState.idx++;
-    renderBossQuestion();
-  } else {
-    renderBossQuestion();
-  }
 }
 
 function abandonBoss(){
@@ -7713,10 +7622,15 @@ function forgettingCurveView(){
   
   award("memory_master");
   
+  /* Leitner state lives in S.cardBox, keyed cert -> cardId -> {b, d}. This read
+     a flashSchedule key (never written) for item.box (wrong field), so the chart
+     showed all zeros for every user. */
   const boxes = [0, 0, 0, 0, 0];
-  Object.values(S.flashSchedule || {}).forEach(item => {
-    const b = Math.min(5, Math.max(1, (item && item.box) || 1));
-    boxes[b - 1]++;
+  Object.values(S.cardBox || {}).forEach(perCert => {
+    Object.values(perCert || {}).forEach(item => {
+      const b = Math.min(5, Math.max(1, (item && item.b) || 1));
+      boxes[b - 1]++;
+    });
   });
   
   const retentionRates = [38, 58, 76, 89, 97];

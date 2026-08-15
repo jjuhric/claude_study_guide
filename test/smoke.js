@@ -59,7 +59,8 @@ for (const id of IDS) {
 }
 
 /* ---------- 3. migrate() repairs hostile saved state ---------- */
-const mStart = html.indexOf("const S_DEFAULTS");
+// S_DEFAULTS is derived from getFreshState(), so the slice must start there.
+const mStart = html.indexOf("function getFreshState()");
 const mEnd = html.indexOf("let S = migrate(store.get());");
 if (mStart < 0 || mEnd < 0) check(false, "migrate() source located");
 else {
@@ -1079,6 +1080,28 @@ vm.createContext(sandbox);
   const unreachable = toolShaped.filter(f => !registered.has(f) && !linkedFromHome.has(f) && !INTERNAL.has(f));
   check(unreachable.length === 0,
     `every tool view is reachable from the dashboard (${unreachable.slice(0, 5).join(", ") || toolShaped.length + " checked"})`);
+
+  /* ---------- no duplicate definitions, no uninitialised state ----------
+     A second getFreshState was once added without 21 of the keys, and
+     S_DEFAULTS matched the shorter copy, so profile/dailyTarget/voiceNotes were
+     never initialised. These two checks make both halves of that impossible. */
+  const defCounts = {};
+  for (const m of html.matchAll(/^function ([A-Za-z_]\w*)\(/gm)) defCounts[m[1]] = (defCounts[m[1]] || 0) + 1;
+  const dupDefs = Object.entries(defCounts).filter(([, n]) => n > 1).map(([n, c]) => `${n}×${c}`);
+  check(dupDefs.length === 0, `no function is defined twice (${dupDefs.join(", ") || Object.keys(defCounts).length + " unique"})`);
+
+  // Every S.<key> the app reads must be initialised, or it is undefined at runtime.
+  const stateKeys = new Set(Object.keys(evalIn("S_DEFAULTS")));
+  const readKeys = new Set([...html.matchAll(/\bS\.([A-Za-z_]\w*)/g)].map(m => m[1]));
+  const METHODS = new Set(["v"]); // nothing method-like on S today
+  const uninitialised = [...readKeys].filter(k => !stateKeys.has(k) && !METHODS.has(k));
+  check(uninitialised.length === 0, `every S.<key> read is initialised (${uninitialised.slice(0, 6).join(", ") || stateKeys.size + " keys"})`);
+
+  // A null default means "absent is a real value" and must survive migrate().
+  check(evalIn(`migrate({}).studyPlan === null`), "migrate keeps a null default null, not {}");
+  check(evalIn(`migrate({studyPlan:"junk"}).studyPlan === null`), "migrate repairs a wrong-typed null-default field");
+  check(evalIn(`!!migrate({}).profile && typeof migrate({}).profile.handle === "string"`), "fresh state initialises the user profile");
+  check(evalIn(`typeof migrate({}).dailyTarget === "object" && migrate({}).dailyTarget !== null`), "fresh state initialises dailyTarget");
 
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
