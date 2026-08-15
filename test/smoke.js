@@ -756,6 +756,28 @@ vm.createContext(sandbox);
   call("recordDailyAction", "answer");
   check(true, "recordDailyAction updates daily study target without throwing");
 
+  /* ---------- 27. Apex Suite & War Room Fix Verification ---------- */
+  call("warRoomView");
+  check(/Awaiting Selections/.test(els.app.innerHTML) && !/Approved/.test(els.app.innerHTML), "warRoomView initializes cleanly awaiting user selections without pre-approval");
+
+  call("setWarRoomPick", "model", 0);
+  call("setWarRoomPick", "context", 0);
+  call("setWarRoomPick", "security", 0);
+  call("setWarRoomPick", "resilience", 0);
+  check(/Approved/.test(els.app.innerHTML), "warRoomView evaluates scorecard upon completing selections");
+
+  call("speedRunLeaderboardView");
+  check(/Speed Run Personal Records/.test(els.app.innerHTML), "speedRunLeaderboardView renders pace telemetry");
+
+  call("forecastMatrixView");
+  check(/14-Day Flashcard Maturity Forecast/.test(els.app.innerHTML), "forecastMatrixView renders maturity schedule");
+
+  call("socialBadgeView");
+  check(/Shareable Verification Badge Card/.test(els.app.innerHTML), "socialBadgeView renders verification badge card");
+
+  call("promptBenchmarkingLab");
+  check(/Prompt Regression Benchmarking Lab/.test(els.app.innerHTML) && /regressionResultsBox/.test(els.app.innerHTML), "promptBenchmarkingLab renders comparative evaluation suite");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
