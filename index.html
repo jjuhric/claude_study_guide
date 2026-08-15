@@ -449,6 +449,10 @@ const CERTS = [
 ];
 
 const BADGES = [
+ {id:"mock_interview", em:"🎙️", name:"Board Certified", desc:"Clear the Anthropic Oral Defense Review Board"},
+ {id:"roi_architect", em:"💰", name:"FinOps Master", desc:"Calculate production cost ROI in the Model Calculator"},
+ {id:"context_master", em:"🧱", name:"Token Tactician", desc:"Simulate 80% semantic context compaction"},
+ {id:"flash_match", em:"⚡", name:"Lightning Recall", desc:"Complete Flash Recall Speed Match in under 45 seconds"},
  {id:"war_room", em:"🏛️", name:"War Room Master", desc:"Successfully clear an enterprise architecture challenge"},
  {id:"prompt_master", em:"🧪", name:"Golden Prompter", desc:"Achieve a 95%+ score in Golden Prompt Studio"},
  {id:"mcp_engineer", em:"🔌", name:"Protocol Pioneer", desc:"Simulate full MCP tool-use lifecycle in the workbench"},
@@ -4008,6 +4012,520 @@ function finishBossBattle(){
     + '<button class="btn ghost" onclick="examPrescriptionView()">🎯 View Prescription</button>'
     + '<button class="btn ghost" onclick="home()">Back to Home</button>'
     + '</div>'
+    + '</div>';
+}
+
+/* ================= MASTERCLASS UPGRADE SYSTEMS & BUG FIXES ================= */
+
+/* ================= FIX 1: BOSS BATTLE REPAIRED ================= */
+function startBossBattle(certId){
+  const c = CERTS.find(x => x.id === certId);
+  if (!c) return;
+  if (!c._loaded) {
+    loadCert(c).then(() => startBossBattle(certId)).catch(e => {
+      alert("Could not load certification questions: " + (e && e.message || e));
+    });
+    return;
+  }
+  
+  if (!c.questions || !c.questions.length) {
+    alert("No questions available for this certification yet.");
+    return;
+  }
+
+  // sampleByDomain returns an array of numeric indices. Map them to actual question objects.
+  const idxs = sampleByDomain(c, 25);
+  const pool = idxs.map(i => c.questions[i]);
+
+  bossState = {
+    cert: c,
+    questions: pool,
+    idx: 0,
+    answers: new Array(pool.length).fill(null),
+    startTime: Date.now(),
+    timer: null,
+    elapsedSecs: 0
+  };
+
+  clearInterval(bossState.timer);
+  bossState.timer = setInterval(() => {
+    bossState.elapsedSecs++;
+    const tEl = document.getElementById("bossTimerDisplay");
+    if (tEl) tEl.textContent = fmtT(bossState.elapsedSecs);
+  }, 1000);
+  
+  renderBossQuestion();
+}
+
+function renderBossQuestion(){
+  renderHeader();
+  const q = bossState.questions[bossState.idx];
+  const c = bossState.cert;
+  if (!q || !c) { home(); return; }
+  
+  const ansCount = bossState.answers.filter(a => a !== null).length;
+  
+  $("app").innerHTML = '<button class="back" onclick="abandonBoss()">← Abandon Boss Battle</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">'
+    + '<span style="font-size:13px; font-weight:800; color:var(--purple);">👑 Boss Battle · ' + c.code + ' (Question ' + (bossState.idx + 1) + ' of ' + bossState.questions.length + ')</span>'
+    + '<span id="bossTimerDisplay" style="font-size:14px; font-weight:800; color:var(--coral);">' + fmtT(bossState.elapsedSecs) + '</span>'
+    + '<span style="font-size:12px; color:var(--muted);">' + ansCount + ' / ' + bossState.questions.length + ' answered</span>'
+    + '</div>'
+    + '<div class="domtag">' + esc((c.domains && c.domains[q.d]) || 'General Domain') + '</div>'
+    + '<div class="qtext" style="font-size:15px; font-weight:700; margin:10px 0 14px;">' + esc(q.q) + '</div>'
+    + '<div style="display:flex; flex-direction:column; gap:8px;">'
+    + (q.opts || []).map((o, j) => {
+        const sel = bossState.answers[bossState.idx] === j;
+        return '<button class="opt' + (sel ? ' correct' : '') + '" onclick="pickBossAnswer(' + j + ')" style="text-align:left; padding:12px 14px; font-size:13.5px;"><b class="okey">' + (j + 1) + '</b> ' + esc(o) + '</button>';
+      }).join('')
+    + '</div>'
+    + '<div class="rowbtns" style="margin-top:16px;">'
+    + (bossState.idx > 0 ? '<button class="btn ghost sm" onclick="bossState.idx--; renderBossQuestion()">← Prev</button>' : '')
+    + (bossState.idx < bossState.questions.length - 1 ? '<button class="btn sm" onclick="bossState.idx++; renderBossQuestion()">Next →</button>' : '<button class="btn sm" style="background:var(--green); margin-left:auto;" onclick="finishBossBattle()">Submit Boss Exam 🏁</button>')
+    + '</div>'
+    + '</div>';
+}
+
+function pickBossAnswer(j){
+  bossState.answers[bossState.idx] = j;
+  playSound('click');
+  if (bossState.idx < bossState.questions.length - 1) {
+    bossState.idx++;
+    renderBossQuestion();
+  } else {
+    renderBossQuestion();
+  }
+}
+
+/* ================= 1. ORAL DEFENSE / MOCK INTERVIEWER ================= */
+const ORAL_DEFENSE_SCENARIOS = [
+  {
+    title: "Scenario 1: Enterprise KYC Document Pipeline",
+    cert: "CCAR-F",
+    prompt: "Your client processes 50,000 PDF bank statements and passports daily. Why do you recommend an Orchestrator-Workers topology over an open-ended Autonomous Loop, and what is your context compaction trigger?",
+    options: [
+      {
+        text: "Use an Autonomous agent loop with an iteration cap of 50, compacting at 95% token capacity.",
+        score: 40,
+        feedback: "❌ Risky: Autonomous loops introduce non-deterministic execution paths and high token variance for fixed document extraction workflows. Compacting at 95% leaves zero token headroom for the compaction prompt."
+      },
+      {
+        text: "Deploy Orchestrator-Workers fan-out parallel processing with deterministic JSON output validation, compacting proactively at 80% capacity (160k tokens).",
+        score: 100,
+        feedback: "✅ Optimal: Orchestrator-Workers parallelizes independent document chunks, reducing wall-clock latency from sum(t) to max(t). Compacting proactively at 80% (160k tokens) preserves critical context and compaction headroom."
+      },
+      {
+        text: "Use sequential prompt chaining with FIFO truncation when the 200k token limit is reached.",
+        score: 50,
+        feedback: "⚠️ Sub-optimal: Sequential chaining processes 50k documents linearly with excessive latency. FIFO truncation causes catastrophic amnesia of earlier system instructions."
+      }
+    ]
+  },
+  {
+    title: "Scenario 2: Financial RAG Table Hallucination",
+    cert: "CCAR-P",
+    prompt: "Your financial RAG pipeline hallucinates markdown transaction table values across quarterly reports. What is the root architectural fix?",
+    options: [
+      {
+        text: "Increase top_k retrieval from 5 to 50 chunks without changing embedding or chunking strategies.",
+        score: 30,
+        feedback: "❌ Incorrect: Increasing top_k injects massive retrieval noise into the prompt and increases token costs without fixing table fragmentation."
+      },
+      {
+        text: "Deploy a 3-Tier Hybrid RAG architecture (Dense Vector + BM25 Keyword + Cross-Encoder Re-Ranking) with semantic chunking that preserves table boundaries and prepends contextual chunk headers.",
+        score: 100,
+        feedback: "✅ Optimal: Slicing tables across arbitrary character boundaries destroys relational headers. Semantic chunking + contextual headers + Reciprocal Rank Fusion (RRF) eliminates table hallucination."
+      },
+      {
+        text: "Switch primary model from Claude 3.5 Sonnet to Claude 3 Opus without modifying chunk boundaries.",
+        score: 45,
+        feedback: "⚠️ Ineffective: Model capability cannot compensate for corrupted or severed relational table chunks."
+      }
+    ]
+  }
+];
+
+let oralDefenseIdx = 0;
+let oralDefenseScore = 0;
+
+function mockInterviewView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  const sc = ORAL_DEFENSE_SCENARIOS[oralDefenseIdx % ORAL_DEFENSE_SCENARIOS.length];
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--purple); color:#fff;">Review Board Simulation</span><h2 style="font-size:20px; margin-top:4px;">🤖 Architectural Oral Defense Simulator</h2></div>'
+    + '<span style="font-size:12px; font-weight:700; color:var(--muted);">' + (oralDefenseIdx + 1) + ' / ' + ORAL_DEFENSE_SCENARIOS.length + ' Case Studies</span>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Defend your enterprise architectural decisions before the Anthropic Review Board. Graded on Soundness, Cost Efficiency, Latency, and Best Practices.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card); margin-bottom:16px;">'
+    + '<div style="font-size:11px; font-weight:800; color:var(--coral); text-transform:uppercase; margin-bottom:4px;">' + sc.cert + ' · ' + sc.title + '</div>'
+    + '<div style="font-size:14.5px; font-weight:700; color:var(--ink); line-height:1.5; margin-bottom:14px;">💬 "' + sc.prompt + '"</div>'
+    + '<div style="display:flex; flex-direction:column; gap:10px;" id="defenseOptionsList">'
+    + sc.options.map((opt, oIdx) => '<button class="opt" onclick="submitDefenseAnswer(' + oIdx + ')" style="text-align:left; padding:12px 14px; font-size:13px; line-height:1.4;"><b class="okey">' + String.fromCharCode(65 + oIdx) + '</b> ' + esc(opt.text) + '</button>').join('')
+    + '</div>'
+    + '<div id="defenseFeedbackBox" style="margin-top:14px;"></div>'
+    + '</div>'
+    + '</div>';
+}
+
+function submitDefenseAnswer(optIdx){
+  const sc = ORAL_DEFENSE_SCENARIOS[oralDefenseIdx % ORAL_DEFENSE_SCENARIOS.length];
+  const opt = sc.options[optIdx];
+  const fBox = document.getElementById("defenseFeedbackBox");
+  const optList = document.getElementById("defenseOptionsList");
+  
+  if (optList) {
+    optList.querySelectorAll(".opt").forEach((b, i) => {
+      b.disabled = true;
+      if (i === optIdx) b.classList.add(opt.score === 100 ? "correct" : "wrong");
+    });
+  }
+  
+  if (opt.score === 100) {
+    award("mock_interview");
+    addXP(25, "Oral Defense Cleared");
+    playSound('correct');
+  } else {
+    playSound('wrong');
+  }
+  
+  if (fBox) {
+    fBox.innerHTML = '<div style="border-left:4px solid ' + (opt.score === 100 ? 'var(--green)' : 'var(--coral)') + '; background:var(--bg); padding:12px 14px; border-radius:0 8px 8px 0; font-size:13px; line-height:1.5;">'
+      + '<div style="font-weight:700; font-size:14px; color:' + (opt.score === 100 ? 'var(--green)' : 'var(--coral)') + '; margin-bottom:4px;">Score: ' + opt.score + '/100 — ' + (opt.score === 100 ? 'Approved by Review Board ✨' : 'Architectural Revisions Requested ⚠️') + '</div>'
+      + opt.feedback
+      + '</div>'
+      + '<div class="rowbtns" style="margin-top:12px;">'
+      + '<button class="btn sm" onclick="oralDefenseIdx++; mockInterviewView();">Next Architectural Defense →</button>'
+      + '</div>';
+  }
+}
+
+/* ================= 2. MODEL COST & LATENCY ROI CALCULATOR ================= */
+let roiState = {
+  mau: 5000,
+  queriesPerDay: 5,
+  inputTokens: 1500,
+  outputTokens: 400,
+  cachingHitRate: 60,
+  batchApi: false
+};
+
+function modelRoiCalculatorView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--gold); color:#1a1a1a;">FinOps Workbench</span><h2 style="font-size:20px; margin-top:4px;">💰 Model Cost & Latency ROI Calculator</h2></div>'
+    + '<button class="btn ghost sm" onclick="copyRoiSummary()">📋 Copy Executive Brief</button>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Calculate exact monthly token spend and latency tradeoffs across Claude 3.5 Sonnet, Haiku, and Opus with Prompt Caching (85% off) and Batch API (50% off).</p>'
+    + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-bottom:16px;">'
+    + '<div style="border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--card);">'
+    + '<h4 style="font-size:13.5px; margin-bottom:10px;">📊 Workload Parameters</h4>'
+    + '<div style="margin-bottom:10px;"><label style="font-size:12px; font-weight:700; display:flex; justify-content:space-between;">Monthly Active Users (MAU): <span id="roiMauVal">' + roiState.mau.toLocaleString() + '</span></label><input type="range" min="500" max="50000" step="500" value="' + roiState.mau + '" oninput="updateRoiState(\'mau\', this.value)" style="width:100%;"></div>'
+    + '<div style="margin-bottom:10px;"><label style="font-size:12px; font-weight:700; display:flex; justify-content:space-between;">Queries / User / Day: <span id="roiQVal">' + roiState.queriesPerDay + '</span></label><input type="range" min="1" max="25" step="1" value="' + roiState.queriesPerDay + '" oninput="updateRoiState(\'queriesPerDay\', this.value)" style="width:100%;"></div>'
+    + '<div style="margin-bottom:10px;"><label style="font-size:12px; font-weight:700; display:flex; justify-content:space-between;">Avg Input Tokens / Turn: <span id="roiInVal">' + roiState.inputTokens + '</span></label><input type="range" min="200" max="10000" step="100" value="' + roiState.inputTokens + '" oninput="updateRoiState(\'inputTokens\', this.value)" style="width:100%;"></div>'
+    + '<div style="margin-bottom:10px;"><label style="font-size:12px; font-weight:700; display:flex; justify-content:space-between;">Avg Output Tokens / Turn: <span id="roiOutVal">' + roiState.outputTokens + '</span></label><input type="range" min="100" max="4000" step="50" value="' + roiState.outputTokens + '" oninput="updateRoiState(\'outputTokens\', this.value)" style="width:100%;"></div>'
+    + '<div style="margin-bottom:10px;"><label style="font-size:12px; font-weight:700; display:flex; justify-content:space-between;">Prompt Caching Hit Rate (%): <span id="roiCacheVal">' + roiState.cachingHitRate + '%</span></label><input type="range" min="0" max="95" step="5" value="' + roiState.cachingHitRate + '" oninput="updateRoiState(\'cachingHitRate\', this.value)" style="width:100%;"></div>'
+    + '<div style="margin-top:12px;"><label style="font-size:12.5px; font-weight:700; display:flex; align-items:center; gap:6px;"><input type="checkbox" ' + (roiState.batchApi ? 'checked' : '') + ' onchange="updateRoiState(\'batchApi\', this.checked)"> Batch API Mode (50% Cost Discount)</label></div>'
+    + '</div>'
+    + '<div id="roiComparisonTable" style="border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--card);"></div>'
+    + '</div>'
+    + '</div>';
+  
+  renderRoiCalculations();
+}
+
+function updateRoiState(k, v){
+  roiState[k] = (k === 'batchApi') ? v : parseFloat(v);
+  document.getElementById("roiMauVal") && (document.getElementById("roiMauVal").textContent = roiState.mau.toLocaleString());
+  document.getElementById("roiQVal") && (document.getElementById("roiQVal").textContent = roiState.queriesPerDay);
+  document.getElementById("roiInVal") && (document.getElementById("roiInVal").textContent = roiState.inputTokens.toLocaleString());
+  document.getElementById("roiOutVal") && (document.getElementById("roiOutVal").textContent = roiState.outputTokens.toLocaleString());
+  document.getElementById("roiCacheVal") && (document.getElementById("roiCacheVal").textContent = roiState.cachingHitRate + "%");
+  renderRoiCalculations();
+}
+
+function renderRoiCalculations(){
+  const tbl = document.getElementById("roiComparisonTable");
+  if (!tbl) return;
+  
+  const totalMonthlyQueries = roiState.mau * roiState.queriesPerDay * 30;
+  const rawInputMTok = (totalMonthlyQueries * roiState.inputTokens) / 1000000;
+  const rawOutputMTok = (totalMonthlyQueries * roiState.outputTokens) / 1000000;
+  
+  const cacheHit = roiState.cachingHitRate / 100;
+  const effectiveCachedInMTok = rawInputMTok * cacheHit;
+  const effectiveUncachedInMTok = rawInputMTok * (1 - cacheHit);
+  
+  const batchMult = roiState.batchApi ? 0.5 : 1.0;
+  
+  // Pricing: [Base In, Cached In, Base Out, P99 Latency]
+  const models = [
+    { name: "Claude 3.5 Haiku", inRate: 0.80, cacheRate: 0.08, outRate: 4.00, p99: "420ms", color: "var(--blue)" },
+    { name: "Claude 3.5 Sonnet", inRate: 3.00, cacheRate: 0.30, outRate: 15.00, p99: "880ms", color: "var(--coral)" },
+    { name: "Claude 3 Opus", inRate: 15.00, cacheRate: 1.50, outRate: 75.00, p99: "2,400ms", color: "var(--purple)" }
+  ];
+  
+  let rowsHtml = '';
+  models.forEach(m => {
+    const costIn = (effectiveUncachedInMTok * m.inRate + effectiveCachedInMTok * m.cacheRate) * batchMult;
+    const costOut = (rawOutputMTok * m.outRate) * batchMult;
+    const totalCost = costIn + costOut;
+    
+    rowsHtml += '<div style="border-bottom:1px solid var(--border); padding:10px 0;">'
+      + '<div style="display:flex; justify-content:space-between; align-items:baseline;">'
+      + '<b style="color:' + m.color + '; font-size:14px;">' + m.name + '</b>'
+      + '<span style="font-size:18px; font-weight:900; color:var(--ink);">' + ('$' + Math.round(totalCost).toLocaleString()) + '<small style="font-size:11px; color:var(--muted); font-weight:normal;">/mo</small></span>'
+      + '</div>'
+      + '<div style="font-size:11.5px; color:var(--muted); margin-top:2px;">'
+      + '• Est. P99 Latency: <b>' + m.p99 + '</b> · Input: ' + ('$' + Math.round(costIn).toLocaleString()) + ' · Output: ' + ('$' + Math.round(costOut).toLocaleString())
+      + '</div>'
+      + '</div>';
+  });
+  
+  tbl.innerHTML = '<h4 style="font-size:13.5px; margin-bottom:10px;">💵 Monthly Spend Comparison (' + Math.round(totalMonthlyQueries).toLocaleString() + ' calls)</h4>'
+    + rowsHtml
+    + '<div style="font-size:11.5px; color:var(--green); margin-top:12px; line-height:1.4;">'
+    + '💡 <b>Architect FinOps Takeaway:</b> Enabling Prompt Caching with a ' + roiState.cachingHitRate + '% hit rate saves <b>' + ('$' + Math.round(rawInputMTok * 3.00 * cacheHit * 0.85).toLocaleString()) + '/mo</b> on Sonnet 3.5 alone!'
+    + '</div>';
+  
+  award("roi_architect");
+}
+
+function copyRoiSummary(){
+  toast("📋 FinOps Summary copied to clipboard!");
+}
+
+/* ================= 3. LIVE CONTEXT WINDOW & 80% COMPACTION VISUALIZER ================= */
+let ctxTokens = {
+  system: 2500,
+  tools: 4200,
+  rag: 45000,
+  history: 110000,
+  compactionActive: false
+};
+
+function contextCompactionVisualizer(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--coral); color:#fff;">Context Architecture</span><h2 style="font-size:20px; margin-top:4px;">🧱 200k Context Window & 80% Compaction Simulator</h2></div>'
+    + '<button class="btn sm ' + (ctxTokens.compactionActive ? 'ghost' : '') + '" onclick="toggleContextCompaction()">' + (ctxTokens.compactionActive ? '↺ Reset to Uncompacted State' : '⚡ Apply 80% Semantic Compaction') + '</button>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Anthropic models share a finite 200,000 token budget across System Prompts, Tool Schemas, RAG Chunks, and Conversation History.</p>'
+    + '<div id="ctxBudgetVisualBar" style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card); margin-bottom:16px;"></div>'
+    + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:14px;">'
+    + '<div style="border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--bg);">'
+    + '<h4 style="font-size:13.5px; margin-bottom:6px; color:var(--coral);">⚠️ FIFO Truncation Failure Mode</h4>'
+    + '<p style="font-size:12px; color:var(--muted); line-height:1.4;">Blindly slicing off early turns causes catastrophic amnesia. The agent forgets initial user constraints, tool output schemas, and security boundaries.</p>'
+    + '</div>'
+    + '<div style="border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--bg);">'
+    + '<h4 style="font-size:13.5px; margin-bottom:6px; color:var(--green);">✓ Structured Semantic Compaction (80% Rule)</h4>'
+    + '<p style="font-size:12px; color:var(--muted); line-height:1.4;">Triggered proactively at 160k tokens. Compresses raw turns into a structured <code>&lt;key_facts&gt;</code> XML summary while preserving execution headroom.</p>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+  
+  renderContextBudget();
+}
+
+function toggleContextCompaction(){
+  ctxTokens.compactionActive = !ctxTokens.compactionActive;
+  if (ctxTokens.compactionActive) {
+    ctxTokens.history = 18000; // Compressed from 110k to 18k
+    award("context_master");
+    playSound('correct');
+    toast("✨ Compacted 110k history into 18k structured <key_facts> summary!");
+  } else {
+    ctxTokens.history = 110000;
+  }
+  renderContextBudget();
+}
+
+function renderContextBudget(){
+  const barEl = document.getElementById("ctxBudgetVisualBar");
+  if (!barEl) return;
+  
+  const totalUsed = ctxTokens.system + ctxTokens.tools + ctxTokens.rag + ctxTokens.history;
+  const pctUsed = Math.min(100, Math.round((totalUsed / 200000) * 100));
+  const isOver80 = totalUsed >= 160000;
+  
+  barEl.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;">'
+    + '<div><span style="font-size:26px; font-weight:900; color:' + (isOver80 ? 'var(--coral)' : 'var(--green)') + ';">' + totalUsed.toLocaleString() + '</span><span style="font-size:13px; color:var(--muted);"> / 200,000 tokens (' + pctUsed + '%)</span></div>'
+    + '<span style="font-size:12px; font-weight:700; color:' + (isOver80 ? 'var(--coral)' : 'var(--green)') + ';">' + (isOver80 ? '🚨 Over 80% Threshold — Compaction Required' : '🟢 Healthy Execution Headroom') + '</span>'
+    + '</div>'
+    + '<div style="height:20px; width:100%; border-radius:6px; background:var(--border); overflow:hidden; display:flex; margin-bottom:12px;">'
+    + '<div style="width:' + ((ctxTokens.system / 200000) * 100) + '%; background:var(--blue);" title="System Prompt: ' + ctxTokens.system + 't"></div>'
+    + '<div style="width:' + ((ctxTokens.tools / 200000) * 100) + '%; background:var(--purple);" title="Tool Schemas: ' + ctxTokens.tools + 't"></div>'
+    + '<div style="width:' + ((ctxTokens.rag / 200000) * 100) + '%; background:var(--gold);" title="RAG Chunks: ' + ctxTokens.rag + 't"></div>'
+    + '<div style="width:' + ((ctxTokens.history / 200000) * 100) + '%; background:' + (ctxTokens.compactionActive ? 'var(--green)' : 'var(--coral)') + ';" title="Conversation History: ' + ctxTokens.history + 't"></div>'
+    + '</div>'
+    + '<div style="display:flex; gap:12px; flex-wrap:wrap; font-size:11.5px; color:var(--muted);">'
+    + '<span>🟦 System Prompt: <b>' + ctxTokens.system.toLocaleString() + 't</b></span>'
+    + '<span>🟪 Tool Schemas: <b>' + ctxTokens.tools.toLocaleString() + 't</b></span>'
+    + '<span>🟨 RAG Chunks: <b>' + ctxTokens.rag.toLocaleString() + 't</b></span>'
+    + '<span>' + (ctxTokens.compactionActive ? '🟩 Compacted History:' : '🟥 Raw History:') + ' <b>' + ctxTokens.history.toLocaleString() + 't</b></span>'
+    + '</div>';
+}
+
+/* ================= 4. FLASH RECALL SPEED MATCH MINI-GAME ================= */
+const SPEED_MATCH_PAIRS = [
+  { id: 1, a: "is_error: true", b: "Tool Execution Failure Return Handshake" },
+  { id: 2, a: "429 Too Many Requests", b: "Full Jitter Exponential Retry Backoff" },
+  { id: 3, a: "cache_control: {type: 'ephemeral'}", b: "5-Minute TTL Prompt Caching Prefix" },
+  { id: 4, a: "RRF = Σ [1 / (60 + Rank)]", b: "Reciprocal Rank Fusion (Vector + BM25)" },
+  { id: 5, a: "budget_tokens: 2048", b: "Extended Thinking Deduction Ceiling" },
+  { id: 6, a: "80% Rule (160k tokens)", b: "Proactive Context Compaction Trigger" }
+];
+
+let matchCards = [];
+let matchFlipped = [];
+let matchSolved = 0;
+let matchTimer = null;
+let matchSecs = 60;
+
+function speedMatchView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  // Shuffle cards
+  const cards = [];
+  SPEED_MATCH_PAIRS.forEach(p => {
+    cards.push({ id: p.id, text: p.a, type: 'term' });
+    cards.push({ id: p.id, text: p.b, type: 'def' });
+  });
+  
+  matchCards = shuffleArr(cards);
+  matchFlipped = [];
+  matchSolved = 0;
+  matchSecs = 60;
+  clearInterval(matchTimer);
+  
+  matchTimer = setInterval(() => {
+    matchSecs--;
+    const tEl = document.getElementById("speedMatchTimer");
+    if (tEl) {
+      tEl.textContent = matchSecs + "s";
+      if (matchSecs <= 10) tEl.style.color = "var(--coral)";
+    }
+    if (matchSecs <= 0) {
+      clearInterval(matchTimer);
+      alert("⏱️ Time's up! Try again to beat the clock.");
+      speedMatchView();
+    }
+  }, 1000);
+  
+  $("app").innerHTML = '<button class="back" onclick="clearInterval(matchTimer); home();">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--gold); color:#1a1a1a;">Mini-Game</span><h2 style="font-size:20px; margin-top:4px;">⚡ Flash Recall Speed Match</h2></div>'
+    + '<span id="speedMatchTimer" style="font-size:24px; font-weight:900; color:var(--coral);">' + matchSecs + 's</span>'
+    + '</div>'
+    + '<p class="subtext" style="margin-bottom:16px;">Click to pair matching architectural primitives and Anthropic best practices before the 60-second timer expires.</p>'
+    + '<div id="speedMatchGrid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px; max-width:720px; margin:0 auto;">'
+    + matchCards.map((c, idx) => '<button id="mCard_' + idx + '" class="cert" onclick="clickMatchCard(' + idx + ')" style="padding:14px; min-height:80px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:12.5px; font-weight:700; border:2px solid var(--border); transition:all .15s;">'
+        + esc(c.text)
+        + '</button>').join('')
+    + '</div>'
+    + '</div>';
+}
+
+function clickMatchCard(idx){
+  if (matchFlipped.length >= 2 || matchFlipped.includes(idx)) return;
+  
+  const el = document.getElementById("mCard_" + idx);
+  if (!el || el.classList.contains("matched")) return;
+  
+  playSound('click');
+  matchFlipped.push(idx);
+  el.style.borderColor = "var(--blue)";
+  el.style.background = "rgba(91,127,166,0.15)";
+  
+  if (matchFlipped.length === 2) {
+    const c1 = matchCards[matchFlipped[0]];
+    const c2 = matchCards[matchFlipped[1]];
+    
+    if (c1.id === c2.id && c1.type !== c2.type) {
+      // Match found!
+      playSound('correct');
+      matchSolved++;
+      const el1 = document.getElementById("mCard_" + matchFlipped[0]);
+      const el2 = document.getElementById("mCard_" + matchFlipped[1]);
+      setTimeout(() => {
+        if (el1) { el1.classList.add("matched"); el1.style.borderColor = "var(--green)"; el1.style.background = "rgba(90,158,111,0.2)"; el1.disabled = true; }
+        if (el2) { el2.classList.add("matched"); el2.style.borderColor = "var(--green)"; el2.style.background = "rgba(90,158,111,0.2)"; el2.disabled = true; }
+        matchFlipped = [];
+        
+        if (matchSolved === SPEED_MATCH_PAIRS.length) {
+          clearInterval(matchTimer);
+          award("flash_match");
+          addXP(50, "Speed Match Flawless Victory");
+          confetti();
+          alert("🎉 Spectacular! All pairs matched in " + (60 - matchSecs) + " seconds!");
+        }
+      }, 300);
+    } else {
+      // Wrong match
+      playSound('wrong');
+      const el1 = document.getElementById("mCard_" + matchFlipped[0]);
+      const el2 = document.getElementById("mCard_" + matchFlipped[1]);
+      setTimeout(() => {
+        if (el1) { el1.style.borderColor = "var(--border)"; el1.style.background = "var(--card)"; }
+        if (el2) { el2.style.borderColor = "var(--border)"; el2.style.background = "var(--card)"; }
+        matchFlipped = [];
+      }, 700);
+    }
+  }
+}
+
+/* ================= 5. CANDIDATE DIAGNOSTIC RADAR & AUDIT REPORT ================= */
+function diagnosticRadarView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  let certRadarCards = '';
+  CERTS.forEach(c => {
+    const rp = prepProgress(c);
+    certRadarCards += '<div style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card); margin-bottom:16px;">'
+      + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">'
+      + '<span class="code" style="color:' + c.color + '; font-weight:800; font-size:15px;">' + c.code + ' · ' + c.name + '</span>'
+      + '<span style="font-size:13px; font-weight:800; color:var(--coral);">' + rp.score + '% Overall Prep Index</span>'
+      + '</div>'
+      + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:16px; align-items:center;">'
+      + renderReadinessRadarSvg(c, rp)
+      + '<div>'
+      + '<h5 style="font-size:12.5px; margin-bottom:6px;">Domain Breakdown:</h5>'
+      + rp.parts.map(p => '<div style="font-size:12px; margin-bottom:4px; display:flex; justify-content:space-between;">'
+          + '<span>' + p.label + ':</span>'
+          + '<b>' + Math.round(p.v * 100) + '%</b>'
+          + '</div>').join('')
+      + '<div style="margin-top:10px; font-size:12px; color:var(--muted);">'
+      + '⚠️ <b>Weakest Focus Area:</b> ' + rp.weakest.todo
+      + '</div>'
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  });
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">'
+    + '<div><span class="ltag" style="background:var(--green); color:#fff;">Candidate Readiness Audit</span><h2 style="font-size:20px; margin-top:4px;">📊 Multi-Axis Diagnostic Radar & Audit Report</h2></div>'
+    + '<button class="btn sm" onclick="window.print()">🖨️ Print Audit Report</button>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Comprehensive visual audit of candidate preparation depth across all 4 certification tracks.</p>'
+    + certRadarCards
     + '</div>';
 }
 

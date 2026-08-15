@@ -697,6 +697,25 @@ vm.createContext(sandbox);
   call("bossBattleSelect");
   check(/Adaptive Certification Boss Battle/.test(els.app.innerHTML), "boss battle hub renders final boss challenge");
 
+  /* ---------- 23. Masterclass Upgrade Systems ---------- */
+  call("startBossBattle", "ccao");
+  check(/Boss Battle/.test(els.app.innerHTML) && /bossTimerDisplay/.test(els.app.innerHTML) && !/undefined/.test(els.app.innerHTML), "startBossBattle starts and renders question with options");
+
+  call("mockInterviewView");
+  check(/Oral Defense/.test(els.app.innerHTML) && /Review Board/.test(els.app.innerHTML), "mock interview view renders oral defense challenge");
+
+  call("modelRoiCalculatorView");
+  check(/Model Cost & Latency ROI Calculator/.test(els.app.innerHTML) && /roiComparisonTable/.test(els.app.innerHTML), "model ROI calculator view renders financial planning workbench");
+
+  call("contextCompactionVisualizer");
+  check(/200k Context Window/.test(els.app.innerHTML) && /ctxBudgetVisualBar/.test(els.app.innerHTML), "context compaction visualizer renders token budget bar");
+
+  call("speedMatchView");
+  check(/Flash Recall Speed Match/.test(els.app.innerHTML) && /speedMatchGrid/.test(els.app.innerHTML), "speed match view renders mini-game grid");
+
+  call("diagnosticRadarView");
+  check(/Diagnostic Radar & Audit Report/.test(els.app.innerHTML) && /svg/.test(els.app.innerHTML), "diagnostic radar view renders multi-axis audit");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
