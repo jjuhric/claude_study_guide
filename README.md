@@ -1,8 +1,8 @@
 # Claude Cert Quest 🧭
 
 [![Anthropic Certifications](https://img.shields.io/badge/Anthropic-Certifications%20Prep-d97757.svg)](https://www.pearsonvue.com/us/en/anthropic.html)
-[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v28)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
-[![Tests Passing](https://img.shields.io/badge/Tests-324%20Passing-5b7fa6.svg)](test/smoke.js)
+[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v29)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
+[![Tests Passing](https://img.shields.io/badge/Tests-326%20Passing-5b7fa6.svg)](test/smoke.js)
 [![License](https://img.shields.io/badge/License-MIT-8a6fae.svg)](LICENSE)
 
 An enterprise-grade, gamified study platform and interactive simulator suite for the **Anthropic Claude Certification Program** — featuring 400 practice questions with 4-way per-option rationales, 100 Leitner spaced repetition flashcards, 44 deep-dive technical lessons, and 80+ interactive architectural sandboxes, study roadmaps, architecture pattern libraries, prompt transformation galleries, knowledge graphs, animated concept cards, live API payload inspectors, interactive decision trees, glossary callout engines, mind mappers, inline lesson playgrounds, audio recaps, scenario explorers, sequence diagram visualizers, Socratic lesson probes, annotated SDK code walkthroughs, MicroVM execution models, Consensus voting engines, CLI emulators, rate limit visualizers, multiplayer arenas, AI tutors, topology validators, MCP execution engines, memory decay models, oral defense boards, and cryptographic credentials.
@@ -24,12 +24,14 @@ An enterprise-grade, gamified study platform and interactive simulator suite for
 
 ---
 
-## 🛠️ 88+ Interactive Labs, Simulators & Toolkits
+## 🛠️ 90+ Interactive Labs, Simulators & Toolkits
 
 Claude Cert Quest includes a comprehensive suite of hands-on sandboxes and diagnostic engines built right into the home dashboard:
 
 | Tool | Category | What it does |
 | :--- | :--- | :--- |
+| 🧠 **Misconception Debunker** | Pedagogy | 20 myth/reality flip cards — reveal the truth, why people believe the myth, and the exact API reference that proves it. |
+| ⚡ **Cheat Sheet Generator** | Pedagogy | Customizable 8-section printable reference card: numbers, API fields, stop reasons, models, patterns, security, costs, and MCP. |
 | 🔐 **Security Attack Vector Encyclopedia** | Pedagogy | 8 attack types (Prompt Injection, Tool Hijacking, Jailbreak, etc.) with scenario, vulnerability, defense, and exam key point. |
 | 🦭 **Model Capability Navigator** | Pedagogy | Select a task type to see Haiku/Sonnet/Opus ranked with star ratings, notes, and recommended choice. |
 | 📖 **Professor Mode Annotations** | Pedagogy | Click margin-note buttons on lesson sentences to reveal why it matters for the exam, the common misconception, and question type. |
@@ -142,7 +144,7 @@ Drill at maximum speed without touching the mouse. Press **`?`** or **`Ctrl + /`
 Claude Cert Quest has a zero-dependency test suite validating every component:
 
 ```bash
-# Run comprehensive offline test suite (324 assertions)
+# Run comprehensive offline test suite (326 assertions)
 node test/smoke.js
 ```
 
@@ -150,7 +152,7 @@ node test/smoke.js
 * ✅ Content integrity of all 400 questions, 4-way per-option rationales, and 100 flashcards.
 * ✅ Exact domain-to-lesson mapping across all 4 certification tracks.
 * ✅ Web Audio synthesizer, state migration, and Leitner spaced repetition ladders.
-* ✅ Full rendering and state validation for all 88+ interactive tools, multiplayer channels, and simulators.
+* ✅ Full rendering and state validation for all 90+ interactive tools, multiplayer channels, and simulators.
 * ✅ Compliance with official NDAs and unverified exam claim policies.
 
 ---
