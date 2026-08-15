@@ -935,6 +935,19 @@ vm.createContext(sandbox);
   call("svgBadgeExporter");
   check(/High-Resolution SVG Vector Badge Exporter/.test(els.app.innerHTML), "svgBadgeExporter renders SVG vector badge exporter");
 
+  /* ---------- 39. Chronos Suite ---------- */
+  call("microVmSandboxView");
+  check(/Enterprise Zero-Trust MicroVM Sandbox Visualizer/.test(els.app.innerHTML), "microVmSandboxView renders MicroVM sandbox");
+
+  call("consensusVotingView");
+  check(/Multi-Model Consensus Voting & Judge Engine/.test(els.app.innerHTML), "consensusVotingView renders consensus judge engine");
+
+  call("cacheTTLSimulator");
+  check(/Dynamic Prompt Caching Expiration Simulator/.test(els.app.innerHTML), "cacheTTLSimulator renders cache TTL timeline");
+
+  call("audioSpeedDrillView");
+  check(/Interactive Audio Speed-Drill Gauntlet/.test(els.app.innerHTML), "audioSpeedDrillView renders audio speed-drill stage");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();

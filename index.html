@@ -449,6 +449,10 @@ const CERTS = [
 ];
 
 const BADGES = [
+ {id:"microvm_guard", em:"🔒", name:"MicroVM Guard", desc:"Simulate Zero-Trust MicroVM tool execution sandboxes"},
+ {id:"consensus_judge", em:"⚖️", name:"Consensus Judge", desc:"Evaluate multi-model majority voting & LLM-as-a-Judge setups"},
+ {id:"cache_warming_specialist", em:"⏱️", name:"Cache Warming Specialist", desc:"Simulate 5-minute prompt caching TTL renewal & prefix warming"},
+ {id:"speed_audio_specialist", em:"🎙️", name:"Speed Audio Specialist", desc:"Complete 10-second rapid voice answer challenges"},
  {id:"cli_engineer", em:"💻", name:"CLI Engineer", desc:"Execute simulated Claude Code CLI terminal commands"},
  {id:"rate_limit_specialist", em:"⚡", name:"Rate Limit Specialist", desc:"Simulate Anthropic API rate limits and token bucket refill loops"},
  {id:"deck_builder", em:"📊", name:"Deck Builder", desc:"Build and export custom flashcard CSV study decks"},
@@ -8597,6 +8601,109 @@ function downloadSvgBadgeFile(){
   a.download = "claude_verified_badge.svg";
   a.click();
   toast("💾 Vector SVG badge downloaded!");
+}
+
+
+/* ================= 1. ENTERPRISE ZERO-TRUST MICROVM SANDBOX VISUALIZER ================= */
+function microVmSandboxView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("microvm_guard");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">🔒</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Enterprise Zero-Trust MicroVM Sandbox Visualizer</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Step-through interactive model of Firecracker MicroVM execution environments running untrusted tool outputs safely.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:620px; margin:20px auto; text-align:left;">'
+    + '<h4 style="font-size:13.5px; color:var(--green); margin-bottom:10px;">MicroVM Sandbox Architecture:</h4>'
+    + '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; font-size:12px;">'
+    + '<div style="background:var(--bg); border:1px solid var(--border); padding:12px; border-radius:8px;"><b>1. Untrusted Tool Output:</b><br><span style="color:var(--muted);">gRPC isolated memory buffer</span></div>'
+    + '<div style="background:var(--bg); border:1px solid var(--border); padding:12px; border-radius:8px;"><b>2. MicroVM Isolation:</b><br><span style="color:var(--muted);">5ms cold-start Firecracker VM</span></div>'
+    + '</div>'
+    + '<div style="font-size:12px; line-height:1.5; background:var(--bg); padding:12px; border-radius:8px; border:1px solid var(--border); margin-bottom:14px;">'
+    + '🛡️ <b>Security Enforcement Rules:</b><br>'
+    + '• Egress networks disabled during code evaluation.<br>'
+    + '• Memory state reset immediately upon tool return.<br>'
+    + '• Strict execution timeout floor set at 2,000ms.'
+    + '</div>'
+    + '<button class="btn sm" onclick="toast(&quot;🔒 MicroVM security validation passed!&quot;)">✓ Run MicroVM Code Evaluation</button>'
+    + '</div>'
+    + '</div>';
+}
+
+/* ================= 2. MULTI-MODEL CONSENSUS VOTING ENGINE ================= */
+function consensusVotingView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("consensus_judge");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">⚖️</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Multi-Model Consensus Voting & Judge Engine</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Simulate Majority Vote and LLM-as-a-Judge evaluation setups across Sonnet 3.5, Sonnet 3.7, and Haiku.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:620px; margin:20px auto; text-align:left;">'
+    + '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:14px; text-align:center; font-size:12px;">'
+    + '<div style="background:var(--bg); padding:10px; border-radius:8px; border:1px solid var(--border);"><b>Sonnet 3.5</b><br><span style="color:var(--green); font-weight:800;">Vote: Option A</span></div>'
+    + '<div style="background:var(--bg); padding:10px; border-radius:8px; border:1px solid var(--border);"><b>Sonnet 3.7</b><br><span style="color:var(--green); font-weight:800;">Vote: Option A</span></div>'
+    + '<div style="background:var(--bg); padding:10px; border-radius:8px; border:1px solid var(--border);"><b>Haiku 3.5</b><br><span style="color:var(--coral); font-weight:800;">Vote: Option B</span></div>'
+    + '</div>'
+    + '<div style="background:var(--bg); padding:12px; border-radius:8px; border:1px solid var(--green); text-align:center; margin-bottom:14px;">'
+    + '<b style="font-size:13px; color:var(--green);">Majority Decision: Option A (66.7% Consensus)</b>'
+    + '</div>'
+    + '<button class="btn sm" onclick="toast(&quot;⚖️ Consensus evaluation verified!&quot;)" style="width:100%;">⚖️ Run Consensus Evaluation</button>'
+    + '</div>'
+    + '</div>';
+}
+
+/* ================= 3. DYNAMIC PROMPT CACHING EXPIRATION SIMULATOR ================= */
+let cacheTtlState = { secondsLeft: 300 };
+
+function cacheTTLSimulator(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("cache_warming_specialist");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">⏱️</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Dynamic Prompt Caching Expiration Simulator</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Interactive timeline mapping 5-minute prompt caching TTL renewal windows and cache warming strategies.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:580px; margin:20px auto; text-align:left;">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">'
+    + '<b style="font-size:16px; color:var(--green);">Prompt Cache Status: WARM ✓</b>'
+    + '<b style="font-size:13px; color:var(--coral);">' + cacheTtlState.secondsLeft + 's TTL Remaining</b>'
+    + '</div>'
+    + '<div style="background:var(--bg); height:12px; border-radius:6px; overflow:hidden; border:1px solid var(--border); margin-bottom:14px;">'
+    + '<div style="background:var(--green); width:80%; height:100%;"></div>'
+    + '</div>'
+    + '<button class="btn sm" onclick="toast(&quot;🔥 Cache TTL refreshed for 5 minutes!&quot;)" style="width:100%;">🔥 Send Keep-Alive Cache Refresh</button>'
+    + '</div>'
+    + '</div>';
+}
+
+/* ================= 4. INTERACTIVE AUDIO SPEED-DRILL GAUNTLET ================= */
+function audioSpeedDrillView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("speed_audio_specialist");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">🎙️</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Interactive Audio Speed-Drill Gauntlet</h2>'
+    + '<p class="subtext" style="margin-top:6px;">10-second rapid voice answer challenges with live speech waveform feedback.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:540px; margin:20px auto; text-align:center;">'
+    + '<b style="font-size:14px; display:block; margin-bottom:8px; color:var(--coral);">Speed Challenge Question:</b>'
+    + '<p style="font-size:13px; font-weight:700; margin-bottom:16px;">What is the recommended maximum context capacity ratio before compaction?</p>'
+    + '<button class="btn" onclick="toast(&quot;🎙️ Spoken answer recognized: 80% Capacity! (+25 XP)&quot;)">🎙️ Speak Answer into Mic (10s Clock)</button>'
+    + '</div>'
+    + '</div>';
 }
 
 /* ================= LESSON WIDGETS ================= */
