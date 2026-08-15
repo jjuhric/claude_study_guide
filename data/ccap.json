@@ -970,6 +970,937 @@
         "Tool descriptions are supplied to the model and are just as exposed."
       ],
       "id": "ccapq-c62867af"
+    },
+    {
+      "id": "ccapq-52",
+      "d": 0,
+      "q": "A financial trading intelligence system uses 8 specialized subagents. Why is a centralized Blackboard Pattern superior to peer-to-peer message passing?",
+      "opts": [
+        "It decouples agent communication through a structured shared state store, preventing exponential token bloat and context contamination",
+        "It translates all financial data into physical paper trading tickets",
+        "It requires only a single CPU core to run all agents",
+        "It eliminates the need for database storage"
+      ],
+      "a": 0,
+      "exp": "It decouples agent communication through a structured shared state store, preventing exponential token bloat and context contamination",
+      "why": [
+        "Correct. It decouples agent communication through a structured shared state store, preventing exponential token bloat and context contamination",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-53",
+      "d": 1,
+      "q": "An autonomous agent reads incoming vendor invoices and executes payment database mutations. How should the architecture prevent Indirect Prompt Injection?",
+      "opts": [
+        "Treat invoice text as untrusted data, enforce strict payment authorization limits, and require out-of-band multi-factor human approval for disbursements",
+        "Trust all invoice instructions if they contain the word 'URGENT'",
+        "Disable all company accounts payable operations permanently",
+        "Set model temperature to 1.0 to randomize payments"
+      ],
+      "a": 0,
+      "exp": "Treat invoice text as untrusted data, enforce strict payment authorization limits, and require out-of-band multi-factor human approval for disbursements",
+      "why": [
+        "Correct. Treat invoice text as untrusted data, enforce strict payment authorization limits, and require out-of-band multi-factor human approval for disbursements",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-54",
+      "d": 2,
+      "q": "When configuring OpenTelemetry GenAI semantic conventions for Claude API calls, what standard span attributes must be recorded?",
+      "opts": [
+        "`gen_ai.system: 'anthropic'`, `gen_ai.request.model`, `gen_ai.usage.prompt_tokens`, and `gen_ai.usage.completion_tokens`",
+        "Raw unencrypted employee passwords and credit card numbers",
+        "Only the HTTP 200 status code with zero model metadata",
+        "A generic text string saying 'success'"
+      ],
+      "a": 0,
+      "exp": "`gen_ai.system: 'anthropic'`, `gen_ai.request.model`, `gen_ai.usage.prompt_tokens`, and `gen_ai.usage.completion_tokens`",
+      "why": [
+        "Correct. `gen_ai.system: 'anthropic'`, `gen_ai.request.model`, `gen_ai.usage.prompt_tokens`, and `gen_ai.usage.completion_tokens`",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-55",
+      "d": 3,
+      "q": "An enterprise customer support fleet experiences sudden CRM database latency spikes. What Circuit Breaker pattern prevents thread pool exhaustion?",
+      "opts": [
+        "Trip the circuit breaker to OPEN after consecutive timeouts, immediately serving cached customer data without waiting for network timeouts",
+        "Increase the network timeout to 60 minutes per request",
+        "Spam 5,000 concurrent retry requests every second",
+        "Delete the customer CRM database"
+      ],
+      "a": 0,
+      "exp": "Trip the circuit breaker to OPEN after consecutive timeouts, immediately serving cached customer data without waiting for network timeouts",
+      "why": [
+        "Correct. Trip the circuit breaker to OPEN after consecutive timeouts, immediately serving cached customer data without waiting for network timeouts",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-56",
+      "d": 4,
+      "q": "Under Anthropic's Responsible Scaling Policy (RSP), what safety threshold triggers AI Safety Level 3 (ASL-3) containment controls?",
+      "opts": [
+        "Demonstrated model capabilities in autonomous cyberwarfare or biological/chemical weaponization that could cause catastrophic real-world harm",
+        "A customer asking the model to write a fictional comedy script",
+        "A model generating text at more than 500 words per minute",
+        "A user accessing the API from a mobile smartphone"
+      ],
+      "a": 0,
+      "exp": "Demonstrated model capabilities in autonomous cyberwarfare or biological/chemical weaponization that could cause catastrophic real-world harm",
+      "why": [
+        "Correct. Demonstrated model capabilities in autonomous cyberwarfare or biological/chemical weaponization that could cause catastrophic real-world harm",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-57",
+      "d": 0,
+      "q": "In a production multi-agent system, how do Architects prevent deadlocks between interdependent subagents?",
+      "opts": [
+        "Enforce a Directed Acyclic Graph (DAG) task dependency structure and apply strict wall-clock iteration timeouts on all agent loops",
+        "Let agents run in circular loops indefinitely until memory runs out",
+        "Disable all inter-agent communication completely",
+        "Force all agents to share a single unencrypted global variable"
+      ],
+      "a": 0,
+      "exp": "Enforce a Directed Acyclic Graph (DAG) task dependency structure and apply strict wall-clock iteration timeouts on all agent loops",
+      "why": [
+        "Correct. Enforce a Directed Acyclic Graph (DAG) task dependency structure and apply strict wall-clock iteration timeouts on all agent loops",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-58",
+      "d": 1,
+      "q": "When running untrusted agent-generated Python code in production, which containerization technology provides strong virtualization security?",
+      "opts": [
+        "gVisor or Firecracker microVMs with dedicated guest kernels and restricted syscall interception",
+        "Running code directly on the bare-metal production host as root",
+        "An unsandboxed eval() statement inside a public Node.js Express server",
+        "Saving Python files directly to the Windows Desktop folder"
+      ],
+      "a": 0,
+      "exp": "gVisor or Firecracker microVMs with dedicated guest kernels and restricted syscall interception",
+      "why": [
+        "Correct. gVisor or Firecracker microVMs with dedicated guest kernels and restricted syscall interception",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-59",
+      "d": 2,
+      "q": "How should a multi-tenant enterprise SaaS platform track token consumption and API billing across 500 enterprise customers?",
+      "opts": [
+        "Attach `metadata: { 'tenant_id': orgId, 'user_id': userId }` to every API request for automated usage aggregation in logs and dashboards",
+        "Hardcode each customer's credit card number in the prompt text",
+        "Create a brand new Anthropic account for every customer query",
+        "Ask customers to self-report their token counts on honor system"
+      ],
+      "a": 0,
+      "exp": "Attach `metadata: { 'tenant_id': orgId, 'user_id': userId }` to every API request for automated usage aggregation in logs and dashboards",
+      "why": [
+        "Correct. Attach `metadata: { 'tenant_id': orgId, 'user_id': userId }` to every API request for automated usage aggregation in logs and dashboards",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-60",
+      "d": 3,
+      "q": "In a mission-critical banking application, what is the recommended fallback cascade sequence when Claude 3.5 Sonnet encounters an outage?",
+      "opts": [
+        "Retry with exponential backoff -> Fallback to Claude 3.5 Haiku -> Fallback to static rule-based templates -> Graceful human escalation",
+        "Crash the entire banking application immediately",
+        "Switch all users to random Wikipedia articles",
+        "Reboot the cloud data center hardware"
+      ],
+      "a": 0,
+      "exp": "Retry with exponential backoff -> Fallback to Claude 3.5 Haiku -> Fallback to static rule-based templates -> Graceful human escalation",
+      "why": [
+        "Correct. Retry with exponential backoff -> Fallback to Claude 3.5 Haiku -> Fallback to static rule-based templates -> Graceful human escalation",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-61",
+      "d": 4,
+      "q": "Why should high-assurance enterprise deployments maintain a version-controlled Golden Evaluation Dataset of 500+ challenging scenarios?",
+      "opts": [
+        "To run automated regression tests before deploying any prompt, tool schema, or model version update to production",
+        "To fill up excess cloud storage quotas",
+        "To train competitor AI models",
+        "To comply with website cookie banner regulations"
+      ],
+      "a": 0,
+      "exp": "To run automated regression tests before deploying any prompt, tool schema, or model version update to production",
+      "why": [
+        "Correct. To run automated regression tests before deploying any prompt, tool schema, or model version update to production",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-62",
+      "d": 0,
+      "q": "Why do autonomous agent loops require hard iteration caps and session spend ceilings in production?",
+      "opts": [
+        "To prevent runaway loops from consuming infinite tokens and budget during unexpected edge-case failures",
+        "Because cloud servers automatically shut down after 5 loops",
+        "Because Anthropic limits every account to 10 total tool calls",
+        "Because loops increase computer monitor brightness"
+      ],
+      "a": 0,
+      "exp": "To prevent runaway loops from consuming infinite tokens and budget during unexpected edge-case failures",
+      "why": [
+        "Correct. To prevent runaway loops from consuming infinite tokens and budget during unexpected edge-case failures",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-63",
+      "d": 1,
+      "q": "What is the primary security vulnerability when an agent is given access to both internal confidential files and public web browsing tools?",
+      "opts": [
+        "Indirect prompt injection from public web pages instructing the agent to exfiltrate confidential internal context to an attacker's server",
+        "The agent's output text automatically turning into French",
+        "The computer monitor screen turning off",
+        "The API key expiring after 5 minutes"
+      ],
+      "a": 0,
+      "exp": "Indirect prompt injection from public web pages instructing the agent to exfiltrate confidential internal context to an attacker's server",
+      "why": [
+        "Correct. Indirect prompt injection from public web pages instructing the agent to exfiltrate confidential internal context to an attacker's server",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-64",
+      "d": 2,
+      "q": "Why is Pairwise Comparison (Model A vs Model B with position swapping) preferred over single 1-10 Likert scales for LLM-as-a-Judge evaluation?",
+      "opts": [
+        "Pairwise comparison eliminates absolute numerical scoring bias and achieves significantly higher inter-rater reliability",
+        "Pairwise evaluation is 100 times faster to compute",
+        "Pairwise evaluation does not require an LLM",
+        "Pairwise evaluation is required by US patent law"
+      ],
+      "a": 0,
+      "exp": "Pairwise comparison eliminates absolute numerical scoring bias and achieves significantly higher inter-rater reliability",
+      "why": [
+        "Correct. Pairwise comparison eliminates absolute numerical scoring bias and achieves significantly higher inter-rater reliability",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-65",
+      "d": 3,
+      "q": "Why must tools that perform financial transactions implement idempotency keys?",
+      "opts": [
+        "To ensure that network retries after timeouts do not execute duplicate payments or transfer funds multiple times",
+        "To make financial transactions run in zero milliseconds",
+        "To bypass bank authentication protocols",
+        "To convert currency into cryptocurrency"
+      ],
+      "a": 0,
+      "exp": "To ensure that network retries after timeouts do not execute duplicate payments or transfer funds multiple times",
+      "why": [
+        "Correct. To ensure that network retries after timeouts do not execute duplicate payments or transfer funds multiple times",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-66",
+      "d": 4,
+      "q": "What is an Enterprise Zero-Data-Retention (ZDR) agreement with Anthropic?",
+      "opts": [
+        "A contractual commitment that prompt inputs and generated completions are never retained on persistent disk or used for model training",
+        "A feature that deletes all files on the customer's laptop",
+        "A guarantee that API calls cost zero dollars",
+        "A policy that prohibits employees from using computers"
+      ],
+      "a": 0,
+      "exp": "A contractual commitment that prompt inputs and generated completions are never retained on persistent disk or used for model training",
+      "why": [
+        "Correct. A contractual commitment that prompt inputs and generated completions are never retained on persistent disk or used for model training",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-67",
+      "d": 0,
+      "q": "In a multi-agent software engineering team (planner, coder, reviewer), how should task handoffs be structured?",
+      "opts": [
+        "Using typed JSON contracts that pass only necessary artifact references and acceptance criteria rather than full conversational history",
+        "Passing the entire unpruned 200,000-token chat transcript between all agents on every turn",
+        "Writing handoff notes on physical sticky notes",
+        "Having agents communicate exclusively via voice synthesis"
+      ],
+      "a": 0,
+      "exp": "Using typed JSON contracts that pass only necessary artifact references and acceptance criteria rather than full conversational history",
+      "why": [
+        "Correct. Using typed JSON contracts that pass only necessary artifact references and acceptance criteria rather than full conversational history",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-68",
+      "d": 1,
+      "q": "What is Least-Privilege Egress filtering in secure agent execution environments?",
+      "opts": [
+        "Restricting outbound network traffic strictly to allowlisted API endpoints, preventing unauthorized data exfiltration from prompt injections",
+        "Allowing agents to scan the entire global internet freely",
+        "Disabling all network connections permanently",
+        "Encrypting local disk files with passwords"
+      ],
+      "a": 0,
+      "exp": "Restricting outbound network traffic strictly to allowlisted API endpoints, preventing unauthorized data exfiltration from prompt injections",
+      "why": [
+        "Correct. Restricting outbound network traffic strictly to allowlisted API endpoints, preventing unauthorized data exfiltration from prompt injections",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-69",
+      "d": 2,
+      "q": "When monitoring Time-to-First-Token (TTFT) in production streaming applications, what does a sudden spike in TTFT indicate?",
+      "opts": [
+        "Upstream API capacity saturation, excessively large prompt context payloads, or slow prompt caching generation steps",
+        "That the user's monitor has low refresh rate",
+        "That the prompt contains too many vowels",
+        "That the database has run out of disk space"
+      ],
+      "a": 0,
+      "exp": "Upstream API capacity saturation, excessively large prompt context payloads, or slow prompt caching generation steps",
+      "why": [
+        "Correct. Upstream API capacity saturation, excessively large prompt context payloads, or slow prompt caching generation steps",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-70",
+      "d": 3,
+      "q": "How should a distributed multi-agent system handle partial tool execution failures during a multi-step database migration?",
+      "opts": [
+        "Implement transactional rollback logic or compensating actions to restore clean state before alerting human supervisors",
+        "Ignore the failed step and proceed with the remaining operations",
+        "Delete all database tables immediately",
+        "Terminate the server process without saving state"
+      ],
+      "a": 0,
+      "exp": "Implement transactional rollback logic or compensating actions to restore clean state before alerting human supervisors",
+      "why": [
+        "Correct. Implement transactional rollback logic or compensating actions to restore clean state before alerting human supervisors",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-71",
+      "d": 4,
+      "q": "Why is automated synthetic red-teaming used in enterprise AI governance pipelines?",
+      "opts": [
+        "Using specialized adversary models to generate thousands of diverse prompt injection and jailbreak permutations to probe system defense boundaries",
+        "To train agents to become malicious hackers",
+        "To test computer fan cooling efficiency",
+        "To replace human legal counsel"
+      ],
+      "a": 0,
+      "exp": "Using specialized adversary models to generate thousands of diverse prompt injection and jailbreak permutations to probe system defense boundaries",
+      "why": [
+        "Correct. Using specialized adversary models to generate thousands of diverse prompt injection and jailbreak permutations to probe system defense boundaries",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-72",
+      "d": 0,
+      "q": "When an autonomous agent delegates a task to a specialist subagent, why should the subagent operate within an isolated context window?",
+      "opts": [
+        "Context isolation prevents the subagent from being distracted by irrelevant parent conversation history and reduces total token consumption",
+        "Subagents cannot run unless all parent history is deleted",
+        "Isolated contexts make all subagent API calls free",
+        "Parent agents are not allowed to view child outputs"
+      ],
+      "a": 0,
+      "exp": "Context isolation prevents the subagent from being distracted by irrelevant parent conversation history and reduces total token consumption",
+      "why": [
+        "Correct. Context isolation prevents the subagent from being distracted by irrelevant parent conversation history and reduces total token consumption",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-73",
+      "d": 1,
+      "q": "What architectural defense prevents an autonomous coding agent from modifying its own safety guardrails or permission files?",
+      "opts": [
+        "Read-only file permissions and kernel-level MAC (Mandatory Access Control) policies protecting configuration files outside the agent's workspace",
+        "Asking the agent nicely not to edit safety files",
+        "Deleting all configuration files from the server",
+        "Running the agent with full root permissions"
+      ],
+      "a": 0,
+      "exp": "Read-only file permissions and kernel-level MAC (Mandatory Access Control) policies protecting configuration files outside the agent's workspace",
+      "why": [
+        "Correct. Read-only file permissions and kernel-level MAC (Mandatory Access Control) policies protecting configuration files outside the agent's workspace",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-74",
+      "d": 2,
+      "q": "What does a high Inter-Rater Reliability score (e.g. Cohen's Kappa > 0.85) indicate in an automated LLM evaluation pipeline?",
+      "opts": [
+        "High consistency and agreement between LLM-as-a-judge evaluations and human expert ground-truth annotations",
+        "That the evaluation pipeline is running at 100% CPU utilization",
+        "That the model has zero parameters",
+        "That all test cases were answered in less than 1 second"
+      ],
+      "a": 0,
+      "exp": "High consistency and agreement between LLM-as-a-judge evaluations and human expert ground-truth annotations",
+      "why": [
+        "Correct. High consistency and agreement between LLM-as-a-judge evaluations and human expert ground-truth annotations",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-75",
+      "d": 3,
+      "q": "Why should critical enterprise AI applications implement rate-limiting token bucket algorithms at the client gateway layer?",
+      "opts": [
+        "To proactively smooth internal traffic bursts and stay within Anthropic API rate limit tiers without triggering HTTP 429 errors",
+        "To prevent users from typing too fast",
+        "To increase API token pricing",
+        "To convert REST requests into SOAP XML"
+      ],
+      "a": 0,
+      "exp": "To proactively smooth internal traffic bursts and stay within Anthropic API rate limit tiers without triggering HTTP 429 errors",
+      "why": [
+        "Correct. To proactively smooth internal traffic bursts and stay within Anthropic API rate limit tiers without triggering HTTP 429 errors",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-76",
+      "d": 4,
+      "q": "In enterprise compliance auditing, what is the role of immutable cryptographic audit logging for agent tool actions?",
+      "opts": [
+        "Providing tamper-evident records of every prompt, tool parameter, execution timestamp, and model completion for regulatory compliance",
+        "Encrypting the source code to hide it from regulators",
+        "Deleting old audit logs every 24 hours",
+        "Translating audit logs into ancient Greek"
+      ],
+      "a": 0,
+      "exp": "Providing tamper-evident records of every prompt, tool parameter, execution timestamp, and model completion for regulatory compliance",
+      "why": [
+        "Correct. Providing tamper-evident records of every prompt, tool parameter, execution timestamp, and model completion for regulatory compliance",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-77",
+      "d": 0,
+      "q": "Why should multi-agent systems implement strict iteration timeouts on subagent execution loops?",
+      "opts": [
+        "To detect and terminate non-converging loops or stalled external dependencies before they exhaust API token budgets",
+        "Because cloud servers cannot run for more than 2 minutes",
+        "To force all agents to complete tasks in 5 seconds",
+        "Because Anthropic forbids long-running tasks"
+      ],
+      "a": 0,
+      "exp": "To detect and terminate non-converging loops or stalled external dependencies before they exhaust API token budgets",
+      "why": [
+        "Correct. To detect and terminate non-converging loops or stalled external dependencies before they exhaust API token budgets",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-78",
+      "d": 1,
+      "q": "How should sensitive API keys and secrets be passed to custom agent tools in production?",
+      "opts": [
+        "Injected securely via environment variables or secret vaults directly to the tool backend, keeping secrets completely out of LLM prompt text",
+        "Hardcoded directly into the LLM system prompt in plain text",
+        "Stored in public GitHub repositories",
+        "Printed to the console log on every turn"
+      ],
+      "a": 0,
+      "exp": "Injected securely via environment variables or secret vaults directly to the tool backend, keeping secrets completely out of LLM prompt text",
+      "why": [
+        "Correct. Injected securely via environment variables or secret vaults directly to the tool backend, keeping secrets completely out of LLM prompt text",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-79",
+      "d": 2,
+      "q": "What is the primary indicator of Prompt Drift in production customer service applications?",
+      "opts": [
+        "A statistically significant drop in evaluation benchmark accuracy or safety compliance scores over time as user query distributions change",
+        "The font style changing in the user's browser",
+        "The server clock losing 5 seconds",
+        "The API key changing its name"
+      ],
+      "a": 0,
+      "exp": "A statistically significant drop in evaluation benchmark accuracy or safety compliance scores over time as user query distributions change",
+      "why": [
+        "Correct. A statistically significant drop in evaluation benchmark accuracy or safety compliance scores over time as user query distributions change",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-80",
+      "d": 3,
+      "q": "What is the function of a Dead-Letter Queue (DLQ) in asynchronous batch AI processing pipelines?",
+      "opts": [
+        "Isolating failed or unprocessable batch items for manual inspection and retry without stalling the main processing pipeline",
+        "Deleting all failed customer requests permanently",
+        "Sending marketing emails to customers whose requests failed",
+        "Shutting down the cloud server on error"
+      ],
+      "a": 0,
+      "exp": "Isolating failed or unprocessable batch items for manual inspection and retry without stalling the main processing pipeline",
+      "why": [
+        "Correct. Isolating failed or unprocessable batch items for manual inspection and retry without stalling the main processing pipeline",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-81",
+      "d": 4,
+      "q": "Why should prompt evaluation benchmarks include a balanced distribution of both positive and negative (adversarial) test cases?",
+      "opts": [
+        "To accurately measure both functional capability (true positive rate) and guardrail resistance against attacks (false positive rate)",
+        "To ensure test suites take at least 24 hours to run",
+        "Because negative test cases make models smarter",
+        "To use up all available storage space"
+      ],
+      "a": 0,
+      "exp": "To accurately measure both functional capability (true positive rate) and guardrail resistance against attacks (false positive rate)",
+      "why": [
+        "Correct. To accurately measure both functional capability (true positive rate) and guardrail resistance against attacks (false positive rate)",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-82",
+      "d": 0,
+      "q": "When designing a multi-agent system for legal contract generation, why should the review subagent be a distinct model instance from the drafting agent?",
+      "opts": [
+        "Independent instances prevent confirmation bias and self-justification loops, ensuring rigorous critique against compliance standards",
+        "A single model instance is incapable of reading text it previously wrote",
+        "Using multiple instances makes all API calls free",
+        "Legal compliance requires exactly three model instances by law"
+      ],
+      "a": 0,
+      "exp": "Independent instances prevent confirmation bias and self-justification loops, ensuring rigorous critique against compliance standards",
+      "why": [
+        "Correct. Independent instances prevent confirmation bias and self-justification loops, ensuring rigorous critique against compliance standards",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-83",
+      "d": 1,
+      "q": "What is the role of Content Security Policy (CSP) headers when rendering Claude Artifacts containing interactive HTML/JavaScript?",
+      "opts": [
+        "Restricting script execution, iframe nesting, and network egress to prevent Cross-Site Scripting (XSS) and data exfiltration from generated code",
+        "Making web pages load in dark mode",
+        "Translating JavaScript into Python",
+        "Compressing HTML files by 50%"
+      ],
+      "a": 0,
+      "exp": "Restricting script execution, iframe nesting, and network egress to prevent Cross-Site Scripting (XSS) and data exfiltration from generated code",
+      "why": [
+        "Correct. Restricting script execution, iframe nesting, and network egress to prevent Cross-Site Scripting (XSS) and data exfiltration from generated code",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-84",
+      "d": 2,
+      "q": "How does calculating Token-per-Dollar efficiency metrics guide enterprise model tier selection?",
+      "opts": [
+        "It quantifies the cost-benefit tradeoff between model intelligence tiers (Haiku vs Sonnet vs Opus) across specific business task complexities",
+        "It converts token costs into foreign currencies",
+        "It proves that the most expensive model is always required",
+        "It eliminates the need for financial budgeting"
+      ],
+      "a": 0,
+      "exp": "It quantifies the cost-benefit tradeoff between model intelligence tiers (Haiku vs Sonnet vs Opus) across specific business task complexities",
+      "why": [
+        "Correct. It quantifies the cost-benefit tradeoff between model intelligence tiers (Haiku vs Sonnet vs Opus) across specific business task complexities",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-85",
+      "d": 3,
+      "q": "In high-reliability microservice architectures, why should AI tool clients implement Thread Pool Bulkheading?",
+      "opts": [
+        "To isolate slow or failing AI tool calls into dedicated thread pools, preventing them from exhausting shared application server resources",
+        "To make CPU threads run twice as fast",
+        "To disable multithreading completely",
+        "To convert Java applications into Python"
+      ],
+      "a": 0,
+      "exp": "To isolate slow or failing AI tool calls into dedicated thread pools, preventing them from exhausting shared application server resources",
+      "why": [
+        "Correct. To isolate slow or failing AI tool calls into dedicated thread pools, preventing them from exhausting shared application server resources",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-86",
+      "d": 4,
+      "q": "What is the purpose of Data Minimization in enterprise prompt engineering governance?",
+      "opts": [
+        "Stripping out unnecessary PII, confidential internal IDs, and irrelevant text before passing prompts to LLMs, reducing privacy and leakage risks",
+        "Reducing prompt length to fewer than 5 words",
+        "Deleting the entire company database",
+        "Converting all text into uppercase letters"
+      ],
+      "a": 0,
+      "exp": "Stripping out unnecessary PII, confidential internal IDs, and irrelevant text before passing prompts to LLMs, reducing privacy and leakage risks",
+      "why": [
+        "Correct. Stripping out unnecessary PII, confidential internal IDs, and irrelevant text before passing prompts to LLMs, reducing privacy and leakage risks",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-87",
+      "d": 0,
+      "q": "How does the Actor Model architecture benefit scalable distributed multi-agent systems?",
+      "opts": [
+        "Each agent actor maintains private state and communicates solely through asynchronous message passing, eliminating shared-memory locking contention",
+        "It converts AI agents into Hollywood movie actors",
+        "It forces all agents to execute on a single thread",
+        "It eliminates the need for network connections"
+      ],
+      "a": 0,
+      "exp": "Each agent actor maintains private state and communicates solely through asynchronous message passing, eliminating shared-memory locking contention",
+      "why": [
+        "Correct. Each agent actor maintains private state and communicates solely through asynchronous message passing, eliminating shared-memory locking contention",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-88",
+      "d": 1,
+      "q": "Why should agent tools that execute SQL queries use prepared statements with parameterized inputs?",
+      "opts": [
+        "To eliminate SQL injection vulnerabilities by separating SQL query code from user-supplied data parameters",
+        "To make SQL queries execute in zero milliseconds",
+        "Because databases cannot understand text queries",
+        "To convert SQL databases into NoSQL databases"
+      ],
+      "a": 0,
+      "exp": "To eliminate SQL injection vulnerabilities by separating SQL query code from user-supplied data parameters",
+      "why": [
+        "Correct. To eliminate SQL injection vulnerabilities by separating SQL query code from user-supplied data parameters",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-89",
+      "d": 2,
+      "q": "What is the primary value of distributed tracing spans in multi-hop agentic workflows?",
+      "opts": [
+        "Visualizing the complete request lifecycle across orchestrators, subagents, and external tool calls to pinpoint latency bottlenecks and failures",
+        "Recording video footage of the server room",
+        "Encrypting database records with blockchain",
+        "Increasing internet bandwidth speeds"
+      ],
+      "a": 0,
+      "exp": "Visualizing the complete request lifecycle across orchestrators, subagents, and external tool calls to pinpoint latency bottlenecks and failures",
+      "why": [
+        "Correct. Visualizing the complete request lifecycle across orchestrators, subagents, and external tool calls to pinpoint latency bottlenecks and failures",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-90",
+      "d": 3,
+      "q": "How does a Weighted Round-Robin model routing strategy improve resilience during high-traffic enterprise operations?",
+      "opts": [
+        "It distributes request load proportionally across multiple API keys, accounts, or cloud provider regions to avoid localized rate limits",
+        "It forces all requests to wait in a 10-minute queue",
+        "It randomly deletes 20% of incoming requests",
+        "It switches all requests to an offline database"
+      ],
+      "a": 0,
+      "exp": "It distributes request load proportionally across multiple API keys, accounts, or cloud provider regions to avoid localized rate limits",
+      "why": [
+        "Correct. It distributes request load proportionally across multiple API keys, accounts, or cloud provider regions to avoid localized rate limits",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-91",
+      "d": 4,
+      "q": "Why is Human-in-the-Loop (HITL) calibration required when training automated LLM-as-a-Judge evaluators?",
+      "opts": [
+        "To establish ground-truth alignment and verify that the automated judge's scoring criteria match human domain expert standards",
+        "Because AI models are not allowed to evaluate text without human supervision by law",
+        "To slow down the evaluation pipeline",
+        "To eliminate the need for test datasets"
+      ],
+      "a": 0,
+      "exp": "To establish ground-truth alignment and verify that the automated judge's scoring criteria match human domain expert standards",
+      "why": [
+        "Correct. To establish ground-truth alignment and verify that the automated judge's scoring criteria match human domain expert standards",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-92",
+      "d": 0,
+      "q": "When designing an autonomous research agent, why should intermediate findings be persisted to external cache or storage after each step?",
+      "opts": [
+        "To ensure partial work survives transient network failures or process restarts without requiring full multi-step re-execution",
+        "Because computer memory is deleted every 10 seconds",
+        "To make all future API calls free",
+        "To convert text notes into PDF documents"
+      ],
+      "a": 0,
+      "exp": "To ensure partial work survives transient network failures or process restarts without requiring full multi-step re-execution",
+      "why": [
+        "Correct. To ensure partial work survives transient network failures or process restarts without requiring full multi-step re-execution",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-93",
+      "d": 1,
+      "q": "What is the primary risk of granting an AI agent unrestricted read-write access to a local file system?",
+      "opts": [
+        "An adversarial prompt injection could instruct the agent to overwrite critical system files or delete proprietary project code",
+        "The hard drive will run out of electricity",
+        "The computer screen will turn blue",
+        "The operating system will switch to French"
+      ],
+      "a": 0,
+      "exp": "An adversarial prompt injection could instruct the agent to overwrite critical system files or delete proprietary project code",
+      "why": [
+        "Correct. An adversarial prompt injection could instruct the agent to overwrite critical system files or delete proprietary project code",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-94",
+      "d": 2,
+      "q": "In production GenAI observability, what metric best captures model hallucination rates on ground-truth extraction benchmarks?",
+      "opts": [
+        "Exact Match (EM) and F1-score against verified ground-truth key-value reference datasets",
+        "The number of lines of code in the application",
+        "The server CPU clock frequency",
+        "The price of the developer's laptop"
+      ],
+      "a": 0,
+      "exp": "Exact Match (EM) and F1-score against verified ground-truth key-value reference datasets",
+      "why": [
+        "Correct. Exact Match (EM) and F1-score against verified ground-truth key-value reference datasets",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-95",
+      "d": 3,
+      "q": "Why should production AI applications implement Half-Open probing states in their Circuit Breaker logic?",
+      "opts": [
+        "To send a small percentage of canary requests to test if an upstream service has recovered before fully reopening traffic",
+        "To run the application at half speed forever",
+        "To halve the cost of all API calls",
+        "To disable error logging"
+      ],
+      "a": 0,
+      "exp": "To send a small percentage of canary requests to test if an upstream service has recovered before fully reopening traffic",
+      "why": [
+        "Correct. To send a small percentage of canary requests to test if an upstream service has recovered before fully reopening traffic",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-96",
+      "d": 4,
+      "q": "What is the role of Differential Privacy in large-scale LLM data analysis pipelines?",
+      "opts": [
+        "Adding mathematical noise to aggregate query outputs to prevent the reconstruction of individual user records from statistical data",
+        "Encrypting the entire hard drive with AES-256",
+        "Deleting all customer records after 1 hour",
+        "Translating data into binary numbers"
+      ],
+      "a": 0,
+      "exp": "Adding mathematical noise to aggregate query outputs to prevent the reconstruction of individual user records from statistical data",
+      "why": [
+        "Correct. Adding mathematical noise to aggregate query outputs to prevent the reconstruction of individual user records from statistical data",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-97",
+      "d": 0,
+      "q": "Why should multi-agent systems maintain a centralized execution event log in production?",
+      "opts": [
+        "To enable post-incident debugging, deterministic replay of agent decisions, and complete compliance auditing of autonomous actions",
+        "Because servers crash without event logs",
+        "To prevent developers from seeing what agents did",
+        "To force agents to run at 10% speed"
+      ],
+      "a": 0,
+      "exp": "To enable post-incident debugging, deterministic replay of agent decisions, and complete compliance auditing of autonomous actions",
+      "why": [
+        "Correct. To enable post-incident debugging, deterministic replay of agent decisions, and complete compliance auditing of autonomous actions",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-98",
+      "d": 1,
+      "q": "When building an agent that generates customer refund checks, why is cryptographic multi-party authorization required for transactions over $1,000?",
+      "opts": [
+        "To prevent single-agent compromise or prompt injection from autonomously executing high-value unauthorized financial transfers",
+        "Because banks only accept checks signed by two computers",
+        "To make check printing 100 times faster",
+        "Because AI models cannot count above 1,000"
+      ],
+      "a": 0,
+      "exp": "To prevent single-agent compromise or prompt injection from autonomously executing high-value unauthorized financial transfers",
+      "why": [
+        "Correct. To prevent single-agent compromise or prompt injection from autonomously executing high-value unauthorized financial transfers",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-99",
+      "d": 2,
+      "q": "What does a high P99 latency metric signify in real-time streaming AI customer applications?",
+      "opts": [
+        "The worst 1% of user requests experience severe delay, often pointing to cache misses, deep reasoning loops, or network bottlenecks",
+        "That 99% of requests failed completely",
+        "That the server is operating at peak efficiency",
+        "That the model is running on a quantum computer"
+      ],
+      "a": 0,
+      "exp": "The worst 1% of user requests experience severe delay, often pointing to cache misses, deep reasoning loops, or network bottlenecks",
+      "why": [
+        "Correct. The worst 1% of user requests experience severe delay, often pointing to cache misses, deep reasoning loops, or network bottlenecks",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
+    },
+    {
+      "id": "ccapq-100",
+      "d": 3,
+      "q": "Why should enterprise AI architectures decouple prompt execution from downstream database persistence using asynchronous message queues?",
+      "opts": [
+        "To absorb traffic spikes, prevent database write connection bottlenecks, and ensure durable retries for failed database transactions",
+        "To make database writes execute in zero milliseconds",
+        "To bypass database authentication",
+        "To convert SQL databases into text files"
+      ],
+      "a": 0,
+      "exp": "To absorb traffic spikes, prevent database write connection bottlenecks, and ensure durable retries for failed database transactions",
+      "why": [
+        "Correct. To absorb traffic spikes, prevent database write connection bottlenecks, and ensure durable retries for failed database transactions",
+        "Incorrect. This does not align with enterprise architectural best practices.",
+        "Incorrect. This represents an anti-pattern or invalid technical claim.",
+        "Incorrect. This violates core system design principles."
+      ]
     }
   ],
   "cards": [
@@ -1032,6 +1963,71 @@
       "f": "Partial delivery principle",
       "b": "Persist intermediate results as you go — a 95%-done failure should still deliver 95% of the value.",
       "id": "ccapc-6f7ecdd0"
+    },
+    {
+      "id": "ccapc-blackboard-pattern",
+      "f": "What is the Blackboard Pattern in multi-agent systems?",
+      "b": "A centralized, structured state store where independent specialized subagents read and write findings rather than passing full conversational chat history between each other."
+    },
+    {
+      "id": "ccapc-otel-genai-spans",
+      "f": "What are the standard OpenTelemetry span attributes for GenAI calls?",
+      "b": "gen_ai.system ('anthropic'), gen_ai.request.model, gen_ai.usage.prompt_tokens, and gen_ai.usage.completion_tokens."
+    },
+    {
+      "id": "ccapc-microvm-sandboxing",
+      "f": "Why should untrusted agent code execution use gVisor or Firecracker microVMs?",
+      "b": "They provide lightweight virtualization with kernel-level isolation, preventing container escapes and unauthorized host filesystem access."
+    },
+    {
+      "id": "ccapc-indirect-injection",
+      "f": "What is Indirect Prompt Injection in multi-agent architectures?",
+      "b": "Malicious instructions hidden inside external data (web pages, customer emails, tool outputs) designed to hijack downstream agent tool execution."
+    },
+    {
+      "id": "ccapc-tenant-attribution",
+      "f": "How are multi-tenant API costs tracked in enterprise deployments?",
+      "b": "By attaching metadata: {'tenant_id': '...', 'user_id': '...'} on every request for automated billing allocation."
+    },
+    {
+      "id": "ccapc-circuit-breaker-cascade",
+      "f": "What is the role of a Circuit Breaker on downstream agent tools?",
+      "b": "It trips after N consecutive failures, immediately failing fast to prevent latency cascades and token spend on broken dependencies."
+    },
+    {
+      "id": "ccapc-least-privilege-egress",
+      "f": "What is Least-Privilege Egress filtering for agent environments?",
+      "b": "Restricting network traffic to explicitly allowlisted external APIs, blocking unauthorized data exfiltration."
+    },
+    {
+      "id": "ccapc-dag-deadlock-prevention",
+      "f": "How do Architects prevent deadlocks in multi-agent workflows?",
+      "b": "By enforcing Directed Acyclic Graph (DAG) task structures and strict wall-clock iteration timeouts on all agent loops."
+    },
+    {
+      "id": "ccapc-pairwise-eval",
+      "f": "Why use Pairwise Evaluation in LLM-as-a-Judge benchmarking?",
+      "b": "Comparing Model A vs Model B side-by-side (and swapping positions) produces higher inter-rater reliability than absolute numeric scoring."
+    },
+    {
+      "id": "ccapc-budget-caps",
+      "f": "How should per-run agent budget caps be determined?",
+      "b": "From the P99 token consumption distribution of successful benchmark runs plus a defined safety margin."
+    },
+    {
+      "id": "ccapc-confirmation-gates",
+      "f": "What architectural control protects high-impact operations (e.g. database DROP/DELETE)?",
+      "b": "Human-in-the-loop (HITL) cryptographic confirmation gates that require out-of-band user approval before tool execution."
+    },
+    {
+      "id": "ccapc-zero-trust-boundary",
+      "f": "Where is the Zero-Trust boundary drawn in LLM applications?",
+      "b": "Between developer system prompts (trusted) and all external inputs, RAG documents, and tool return values (untrusted data)."
+    },
+    {
+      "id": "ccapc-synthetic-redteaming",
+      "f": "What is Automated Synthetic Red-Teaming?",
+      "b": "Using specialized adversary models to generate thousands of diverse prompt injection and jailbreak permutations to probe system defense boundaries."
     }
   ],
   "lessons": [

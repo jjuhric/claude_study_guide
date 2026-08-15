@@ -1,26 +1,26 @@
 {
   "ccao": {
     "code": "CCAO-F",
-    "questions": 70,
-    "cards": 12,
+    "questions": 100,
+    "cards": 25,
     "lessons": 8
   },
   "ccdv": {
     "code": "CCDV-F",
-    "questions": 70,
-    "cards": 13,
+    "questions": 100,
+    "cards": 25,
     "lessons": 8
   },
   "ccaf": {
     "code": "CCAR-F",
-    "questions": 51,
-    "cards": 12,
+    "questions": 100,
+    "cards": 25,
     "lessons": 6
   },
   "ccap": {
     "code": "CCAR-P",
-    "questions": 51,
-    "cards": 12,
+    "questions": 100,
+    "cards": 25,
     "lessons": 6
   }
 }

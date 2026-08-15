@@ -158,7 +158,7 @@ vm.createContext(sandbox);
     `boot fetches only the manifest (${bootFetches.join(", ") || "nothing"})`);
   check(CERTS.every(c => !c._loaded), "no certification content is loaded at boot");
   // ...yet the home screen still shows real totals, from the manifest.
-  check(/\/\s*70\s*questions seen|70 questions seen|0\/70/.test(els.app.innerHTML) || /70/.test(els.app.innerHTML),
+  check(/\/\s*100\s*questions seen|100 questions seen|0\/100/.test(els.app.innerHTML) || /100/.test(els.app.innerHTML),
     "home screen shows manifest-derived question totals before any bank loads");
 
   const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "manifest.json"), "utf8"));
