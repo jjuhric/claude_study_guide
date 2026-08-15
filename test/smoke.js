@@ -716,6 +716,16 @@ vm.createContext(sandbox);
   call("diagnosticRadarView");
   check(/Diagnostic Radar & Audit Report/.test(els.app.innerHTML) && /svg/.test(els.app.innerHTML), "diagnostic radar view renders multi-axis audit");
 
+  /* ---------- 24. Power Suite & Workflow Integration ---------- */
+  call("openShortcutsModal");
+  check(true, "openShortcutsModal executes without throwing");
+
+  call("mcpSchemaBuilderView");
+  check(/Tool Schema Builder/.test(els.app.innerHTML) && /tbSchemaOutput/.test(els.app.innerHTML), "mcpSchemaBuilderView renders interactive JSON Schema constructor");
+
+  call("startMasterRemediation");
+  check(true, "startMasterRemediation executes without throwing");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();

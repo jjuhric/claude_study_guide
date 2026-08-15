@@ -4529,6 +4529,242 @@ function diagnosticRadarView(){
     + '</div>';
 }
 
+
+/* ================= 1. KEYBOARD SHORTCUTS HUD ================= */
+function openShortcutsModal(){
+  const existing = document.getElementById("shortcutsModal");
+  if (existing) { existing.remove(); return; }
+  
+  const modal = document.createElement("div");
+  modal.id = "shortcutsModal";
+  modal.className = "modal-overlay";
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width:500px; background:var(--card); border:2px solid var(--border); border-radius:14px; padding:20px; box-shadow:0 12px 36px rgba(0,0,0,0.4);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 style="font-size:18px; margin:0;">⌨️ Power-User Keyboard Shortcuts</h3>
+        <button class="btn ghost sm" onclick="document.getElementById('shortcutsModal').remove()" style="padding:2px 8px;">✕</button>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:12.5px;">
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px;">
+          <b style="display:block; color:var(--ink); margin-bottom:6px;">Study & Testing</b>
+          <div style="margin-bottom:4px;"><kbd style="background:var(--card); border:1px solid var(--border); padding:2px 5px; border-radius:4px; font-weight:700;">1</kbd>–<kbd style="background:var(--card); border:1px solid var(--border); padding:2px 5px; border-radius:4px; font-weight:700;">4</kbd> Select Answer Option</div>
+          <div style="margin-bottom:4px;"><kbd style="background:var(--card); border:1px solid var(--border); padding:2px 5px; border-radius:4px; font-weight:700;">Space</kbd> / <kbd style="background:var(--card); border:1px solid var(--border); padding:2px 5px; border-radius:4px; font-weight:700;">Enter</kbd> Flip Card / Advance</div>
+          <div><kbd style="background:var(--card); border:1px solid var(--border); padding:2px 5px; border-radius:4px; font-weight:700;">F</kbd> Flag Question in Mock</div>
+        </div>
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px;">
+          <b style="display:block; color:var(--ink); margin-bottom:6px;">Global Navigation</b>
+          <div style="margin-bottom:4px;"><kbd style="background:var(--card); border:1px solid var(--border); padding:2px 5px; border-radius:4px; font-weight:700;">Ctrl+K</kbd> Universal Search</div>
+          <div style="margin-bottom:4px;"><kbd style="background:var(--card); border:1px solid var(--border); padding:2px 5px; border-radius:4px; font-weight:700;">Ctrl+B</kbd> Bookmarks & Notes</div>
+          <div style="margin-bottom:4px;"><kbd style="background:var(--card); border:1px solid var(--border); padding:2px 5px; border-radius:4px; font-weight:700;">Ctrl+M</kbd> Toggle Audio Sound</div>
+          <div style="margin-bottom:4px;"><kbd style="background:var(--card); border:1px solid var(--border); padding:2px 5px; border-radius:4px; font-weight:700;">Ctrl+T</kbd> Cycle Dark/Light Theme</div>
+          <div><kbd style="background:var(--card); border:1px solid var(--border); padding:2px 5px; border-radius:4px; font-weight:700;">?</kbd> Open Shortcuts Menu</div>
+        </div>
+      </div>
+      <div style="margin-top:14px; text-align:right;">
+        <button class="btn sm" onclick="document.getElementById('shortcutsModal').remove()">Got it!</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+/* ================= 2. CALENDAR .ICS SCHEDULE EXPORT ================= */
+function exportStudyScheduleIcs(){
+  const trackId = document.getElementById("spCertSelect")?.value || "ccdv";
+  const paceDays = parseInt(document.getElementById("spDaysSelect")?.value || "14", 10);
+  const cert = CERTS.find(x => x.id === trackId) || CERTS[0];
+  
+  let ics = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Claude Cert Quest//Study Planner//EN\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n";
+  const now = new Date();
+  
+  for (let d = 1; d <= paceDays; d++) {
+    const eventDate = new Date(now.getTime() + d * 86400000);
+    const dateStr = eventDate.toISOString().slice(0,10).replace(/-/g, "");
+    const isMockDay = (d % 7 === 0) || (d === paceDays);
+    const summary = isMockDay ? ("👑 " + cert.code + " Timed Mock Simulation") : ("📚 " + cert.code + " Daily Practice Session (Day " + d + ")");
+    const desc = isMockDay ? "Sit for a full timed 20-question practice mock exam in Claude Cert Quest." : "Complete 1 lesson and 15 practice drill questions in Claude Cert Quest.";
+    
+    ics += "BEGIN:VEVENT\r\n"
+      + "UID:certquest-" + trackId + "-day-" + d + "-" + dateStr + "@certquest.app\r\n"
+      + "DTSTAMP:" + dateStr + "T090000Z\r\n"
+      + "DTSTART:" + dateStr + "T090000Z\r\n"
+      + "DTEND:" + dateStr + "T093000Z\r\n"
+      + "SUMMARY:" + summary + "\r\n"
+      + "DESCRIPTION:" + desc + "\r\n"
+      + "STATUS:CONFIRMED\r\n"
+      + "END:VEVENT\r\n";
+  }
+  
+  ics += "END:VCALENDAR\r\n";
+  
+  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = cert.code.toLowerCase() + "-study-schedule.ics";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast("📅 Exported " + paceDays + "-day study schedule (.ics) for Google/Apple/Outlook!");
+}
+
+/* ================= 3. INTERACTIVE MCP TOOL SCHEMA BUILDER ================= */
+let toolBuilderState = {
+  name: "get_weather_forecast",
+  desc: "Retrieve 7-day weather forecast and precipitation alerts for a specific city.",
+  params: [
+    { name: "city", type: "string", desc: "The city name (e.g. San Francisco)", enumVals: "", required: true },
+    { name: "unit", type: "string", desc: "Temperature unit", enumVals: "celsius, fahrenheit", required: false },
+    { name: "days", type: "number", desc: "Forecast horizon in days (1-7)", enumVals: "", required: false }
+  ]
+};
+
+function mcpSchemaBuilderView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--blue); color:#fff;">Tool Architecture</span><h2 style="font-size:20px; margin-top:4px;">🧩 Interactive Tool Schema Builder & JSON Validator</h2></div>'
+    + '<div style="display:flex; gap:6px;">'
+    + '<button class="btn sm" onclick="copyToolSchemaJson()">📋 Copy JSON Schema</button>'
+    + '<button class="btn ghost sm" onclick="addToolParamRow()">➕ Add Parameter</button>'
+    + '</div>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Construct and validate Anthropic-compliant tool calling definitions with real-time JSON Schema output.</p>'
+    + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:16px;">'
+    + '<div style="border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--card);">'
+    + '<h4 style="font-size:13.5px; margin-bottom:10px;">🛠️ Tool Definition</h4>'
+    + '<div style="margin-bottom:10px;"><label style="font-size:12px; font-weight:700; display:block; margin-bottom:2px;">Tool Name:</label><input id="tbName" type="text" value="' + esc(toolBuilderState.name) + '" oninput="toolBuilderState.name=this.value; renderToolSchemaJson()" style="width:100%; padding:6px 8px; font-size:13px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink);"></div>'
+    + '<div style="margin-bottom:12px;"><label style="font-size:12px; font-weight:700; display:block; margin-bottom:2px;">Tool Description:</label><textarea id="tbDesc" oninput="toolBuilderState.desc=this.value; renderToolSchemaJson()" style="width:100%; height:60px; padding:6px 8px; font-size:12.5px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-family:inherit;">' + esc(toolBuilderState.desc) + '</textarea></div>'
+    + '<h5 style="font-size:12.5px; margin-bottom:8px;">Input Parameters (JSON Schema Properties):</h5>'
+    + '<div id="tbParamsList" style="display:flex; flex-direction:column; gap:8px;"></div>'
+    + '</div>'
+    + '<div>'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">'
+    + '<span style="font-size:12px; font-weight:700; color:var(--coral-dark);">Validated Anthropic Tool Definition:</span>'
+    + '<span id="tbValidationBadge" style="font-size:11px; font-weight:700; color:var(--green);">✓ Valid JSON Schema</span>'
+    + '</div>'
+    + '<pre id="tbSchemaOutput" style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px; font-size:11.5px; font-family:Consolas,monospace; line-height:1.4; overflow-x:auto; max-height:420px;"></pre>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+  
+  renderToolParamRows();
+  renderToolSchemaJson();
+}
+
+function renderToolParamRows(){
+  const list = document.getElementById("tbParamsList");
+  if (!list) return;
+  list.innerHTML = toolBuilderState.params.map((p, idx) => `
+    <div style="border:1px solid var(--border); border-radius:8px; padding:10px; background:var(--bg); font-size:12px;">
+      <div style="display:flex; gap:6px; margin-bottom:6px;">
+        <input type="text" placeholder="param_name" value="${esc(p.name)}" oninput="toolBuilderState.params[${idx}].name=this.value; renderToolSchemaJson()" style="flex:2; padding:4px 6px; border-radius:4px; border:1px solid var(--border); background:var(--card); color:var(--ink); font-size:12px;">
+        <select onchange="toolBuilderState.params[${idx}].type=this.value; renderToolSchemaJson()" style="flex:1; padding:4px 6px; border-radius:4px; border:1px solid var(--border); background:var(--card); color:var(--ink); font-size:12px;">
+          <option value="string" ${p.type==='string'?'selected':''}>string</option>
+          <option value="number" ${p.type==='number'?'selected':''}>number</option>
+          <option value="boolean" ${p.type==='boolean'?'selected':''}>boolean</option>
+          <option value="array" ${p.type==='array'?'selected':''}>array</option>
+          <option value="object" ${p.type==='object'?'selected':''}>object</option>
+        </select>
+        <button class="btn ghost sm" onclick="removeToolParamRow(${idx})" style="padding:2px 6px; color:var(--coral);">✕</button>
+      </div>
+      <input type="text" placeholder="Parameter description..." value="${esc(p.desc)}" oninput="toolBuilderState.params[${idx}].desc=this.value; renderToolSchemaJson()" style="width:100%; padding:4px 6px; border-radius:4px; border:1px solid var(--border); background:var(--card); color:var(--ink); font-size:11.5px; margin-bottom:6px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <input type="text" placeholder="Optional enum (comma-separated)" value="${esc(p.enumVals)}" oninput="toolBuilderState.params[${idx}].enumVals=this.value; renderToolSchemaJson()" style="flex:1; padding:3px 6px; border-radius:4px; border:1px solid var(--border); background:var(--card); color:var(--ink); font-size:11px; margin-right:8px;">
+        <label style="font-size:11.5px; font-weight:700; display:flex; align-items:center; gap:4px;"><input type="checkbox" ${p.required?'checked':''} onchange="toolBuilderState.params[${idx}].required=this.checked; renderToolSchemaJson()"> Required</label>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addToolParamRow(){
+  toolBuilderState.params.push({ name: "new_param", type: "string", desc: "", enumVals: "", required: false });
+  renderToolParamRows();
+  renderToolSchemaJson();
+}
+
+function removeToolParamRow(idx){
+  toolBuilderState.params.splice(idx, 1);
+  renderToolParamRows();
+  renderToolSchemaJson();
+}
+
+function renderToolSchemaJson(){
+  const out = document.getElementById("tbSchemaOutput");
+  if (!out) return;
+  
+  const properties = {};
+  const required = [];
+  
+  toolBuilderState.params.forEach(p => {
+    if (!p.name) return;
+    const prop = { type: p.type, description: p.desc || "" };
+    if (p.enumVals) {
+      prop.enum = p.enumVals.split(",").map(s => s.trim()).filter(Boolean);
+    }
+    properties[p.name] = prop;
+    if (p.required) required.push(p.name);
+  });
+  
+  const toolObj = {
+    name: toolBuilderState.name || "custom_tool",
+    description: toolBuilderState.desc || "",
+    input_schema: {
+      type: "object",
+      properties: properties,
+      required: required
+    }
+  };
+  
+  out.textContent = JSON.stringify(toolObj, null, 2);
+}
+
+function copyToolSchemaJson(){
+  const text = document.getElementById("tbSchemaOutput")?.textContent || "";
+  navigator.clipboard.writeText(text).then(() => toast("📋 Anthropic Tool Schema copied!"));
+}
+
+/* ================= 4. CROSS-TRACK ULTIMATE REMEDIATION PLAYLIST ================= */
+function startMasterRemediation(){
+  const allMisses = [];
+  CERTS.forEach(c => {
+    const ans = S.answered[c.id] || {};
+    if (c._loaded && c.questions) {
+      c.questions.forEach((q, qi) => {
+        if (ans[qKey(c, qi)] === false) {
+          allMisses.push({ cert: c, q, qi });
+        }
+      });
+    }
+  });
+  
+  if (!allMisses.length) {
+    toast("✨ No missed questions recorded across any track! Try a quiz first.");
+    return;
+  }
+  
+  // Launch master drill on random sample of misses
+  const selected = shuffleArr(allMisses).slice(0, 20);
+  const sampleCert = selected[0].cert;
+  
+  Q = {
+    cert: sampleCert,
+    idxs: selected.map(s => s.qi),
+    i: 0,
+    correct: 0,
+    combo: 0,
+    mode: "review",
+    stats: {},
+    label: "Cross-Track Master Remediation (" + selected.length + " misses)"
+  };
+  
+  quizQ();
+}
+
 /* ================= LESSON WIDGETS ================= */
 function initLessonWidgets(){
   const boxes = document.querySelectorAll('.widget-box');
@@ -5182,9 +5418,38 @@ function finishMock(){
    answer path is reachable without the mouse. Handlers read the live DOM
    rather than tracking screen state, so they stay correct as views change. */
 document.addEventListener("keydown", e=>{
-  if(e.metaKey||e.ctrlKey||e.altKey) return;
   const tag=(e.target&&e.target.tagName||"").toLowerCase();
   if(tag==="input"||tag==="textarea") return;
+
+  // Shortcuts with Ctrl / Meta
+  if (e.ctrlKey || e.metaKey) {
+    if (e.key === "k" || e.key === "K") { e.preventDefault(); openSearchModal(); return; }
+    if (e.key === "b" || e.key === "B") { e.preventDefault(); bookmarksView(); return; }
+    if (e.key === "m" || e.key === "M") { e.preventDefault(); toggleSound(); return; }
+    if (e.key === "t" || e.key === "T") { e.preventDefault(); cycleTheme(); return; }
+    if (e.key === "/" || e.key === "?") { e.preventDefault(); openShortcutsModal(); return; }
+  }
+
+  // Escape to close modals or back
+  if (e.key === "Escape") {
+    const m = document.querySelector(".modal-overlay");
+    if (m) { m.remove(); return; }
+  }
+
+  if (e.key === "?" && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault();
+    openShortcutsModal();
+    return;
+  }
+
+  // F to toggle flag in mock
+  if ((e.key === "f" || e.key === "F") && typeof M !== 'undefined' && M && Array.isArray(M.idxs)) {
+    e.preventDefault();
+    if (typeof toggleFlag === 'function') toggleFlag(M.i);
+    return;
+  }
+
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
   const card=$("fc");
   const opts=[...document.querySelectorAll(".opt")];
   const next=$("nextb");
