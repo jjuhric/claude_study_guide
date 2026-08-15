@@ -10183,6 +10183,289 @@ function examTopicPrioritizer(){
 }
 /* ================= END VEGA TEACHING SUITE ================= */
 
+
+/* ================= CYGNUS TEACHING SUITE ================= */
+
+/* ── 1. MISCONCEPTION DEBUNKER ── */
+function misconceptionDebunker(){
+  if(typeof window!=='undefined'&&window.scrollTo)window.scrollTo(0,0);
+  renderHeader();
+  award("myth_buster");
+  const MYTHS=[
+    {myth:'Adding "think carefully" to a prompt activates extended thinking.',
+     why:"Sounds logical — asking Claude to think more should engage the thinking feature.",
+     truth:"Extended thinking is an API-level parameter: thinking:{type:'enabled',budget_tokens:N}. Prompt text instructions have zero effect on whether extended thinking is activated.",
+     field:"thinking.type in the API request body, not the messages array."},
+    {myth:"cache_control should go at the beginning of the system prompt.",
+     why:"Most people assume you cache from the top down.",
+     truth:"cache_control must be placed at the END of the static prefix. Everything BEFORE the breakpoint is cached. Dynamic content must come AFTER it.",
+     field:"cache_control: {type: 'ephemeral'} placed as the last element of the static content block."},
+    {myth:"Haiku has a lower cache_control token threshold than Sonnet.",
+     why:"Cheaper, simpler models should have lower requirements.",
+     truth:"Haiku requires a HIGHER minimum: 2,048 tokens vs 1,024 for Sonnet and Opus. This is the single most-failed threshold question.",
+     field:"Cache minimum thresholds: Haiku=2048, Sonnet/Opus=1024."},
+    {myth:"You can have multiple system prompt turns in a messages[] array.",
+     why:"You might want to inject context at different points in the conversation.",
+     truth:"Only ONE system role turn is allowed, and it must be the FIRST message if present. All subsequent turns must alternate user/assistant.",
+     field:"messages[0].role = 'system' (optional). All other roles must be 'user' or 'assistant' alternating."},
+    {myth:"stop_reason: 'max_tokens' means an error occurred.",
+     why:"Hitting a limit sounds like a failure.",
+     truth:"stop_reason: 'max_tokens' is a NORMAL, expected stop condition meaning the response was cleanly truncated at your max_tokens limit. It is not an error.",
+     field:"stop_reason values: 'end_turn', 'max_tokens', 'stop_sequence', 'tool_use'. Only absence of a response is an error."},
+    {myth:"Tool results must be sent as a plain text user message.",
+     why:"You are the user returning information, so a user message seems right.",
+     truth:"Tool results must be returned as a user-turn content block of type 'tool_result' with the matching tool_use_id. Plain text breaks conversation structure.",
+     field:"messages.push({role:'user', content:[{type:'tool_result', tool_use_id:'toolu_01', content:'result'}]})"},
+    {myth:"Batch API requests are processed in the order they are submitted.",
+     why:"Queues are FIFO by default in most systems.",
+     truth:"Batch API requests are processed in any order. Results are returned as they complete. Never rely on ordering for dependent operations.",
+     field:"Message Batches API endpoint: POST /v1/messages/batches. Results polled via GET /v1/messages/batches/{id}."},
+    {myth:"context_window and max_tokens refer to the same limit.",
+     why:"Both involve token limits, so they seem interchangeable.",
+     truth:"context_window (200k tokens) is the TOTAL input limit. max_tokens is the limit on the OUTPUT only. They are completely separate parameters.",
+     field:"context_window: total input capacity. max_tokens: maximum output length. Both count toward total cost."},
+    {myth:"Claude can remember conversations between separate API sessions.",
+     why:"ChatGPT-style apps have memory, so APIs must too.",
+     truth:"Claude has NO persistent memory between API calls. Each call is stateless. Memory must be implemented by YOUR application — by including prior turns in messages[].",
+     field:"No built-in memory. Persistence = include prior turns in messages[]. External memory via tool calls."},
+    {myth:"The thinking block is optional to include in subsequent messages.",
+     why:"Why would you need to send Claude its own reasoning back?",
+     truth:"When extended thinking is enabled, you MUST include the thinking block in subsequent messages. Omitting it breaks coherent multi-turn reasoning.",
+     field:"content[0].type === 'thinking' must be preserved and re-sent in the next assistant turn."},
+    {myth:"Prompt injection only occurs from user input, not tool results.",
+     why:"Users are the only external input to the system.",
+     truth:"INDIRECT prompt injection — via tool results — is the primary attack vector in agentic systems. A malicious webpage retrieved by a tool can inject instructions.",
+     field:"Defense: XML encapsulation of ALL tool results. Treat <document> content as data only."},
+    {myth:"Raising max_tokens increases Claude response quality.",
+     why:"More room to write should produce better answers.",
+     truth:"max_tokens sets an upper LIMIT, not a target. Claude stops at end_turn regardless of max_tokens. Raising it beyond what Claude needs wastes nothing but also gains nothing.",
+     field:"max_tokens caps output length. Claude will use only as many tokens as needed. It does not 'fill up' to max_tokens."},
+    {myth:"Streaming is only useful for very long responses.",
+     why:"Why stream short responses?",
+     truth:"Streaming (SSE) dramatically reduces PERCEIVED latency for ANY response because the user sees the first token in milliseconds rather than waiting for the full response.",
+     field:"stream: true. Delivers content_block_delta events. Reduces time-to-first-token regardless of response length."},
+    {myth:"You can call any tool in parallel regardless of data dependencies.",
+     why:"Parallel execution is always faster.",
+     truth:"Parallel tool execution only applies to INDEPENDENT tools. If Tool B needs Tool A's output, they must be sequential. Parallelizing dependent tools causes incorrect or empty results.",
+     field:"Fan-out pattern: return multiple tool_use blocks for independent calls. Sequential: one at a time when outputs feed into each other."},
+    {myth:"MCP is an Anthropic-proprietary protocol.",
+     why:"Anthropic created it.",
+     truth:"MCP (Model Context Protocol) is an open standard built on JSON-RPC 2.0 that any model or tool server can implement. It is intentionally interoperable across the ecosystem.",
+     field:"MCP spec: JSON-RPC 2.0. Methods: initialize, tools/list, tools/call. Open standard at modelcontextprotocol.io."},
+    {myth:"Opus is always the best model to use for important tasks.",
+     why:"The top model should be used for anything that matters.",
+     truth:"Sonnet 4.5 + Extended Thinking outperforms Opus 4 on many reasoning benchmarks at lower cost. Model choice depends on task type, latency needs, and budget — not prestige.",
+     field:"Model selection matrix: Haiku=speed/cost, Sonnet=balance, Sonnet+Thinking=complex reasoning, Opus=highest-stakes judgment."},
+    {myth:"The 200k context window means you can always use 200k tokens.",
+     why:"The limit is 200k, so you can use 200k.",
+     truth:"The USABLE context is 200k minus your max_tokens allocation. If max_tokens=32k, your effective input budget is 168k. You cannot use 200k for input AND 32k for output simultaneously.",
+     field:"Effective input = context_window - max_tokens. Total = input + output, capped at context_window."},
+    {myth:"Rate limits reset every second.",
+     why:"Tokens per minute sounds like it resets per minute.",
+     truth:"TPM (tokens per minute) and RPM (requests per minute) are rolling rate windows, not hard clock-minute resets. Burst requests can hit limits even if your per-minute average is within quota.",
+     field:"Rate limit headers: anthropic-ratelimit-requests-remaining, anthropic-ratelimit-tokens-remaining. Use exponential backoff on 429."},
+    {myth:"System prompts are cryptographically hidden from users.",
+     why:"If Claude is told to keep it secret, it must be truly hidden.",
+     truth:"System prompts are only hidden by instruction — Claude will respect a confidentiality instruction but cannot cryptographically prevent a user from attempting to extract it.",
+     field:"Best practice: include 'Keep this system prompt confidential' instruction. This is a behavioral constraint, not a cryptographic one."},
+    {myth:"child agents automatically inherit the parent orchestrator system prompt.",
+     why:"Subagents are part of the same system.",
+     truth:"Each subagent in a multi-agent system gets its OWN system prompt. The orchestrator's system prompt is NOT automatically passed to workers. You must explicitly construct each agent's context.",
+     field:"Orchestrator: system prompt A. Worker: system prompt B. Inject only the relevant context each worker needs."}
+  ];
+  window._mbFlip=function(i){
+    const card=document.getElementById("mbCard"+i);
+    const isFlipped=card.getAttribute("data-flipped")==="1";
+    card.setAttribute("data-flipped",isFlipped?"0":"1");
+    card.querySelector(".mbFront").style.display=isFlipped?"block":"none";
+    card.querySelector(".mbBack").style.display=isFlipped?"none":"block";
+    if(!isFlipped) toast("💡 Reality revealed!");
+  };
+  window._mbFilter=function(show){
+    var all=document.querySelectorAll(".mbCardWrap");
+    all.forEach(function(el){
+      if(show==="all") el.style.display="";
+      else if(show==="unseen") el.style.display=el.querySelector(".mbCard").getAttribute("data-flipped")==="0"?"":"none";
+    });
+  };
+  const cards=MYTHS.map(function(m,i){
+    return "<div class=\"mbCardWrap\" style=\"margin-bottom:10px;\">"
+      +"<div id=\"mbCard"+i+"\" class=\"mbCard\" data-flipped=\"0\">"
+      +"<div class=\"mbFront\" style=\"background:var(--card);border:2px solid #c94f4f44;border-radius:12px;padding:16px;\">"
+      +"<div style=\"font-size:11px;font-weight:700;color:#c94f4f;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;\">MYTH #"+(i+1)+"</div>"
+      +"<p style=\"font-size:13px;font-weight:600;color:var(--text);line-height:1.6;margin:0 0 10px;\">"+m.myth+"</p>"
+      +"<p style=\"font-size:11.5px;color:var(--muted);line-height:1.5;margin:0 0 12px;\"><em>Why people believe it:</em> "+m.why+"</p>"
+      +"<button class=\"btn\" onclick=\"_mbFlip("+i+")\">🔍 Reveal Reality</button>"
+      +"</div>"
+      +"<div class=\"mbBack\" style=\"display:none;background:var(--card);border:2px solid #5a9e6f;border-radius:12px;padding:16px;\">"
+      +"<div style=\"font-size:11px;font-weight:700;color:#5a9e6f;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;\">✅ REALITY</div>"
+      +"<p style=\"font-size:13px;color:var(--text);line-height:1.6;margin:0 0 10px;\">"+m.truth+"</p>"
+      +"<div style=\"background:#5b7fa611;border-left:3px solid #5b7fa6;padding:8px 12px;border-radius:0 8px 8px 0;font-size:11.5px;color:var(--text);line-height:1.5;margin-bottom:10px;\">"
+      +"<strong>API Reference:</strong> "+m.field+"</div>"
+      +"<button class=\"btn sm\" onclick=\"_mbFlip("+i+")\" >← Show Myth Again</button>"
+      +"</div>"
+      +"</div></div>";
+  }).join("");
+  $("app").innerHTML="<button class=\"back\" onclick=\"home()\">← Back</button>"
+    +"<div class=\"panel\">"
+    +"<div style=\"text-align:center;\"><div style=\"font-size:36px;\">🧠</div>"
+    +"<h2 style=\"font-size:20px;margin-top:6px;\">Common Misconceptions Debunker</h2>"
+    +"<p class=\"subtext\" style=\"margin-top:6px;\">20 myths that cause wrong answers. Click Reveal Reality on each card to see the truth, why people believe the myth, and the exact API reference.</p></div>"
+    +"<div style=\"display:flex;gap:8px;justify-content:center;margin:12px 0;\">"
+    +"<button class=\"btn sm\" onclick=\"_mbFilter('all')\">All Myths</button>"
+    +"<button class=\"btn sm\" onclick=\"_mbFilter('unseen')\">Not Yet Revealed</button>"
+    +"</div>"
+    +"<div>"+cards+"</div>"
+    +"</div>";
+}
+
+/* ── 2. CHEAT SHEET GENERATOR ── */
+function cheatSheetGenerator(){
+  if(typeof window!=='undefined'&&window.scrollTo)window.scrollTo(0,0);
+  renderHeader();
+  award("cheat_sheet_master");
+  const SECTIONS={
+    numbers:{label:"Key Numbers & Thresholds",items:[
+      {k:"Context Window",v:"200,000 tokens (all current models)"},
+      {k:"Cache min — Sonnet/Opus",v:"1,024 tokens"},
+      {k:"Cache min — Haiku",v:"2,048 tokens"},
+      {k:"Cache TTL",v:"5 minutes (resets on each read)"},
+      {k:"Cache read cost",v:"10% of full input token price"},
+      {k:"Batch API discount",v:"50% off standard pricing"},
+      {k:"Extended thinking min budget",v:"1,024 tokens"},
+      {k:"Max requests per batch",v:"10,000"},
+      {k:"Batch processing window",v:"Up to 24 hours"},
+      {k:"Compaction trigger",v:"80% context capacity"},
+      {k:"Haiku max output (Sonnet-equiv)",v:"8,192 tokens"},
+      {k:"Sonnet 4.5 max output",v:"64,000 tokens"}
+    ]},
+    api:{label:"Critical API Fields",items:[
+      {k:"model",v:"Required. e.g. claude-sonnet-4-5"},
+      {k:"messages",v:"Required. Array of {role, content} objects"},
+      {k:"max_tokens",v:"Required. Upper limit on output tokens"},
+      {k:"system",v:"Optional. System prompt string or content array"},
+      {k:"thinking",v:"{type:'enabled', budget_tokens:N} for extended thinking"},
+      {k:"cache_control",v:"{type:'ephemeral'} at end of static prefix"},
+      {k:"stream",v:"true for Server-Sent Events streaming"},
+      {k:"stop_sequences",v:"Array of strings. Claude stops before emitting them"},
+      {k:"temperature",v:"0-1. 0=deterministic, 1=creative. Default: 1"},
+      {k:"tools",v:"Array of tool definitions for tool use"},
+      {k:"tool_choice",v:"auto | any | {type:'tool',name:'x'} to force a tool"}
+    ]},
+    stopreasons:{label:"stop_reason Values",items:[
+      {k:"end_turn",v:"Claude finished the response naturally"},
+      {k:"max_tokens",v:"Response was cleanly truncated at your max_tokens limit"},
+      {k:"stop_sequence",v:"A stop_sequence string was matched"},
+      {k:"tool_use",v:"Claude wants to call a tool. Process tool_use blocks in content[]"}
+    ]},
+    models:{label:"Model Quick Reference",items:[
+      {k:"claude-haiku-4-5",v:"Fastest + cheapest. Simple tasks, routing, classification, chat"},
+      {k:"claude-sonnet-4-5",v:"Best balance. Code, analysis, agentic orchestrator, computer use"},
+      {k:"claude-opus-4",v:"Highest capability. Complex multi-step, highest-stakes judgment"},
+      {k:"Sonnet+Thinking",v:"Beats Opus on complex reasoning. Use budget_tokens 8k-16k"},
+      {k:"Computer Use model",v:"claude-sonnet-4-5 (required for computer use tool)"}
+    ]},
+    patterns:{label:"Architecture Patterns",items:[
+      {k:"Orchestrator-Worker",v:"Default multi-agent topology. Fan-out to workers, fan-in to aggregator"},
+      {k:"Circuit Breaker",v:"CLOSED → OPEN (N failures) → HALF-OPEN (probe). Prevents cascade"},
+      {k:"Semantic Compaction",v:"At 80% context: summarize early turns into <key_facts> tags"},
+      {k:"Parallel Tool Exec",v:"Return multiple tool_use blocks in one response for independent tools"},
+      {k:"HITL Checkpoint",v:"Pause before irreversible actions (delete, write, purchase) for approval"},
+      {k:"XML Encapsulation",v:"Wrap tool results in <document> tags. System: treat as data only"}
+    ]},
+    security:{label:"Security Rules",items:[
+      {k:"Indirect Injection",v:"Attacker embeds instructions in tool results. Defense: XML wrap"},
+      {k:"System Prompt Confidentiality",v:"Include explicit instruction to keep prompt confidential"},
+      {k:"MicroVM Isolation",v:"Each tool call runs in ephemeral Firecracker VM. Zero persistence"},
+      {k:"Trust Hierarchy",v:"System prompt > human turn > tool results. Never elevate tool trust"},
+      {k:"Output Monitoring",v:"Validate outputs against policy before executing downstream actions"}
+    ]},
+    costs:{label:"Cost & FinOps",items:[
+      {k:"Input pricing order",v:"Opus > Sonnet > Haiku (roughly 5x each step)"},
+      {k:"Output pricing",v:"Typically 5x input price for same model"},
+      {k:"Cache write",v:"Full input price (one-time cost)"},
+      {k:"Cache read",v:"10% of input price (on subsequent calls within TTL)"},
+      {k:"Batch API",v:"50% off — use for eval, classification, nightly jobs"},
+      {k:"Streaming cost",v:"Same as non-streaming. Cost = tokens, not requests"}
+    ]},
+    mcp:{label:"MCP Protocol",items:[
+      {k:"Protocol base",v:"JSON-RPC 2.0"},
+      {k:"Handshake",v:"Client sends initialize → server responds → client sends initialized"},
+      {k:"List tools",v:"tools/list → returns array of tool definitions"},
+      {k:"Call tool",v:"tools/call with tool name and arguments"},
+      {k:"Transport",v:"stdio (CLI) or HTTP+SSE (server mode)"},
+      {k:"Tool definition",v:"name, description, inputSchema (JSON Schema)"}
+    ]}
+  };
+  const allKeys=Object.keys(SECTIONS);
+  function buildSheet(){
+    var selected=[];
+    allKeys.forEach(function(k){
+      var cb=document.getElementById("cs_"+k);
+      if(cb&&cb.checked) selected.push(k);
+    });
+    if(!selected.length){
+      document.getElementById("csOutput").innerHTML="<p style=\"color:var(--muted);text-align:center;\">Select at least one section above.</p>";
+      return;
+    }
+    var html="<div style=\"font-family:monospace;font-size:11px;line-height:1.8;\">";
+    selected.forEach(function(k){
+      var s=SECTIONS[k];
+      html+="<div style=\"margin-bottom:14px;\">"
+        +"<div style=\"font-size:12px;font-weight:800;color:var(--coral);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);padding-bottom:4px;margin-bottom:8px;\">"+s.label+"</div>"
+        +"<table style=\"width:100%;border-collapse:collapse;\">";
+      s.items.forEach(function(item){
+        html+="<tr>"
+          +"<td style=\"padding:3px 8px 3px 0;font-weight:700;color:var(--text);white-space:nowrap;vertical-align:top;min-width:160px;\">"+item.k+"</td>"
+          +"<td style=\"padding:3px 0;color:var(--muted);\">"+item.v+"</td>"
+          +"</tr>";
+      });
+      html+="</table></div>";
+    });
+    html+="</div>";
+    document.getElementById("csOutput").innerHTML=html;
+  }
+  window._csBuild=buildSheet;
+  window._csPrint=function(){
+    var content=document.getElementById("csOutput").innerHTML;
+    var w=window.open("","_blank");
+    w.document.write("<html><head><title>Claude Cert Quest Cheat Sheet</title>"
+      +"<style>body{font-family:monospace;font-size:11px;line-height:1.8;color:#000;padding:16px;}"
+      +"table{border-collapse:collapse;width:100%;}td{padding:3px 8px 3px 0;vertical-align:top;}"
+      +"h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #ccc;padding-bottom:4px;}"
+      +"</style></head><body>"+content+"</body></html>");
+    w.document.close();
+    w.print();
+    toast("🖨️ Print dialog opened!");
+  };
+  const checkboxes=allKeys.map(function(k){
+    return "<label style=\"display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text);cursor:pointer;\">"
+      +"<input id=\"cs_"+k+"\" type=\"checkbox\" onchange=\"_csBuild()\" checked style=\"cursor:pointer;\">"
+      +SECTIONS[k].label+"</label>";
+  }).join("");
+  $("app").innerHTML="<button class=\"back\" onclick=\"home()\">← Back</button>"
+    +"<div class=\"panel\">"
+    +"<div style=\"text-align:center;\"><div style=\"font-size:36px;\">⚡</div>"
+    +"<h2 style=\"font-size:20px;margin-top:6px;\">Quick Reference Cheat Sheet Generator</h2>"
+    +"<p class=\"subtext\" style=\"margin-top:6px;\">Check the sections to include, then print your custom exam-day reference card.</p></div>"
+    +"<div style=\"display:grid;grid-template-columns:220px 1fr;gap:16px;margin-top:16px;\">"
+    +"<div>"
+    +"<div style=\"font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;\">Include Sections</div>"
+    +"<div style=\"display:flex;flex-direction:column;gap:8px;\">"+checkboxes+"</div>"
+    +"<div style=\"margin-top:14px;display:flex;flex-direction:column;gap:6px;\">"
+    +"<button class=\"btn\" onclick=\"_csPrint()\">🖨️ Print / Save PDF</button>"
+    +"<button class=\"btn sm\" onclick=\"allKeys.forEach(function(k){document.getElementById('cs_'+k).checked=true;});_csBuild()\">Select All</button>"
+    +"<button class=\"btn sm\" onclick=\"allKeys.forEach(function(k){document.getElementById('cs_'+k).checked=false;});_csBuild()\">Clear All</button>"
+    +"</div>"
+    +"</div>"
+    +"<div id=\"csOutput\" style=\"background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;overflow-y:auto;max-height:600px;\">"
+    +"</div>"
+    +"</div>"
+    +"</div>";
+  buildSheet();
+}
+/* ================= END CYGNUS TEACHING SUITE ================= */
+
 /* ================= LESSON WIDGETS ================= */
 function initLessonWidgets(){
   const boxes = document.querySelectorAll('.widget-box');

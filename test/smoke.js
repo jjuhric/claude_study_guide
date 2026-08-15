@@ -1026,9 +1026,17 @@ vm.createContext(sandbox);
   call("examTopicPrioritizer");
   check(/High-Yield Exam Topic Prioritizer/.test(els.app.innerHTML) && /etpBody/.test(els.app.innerHTML), "examTopicPrioritizer renders priority list");
 
+  /* ---------- 46. Cygnus Teaching Suite ---------- */
+  call("misconceptionDebunker");
+  check(/Common Misconceptions Debunker/.test(els.app.innerHTML) && /mbCard0/.test(els.app.innerHTML), "misconceptionDebunker renders 20-card myth deck");
+
+  call("cheatSheetGenerator");
+  check(/Quick Reference Cheat Sheet Generator/.test(els.app.innerHTML) && /csOutput/.test(els.app.innerHTML), "cheatSheetGenerator renders cheat sheet builder");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
+
 
 
 
