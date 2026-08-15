@@ -726,6 +726,19 @@ vm.createContext(sandbox);
   call("startMasterRemediation");
   check(true, "startMasterRemediation executes without throwing");
 
+  /* ---------- 25. Grandmaster Suite ---------- */
+  call("trapHunterView");
+  check(/Exam Trap Hunter/.test(els.app.innerHTML) && /trapCodeLines/.test(els.app.innerHTML), "trapHunterView renders spot-the-bug mini-game");
+
+  call("audioQuizView");
+  check(/Hands-Free Audio Quiz/.test(els.app.innerHTML) && /aqTrackSelect/.test(els.app.innerHTML), "audioQuizView renders audio player controls");
+
+  call("thinkingTraceExplorer");
+  check(/Extended Thinking/.test(els.app.innerHTML) && /traceVisualBox/.test(els.app.innerHTML), "thinkingTraceExplorer renders reasoning trace simulator");
+
+  call("peerBenchmarkView");
+  check(/Global Candidate Benchmark/.test(els.app.innerHTML) && /svg/.test(els.app.innerHTML), "peerBenchmarkView renders Gaussian Bell curve");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();

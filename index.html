@@ -449,6 +449,10 @@ const CERTS = [
 ];
 
 const BADGES = [
+ {id:"trap_hunter", em:"⚡", name:"Trap Hunter", desc:"Spot critical exam code traps in the Trap Hunter mini-game"},
+ {id:"audio_scholar", em:"🎙️", name:"Audio Scholar", desc:"Complete a hands-free Audio Quiz session"},
+ {id:"reasoning_master", em:"🧠", name:"Reasoning Master", desc:"Explore Extended Thinking token allocation in the trace visualizer"},
+ {id:"top_percentile", em:"📊", name:"Elite Candidate", desc:"Reach the top 10% benchmark curve in Global Readiness"},
  {id:"mock_interview", em:"🎙️", name:"Board Certified", desc:"Clear the Anthropic Oral Defense Review Board"},
  {id:"roi_architect", em:"💰", name:"FinOps Master", desc:"Calculate production cost ROI in the Model Calculator"},
  {id:"context_master", em:"🧱", name:"Token Tactician", desc:"Simulate 80% semantic context compaction"},
@@ -4763,6 +4767,391 @@ function startMasterRemediation(){
   };
   
   quizQ();
+}
+
+
+/* ================= 1. EXAM TRAP HUNTER MINI-GAME ================= */
+const TRAP_SCENARIOS = [
+  {
+    title: "Scenario 1: Extended Thinking Budget Configuration",
+    desc: "Find the fatal configuration error that causes the Messages API to reject this call with HTTP 400.",
+    lines: [
+      { t: "import anthropic", err: false },
+      { t: "client = anthropic.Anthropic()", err: false },
+      { t: "response = client.messages.create(", err: false },
+      { t: "    model='claude-3-5-sonnet-20241022',", err: false },
+      { t: "    max_tokens=4000,", err: false },
+      { t: "    thinking={'type': 'enabled', 'budget_tokens': 4096},", err: true, reason: "FATAL ERROR: budget_tokens (4096) must be STRICTLY LESS than max_tokens (4000). Setting budget >= max_tokens causes an immediate HTTP 400 bad request error." },
+      { t: "    messages=[{'role': 'user', 'content': 'Prove the Riemann Hypothesis'}]", err: false },
+      { t: ")", err: false }
+    ]
+  },
+  {
+    title: "Scenario 2: HTTP 429 Rate Limit Retry Loop",
+    desc: "Identify the flawed retry pattern that causes cascading server outages ('thundering herd').",
+    lines: [
+      { t: "def call_claude_with_retry(prompt, attempt=0):", err: false },
+      { t: "    try:", err: false },
+      { t: "        return client.messages.create(model='claude-3-5-haiku-20241022', max_tokens=1000, ...)", err: false },
+      { t: "    except anthropic.RateLimitError:", err: false },
+      { t: "        if attempt >= 5: raise", err: false },
+      { t: "        time.sleep(2 ** attempt)", err: true, reason: "FATAL ERROR: Standard deterministic exponential backoff synchronizes retries across thousands of clients. You MUST implement Full Jitter: random.uniform(0, min(max_backoff, base * 2**attempt))." },
+      { t: "        return call_claude_with_retry(prompt, attempt + 1)", err: false }
+    ]
+  },
+  {
+    title: "Scenario 3: Tool Execution Error Return Protocol",
+    desc: "Spot the protocol error that causes Claude to hallucinate that a failed database query succeeded.",
+    lines: [
+      { t: "# Application executes tool call", err: false },
+      { t: "try:", err: false },
+      { t: "    res = db.execute('SELECT * FROM secret_vault')", err: false },
+      { t: "except DatabaseTimeoutError as e:", err: false },
+      { t: "    tool_response = {", err: false },
+      { t: "        'type': 'tool_result',", err: false },
+      { t: "        'tool_use_id': 'toolu_019A8B',", err: false },
+      { t: "        'content': 'Database connection timed out after 5000ms'", err: true, reason: "FATAL ERROR: Missing 'is_error': True! Without is_error: True, Claude interprets the timeout message as a successful string result returned from the database." },
+      { t: "    }", err: false }
+    ]
+  },
+  {
+    title: "Scenario 4: Prompt Engineering Directives",
+    desc: "Identify the poor prompt practice that violates Anthropic positive framing guidelines.",
+    lines: [
+      { t: "<system>", err: false },
+      { t: "You are a customer billing specialist.", err: false },
+      { t: "<instructions>", err: false },
+      { t: "Don't be verbose, never use markdown headers, and don't make mistakes.", err: true, reason: "POOR PRACTICE: Negative directives ('Don't do X', 'Never do Y') provide no actionable guidance. Replace with positive, measurable criteria: 'Provide a 3-bullet concise summary in plain text.'" },
+      { t: "</instructions>", err: false },
+      { t: "</system>", err: false }
+    ]
+  }
+];
+
+let trapIdx = 0;
+let trapHunterScore = 0;
+
+function trapHunterView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  const sc = TRAP_SCENARIOS[trapIdx % TRAP_SCENARIOS.length];
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--coral); color:#fff;">Mini-Game</span><h2 style="font-size:20px; margin-top:4px;">⚡ Exam Trap Hunter (Spot-the-Bug)</h2></div>'
+    + '<span style="font-size:12px; font-weight:700; color:var(--muted);">' + (trapIdx + 1) + ' / ' + TRAP_SCENARIOS.length + ' Traps</span>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Review the production code / configuration snippet below. Click on the <b>single faulty line</b> that violates Anthropic best practices or API rules.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card); margin-bottom:16px;">'
+    + '<h4 style="font-size:14px; margin-bottom:4px; color:var(--ink);">' + sc.title + '</h4>'
+    + '<p style="font-size:12px; color:var(--muted); margin-bottom:12px;">' + sc.desc + '</p>'
+    + '<div id="trapCodeLines" style="display:flex; flex-direction:column; gap:2px; font-family:Consolas,monospace; font-size:12px;">'
+    + sc.lines.map((l, i) => '<div id="trapLine_' + i + '" onclick="pickTrapLine(' + i + ')" style="padding:6px 10px; border-radius:6px; background:var(--bg); border:1px solid transparent; cursor:pointer; user-select:none; transition:all .15s;">'
+        + '<span style="color:var(--muted); margin-right:10px; font-size:10.5px;">' + (i + 1) + '</span>'
+        + esc(l.t)
+        + '</div>').join('')
+    + '</div>'
+    + '<div id="trapFeedbackBox" style="margin-top:14px;"></div>'
+    + '</div>'
+    + '</div>';
+}
+
+function pickTrapLine(i){
+  const sc = TRAP_SCENARIOS[trapIdx % TRAP_SCENARIOS.length];
+  const line = sc.lines[i];
+  const fBox = document.getElementById("trapFeedbackBox");
+  const el = document.getElementById("trapLine_" + i);
+  
+  if (!el) return;
+  
+  if (line.err) {
+    // Found the trap!
+    el.style.background = "rgba(90,158,111,0.25)";
+    el.style.borderColor = "var(--green)";
+    playSound('correct');
+    trapHunterScore++;
+    if (trapHunterScore >= 2) award("trap_hunter");
+    addXP(30, "Trap Spotted");
+    
+    if (fBox) {
+      fBox.innerHTML = '<div style="border-left:4px solid var(--green); background:var(--bg); padding:12px 14px; border-radius:0 8px 8px 0; font-size:12.5px; line-height:1.5;">'
+        + '<div style="font-weight:700; color:var(--green); font-size:13.5px; margin-bottom:4px;">🎯 Trap Caught! Spot-on!</div>'
+        + esc(line.reason)
+        + '</div>'
+        + '<div class="rowbtns" style="margin-top:12px;">'
+        + '<button class="btn sm" onclick="trapIdx++; trapHunterView()">Next Exam Trap →</button>'
+        + '</div>';
+    }
+  } else {
+    // Wrong line
+    el.style.background = "rgba(217,119,87,0.2)";
+    el.style.borderColor = "var(--coral)";
+    playSound('wrong');
+    setTimeout(() => {
+      el.style.background = "var(--bg)";
+      el.style.borderColor = "transparent";
+    }, 600);
+  }
+}
+
+/* ================= 2. HANDS-FREE AUDIO QUIZ MODE ================= */
+let audioQuizState = {
+  certId: "ccao",
+  active: false,
+  idx: 0,
+  questions: [],
+  timer: null
+};
+
+function audioQuizView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  $("app").innerHTML = '<button class="back" onclick="stopAudioQuiz(); home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">🎙️</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Hands-Free Audio Quiz (Active Recall)</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Study on the go. High-yield questions and 4-way explanations read aloud automatically with pause-and-reveal timing.</p>'
+    + '<div style="display:flex; justify-content:center; gap:10px; margin:16px 0; flex-wrap:wrap;">'
+    + '<select id="aqTrackSelect" onchange="audioQuizState.certId=this.value" style="padding:8px 12px; font-size:13px; font-weight:700; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--ink);">'
+    + CERTS.map(c => '<option value="' + c.id + '" ' + (c.id === audioQuizState.certId ? 'selected' : '') + '>' + c.code + ' · ' + c.name + '</option>').join('')
+    + '</select>'
+    + '<button id="aqStartBtn" class="btn" onclick="startAudioQuizSession()">▶️ Start Audio Session</button>'
+    + '<button id="aqStopBtn" class="btn ghost" onclick="stopAudioQuiz()" style="display:none;">⏹️ Stop</button>'
+    + '</div>'
+    + '<div id="aqDisplayCard" style="border:2px solid var(--border); border-radius:12px; padding:18px; background:var(--card); max-width:600px; margin:0 auto; text-align:left; display:none;">'
+    + '<div id="aqStatus" style="font-size:12px; font-weight:700; color:var(--coral); margin-bottom:6px;"></div>'
+    + '<div id="aqQuestionText" style="font-size:15px; font-weight:700; line-height:1.5; margin-bottom:12px;"></div>'
+    + '<div id="aqOptionsText" style="font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:12px;"></div>'
+    + '<div id="aqRationaleText" style="font-size:12.5px; border-left:3px solid var(--green); padding:8px 12px; background:var(--bg); display:none;"></div>'
+    + '</div>'
+    + '</div>';
+}
+
+function startAudioQuizSession(){
+  const c = CERTS.find(x => x.id === audioQuizState.certId);
+  if (!c) return;
+  if (!c._loaded) {
+    loadCert(c).then(() => startAudioQuizSession());
+    return;
+  }
+  
+  audioQuizState.questions = shuffleArr(c.questions.slice()).slice(0, 10);
+  audioQuizState.idx = 0;
+  audioQuizState.active = true;
+  
+  document.getElementById("aqStartBtn") && (document.getElementById("aqStartBtn").style.display = "none");
+  document.getElementById("aqStopBtn") && (document.getElementById("aqStopBtn").style.display = "inline-block");
+  document.getElementById("aqDisplayCard") && (document.getElementById("aqDisplayCard").style.display = "block");
+  
+  award("audio_scholar");
+  playAudioQuizTurn();
+}
+
+function playAudioQuizTurn(){
+  if (!audioQuizState.active || audioQuizState.idx >= audioQuizState.questions.length) {
+    stopAudioQuiz();
+    toast("✨ Audio Quiz Session Complete!");
+    return;
+  }
+  
+  const q = audioQuizState.questions[audioQuizState.idx];
+  const qEl = document.getElementById("aqQuestionText");
+  const oEl = document.getElementById("aqOptionsText");
+  const rEl = document.getElementById("aqRationaleText");
+  const sEl = document.getElementById("aqStatus");
+  
+  if (sEl) sEl.textContent = "Question " + (audioQuizState.idx + 1) + " of " + audioQuizState.questions.length;
+  if (qEl) qEl.textContent = q.q;
+  if (oEl) oEl.innerHTML = q.opts.map((o, i) => "<b>Option " + (i + 1) + ":</b> " + esc(o)).join("<br>");
+  if (rEl) { rEl.style.display = "none"; rEl.textContent = ""; }
+  
+  if (typeof window !== 'undefined' && window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+    
+    // 1. Speak Question
+    const promptText = "Question " + (audioQuizState.idx + 1) + ": " + q.q + ". " + q.opts.map((o, i) => "Option " + (i + 1) + ": " + o).join(". ");
+    const utt = new SpeechSynthesisUtterance(promptText);
+    utt.rate = 1.0;
+    
+    utt.onend = () => {
+      // 2. Pause for 3 seconds for active recall
+      if (!audioQuizState.active) return;
+      if (sEl) sEl.textContent = "🤔 Thinking... revealing answer in 3 seconds...";
+      playSound('flip');
+      
+      setTimeout(() => {
+        if (!audioQuizState.active) return;
+        // 3. Reveal and speak answer
+        if (sEl) sEl.textContent = "✅ Correct Answer: Option " + (q.a + 1);
+        if (rEl) {
+          rEl.style.display = "block";
+          rEl.innerHTML = "<b>Correct Answer: Option " + (q.a + 1) + " (" + esc(q.opts[q.a]) + ")</b><br>" + esc(q.exp);
+        }
+        playSound('correct');
+        
+        const ansText = "The correct answer is Option " + (q.a + 1) + ": " + q.opts[q.a] + ". " + q.exp;
+        const ansUtt = new SpeechSynthesisUtterance(ansText);
+        ansUtt.rate = 1.0;
+        ansUtt.onend = () => {
+          if (!audioQuizState.active) return;
+          setTimeout(() => {
+            audioQuizState.idx++;
+            playAudioQuizTurn();
+          }, 2500);
+        };
+        window.speechSynthesis.speak(ansUtt);
+      }, 3000);
+    };
+    
+    window.speechSynthesis.speak(utt);
+  }
+}
+
+function stopAudioQuiz(){
+  audioQuizState.active = false;
+  if (typeof window !== 'undefined' && window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+  }
+  document.getElementById("aqStartBtn") && (document.getElementById("aqStartBtn").style.display = "inline-block");
+  document.getElementById("aqStopBtn") && (document.getElementById("aqStopBtn").style.display = "none");
+}
+
+/* ================= 3. EXTENDED THINKING TRACE EXPLORER ================= */
+let traceBudget = 2048;
+
+function thinkingTraceExplorer(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--purple); color:#fff;">Reasoning Architecture</span><h2 style="font-size:20px; margin-top:4px;">🧠 Extended Thinking & Reasoning Trace Visualizer</h2></div>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Simulate Claude 3.5 Sonnet\'s internal chain-of-thought generation inside private <code>&lt;thinking&gt;</code> blocks.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card); margin-bottom:16px;">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">'
+    + '<label style="font-size:12.5px; font-weight:700;">Select <code>budget_tokens</code> Ceiling: <span id="traceBudgetVal" style="color:var(--purple); font-size:15px;">' + traceBudget.toLocaleString() + ' tokens</span></label>'
+    + '<div style="display:flex; gap:6px;">'
+    + '<button class="btn ghost sm" onclick="setTraceBudget(1024)">1,024t</button>'
+    + '<button class="btn ghost sm" onclick="setTraceBudget(2048)">2,048t</button>'
+    + '<button class="btn ghost sm" onclick="setTraceBudget(4096)">4,096t</button>'
+    + '<button class="btn ghost sm" onclick="setTraceBudget(8192)">8,192t</button>'
+    + '</div>'
+    + '</div>'
+    + '<div id="traceVisualBox"></div>'
+    + '</div>'
+    + '</div>';
+  
+  renderTraceVisual();
+}
+
+function setTraceBudget(b){
+  traceBudget = b;
+  document.getElementById("traceBudgetVal") && (document.getElementById("traceBudgetVal").textContent = b.toLocaleString() + " tokens");
+  award("reasoning_master");
+  renderTraceVisual();
+}
+
+function renderTraceVisual(){
+  const box = document.getElementById("traceVisualBox");
+  if (!box) return;
+  
+  const isHigh = traceBudget >= 4096;
+  const isMed = traceBudget >= 2048 && traceBudget < 4096;
+  
+  box.innerHTML = '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:14px;">'
+    + '<div style="border:1px solid var(--border); border-radius:10px; padding:12px; background:var(--bg);">'
+    + '<div style="font-size:11px; font-weight:800; color:var(--purple); text-transform:uppercase; margin-bottom:4px;">Internal Reasoning Trace (&lt;thinking&gt; block)</div>'
+    + '<pre style="font-size:11px; font-family:Consolas,monospace; line-height:1.4; color:var(--ink); max-height:220px; overflow-y:auto; background:var(--card); padding:10px; border-radius:6px; border:1px solid var(--border);">'
+    + esc(isHigh
+        ? "<thinking>\n1. Analyzing enterprise constraint: 50,000 documents/day with sub-second SLA.\n2. Evaluating topology candidates:\n   - Autonomous loop: token variance +/-40%, non-deterministic branching.\n   - Orchestrator-Workers: deterministic fan-out, wall clock = max(t).\n3. Verifying context compaction rule:\n   - 80% threshold = 160,000 tokens.\n   - Preserving <key_facts> XML structure.\n4. Validating math & cost attribution spans...\n</thinking>"
+        : isMed
+        ? "<thinking>\n1. Evaluating Orchestrator-Workers vs Autonomous loop.\n2. Fan-out parallel processing is optimal.\n3. Context threshold: 160k tokens.\n</thinking>"
+        : "<thinking>\n1. Selecting Orchestrator-Workers topology for predictable document extraction latency.\n</thinking>")
+    + '</pre>'
+    + '</div>'
+    + '<div style="border:1px solid var(--border); border-radius:10px; padding:12px; background:var(--bg);">'
+    + '<div style="font-size:11px; font-weight:800; color:var(--green); text-transform:uppercase; margin-bottom:4px;">Final Synthesized Output (User-Facing)</div>'
+    + '<pre style="font-size:11px; font-family:Consolas,monospace; line-height:1.4; color:var(--ink); max-height:220px; overflow-y:auto; background:var(--card); padding:10px; border-radius:6px; border:1px solid var(--border);">'
+    + esc("Deploy an Orchestrator-Workers topology with proactive 80% semantic compaction (160k tokens). This reduces pipeline latency from sum(t) to max(t) while guaranteeing full schema validation.")
+    + '</pre>'
+    + '<div style="font-size:11px; color:var(--muted); margin-top:8px;">'
+    + '💡 <b>Exam Rule:</b> Thinking tokens are billed as standard output tokens, but are completely hidden from standard user output.'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+/* ================= 4. CANDIDATE PERCENTILE BENCHMARK & BELL CURVE ================= */
+function peerBenchmarkView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  // Calculate candidate global index
+  let totalSeen = 0, totalCorrect = 0;
+  CERTS.forEach(c => {
+    const p = certProgress(c);
+    totalSeen += p.seen;
+    totalCorrect += p.correct;
+  });
+  
+  const acc = totalSeen > 0 ? (totalCorrect / totalSeen) : 0;
+  const xp = S.xp || 0;
+  
+  // Normalized score out of 1000
+  const normScore = Math.min(990, Math.max(200, Math.round(acc * 800 + Math.min(190, xp / 10))));
+  
+  // Compute percentile using Gaussian error function approximation
+  const mean = 550, stdDev = 140;
+  const z = (normScore - mean) / stdDev;
+  const percentile = Math.min(99.8, Math.max(1.0, Math.round((1 / (1 + Math.exp(-0.07056 * Math.pow(z, 3) - 1.5976 * z))) * 1000) / 10));
+  
+  if (percentile >= 90) award("top_percentile");
+  
+  // Draw SVG Bell Curve
+  const w = 400, h = 160;
+  let curvePts = [];
+  for (let x = 0; x <= w; x += 5) {
+    const scoreVal = 200 + (x / w) * 800;
+    const zScore = (scoreVal - mean) / stdDev;
+    const yVal = h - (Math.exp(-0.5 * zScore * zScore) * 130);
+    curvePts.push(x + ',' + yVal.toFixed(1));
+  }
+  
+  const markerX = Math.min(w - 10, Math.max(10, ((normScore - 200) / 800) * w));
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">📊</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Global Candidate Benchmark & Percentile Curve</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Statistical placement relative to candidate benchmark cohorts across all 4 Anthropic certifications.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:18px; background:var(--card); max-width:620px; margin:16px auto;">'
+    + '<div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px;">'
+    + '<div><span style="font-size:32px; font-weight:900; color:var(--coral);">' + normScore + '</span><span style="font-size:13px; color:var(--muted);"> / 1000 Normalized Readiness</span></div>'
+    + '<span style="font-size:14px; font-weight:800; color:var(--green);">Top ' + (100 - percentile).toFixed(1) + '% (Percentile: ' + percentile + '%)</span>'
+    + '</div>'
+    + '<div style="margin:16px 0;">'
+    + '<svg viewBox="0 0 400 160" width="100%" height="160" style="overflow:visible;">'
+    + '<polyline points="' + curvePts.join(' ') + '" fill="none" stroke="var(--border)" stroke-width="3"/>'
+    + '<line x1="' + markerX + '" y1="10" x2="' + markerX + '" y2="160" stroke="var(--coral)" stroke-width="2.5" stroke-dasharray="4,4"/>'
+    + '<circle cx="' + markerX + '" cy="30" r="5" fill="var(--coral)"/>'
+    + '<text x="' + markerX + '" y="16" text-anchor="middle" font-size="10" font-weight="800" fill="var(--coral)">YOU (' + normScore + ')</text>'
+    + '</svg>'
+    + '<div style="display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-top:4px;">'
+    + '<span>200 (Novice)</span><span>550 (Average Candidate)</span><span>720 (Passing Benchmark)</span><span>1000 (Grandmaster)</span>'
+    + '</div>'
+    + '</div>'
+    + '<div style="font-size:12.5px; color:var(--muted); line-height:1.5; border-top:1px solid var(--border); padding-top:10px; margin-top:10px;">'
+    + (normScore >= 720
+        ? '🟢 <b>Ready for Exam Scheduling:</b> Your performance indexes comfortably above the 720 benchmark. You are in the top tier of candidates.'
+        : '🟡 <b>Preparation Phase:</b> Keep drilling your weakest domains and taking timed mock exams to push your score past 720.')
+    + '</div>'
+    + '</div>'
+    + '</div>';
 }
 
 /* ================= LESSON WIDGETS ================= */
