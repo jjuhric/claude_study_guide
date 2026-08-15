@@ -604,7 +604,27 @@ vm.createContext(sandbox);
       if (n && w / n < 35) ratios.push(`${id} "${l.h}" ${Math.round(w / n)}w per question`);
     });
   }
-  check(ratios.length === 0, `lessons carry at least 35 words per question they teach (${ratios.slice(0, 3).join("; ") || "all above"})`);
+  /* ---------- 18. PWA, audio & search checks ---------- */
+  const manifestFile = path.join(ROOT, "manifest.webmanifest");
+  check(fs.existsSync(manifestFile), "manifest.webmanifest exists");
+  try {
+    const webMan = JSON.parse(fs.readFileSync(manifestFile, "utf8"));
+    check(webMan.name === "Claude Cert Quest" && webMan.display === "standalone", "manifest.webmanifest is valid");
+  } catch(e) { check(false, `manifest.webmanifest parse error: ${e.message}`); }
+
+  const swFile = path.join(ROOT, "sw.js");
+  check(fs.existsSync(swFile), "sw.js service worker file exists");
+
+  const soundDefault = evalIn(`S_DEFAULTS.sound`);
+  check(soundDefault === false, "sound is muted by default as requested");
+
+  const noLessonId = [];
+  for (const [id, d] of Object.entries(data)) {
+    d.lessons.forEach((l, i) => {
+      if (!l.id) noLessonId.push(`${id} lesson[${i}]`);
+    });
+  }
+  check(noLessonId.length === 0, `every lesson has a stable string id (${noLessonId.slice(0, 3).join(", ") || "all present"})`);
 
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;

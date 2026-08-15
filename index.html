@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Claude Cert Quest</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#d97757">
 <style>
   :root{
     --bg:#faf7f2; --card:#ffffff; --ink:#2b2620; --muted:#8a8073;
@@ -245,6 +247,47 @@
   .vbox .vicon{flex-shrink:0; font-size:15px; margin-top:1px;}
   .vbox .vtitle{color:#c4302b; font-weight:600;}
   .vbox .vdesc{display:block; font-size:11.5px; color:var(--muted); font-weight:400;}
+  .exambox{border-left:4px solid var(--gold); background:rgba(232,180,72,.12); border-radius:0 12px 12px 0; padding:13px 16px; margin:14px 0; font-size:13.5px;}
+  .exambox .lbl{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--coral-dark); margin-bottom:6px;}
+  .widget-box{background:var(--card); border:2px solid var(--border); border-radius:14px; padding:16px; margin:16px 0;}
+  .widget-box h5{font-size:13.5px; font-weight:700; margin-bottom:10px; color:var(--coral-dark);}
+  .widget-box label{font-size:12px; color:var(--muted); display:block; margin-bottom:4px;}
+  .widget-box input, .widget-box select, .widget-box textarea{width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-size:13px; background:var(--bg); color:var(--ink); font-family:inherit; margin-bottom:10px;}
+
+  /* Modals */
+  .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; z-index:100; padding:16px;}
+  .modal-box{background:var(--card); border-radius:16px; padding:20px; max-width:600px; width:100%; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 8px 30px rgba(0,0,0,.3); border:2px solid var(--border);}
+  .modal-hdr{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
+  .modal-hdr h3{font-size:17px;}
+  .modal-close{background:none; border:none; font-size:22px; cursor:pointer; color:var(--muted); padding:0 4px;}
+  .modal-close:hover{color:var(--coral);}
+  .search-input{width:100%; padding:11px 14px; border:2px solid var(--border); border-radius:10px; font-size:14.5px; background:var(--bg); color:var(--ink); font-family:inherit; margin-bottom:12px;}
+  .search-input:focus{outline:none; border-color:var(--coral);}
+  .search-results{overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:8px;}
+  .search-hint{font-size:12.5px; color:var(--muted); text-align:center; padding:16px 0;}
+  .search-item{border:2px solid var(--border); border-radius:10px; padding:10px 12px; cursor:pointer; transition:border-color .15s; background:var(--bg);}
+  .search-item:hover{border-color:var(--coral);}
+  .search-item-tag{font-size:10.5px; color:var(--coral-dark); font-weight:700; margin-bottom:3px;}
+  .search-item-title{font-size:13.5px; font-weight:600; line-height:1.4;}
+  mark{background:rgba(232,180,72,.4); color:inherit; border-radius:3px; padding:0 2px;}
+
+  /* Heatmap & Analytics */
+  .heatmap-grid{display:grid; grid-template-columns:repeat(15, 1fr); gap:5px; margin-top:10px;}
+  .heatmap-cell{width:100%; aspect-ratio:1; border-radius:4px; background:var(--border);}
+  .heatmap-cell.active{background:var(--green);}
+  .heatmap-cell.today{outline:2px solid var(--coral);}
+
+  /* Print Styles */
+  @media print{
+    body{background:#fff !important; color:#000 !important; font-size:12pt;}
+    .hdr, .back, .rowbtns, .footer-note, .themebtn, #toast, .modal-overlay, #live{display:none !important;}
+    .wrap{max-width:100% !important; margin:0 !important; padding:0 !important;}
+    .panel{border:none !important; box-shadow:none !important; padding:0 !important; margin:0 !important;}
+    .lesson-body{font-size:11pt; line-height:1.5;}
+    .lesson-row{border:1px solid #ccc !important; break-inside:avoid;}
+    a{text-decoration:none !important; color:#000 !important;}
+    .btn{display:none !important;}
+  }
 </style>
 </head>
 <body>
@@ -310,7 +353,7 @@ const store = {
   get(){ try{ return JSON.parse(localStorage.getItem("certquest")||"null"); }catch(e){ return mem.d||null; } },
   set(d){ try{ localStorage.setItem("certquest", JSON.stringify(d)); }catch(e){ mem.d=d; } }
 };
-const S_DEFAULTS = {v:1, xp:0, badges:[], seenCerts:[], answered:{}, cardsSeen:0, days:[], mocks:{}, domStats:{}, lessonsRead:{}, cardBox:{}, theme:"auto"};
+const S_DEFAULTS = {v:1, xp:0, badges:[], seenCerts:[], answered:{}, cardsSeen:0, days:[], mocks:{}, domStats:{}, lessonsRead:{}, cardBox:{}, theme:"auto", sound:false, customDecks:[]};
 /* Repair any saved field with a missing or wrong-shaped value, so older or partial
    saves can't throw (badges/answered) or silently go NaN (xp/cardsSeen). */
 function migrate(raw){
@@ -341,6 +384,259 @@ function cycleTheme(){
   S.theme = S.theme==="auto" ? "light" : S.theme==="light" ? "dark" : "auto";
   save(); applyTheme(); renderHeader();
   toast("Theme: "+S.theme);
+}
+
+/* ================= AUDIO SYNTHESIZER (Web Audio API) ================= */
+let audioCtx = null;
+function getAudioContext(){
+  if(!audioCtx){
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if(AudioContext) audioCtx = new AudioContext();
+  }
+  if(audioCtx && audioCtx.state === 'suspended'){
+    audioCtx.resume();
+  }
+  return audioCtx;
+}
+function playSound(type){
+  if(!S.sound) return;
+  try {
+    const ctx = getAudioContext();
+    if(!ctx) return;
+    const now = ctx.currentTime;
+
+    if(type === 'correct'){
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, now);
+      osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.12);
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+      osc.start(now); osc.stop(now + 0.3);
+    } else if(type === 'wrong'){
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(220, now);
+      osc.frequency.exponentialRampToValueAtTime(140, now + 0.2);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+      osc.start(now); osc.stop(now + 0.3);
+    } else if(type === 'flip'){
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(300, now);
+      osc.frequency.exponentialRampToValueAtTime(450, now + 0.08);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+      osc.start(now); osc.stop(now + 0.1);
+    } else if(type === 'level' || type === 'badge'){
+      const freqs = [523.25, 659.25, 783.99, 1046.50];
+      freqs.forEach((f, idx) => {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(f, now + idx * 0.08);
+        g.gain.setValueAtTime(0.15, now + idx * 0.08);
+        g.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.08 + 0.25);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(now + idx * 0.08); o.stop(now + idx * 0.08 + 0.25);
+      });
+    }
+  } catch(e){}
+}
+function toggleSound(){
+  S.sound = !S.sound;
+  save();
+  renderHeader();
+  if(S.sound){
+    playSound('correct');
+    toast("Sound: Enabled 🔊");
+  } else {
+    toast("Sound: Muted 🔇");
+  }
+}
+
+/* ================= FULL-TEXT SEARCH ================= */
+let searchIndex = null;
+async function buildSearchIndex(){
+  const docs = [];
+  for(const c of CERTS){
+    if(!c._loaded){
+      try { await loadCert(c); } catch(e){}
+    }
+    if(c._loaded){
+      c.questions.forEach((q, qidx) => {
+        docs.push({
+          type: 'question',
+          certId: c.id,
+          certCode: c.code,
+          domain: c.domains[q.d],
+          qidx: qidx,
+          id: qKey(c, qidx),
+          title: q.q,
+          text: q.q + " " + q.opts.join(" ") + " " + (q.exp||"") + " " + (q.why?q.why.join(" "):"")
+        });
+      });
+      c.lessons.forEach((les, lidx) => {
+        const plainBody = les.b.replace(/<[^>]+>/g, ' ');
+        docs.push({
+          type: 'lesson',
+          certId: c.id,
+          certCode: c.code,
+          lidx: lidx,
+          id: les.id || `${c.id}l-${lidx}`,
+          title: les.h,
+          text: les.h + " " + plainBody
+        });
+      });
+    }
+  }
+  searchIndex = docs;
+  return docs;
+}
+async function openSearchModal(){
+  let modal = $("searchModal");
+  if(!modal){
+    modal = document.createElement("div");
+    modal.id = "searchModal";
+    modal.className = "modal-overlay";
+    modal.innerHTML = `
+      <div class="modal-box" role="dialog" aria-label="Search study material">
+        <div class="modal-hdr">
+          <h3>🔍 Search Study Material</h3>
+          <button class="modal-close" onclick="closeSearchModal()" aria-label="Close search">×</button>
+        </div>
+        <input type="text" id="searchInput" class="search-input" placeholder="Type to search lessons, questions, topics..." oninput="doSearch(this.value)" autofocus>
+        <div id="searchResults" class="search-results">
+          <div class="search-hint">Indexing content... press Esc to close</div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+  modal.style.display = "flex";
+  $("searchInput").value = "";
+  $("searchInput").focus();
+  $("searchResults").innerHTML = '<div class="search-hint">Indexing content...</div>';
+  await buildSearchIndex();
+  $("searchResults").innerHTML = '<div class="search-hint">Type a keyword like "prompt", "token", "API", or "eval"...</div>';
+}
+function closeSearchModal(){
+  const modal = $("searchModal");
+  if(modal) modal.style.display = "none";
+}
+function doSearch(qStr){
+  const resContainer = $("searchResults");
+  if(!qStr || qStr.trim().length < 2){
+    resContainer.innerHTML = '<div class="search-hint">Type at least 2 characters to search...</div>';
+    return;
+  }
+  if(!searchIndex) return;
+  const terms = qStr.toLowerCase().trim().split(/\s+/);
+  const matches = searchIndex.filter(doc => {
+    const txt = doc.text.toLowerCase();
+    return terms.every(term => txt.includes(term));
+  }).slice(0, 25);
+
+  if(!matches.length){
+    resContainer.innerHTML = '<div class="search-hint">No matching questions or lessons found.</div>';
+    return;
+  }
+
+  let html = '';
+  matches.forEach(m => {
+    const isLesson = m.type === 'lesson';
+    const tag = isLesson ? `📖 ${m.certCode} Lesson` : `⚔️ ${m.certCode} Q (${m.domain})`;
+    const onClick = isLesson
+      ? `closeSearchModal(); lessonView('${m.certId}', ${m.lidx});`
+      : `closeSearchModal(); certView('${m.certId}');`;
+    
+    let titleHtml = esc(m.title);
+    terms.forEach(t => {
+      const reg = new RegExp(`(${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      titleHtml = titleHtml.replace(reg, '<mark>$1</mark>');
+    });
+
+    html += `
+      <div class="search-item" onclick="${onClick}">
+        <div class="search-item-tag">${tag}</div>
+        <div class="search-item-title">${titleHtml}</div>
+      </div>
+    `;
+  });
+  resContainer.innerHTML = html;
+}
+document.addEventListener('keydown', e => {
+  if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k'){
+    e.preventDefault();
+    openSearchModal();
+  }
+  if(e.key === 'Escape'){
+    closeSearchModal();
+  }
+});
+
+/* ================= ANALYTICS & HEATMAP ================= */
+function analyticsView(){
+  renderHeader();
+  const days30 = [];
+  const todayDate = new Date();
+  for(let i=29; i>=0; i--){
+    const d = new Date(todayDate);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0,10);
+    days30.push({ key, active: S.days.includes(key), isToday: i===0 });
+  }
+
+  let heatmapCells = '';
+  days30.forEach(d => {
+    heatmapCells += `<div class="heatmap-cell${d.active?' active':''}${d.isToday?' today':''}" title="${d.key}${d.active?' · Active':''}"></div>`;
+  });
+
+  let totalAnswered = 0, totalCorrect = 0;
+  Object.keys(S.answered||{}).forEach(certId => {
+    const certAns = S.answered[certId];
+    Object.keys(certAns).forEach(qKey => {
+      totalAnswered++;
+      if(certAns[qKey]) totalCorrect++;
+    });
+  });
+  const overallAcc = totalAnswered ? Math.round(totalCorrect / totalAnswered * 100) : 0;
+
+  let h = `
+    <button class="back" onclick="home()">← Back</button>
+    <div class="panel">
+      <h2 style="font-size:18px;">📊 Study Analytics & Habits</h2>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin:14px 0;">
+        <div style="border:2px solid var(--border); border-radius:12px; padding:12px; text-align:center;">
+          <div style="font-size:22px; font-weight:800; color:var(--coral);">${dayStreak()} Days</div>
+          <div style="font-size:11px; color:var(--muted);">Current Streak</div>
+        </div>
+        <div style="border:2px solid var(--border); border-radius:12px; padding:12px; text-align:center;">
+          <div style="font-size:22px; font-weight:800; color:var(--green);">${totalAnswered}</div>
+          <div style="font-size:11px; color:var(--muted);">Questions Attempted</div>
+        </div>
+        <div style="border:2px solid var(--border); border-radius:12px; padding:12px; text-align:center;">
+          <div style="font-size:22px; font-weight:800; color:var(--blue);">${overallAcc}%</div>
+          <div style="font-size:11px; color:var(--muted);">Overall Accuracy</div>
+        </div>
+        <div style="border:2px solid var(--border); border-radius:12px; padding:12px; text-align:center;">
+          <div style="font-size:22px; font-weight:800; color:var(--purple);">${S.cardsSeen}</div>
+          <div style="font-size:11px; color:var(--muted);">Cards Reviewed</div>
+        </div>
+      </div>
+      <h4 style="font-size:14px; margin:16px 0 6px;">📅 30-Day Activity Calendar</h4>
+      <div class="heatmap-grid">${heatmapCells}</div>
+      <div style="font-size:11px; color:var(--muted); margin-top:6px;">Green cells indicate study activity logged on that calendar day.</div>
+    </div>
+  `;
+  $("app").innerHTML = h;
 }
 
 /* ================= BACKUP =================
@@ -407,6 +703,7 @@ function scheduleCard(c,i,knew){
   s.b = knew ? Math.min(5, s.b+1) : 1;
   s.d = knew ? inDays(BOX_DAYS[s.b]) : today();   // missed cards stay due
   S.cardBox[c.id][cardKey(c,i)]=s;
+  if(knew) playSound('correct'); else playSound('wrong');
 }
 /* Fraction of a deck that has reached a durable box (3+ correct recalls). */
 function cardRetention(c){
@@ -447,13 +744,18 @@ function addXP(n, why){
   const before=level(); S.xp+=n; save();
   toast("+"+n+" XP"+(why?" · "+why:""));
   const after=level();
-  if(after>before){ setTimeout(()=>{ toast("🎉 Level "+after+" — "+title()+"!"); confetti(); },900); if(after>=3)award("lvl3"); if(after>=6)award("lvl6"); }
+  if(after>before){
+    playSound('level');
+    setTimeout(()=>{ toast("🎉 Level "+after+" — "+title()+"!"); confetti(); },900);
+    if(after>=3)award("lvl3"); if(after>=6)award("lvl6");
+  }
   renderHeader();
 }
 function award(id){
   if(S.badges.includes(id)) return;
   const b=BADGES.find(x=>x.id===id); if(!b) return;
   S.badges.push(id); save();
+  playSound('badge');
   setTimeout(()=>{ toast("🏅 Badge earned: "+b.name+"!"); confetti(); }, 400);
 }
 
@@ -491,6 +793,9 @@ function renderHeader(){
    +'<div class="stat"><div class="v">'+l+'</div><div class="l">Level</div></div>'
    +'<div class="stat"><div class="v">'+S.xp+'</div><div class="l">XP</div></div>'
    +'<div class="stat"><div class="v">'+dayStreak()+'🔥</div><div class="l">Day streak</div></div>'
+   +'<button class="themebtn" onclick="openSearchModal()" title="Search study material (Ctrl+K)" aria-label="Search study material">🔍 Search</button>'
+   +'<button class="themebtn" onclick="toggleSound()" title="Toggle sound ('+(S.sound?'On':'Muted')+')" aria-label="Toggle sound">'
+   +(S.sound?'🔊':'🔇')+'</button>'
    +'<button class="themebtn" onclick="cycleTheme()" title="Theme: '+S.theme+'" aria-label="Change theme (currently '+S.theme+')">'
    +(S.theme==="dark"?"🌙":S.theme==="light"?"☀️":"🌓")+'</button>'
    +'<div class="xpbar"><div style="width:'+pct+'%" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100" aria-label="Progress to next level"></div></div>'
@@ -530,6 +835,7 @@ function home(){
   }
   h+='</div><div class="rowbtns" style="justify-content:center; margin-top:20px;">'
    +'<button class="btn ghost" onclick="badgesView()">🏅 Badges ('+S.badges.length+'/'+BADGES.length+')</button>'
+   +'<button class="btn ghost" onclick="analyticsView()">📊 Analytics</button>'
    +'<button class="btn ghost" onclick="exportProgress()" title="Download your progress as a JSON file">⬇️ Export</button>'
    +'<button class="btn ghost" onclick="document.getElementById(\'impf\').click()" title="Restore progress from a JSON file">⬆️ Import</button>'
    +'<button class="btn ghost" onclick="resetConfirm()">↺ Reset progress</button></div>'
@@ -678,6 +984,157 @@ function lessonView(id,i){
    +'<h2 style="font-size:19px; margin-bottom:12px;">'+esc(les.h)+'</h2>'
    +'<div class="lesson-body">'+les.b+'</div>'
    +'<div class="rowbtns">'+prevBtn+nextBtn+'</div></div>';
+  initLessonWidgets();
+}
+
+/* ================= LESSON WIDGETS ================= */
+function initLessonWidgets(){
+  const boxes = document.querySelectorAll('.widget-box');
+  boxes.forEach(box => {
+    const type = box.getAttribute('data-widget');
+    if(type === 'token-cost') renderTokenCostCalculator(box);
+    else if(type === 'xml-prompt') renderXmlPromptChecker(box);
+    else if(type === 'stop-reason') renderStopReasonSimulator(box);
+  });
+}
+function renderTokenCostCalculator(container){
+  container.innerHTML = `
+    <h5>🧮 Interactive Token & Cost Estimator</h5>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div>
+        <label>Input Tokens (prompt + context)</label>
+        <input type="number" id="wCostInput" value="5000" min="0" step="1000" oninput="calcWidgetCost()">
+      </div>
+      <div>
+        <label>Output Tokens (generated reply)</label>
+        <input type="number" id="wCostOutput" value="1000" min="0" step="100" oninput="calcWidgetCost()">
+      </div>
+    </div>
+    <div style="display:flex; gap:12px; margin-bottom:10px; font-size:12px; flex-wrap:wrap;">
+      <label><input type="checkbox" id="wCacheHit" onchange="calcWidgetCost()" style="width:auto; margin-right:4px;"> Prompt Caching (85% off cached input)</label>
+      <label><input type="checkbox" id="wBatchApi" onchange="calcWidgetCost()" style="width:auto; margin-right:4px;"> Batches API (50% off total)</label>
+    </div>
+    <div id="wCostResult" style="font-size:13px; line-height:1.6; border-top:1px dashed var(--border); padding-top:10px;"></div>
+  `;
+  calcWidgetCost();
+}
+function calcWidgetCost(){
+  const inputTok = parseInt(document.getElementById('wCostInput')?.value||0, 10);
+  const outputTok = parseInt(document.getElementById('wCostOutput')?.value||0, 10);
+  const isCache = document.getElementById('wCacheHit')?.checked || false;
+  const isBatch = document.getElementById('wBatchApi')?.checked || false;
+
+  const models = [
+    { name: 'Claude Haiku 3.5', inP: 0.80, outP: 4.00 },
+    { name: 'Claude Sonnet 3.5', inP: 3.00, outP: 15.00 },
+    { name: 'Claude Opus 3.5', inP: 15.00, outP: 75.00 }
+  ];
+
+  let html = '';
+  models.forEach(m => {
+    let effInP = isCache ? m.inP * 0.15 : m.inP;
+    let cost = ((inputTok / 1000000) * effInP) + ((outputTok / 1000000) * m.outP);
+    if(isBatch) cost *= 0.5;
+    html += `<div><b>${m.name}:</b> $${cost.toFixed(5)} <span style="color:var(--muted); font-size:11px;">($${(cost*1000).toFixed(3)} / 1k runs)</span></div>`;
+  });
+  const res = document.getElementById('wCostResult');
+  if(res) res.innerHTML = html;
+}
+function renderXmlPromptChecker(container){
+  container.innerHTML = `
+    <h5>🏷️ Interactive XML Prompt Structure Checker</h5>
+    <label>Type or paste your prompt structure:</label>
+    <textarea id="wXmlText" rows="5" oninput="checkXmlPrompt()">&lt;context&gt;
+You are an expert technical editor.
+&lt;/context&gt;
+
+&lt;instructions&gt;
+Summarize the following findings in 3 bullet points.
+&lt;/instructions&gt;
+
+&lt;data&gt;
+Q3 revenue grew by 24% year-over-year.
+&lt;/data&gt;</textarea>
+    <div id="wXmlResult" style="font-size:12.5px; margin-top:6px;"></div>
+  `;
+  checkXmlPrompt();
+}
+function checkXmlPrompt(){
+  const val = document.getElementById('wXmlText')?.value || '';
+  const tags = [...val.matchAll(/<([a-zA-Z0-9_-]+)>/g)].map(m => m[1]);
+  const closeTags = [...val.matchAll(/<\/([a-zA-Z0-9_-]+)>/g)].map(m => m[1]);
+
+  let issues = [];
+  tags.forEach(t => {
+    if(!closeTags.includes(t)) issues.push(`Missing closing tag &lt;/${t}&gt;`);
+  });
+  closeTags.forEach(t => {
+    if(!tags.includes(t)) issues.push(`Unmatched closing tag &lt;/${t}&gt;`);
+  });
+
+  const hasInstructions = tags.includes('instructions') || tags.includes('task') || tags.includes('rules');
+
+  let html = '';
+  if(issues.length){
+    html = `<span style="color:var(--red);">⚠️ <b>XML Structure Issues:</b> ${issues.join('; ')}</span>`;
+  } else if(tags.length > 0){
+    html = `<span style="color:var(--green);">✓ <b>Valid XML Formatting!</b> Found ${tags.length} delimited section(s): <code>${tags.map(t=>'&lt;'+t+'&gt;').join(', ')}</code>.</span>`;
+    if(!hasInstructions) html += `<div style="color:var(--gold); font-size:11.5px; margin-top:4px;">💡 Exam Tip: Explicitly delimiting &lt;instructions&gt; or &lt;task&gt; helps Claude isolate instructions from data.</div>`;
+  } else {
+    html = `<span style="color:var(--muted);">No XML tags detected. Wrap sections in &lt;context&gt;, &lt;instructions&gt;, or &lt;examples&gt; for reliable parsing.</span>`;
+  }
+  const res = document.getElementById('wXmlResult');
+  if(res) res.innerHTML = html;
+}
+function renderStopReasonSimulator(container){
+  container.innerHTML = `
+    <h5>⚡ Interactive <code>stop_reason</code> Control-Flow Simulator</h5>
+    <label>Select a simulated API <code>stop_reason</code>:</label>
+    <select id="wStopSel" onchange="simStopReason()">
+      <option value="end_turn">end_turn (Natural completion)</option>
+      <option value="max_tokens">max_tokens (Token cap reached)</option>
+      <option value="tool_use">tool_use (Model requested tool call)</option>
+      <option value="refusal">refusal (Safety refusal)</option>
+      <option value="pause_turn">pause_turn (Long-running loop paused)</option>
+    </select>
+    <div id="wStopResult" style="font-size:13px; line-height:1.5; border:1px solid var(--border); border-radius:10px; padding:12px; background:var(--bg);"></div>
+  `;
+  simStopReason();
+}
+function simStopReason(){
+  const val = document.getElementById('wStopSel')?.value || 'end_turn';
+  let title = '', code = '', explanation = '';
+
+  if(val === 'end_turn'){
+    title = '✅ Natural Completion (end_turn)';
+    code = 'deliver_response(response.content)';
+    explanation = 'The generation completed naturally. The output in <code>content</code> is complete and safe to present to the user.';
+  } else if(val === 'max_tokens'){
+    title = '⚠️ Truncated Output (max_tokens)';
+    code = 'raise_max_tokens_cap_or_append_continuation()';
+    explanation = 'Generation was cut off mid-sentence because it hit your <code>max_tokens</code> limit. Do <b>not</b> present this as a complete answer. Raise <code>max_tokens</code> or pass the response back to continue.';
+  } else if(val === 'tool_use'){
+    title = '🛠️ Tool Execution Requested (tool_use)';
+    code = 'result = execute_tool(response.content.tool_use)\nmessages.append({"role": "user", "content": [tool_result]})';
+    explanation = 'This is normal tool-calling control flow (not an error!). Execute the requested function in your application and pass back a <code>tool_result</code> in the same message history.';
+  } else if(val === 'refusal'){
+    title = '🛑 Safety Refusal (refusal)';
+    code = 'surface_refusal_to_user(response)\n# DO NOT RETRY THE IDENTICAL REQUEST';
+    explanation = 'The request was refused on safety or policy grounds. Retrying the identical request will fail again. Surface the refusal or prompt the user to reframe.';
+  } else if(val === 'pause_turn'){
+    title = '⏸️ Pause Turn (pause_turn)';
+    code = 'resume_server_tool_loop(response)';
+    explanation = 'A server-side long-running tool execution paused. Resend the conversation state to resume generation.';
+  }
+
+  const res = document.getElementById('wStopResult');
+  if(res){
+    res.innerHTML = `
+      <b style="color:var(--coral-dark);">${title}</b>
+      <p style="margin:6px 0 8px;">${explanation}</p>
+      <pre style="background:var(--card); padding:8px 10px; border-radius:6px; border:1px solid var(--border); font-size:12px; font-family:'SF Mono',Consolas,monospace;">${code}</pre>
+    `;
+  }
 }
 function markRead(id,i,goNext){
   const c=CERTS.find(x=>x.id===id);
@@ -832,7 +1289,7 @@ function cardView(){
    +'<div class="panel"><div class="qmeta"><span>Card '+(F.i+1)+' / '+F.idxs.length+(F.mode==="all"?" · whole deck":" · due today")+'</span>'
    +'<span>'+"▮".repeat(cardBox(c,F.idxs[F.i]).b)+"▯".repeat(5-cardBox(c,F.idxs[F.i]).b)+' · 👍 '+F.knew+'</span></div>'
    +'<div class="hint">Tap the card to flip · <b>Space</b> flip · <b>1</b> still learning · <b>2</b> knew it</div>'
-   +'<div class="fcstage"><div class="fcard" id="fc" onclick="this.classList.toggle(\'flip\')">'
+   +'<div class="fcstage"><div class="fcard" id="fc" onclick="this.classList.toggle(\'flip\'); playSound(\'flip\');">'
    +'<div class="fface front">'+esc(card.f)+'</div>'
    +'<div class="fface backf">'+esc(card.b)+'</div>'
    +'</div></div>'
@@ -1182,6 +1639,14 @@ function loadError(e,retry){
       +'<p style="font-size:13.5px; color:var(--muted); margin-top:12px;">Or use the hosted copy at <b>jjuhric.github.io/claude_study_guide</b>.</p></div>';
   }
 })();
+
+if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => {
+      console.log('ServiceWorker registration failed: ', err);
+    });
+  });
+}
 </script>
 </body>
 </html>

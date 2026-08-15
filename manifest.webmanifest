@@ -1,0 +1,17 @@
+{
+  "name": "Claude Cert Quest",
+  "short_name": "Claude Certs",
+  "description": "Gamified study companion for the Anthropic Claude Certification Program — practice questions, flashcards, lessons, and mock exams.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#faf7f2",
+  "theme_color": "#d97757",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
