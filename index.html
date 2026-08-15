@@ -449,6 +449,10 @@ const CERTS = [
 ];
 
 const BADGES = [
+ {id:"calibrated_mind", em:"📊", name:"Calibrated Mind", desc:"Compute Brier confidence score to eliminate overconfidence"},
+ {id:"mcp_master_builder", em:"🔌", name:"MCP Master Builder", desc:"Execute mock MCP tool invocations in the live simulator"},
+ {id:"cohort_leader", em:"👥", name:"Cohort Leader", desc:"Join or create a private study group cohort"},
+ {id:"aesthetic_alchemist", em:"🎨", name:"Aesthetic Alchemist", desc:"Customize study theme palette in the Theme Studio"},
  {id:"pacing_strategist", em:"⏱️", name:"Pacing Strategist", desc:"Set exam countdown and generate personalized daily pacing plan"},
  {id:"topology_architect", em:"🧩", name:"Topology Architect", desc:"Assemble and validate an enterprise Claude system topology"},
  {id:"disciplined_scholar", em:"🔔", name:"Disciplined Scholar", desc:"Enable study reminders and flashcard notification alerts"},
@@ -532,7 +536,7 @@ function getFreshState(){
     domStats: {},
     lessonsRead: {},
     cardBox: {},
-    theme: "auto", examDate: "", voiceNotes: {}, notifsEnabled: false, dailyBossHistory: {}, arcadeHighScore: 0, profile: { handle: "Curious Scholar", avatar: "🧭", title: "Claude Apprentice", uid: "cq-" + Math.random().toString(36).slice(2,8) }, lang: "en", gistToken: "", gistId: "", dailyTarget: { date: "", answered: 0, lessons: 0, cards: 0, claimed: false },
+    theme: "auto", customTheme: "terracotta", cohortCode: "", examDate: "", voiceNotes: {}, notifsEnabled: false, dailyBossHistory: {}, arcadeHighScore: 0, profile: { handle: "Curious Scholar", avatar: "🧭", title: "Claude Apprentice", uid: "cq-" + Math.random().toString(36).slice(2,8) }, lang: "en", gistToken: "", gistId: "", dailyTarget: { date: "", answered: 0, lessons: 0, cards: 0, claimed: false },
     sound: false,
     customDecks: [],
     notes: {},
@@ -7302,6 +7306,290 @@ function toggleVoiceMemoRecording(){
     
     voiceNoteState.mediaRecorder.start();
   }).catch(err => toast("Microphone access denied: " + err.message));
+}
+
+
+/* ================= 1. CONFIDENCE CALIBRATION & BRIER SCORE ANALYSIS ================= */
+let brierState = {
+  certId: "ccao",
+  questions: [],
+  idx: 0,
+  confidence: 0.9,
+  records: []
+};
+
+function confidenceCalibrationView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("calibrated_mind");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">📊</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Confidence Calibration & Brier Score</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Rate your subjective certainty before answering to compute your mathematical Brier calibration score.</p>'
+    + '<div style="display:flex; justify-content:center; gap:10px; margin:16px 0; flex-wrap:wrap;">'
+    + '<select id="brierTrackSelect" onchange="brierState.certId=this.value" style="padding:8px 12px; font-size:13px; font-weight:700; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--ink);">'
+    + CERTS.map(c => '<option value="' + c.id + '" ' + (c.id === brierState.certId ? 'selected' : '') + '>' + c.code + ' · ' + c.name + '</option>').join('')
+    + '</select>'
+    + '<button class="btn" onclick="startBrierSession()">▶️ Start Calibration Drill</button>'
+    + '</div>'
+    + '<div id="brierStage" style="display:none; border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:620px; margin:16px auto; text-align:left;"></div>'
+    + '</div>';
+}
+
+function startBrierSession(){
+  const c = CERTS.find(x => x.id === brierState.certId) || CERTS[0];
+  if (!c._loaded) {
+    loadCert(c).then(() => startBrierSession());
+    return;
+  }
+  
+  brierState.questions = sampleByDomain(c, 5).map(i => c.questions[i]);
+  brierState.idx = 0;
+  brierState.records = [];
+  brierState.confidence = 0.9;
+  
+  const stage = document.getElementById("brierStage");
+  if (stage) stage.style.display = "block";
+  renderBrierQuestion();
+}
+
+function renderBrierQuestion(){
+  const q = brierState.questions[brierState.idx];
+  const stage = document.getElementById("brierStage");
+  if (!stage || !q) return;
+  
+  stage.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">'
+    + '<span style="font-size:12px; font-weight:700; color:var(--muted);">Calibration Question ' + (brierState.idx + 1) + ' of ' + brierState.questions.length + '</span>'
+    + '</div>'
+    + '<div style="font-size:14.5px; font-weight:700; line-height:1.4; margin-bottom:14px;">' + esc(q.q) + '</div>'
+    + '<div style="background:var(--bg); border:1.5px solid var(--border); border-radius:10px; padding:12px; margin-bottom:14px;">'
+    + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:6px;">Step 1: Declare Your Subjective Certainty Level:</label>'
+    + '<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;">'
+    + '<button class="opt ' + (brierState.confidence===0.95?'correct':'') + '" onclick="setBrierConfidence(0.95)" style="padding:6px; font-size:11.5px; text-align:center;">🎯 High · 95%</button>'
+    + '<button class="opt ' + (brierState.confidence===0.60?'correct':'') + '" onclick="setBrierConfidence(0.60)" style="padding:6px; font-size:11.5px; text-align:center;">⚖️ Med · 60%</button>'
+    + '<button class="opt ' + (brierState.confidence===0.25?'correct':'') + '" onclick="setBrierConfidence(0.25)" style="padding:6px; font-size:11.5px; text-align:center;">🎲 Low · 25%</button>'
+    + '</div>'
+    + '</div>'
+    + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:6px;">Step 2: Select Your Answer Choice:</label>'
+    + '<div style="display:flex; flex-direction:column; gap:8px;">'
+    + q.opts.map((o, j) => '<button class="opt" onclick="submitBrierPick(' + j + ')" style="text-align:left; padding:10px 14px; font-size:13px;"><b class="okey">' + (j + 1) + '</b> ' + esc(o) + '</button>').join('')
+    + '</div>';
+}
+
+function setBrierConfidence(conf){
+  brierState.confidence = conf;
+  renderBrierQuestion();
+}
+
+function submitBrierPick(j){
+  const q = brierState.questions[brierState.idx];
+  const isOk = j === q.a;
+  const outcome = isOk ? 1 : 0;
+  const errorSq = Math.pow(brierState.confidence - outcome, 2);
+  
+  brierState.records.push({ conf: brierState.confidence, outcome: outcome, errorSq: errorSq });
+  playSound(isOk ? 'correct' : 'wrong');
+  
+  if (brierState.idx < brierState.questions.length - 1) {
+    brierState.idx++;
+    brierState.confidence = 0.9;
+    renderBrierQuestion();
+  } else {
+    finishBrierSession();
+  }
+}
+
+function finishBrierSession(){
+  const stage = document.getElementById("brierStage");
+  if (!stage) return;
+  
+  const brierScore = (brierState.records.reduce((a, b) => a + b.errorSq, 0) / brierState.records.length).toFixed(3);
+  const correctCount = brierState.records.filter(r => r.outcome === 1).length;
+  
+  let grade = "Excellent Calibration";
+  let gradeColor = "var(--green)";
+  if (brierScore > 0.35) { grade = "Overconfidence Risk"; gradeColor = "var(--coral)"; }
+  else if (brierScore > 0.20) { grade = "Moderate Calibration"; gradeColor = "var(--gold)"; }
+  
+  addXP(35, "Brier Score Calibration");
+  
+  stage.innerHTML = '<div style="text-align:center;">'
+    + '<h3 style="font-size:18px; margin-bottom:4px;">📊 Brier Calibration Analysis</h3>'
+    + '<div style="font-size:32px; font-weight:900; color:' + gradeColor + '; margin:8px 0;">Brier Score: ' + brierScore + '</div>'
+    + '<div style="font-size:13px; font-weight:800; color:' + gradeColor + '; margin-bottom:12px;">' + grade + ' (' + correctCount + '/5 Correct)</div>'
+    + '<div style="font-size:12px; color:var(--muted); line-height:1.5; background:var(--bg); padding:12px; border-radius:8px; border:1px solid var(--border); margin-bottom:14px; text-align:left;">'
+    + '📐 <b>Brier Theory:</b> $BS = \\frac{1}{N} \\sum (f_t - o_t)^2$. A score closer to <b>0.000</b> indicates perfect self-awareness between certainty and real test outcomes.'
+    + '</div>'
+    + '<button class="btn sm" onclick="confidenceCalibrationView()">Run Another Calibration</button>'
+    + '</div>';
+}
+
+/* ================= 2. LIVE MOCK MCP TOOL INVOCATION SANDBOX ================= */
+const MOCK_MCP_TOOLS = [
+  {
+    id: "query_database",
+    name: "query_database",
+    desc: "Execute read-only SQL queries against hospital patient EHR database.",
+    inputSchema: { type: "object", properties: { query: { type: "string" }, limit: { type: "integer" } }, required: ["query"] },
+    sampleInput: '{"query": "SELECT med_name, dosage FROM prescriptions WHERE patient_id = 4821", "limit": 5}',
+    mockResponse: '{"status": "success", "rows": [{"med_name": "Amoxicillin", "dosage": "500mg"}, {"med_name": "Lisinopril", "dosage": "10mg"}]}'
+  },
+  {
+    id: "fetch_stock_quote",
+    name: "fetch_stock_quote",
+    desc: "Fetch real-time ticker quotes from financial market data feed.",
+    inputSchema: { type: "object", properties: { ticker: { type: "string" } }, required: ["ticker"] },
+    sampleInput: '{"ticker": "ANTH"}',
+    mockResponse: '{"ticker": "ANTH", "price": 142.50, "currency": "USD", "timestamp": "2026-08-15T10:30:00Z"}'
+  }
+];
+
+let mcpSimSelectedTool = 0;
+
+function mcpToolSimulator(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("mcp_master_builder");
+  const tool = MOCK_MCP_TOOLS[mcpSimSelectedTool];
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--blue); color:#fff;">Tool Execution</span><h2 style="font-size:20px; margin-top:4px;">🔌 Live Mock MCP Tool Invocation Sandbox</h2></div>'
+    + '<button class="btn sm" onclick="executeMockToolCall()">▶️ Execute MCP Tool Call</button>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">Test Anthropic Messages API <code>tool_use</code> requests and validate simulated <code>tool_result</code> streaming responses in real time.</p>'
+    + '<div style="margin-bottom:12px;">'
+    + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Select Mock Tool Definition:</label>'
+    + '<select onchange="mcpSimSelectedTool=parseInt(this.value,10); mcpToolSimulator()" style="width:100%; padding:8px; font-size:12.5px; font-weight:700; border-radius:6px; border:1px solid var(--border); background:var(--card); color:var(--ink);">'
+    + MOCK_MCP_TOOLS.map((t, idx) => '<option value="' + idx + '" ' + (idx===mcpSimSelectedTool?'selected':'') + '>' + t.name + ' — ' + t.desc + '</option>').join('')
+    + '</select>'
+    + '</div>'
+    + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:14px; margin-bottom:16px;">'
+    + '<div style="border:1px solid var(--border); border-radius:10px; padding:12px; background:var(--card);">'
+    + '<b style="font-size:12.5px; color:var(--coral); display:block; margin-bottom:6px;">Claude Tool Use Request (Input JSON):</b>'
+    + '<textarea id="mcpToolInputBox" style="width:100%; height:90px; font-family:Consolas,monospace; font-size:11.5px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; padding:8px;">' + esc(tool.sampleInput) + '</textarea>'
+    + '</div>'
+    + '<div style="border:1px solid var(--border); border-radius:10px; padding:12px; background:var(--card);">'
+    + '<b style="font-size:12.5px; color:var(--green); display:block; margin-bottom:6px;">Tool Result Stream (JSON-RPC 2.0):</b>'
+    + '<div id="mcpToolOutputBox" style="min-height:90px; font-family:Consolas,monospace; font-size:11.5px; background:var(--bg); color:var(--ink); border:1px solid var(--border); border-radius:6px; padding:8px; white-space:pre-wrap;">Click "Execute MCP Tool Call" to stream response...</div>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+function executeMockToolCall(){
+  const tool = MOCK_MCP_TOOLS[mcpSimSelectedTool];
+  const out = document.getElementById("mcpToolOutputBox");
+  if (!out) return;
+  
+  out.innerHTML = '<span style="color:var(--blue);">⏳ Calling tool &quot;' + tool.name + '&quot; over MCP JSON-RPC...</span>';
+  playSound('correct');
+  
+  setTimeout(() => {
+    out.innerHTML = '<b style="color:var(--green);">✓ HTTP 200 OK (tool_result):</b>\n' + tool.mockResponse;
+    toast("🔌 MCP tool call executed successfully!");
+  }, 400);
+}
+
+/* ================= 3. MULTI-CANDIDATE STUDY COHORT HUB ================= */
+function cohortHubView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("cohort_leader");
+  
+  const cohort = S.cohortCode || "COHORT-7492";
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--purple); color:#fff;">Team Study</span><h2 style="font-size:20px; margin-top:4px;">👥 Study Cohort Hub</h2></div>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">Collaborate with study groups and compare aggregate team readiness radar metrics.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:18px; background:var(--card); margin-bottom:16px;">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><b style="font-size:16px; color:var(--coral);">Study Group: ' + esc(cohort) + '</b><span style="font-size:11.5px; color:var(--muted); display:block;">5 Candidates Active</span></div>'
+    + '<button class="btn sm" onclick="joinNewCohort()">Join Different Cohort</button>'
+    + '</div>'
+    + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:8px; font-size:12px; text-align:center;">'
+    + '<div style="background:var(--bg); padding:10px; border-radius:6px; border:1px solid var(--border);"><b style="font-size:18px; color:var(--green);">86%</b><br><span style="font-size:11px; color:var(--muted);">Team Average Index</span></div>'
+    + '<div style="background:var(--bg); padding:10px; border-radius:6px; border:1px solid var(--border);"><b style="font-size:18px; color:var(--coral);">3,840 XP</b><br><span style="font-size:11px; color:var(--muted);">Weekly Combined XP</span></div>'
+    + '<div style="background:var(--bg); padding:10px; border-radius:6px; border:1px solid var(--border);"><b style="font-size:18px; color:var(--blue);">14 Days</b><br><span style="font-size:11px; color:var(--muted);">Team Study Streak</span></div>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+function joinNewCohort(){
+  const code = prompt("Enter 6-digit Study Cohort Code (e.g. COHORT-9921):", "COHORT-");
+  if (code && code.trim()) {
+    S.cohortCode = code.trim().toUpperCase();
+    save();
+    cohortHubView();
+    toast("👥 Joined Study Cohort " + S.cohortCode);
+  }
+}
+
+/* ================= 4. CUSTOM THEME STUDIO & PALETTE CUSTOMIZER ================= */
+const THEME_PALETTES = [
+  { id: "terracotta", name: "Claude Terracotta", coral: "#d97757", green: "#5a9e6f", blue: "#5b7fa6", purple: "#8a6fae" },
+  { id: "cyberpunk", name: "Cyberpunk Neon", coral: "#ff007f", green: "#00ff9f", blue: "#00e5ff", purple: "#bd00ff" },
+  { id: "midnight", name: "Slate Midnight", coral: "#38bdf8", green: "#34d399", blue: "#818cf8", purple: "#c084fc" },
+  { id: "solarized", name: "Solarized Gold", coral: "#d33682", green: "#859900", blue: "#268bd2", purple: "#6c71c4" }
+];
+
+function themeStudioView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("aesthetic_alchemist");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">🎨</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Custom Theme Studio & Palette Customizer</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Personalize your study interface with curated accent color palettes.</p>'
+    + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; max-width:640px; margin:20px auto; text-align:left;">'
+    + THEME_PALETTES.map(p => `
+      <div style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card); cursor:pointer;" onclick="applyPaletteTheme('${p.id}')">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <b style="font-size:14px; color:var(--ink);">${p.name}</b>
+          ${S.customTheme===p.id?'<span style="color:var(--green); font-weight:800; font-size:12px;">Active ✓</span>':''}
+        </div>
+        <div style="display:flex; gap:6px; margin-top:10px;">
+          <div style="width:24px; height:24px; border-radius:6px; background:${p.coral};"></div>
+          <div style="width:24px; height:24px; border-radius:6px; background:${p.green};"></div>
+          <div style="width:24px; height:24px; border-radius:6px; background:${p.blue};"></div>
+          <div style="width:24px; height:24px; border-radius:6px; background:${p.purple};"></div>
+        </div>
+      </div>
+    `).join('')
+    + '</div>'
+    + '</div>';
+}
+
+function applyPaletteTheme(pId){
+  const p = THEME_PALETTES.find(x => x.id === pId);
+  if (!p) return;
+  
+  S.customTheme = pId;
+  save();
+  
+  if (document.documentElement && document.documentElement.style && typeof document.documentElement.style.setProperty === 'function') {
+    document.documentElement.style.setProperty('--coral', p.coral);
+    document.documentElement.style.setProperty('--green', p.green);
+    document.documentElement.style.setProperty('--blue', p.blue);
+    document.documentElement.style.setProperty('--purple', p.purple);
+  }
+  
+  renderHeader();
+  themeStudioView();
+  toast("🎨 Theme palette set to " + p.name);
 }
 
 /* ================= LESSON WIDGETS ================= */

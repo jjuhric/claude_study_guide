@@ -853,6 +853,23 @@ vm.createContext(sandbox);
   call("voiceNotesHubView");
   check(/Voice Notes & Spoken Lesson Memos/.test(els.app.innerHTML) && /recVoiceNoteBtn/.test(els.app.innerHTML), "voiceNotesHubView renders voice notes hub");
 
+  /* ---------- 33. Ragnarok Suite ---------- */
+  call("confidenceCalibrationView");
+  check(/Confidence Calibration & Brier Score/.test(els.app.innerHTML) && /brierTrackSelect/.test(els.app.innerHTML), "confidenceCalibrationView renders calibration stage");
+
+  call("mcpToolSimulator");
+  check(/Live Mock MCP Tool Invocation Sandbox/.test(els.app.innerHTML) && /mcpToolInputBox/.test(els.app.innerHTML), "mcpToolSimulator renders tool execution simulator");
+
+  call("cohortHubView");
+  check(/Study Cohort Hub/.test(els.app.innerHTML), "cohortHubView renders study cohort team metrics");
+
+  call("themeStudioView");
+  check(/Custom Theme Studio & Palette Customizer/.test(els.app.innerHTML), "themeStudioView renders color palette presets");
+
+  call("applyPaletteTheme", "cyberpunk");
+  call("applyPaletteTheme", "terracotta");
+  check(true, "applyPaletteTheme executes without throwing");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
