@@ -1090,11 +1090,19 @@ function lessonView(id,i){
    '<button class="back" onclick="learnList(\''+id+'\')">← All lessons</button>'
    +'<div class="panel">'
    +'<div class="lesson-tools-bar">'
-   +'<div class="audio-player">'
+   +'<div class="audio-player" style="flex-wrap:wrap; gap:6px;">'
    +'<button id="ttsPlayBtn" class="audio-btn" data-cert="'+id+'" data-idx="'+i+'" onclick="ttsPlayLesson(\''+id+'\','+i+')">▶️ Listen</button>'
-   +'<select class="audio-btn" onchange="ttsSetSpeed(this.value)" style="padding:4px 6px;" aria-label="Audio Speed">'
-   +'<option value="1.0">1.0x</option><option value="1.25">1.25x</option><option value="1.5">1.5x</option>'
+   +'<select class="audio-btn" onchange="setTtsMode(this.value)" style="padding:4px 6px; font-weight:600;" aria-label="Narration Mode">'
+   +'<option value="brief"'+(ttsMode==='brief'?' selected':'')+'>🎙️ High-Yield Summary</option>'
+   +'<option value="full"'+(ttsMode==='full'?' selected':'')+'>📖 Full Lesson</option>'
    +'</select>'
+   +'<select id="ttsVoiceSelect" class="audio-btn" onchange="setTtsVoice(this.value)" style="padding:4px 6px; max-width:160px;" aria-label="Voice Selection">'
+   +'<option value="">🗣️ Natural Voice</option>'
+   +'</select>'
+   +'<select class="audio-btn" onchange="ttsSetSpeed(this.value)" style="padding:4px 6px;" aria-label="Audio Speed">'
+   +'<option value="0.9">0.9x</option><option value="1.0" selected>1.0x</option><option value="1.25">1.25x</option><option value="1.5">1.5x</option>'
+   +'</select>'
+   +'<span id="ttsStatusLabel"></span>'
    +'</div>'
    +'<div style="display:inline-flex; gap:6px;">'
    +'<button id="bmBtn" class="btn ghost sm'+((S.bookmarks||[]).includes(getLessonKey(id,i))?' flagon':'')+'" onclick="toggleBookmark(\''+id+'\','+i+')">'
@@ -1119,6 +1127,7 @@ function lessonView(id,i){
    +'<div class="lesson-body">'+les.b+'</div>'
    +'<div class="rowbtns">'+prevBtn+nextBtn+'</div></div>';
   initLessonWidgets();
+  populateVoiceDropdown();
   if (typeof window !== 'undefined') {
     if (typeof window.scrollTo === 'function') window.scrollTo(0, 0);
     if (document.documentElement) document.documentElement.scrollTop = 0;
@@ -1208,14 +1217,31 @@ if (typeof window !== 'undefined' && window.speechSynthesis) {
 function populateVoiceDropdown(){
   const sel = document.getElementById('ttsVoiceSelect');
   if (!sel) return;
+  if (typeof window === 'undefined' || !window.speechSynthesis) {
+    sel.innerHTML = '<option value="">🗣️ Default Voice</option>';
+    return;
+  }
   const voices = getAvailableVoices();
-  if (!voices.length) return;
+  if (!voices.length) {
+    sel.innerHTML = '<option value="">🗣️ Loading Voices...</option>';
+    setTimeout(populateVoiceDropdown, 300);
+    return;
+  }
   const cur = ttsCurrentVoice || getBestVoice();
-  sel.innerHTML = voices.map(v => {
+  let opts = '';
+  voices.slice(0, 15).forEach(v => {
     const isSel = cur && cur.name === v.name;
-    const label = v.name.replace(/Microsoft /g, '').replace(/Google /g, '').replace(/English/g, 'EN');
-    return '<option value="' + esc(v.name) + '"' + (isSel ? ' selected' : '') + '>' + esc(label) + '</option>';
-  }).join('');
+    const cleanName = v.name
+      .replace(/^Microsoft\s+/i, '')
+      .replace(/^Google\s+/i, '')
+      .replace(/English\s*\([^)]+\)/i, 'EN')
+      .replace(/\s*Online\s*\(Natural\)/i, ' (Natural)')
+      .replace(/\s*\(United States\)/i, ' (US)')
+      .replace(/\s*\(United Kingdom\)/i, ' (UK)')
+      .trim();
+    opts += '<option value="' + esc(v.name) + '"' + (isSel ? ' selected' : '') + '>🗣️ ' + esc(cleanName) + '</option>';
+  });
+  sel.innerHTML = opts;
 }
 
 function setTtsVoice(voiceName){

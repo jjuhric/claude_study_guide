@@ -630,6 +630,7 @@ vm.createContext(sandbox);
   call("lessonView", "ccao", 0);
   check(/lesson-toc/.test(els.app.innerHTML), "lesson view renders Table of Contents");
   check(/ttsPlayBtn/.test(els.app.innerHTML), "lesson view renders Web Speech audio player");
+  check(/ttsVoiceSelect/.test(els.app.innerHTML), "lesson view renders Voice Selection dropdown");
   check(/bmBtn/.test(els.app.innerHTML), "lesson view renders bookmark button");
   check(/notesDrawer/.test(els.app.innerHTML), "lesson view renders study notes drawer");
 
