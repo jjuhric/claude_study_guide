@@ -922,6 +922,19 @@ vm.createContext(sandbox);
   call("audioPodcastExporter");
   check(/Spoken Flashcard Audio Podcast Briefing/.test(els.app.innerHTML), "audioPodcastExporter renders podcast player");
 
+  /* ---------- 38. Hyperion Suite ---------- */
+  call("claudeCodeTerminalView");
+  check(/Claude Code CLI Terminal Simulator/.test(els.app.innerHTML) && /cliCmdInput/.test(els.app.innerHTML), "claudeCodeTerminalView renders CLI emulator");
+
+  call("rateLimitVisualizer");
+  check(/Anthropic API Rate Limit & Token Bucket Visualizer/.test(els.app.innerHTML), "rateLimitVisualizer renders rate limit simulator");
+
+  call("customDeckStudio");
+  check(/Custom Flashcard Deck Builder & CSV Exporter/.test(els.app.innerHTML) && /customCardFront/.test(els.app.innerHTML), "customDeckStudio renders deck builder");
+
+  call("svgBadgeExporter");
+  check(/High-Resolution SVG Vector Badge Exporter/.test(els.app.innerHTML), "svgBadgeExporter renders SVG vector badge exporter");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();

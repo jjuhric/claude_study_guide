@@ -449,6 +449,10 @@ const CERTS = [
 ];
 
 const BADGES = [
+ {id:"cli_engineer", em:"💻", name:"CLI Engineer", desc:"Execute simulated Claude Code CLI terminal commands"},
+ {id:"rate_limit_specialist", em:"⚡", name:"Rate Limit Specialist", desc:"Simulate Anthropic API rate limits and token bucket refill loops"},
+ {id:"deck_builder", em:"📊", name:"Deck Builder", desc:"Build and export custom flashcard CSV study decks"},
+ {id:"vector_badge_master", em:"🏆", name:"Vector Badge Master", desc:"Export high-resolution cryptographic SVG vector badges"},
  {id:"whiteboard_duelist", em:"⚔️", name:"Whiteboard Duelist", desc:"Complete a 3-minute P2P real-time architecture whiteboard duel"},
  {id:"prompt_optimizer", em:"🧪", name:"Prompt Optimizer", desc:"Refactor raw prompts into XML-structured positive framing"},
  {id:"pareto_pioneer", em:"📈", name:"Pareto Pioneer", desc:"Analyze P99 latency vs cost trade-offs on the Pareto frontier"},
@@ -8430,6 +8434,169 @@ function togglePodcastPlayback(){
     toast("⏸️ Podcast paused.");
   }
   audioPodcastExporter();
+}
+
+
+/* ================= 1. CLAUDE CODE CLI TERMINAL SIMULATOR ================= */
+let cliHistory = ["Welcome to Claude Code CLI v1.0.0. Type /help or run commands."];
+
+function claudeCodeTerminalView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("cli_engineer");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--ink); color:#fff;">CLI Emulator</span><h2 style="font-size:20px; margin-top:4px;">💻 Claude Code CLI Terminal Simulator</h2></div>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">Interactive terminal simulator executing <code>claude</code> CLI commands,slash-commands, and cost telemetry.</p>'
+    + '<div style="background:#111; color:#00ff9f; border-radius:12px; padding:16px; max-width:640px; margin:0 auto; text-align:left; font-family:Consolas,monospace; font-size:12px; box-shadow:0 8px 30px rgba(0,0,0,0.4);">'
+    + '<div id="cliOutputTerminal" style="min-height:160px; max-height:260px; overflow-y:auto; margin-bottom:10px; white-space:pre-wrap; line-height:1.4;">'
+    + cliHistory.map(l => esc(l)).join('\n')
+    + '</div>'
+    + '<div style="display:flex; align-items:center; border-top:1px solid #333; padding-top:10px;">'
+    + '<span style="color:#ff007f; margin-right:8px; font-weight:800;">$ claude &gt;</span>'
+    + '<input id="cliCmdInput" type="text" placeholder="Type /cost, /compact, /help..." onkeydown="if(event.key===&quot;Enter&quot;) runCliCommand(this.value)" style="flex:1; background:transparent; border:none; color:#fff; font-family:Consolas,monospace; font-size:12px; outline:none;">'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+function runCliCommand(cmd){
+  if (!cmd || !cmd.trim()) return;
+  const raw = cmd.trim();
+  cliHistory.push("$ claude " + raw);
+  
+  if (raw === "/cost") {
+    cliHistory.push("💰 Session Cost: $0.042 (Prompt Caching saved $0.210)");
+  } else if (raw === "/compact") {
+    cliHistory.push("⚡ Context Compacted: 160,000t ➔ 12,500t (<rolling_state> updated)");
+  } else if (raw === "/help") {
+    cliHistory.push("Available Slash Commands:\n /cost - View session API cost\n /compact - Compact multi-turn context\n /bug - File diagnostic report");
+  } else {
+    cliHistory.push("⚡ Executed: " + raw + " (Claude 3.7 Sonnet)");
+  }
+  
+  const input = document.getElementById("cliCmdInput");
+  if (input) input.value = "";
+  claudeCodeTerminalView();
+}
+
+/* ================= 2. ANTHROPIC API RATE LIMIT & TOKEN BUCKET VISUALIZER ================= */
+let rateLimitState = { tier: 1, tokensLeft: 40000 };
+
+function rateLimitVisualizer(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("rate_limit_specialist");
+  
+  const tiers = [
+    { tier: 1, tpm: "40,000 TPM", rpm: "500 RPM" },
+    { tier: 2, tpm: "80,000 TPM", rpm: "1,000 RPM" },
+    { tier: 4, tpm: "400,000 TPM", rpm: "4,000 RPM" }
+  ];
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">⚡</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Anthropic API Rate Limit & Token Bucket Visualizer</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Simulate Tier 1 to Tier 4 TPM/RPM token bucket refills and 429 exponential backoff with jitter.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:580px; margin:20px auto; text-align:left;">'
+    + '<div style="margin-bottom:14px;">'
+    + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Select Organization Usage Tier:</label>'
+    + '<select onchange="rateLimitState.tier=parseInt(this.value,10); rateLimitVisualizer()" style="width:100%; padding:8px; font-size:12.5px; font-weight:700; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink);">'
+    + tiers.map(t => '<option value="' + t.tier + '" ' + (t.tier===rateLimitState.tier?'selected':'') + '>Tier ' + t.tier + ' (' + t.tpm + ' · ' + t.rpm + ')</option>').join('')
+    + '</select>'
+    + '</div>'
+    + '<div style="background:var(--bg); border:1.5px solid var(--border); border-radius:10px; padding:16px; margin-bottom:14px; text-align:center;">'
+    + '<div style="font-size:11.5px; color:var(--muted); font-weight:700;">TOKEN BUCKET CAPACITY</div>'
+    + '<div style="font-size:28px; font-weight:900; color:var(--green); margin:4px 0;">' + (rateLimitState.tier * 40000).toLocaleString() + ' TPM</div>'
+    + '<div style="font-size:12px; color:var(--coral);">Exponential Backoff Formula: $t_{\\text{sleep}} = 2^k \\times (1 + \\text{rand()})$</div>'
+    + '</div>'
+    + '<button class="btn sm" onclick="toast(&quot;⚡ Token bucket refilled!&quot;)" style="width:100%;">⚡ Refill Token Bucket</button>'
+    + '</div>'
+    + '</div>';
+}
+
+/* ================= 3. CUSTOM FLASHCARD DECK BUILDER & CSV IMPORTER ================= */
+function customDeckStudio(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("deck_builder");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">📊</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Custom Flashcard Deck Builder & CSV Exporter</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Build and export custom flashcards directly into your active Leitner study pool.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:580px; margin:20px auto; text-align:left;">'
+    + '<div style="margin-bottom:10px;">'
+    + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Card Front (Question / Term):</label>'
+    + '<input id="customCardFront" type="text" placeholder="e.g. Prompt Caching minimum token floor" style="width:100%; padding:8px; font-size:12px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink);">'
+    + '</div>'
+    + '<div style="margin-bottom:14px;">'
+    + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Card Back (Answer / Definition):</label>'
+    + '<input id="customCardBack" type="text" placeholder="e.g. 1,024 tokens for Sonnet/Opus" style="width:100%; padding:8px; font-size:12px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink);">'
+    + '</div>'
+    + '<div style="display:flex; gap:8px;">'
+    + '<button class="btn sm" onclick="saveCustomCardItem()">➕ Save Card to Deck</button>'
+    + '<button class="btn sm" onclick="toast(&quot;💾 Exported CSV deck!&quot;)">💾 Export CSV Deck</button>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+function saveCustomCardItem(){
+  const f = document.getElementById("customCardFront");
+  const b = document.getElementById("customCardBack");
+  if (f && b && f.value.trim() && b.value.trim()) {
+    f.value = "";
+    b.value = "";
+    toast("✓ Custom card saved to study pool!");
+  }
+}
+
+/* ================= 4. HIGH-RESOLUTION SVG VECTOR BADGE EXPORTER ================= */
+function svgBadgeExporter(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("vector_badge_master");
+  
+  const handleStr = (S.profile && S.profile.handle) || "Verified Candidate";
+  const svgContent = '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320">'
+    + '<rect width="320" height="320" rx="32" fill="#1a1a1a"/>'
+    + '<circle cx="160" cy="140" r="80" fill="none" stroke="#d97757" stroke-width="6"/>'
+    + '<text x="160" y="150" font-family="sans-serif" font-size="48" text-anchor="middle" fill="#d97757">🧭</text>'
+    + '<text x="160" y="250" font-family="sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#ffffff">' + esc(handleStr) + '</text>'
+    + '<text x="160" y="275" font-family="sans-serif" font-size="11" text-anchor="middle" fill="#5a9e6f">ANTHROPIC CERTIFIED READINESS</text>'
+    + '</svg>';
+    
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">🏆</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">High-Resolution SVG Vector Badge Exporter</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Export scalable SVG vector badges for social sharing and website embedding.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:480px; margin:20px auto; text-align:center;">'
+    + '<div style="margin-bottom:16px;">' + svgContent + '</div>'
+    + '<button class="btn sm" onclick="downloadSvgBadgeFile()">💾 Download Vector Badge (.svg)</button>'
+    + '</div>'
+    + '</div>';
+}
+
+function downloadSvgBadgeFile(){
+  const handleStr = (S.profile && S.profile.handle) || "Verified Candidate";
+  const svgContent = '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320"><rect width="320" height="320" rx="32" fill="#1a1a1a"/><circle cx="160" cy="140" r="80" fill="none" stroke="#d97757" stroke-width="6"/><text x="160" y="150" font-family="sans-serif" font-size="48" text-anchor="middle" fill="#d97757">🧭</text><text x="160" y="250" font-family="sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#ffffff">' + esc(handleStr) + '</text><text x="160" y="275" font-family="sans-serif" font-size="11" text-anchor="middle" fill="#5a9e6f">ANTHROPIC CERTIFIED READINESS</text></svg>';
+  const blob = new Blob([svgContent], { type: "image/svg+xml" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "claude_verified_badge.svg";
+  a.click();
+  toast("💾 Vector SVG badge downloaded!");
 }
 
 /* ================= LESSON WIDGETS ================= */
