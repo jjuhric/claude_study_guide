@@ -8919,6 +8919,252 @@ function scenarioWhatIfExplorer(){
     + '</div>';
 }
 
+
+/* ================= NOVA TEACHING SUITE ================= */
+
+/* ── 1. ANIMATED CONCEPT EXPLAINER CARDS ── */
+function animatedConceptCards(){
+  if(typeof window!=='undefined'&&window.scrollTo)window.scrollTo(0,0);
+  renderHeader();
+  award('concept_animator');
+  const steps=[
+    {icon:'📤',color:'#d97757',title:'1. Client Sends Request',
+     desc:'Your app calls the Messages API with model, max_tokens, messages[] and optional system prompt. The HTTPS request reaches Anthropic inference cluster in ~50 ms.'},
+    {icon:'🗄️',color:'#5a9e6f',title:'2. Cache Prefix Check',
+     desc:'Anthropic checks if the first N tokens match a cached prefix. Breakpoints set with cache_control:{type:"ephemeral"} at the END of stable text blocks. Min threshold: 1,024 tokens (Haiku: 2,048).'},
+    {icon:'⚡',color:'#5b7fa6',title:'3. Cache Hit → 85% Off',
+     desc:'Cache hit: prefix reused, read cost = 10% of write. Effective input savings up to 85%. TTL is 5 min of inactivity. Re-sending the same prefix resets the 5-minute clock.'},
+    {icon:'🧠',color:'#8a6fae',title:'4. Model Inference',
+     desc:'Claude processes the (fresh or cached) tokens through transformer layers. Extended thinking generates a <thinking> block before the final <text> response—visible in content[].'},
+    {icon:'🌊',color:'#d97757',title:'5. Streaming Response',
+     desc:'Server-Sent Events emit content_block_delta events token-by-token. stop_reason: end_turn | max_tokens | tool_use | stop_sequence. The usage block reports cache token counts.'}
+  ];
+  const cardsHtml=steps.map((s,i)=>'<div id="novaCard'+i+'" style="display:'+(i===0?'block':'none')+';background:var(--card);border:2px solid '+s.color+';border-radius:16px;padding:22px 24px;text-align:center;max-width:540px;margin:0 auto;">'
+    +'<div style="font-size:48px;margin-bottom:8px;">'+s.icon+'</div>'
+    +'<h3 style="color:'+s.color+';margin:0 0 10px;font-size:16px;">'+s.title+'</h3>'
+    +'<p style="font-size:13px;line-height:1.7;color:var(--text);">'+s.desc+'</p>'
+    +'<div style="margin-top:14px;display:flex;gap:6px;justify-content:center;">'
+    +steps.map((_,j)=>'<div style="width:9px;height:9px;border-radius:50%;background:'+(j===i?s.color:'var(--border)')+'"></div>').join('')
+    +'</div></div>'
+  ).join('');
+  $('app').innerHTML='<button class="back" onclick="home()">← Back</button>'
+    +'<div class="panel center">'
+    +'<div style="font-size:36px;">🎴</div>'
+    +'<h2 style="font-size:20px;margin-top:6px;">Animated Concept Explainer Cards</h2>'
+    +'<p class="subtext" style="margin-top:6px;">Walk through the exact lifecycle of a Claude API call — from client send to streaming response.</p>'
+    +'<div id="novaCarousel" style="margin:18px 0;">'+cardsHtml+'</div>'
+    +'<div style="display:flex;gap:10px;justify-content:center;">'
+    +'<button class="btn sm" onclick="novaPrev()">◀ Prev</button>'
+    +'<button class="btn" onclick="novaNext()">▶ Next Step</button>'
+    +'</div>'
+    +'<p style="font-size:11px;color:var(--muted);margin-top:12px;">5 concept steps · API lifecycle · Cache flow · Streaming</p>'
+    +'</div>';
+  window._novaStep=0;
+  window.novaNext=function(){
+    document.getElementById('novaCard'+window._novaStep).style.display='none';
+    window._novaStep=(window._novaStep+1)%5;
+    document.getElementById('novaCard'+window._novaStep).style.display='block';
+    toast('🎴 Step '+(window._novaStep+1)+' of 5');
+  };
+  window.novaPrev=function(){
+    document.getElementById('novaCard'+window._novaStep).style.display='none';
+    window._novaStep=(window._novaStep-1+5)%5;
+    document.getElementById('novaCard'+window._novaStep).style.display='block';
+  };
+}
+
+/* ── 2. API PAYLOAD INSPECTOR ── */
+function apiPayloadInspector(){
+  if(typeof window!=='undefined'&&window.scrollTo)window.scrollTo(0,0);
+  renderHeader();
+  award('api_payload_analyst');
+  const PAYLOADS={
+    basic:{
+      label:'Basic Request',
+      req:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1024,messages:[{role:'user',content:'Explain MCP in one sentence.'}]},null,2),
+      res:JSON.stringify({id:'msg_01Xk',type:'message',role:'assistant',content:[{type:'text',text:'MCP is an open JSON-RPC 2.0 standard that lets Claude connect to external tools and data sources via a standardized server interface.'}],model:'claude-sonnet-4-5',stop_reason:'end_turn',usage:{input_tokens:18,output_tokens:32}},null,2)
+    },
+    cache:{
+      label:'With Prompt Caching',
+      req:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:512,system:[{type:'text',text:'You are an expert Claude tutor. [1024+ tokens of stable context...]',cache_control:{type:'ephemeral'}}],messages:[{role:'user',content:'What is cache_control?'}]},null,2),
+      res:JSON.stringify({id:'msg_02Yk',type:'message',role:'assistant',content:[{type:'text',text:'cache_control marks the prefix breakpoint where Anthropic caches your input for 5 minutes, reducing re-send cost by 85%.'}],stop_reason:'end_turn',usage:{input_tokens:8,output_tokens:26,cache_creation_input_tokens:1250,cache_read_input_tokens:0}},null,2)
+    },
+    tool:{
+      label:'Tool Use',
+      req:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1024,tools:[{name:'get_weather',description:'Get current weather',input_schema:{type:'object',properties:{location:{type:'string',description:'City name'}},required:['location']}}],messages:[{role:'user',content:"What's the weather in NYC?"}]},null,2),
+      res:JSON.stringify({id:'msg_03Zk',type:'message',role:'assistant',content:[{type:'tool_use',id:'toolu_01',name:'get_weather',input:{location:'New York, NY'}}],stop_reason:'tool_use',usage:{input_tokens:75,output_tokens:28}},null,2)
+    },
+    thinking:{
+      label:'Extended Thinking',
+      req:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:16000,thinking:{type:'enabled',budget_tokens:10000},messages:[{role:'user',content:'Design a zero-trust multi-agent pipeline for PCI-DSS.'}]},null,2),
+      res:JSON.stringify({id:'msg_04Wk',type:'message',role:'assistant',content:[{type:'thinking',thinking:'[Extended reasoning across MicroVM segmentation, circuit breakers, audit logging...]'},{type:'text',text:'Here is the zero-trust architecture: 1. MicroVM isolation per tool...'}],stop_reason:'end_turn',usage:{input_tokens:42,output_tokens:4300}},null,2)
+    }
+  };
+  const annotations={
+    model:'The Claude model version to call. Determines capability tier and per-token price.',
+    max_tokens:'Hard cap on output tokens. Prevents runaway billing. Set to your expected P99 response length.',
+    messages:'Ordered conversation array. Each turn has role: user | assistant and content string or array.',
+    cache_control:'Marks a caching breakpoint. Must be at the end of a stable static prefix block.',
+    tools:'Array of tool definitions. Each has name, description, and JSON Schema input_schema.',
+    thinking:'Enables extended thinking. budget_tokens sets max reasoning tokens (min 1,024).',
+    stop_reason:'Why Claude stopped: end_turn | max_tokens | tool_use | stop_sequence.',
+    usage:'Token accounting block. Shows input, output, cache_creation, and cache_read token counts.'
+  };
+  function renderPayload(key){
+    const p=PAYLOADS[key];
+    const annoHtml=Object.entries(annotations).map(([k,v])=>'<tr><td style="padding:5px 8px;font-family:monospace;font-size:11px;color:var(--coral);white-space:nowrap;">"'+k+'"</td><td style="padding:5px 8px;font-size:11px;color:var(--text);line-height:1.5;">'+v+'</td></tr>').join('');
+    return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0;">'
+      +'<div>'
+      +'<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:1px;">📤 Request</div>'
+      +'<pre style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:10.5px;overflow-x:auto;white-space:pre-wrap;line-height:1.6;max-height:320px;overflow-y:auto;">'+p.req+'</pre>'
+      +'</div>'
+      +'<div>'
+      +'<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:1px;">📥 Response</div>'
+      +'<pre style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:10.5px;overflow-x:auto;white-space:pre-wrap;line-height:1.6;max-height:320px;overflow-y:auto;">'+p.res+'</pre>'
+      +'</div>'
+      +'</div>'
+      +'<details style="margin-top:8px;"><summary style="cursor:pointer;font-size:12px;font-weight:600;color:var(--coral);">📋 Field Annotations</summary>'
+      +'<table style="width:100%;margin-top:8px;border-collapse:collapse;">'+annoHtml+'</table>'
+      +'</details>';
+  }
+  $('app').innerHTML='<button class="back" onclick="home()">← Back</button>'
+    +'<div class="panel">'
+    +'<div style="text-align:center;"><div style="font-size:36px;">🔬</div>'
+    +'<h2 style="font-size:20px;margin-top:6px;">API Payload Inspector: Live Request / Response Viewer</h2>'
+    +'<p class="subtext" style="margin-top:6px;">Select a call type to inspect the exact JSON sent over the wire — every field annotated with exam-relevant context.</p>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:14px 0;" id="apiPayloadTabs">'
+    +Object.entries(PAYLOADS).map(([k,p])=>'<button class="btn sm" onclick="window._apiPL(\''+k+'\')">'+p.label+'</button>').join('')
+    +'</div>'
+    +'<div id="apiPayloadBody">'+renderPayload('basic')+'</div>'
+    +'</div>';
+  window._apiPL=function(key){ document.getElementById('apiPayloadBody').innerHTML=renderPayload(key); toast('🔬 Loaded: '+PAYLOADS[key].label); };
+}
+
+/* ── 3. INTERACTIVE CONCEPT DECISION TREE ── */
+function conceptDecisionTree(){
+  if(typeof window!=='undefined'&&window.scrollTo)window.scrollTo(0,0);
+  renderHeader();
+  award('decision_tree_navigator');
+  const TREES={
+    thinking:{
+      label:'Should I use Extended Thinking?',
+      root:{q:'Do you need multi-step logical reasoning or complex analysis?',
+        yes:{q:'Is latency acceptable (thinking adds 2–30 s)?',
+          yes:{q:'Is your task verifiable — math, code, architecture?',
+            yes:{result:'✅ Use Extended Thinking. Set budget_tokens ≥ 1,024. Use claude-sonnet-4-5 or claude-opus-4.',color:'#5a9e6f'},
+            no:{result:'⚠️ Consider Thinking. Creative tasks benefit less. Set a low budget_tokens (1,024–4,000).',color:'#d97757'}
+          },
+          no:{result:'❌ Skip Thinking. Use standard inference for latency-sensitive use cases. Use streaming to reduce perceived latency.',color:'#c94f4f'}
+        },
+        no:{result:'❌ Skip Thinking. Standard claude-haiku-4-5 handles simple Q&A, summarization, and classification faster and cheaper.',color:'#c94f4f'}
+      }
+    },
+    caching:{
+      label:'Is my prompt a good caching candidate?',
+      root:{q:'Is your system prompt or context block ≥ 1,024 tokens (≥ 2,048 for Haiku)?',
+        yes:{q:'Is the prefix STATIC — no timestamps, session IDs, or dynamic user data injected?',
+          yes:{q:'Will you send this same prefix again within 5 minutes?',
+            yes:{result:'✅ Great caching candidate. Place cache_control at the END of the static block. Expect 85% read discount on re-sends.',color:'#5a9e6f'},
+            no:{result:'⚠️ Cache will expire (5-min TTL). Still useful for bursty traffic. Consider warming the cache on startup.',color:'#d97757'}
+          },
+          no:{result:'❌ Not cacheable. Dynamic content in the prefix breaks cache reuse. Move dynamic parts AFTER the cache_control breakpoint.',color:'#c94f4f'}
+        },
+        no:{result:'❌ Below threshold. Prompt caching only activates at 1,024 tokens. Pad the system prompt with stable context to reach the floor.',color:'#c94f4f'}
+      }
+    },
+    agent:{
+      label:'Should I use a multi-agent architecture?',
+      root:{q:'Does your task exceed a single model\'s context window or require parallelism?',
+        yes:{result:'✅ Multi-agent is appropriate. Use an orchestrator with subagents. Implement circuit breakers and exponential backoff with jitter.',color:'#5a9e6f'},
+        no:{q:'Does your task have multiple independent subtasks that can run concurrently?',
+          yes:{result:'✅ Parallel subagent pattern. Fan-out to N specialized workers, fan-in via orchestrator. Reduces wall-clock latency significantly.',color:'#5a9e6f'},
+          no:{q:'Do you require human-in-the-loop approval for irreversible actions?',
+            yes:{result:'⚠️ Interruptible agent with HITL checkpoint. Pause before delete/write operations and surface a confirmation request.',color:'#d97757'},
+            no:{result:'❌ Single-agent sufficient. Avoid unnecessary orchestration overhead. Keep it simple with a well-structured system prompt.',color:'#5b7fa6'}
+          }
+        }
+      }
+    }
+  };
+  function renderNode(node,depth){
+    if(node.result) return '<div style="background:'+node.color+'22;border:2px solid '+node.color+';border-radius:12px;padding:16px;text-align:center;font-size:13px;font-weight:600;color:'+node.color+';">'+node.result+'</div>';
+    const id='dtn_'+Math.random().toString(36).slice(2,7);
+    return '<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;">'
+      +'<p style="font-size:13px;font-weight:600;color:var(--text);margin:0 0 12px;">'+node.q+'</p>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
+      +'<div><button class="btn sm" style="width:100%;background:#5a9e6f22;color:#5a9e6f;border-color:#5a9e6f;" onclick="document.getElementById(\'yes_'+id+'\').style.display=\'block\';this.parentElement.parentElement.parentElement.querySelector(\'.dtn-no\').style.display=\'none\'">✅ Yes</button>'
+      +'<div id="yes_'+id+'" style="display:none;margin-top:8px;">'+renderNode(node.yes,depth+1)+'</div></div>'
+      +'<div><button class="btn sm dtn-no" style="width:100%;background:#c94f4f22;color:#c94f4f;border-color:#c94f4f;" onclick="document.getElementById(\'no_'+id+'\').style.display=\'block\';this.parentElement.parentElement.parentElement.querySelector(\'#yes_'+id+'\').style.display=\'none\'">❌ No</button>'
+      +'<div id="no_'+id+'" style="display:none;margin-top:8px;">'+renderNode(node.no,depth+1)+'</div></div>'
+      +'</div></div>';
+  }
+  $('app').innerHTML='<button class="back" onclick="home()">← Back</button>'
+    +'<div class="panel">'
+    +'<div style="text-align:center;"><div style="font-size:36px;">🌳</div>'
+    +'<h2 style="font-size:20px;margin-top:6px;">Interactive Concept Decision Trees</h2>'
+    +'<p class="subtext" style="margin-top:6px;">Follow branching logic to resolve common architectural decisions — exactly how exam scenarios are framed.</p>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:14px 0;">'
+    +Object.entries(TREES).map(([k,t])=>'<button class="btn sm" onclick="window._dtnLoad(\''+k+'\')">'+t.label+'</button>').join('')
+    +'</div>'
+    +'<div id="dtnBody">'+renderNode(TREES.thinking.root,0)+'</div>'
+    +'</div>';
+  window._dtnLoad=function(key){
+    document.getElementById('dtnBody').innerHTML=renderNode(TREES[key].root,0);
+    toast('🌳 Loaded: '+TREES[key].label);
+  };
+}
+
+/* ── 4. GLOSSARY TERM CALLOUTS ── */
+function glossaryTermCallouts(){
+  if(typeof window!=='undefined'&&window.scrollTo)window.scrollTo(0,0);
+  renderHeader();
+  award('glossary_navigator');
+  const TERMS=[
+    {term:'Token Bucket',domain:'Infrastructure',def:'Rate-limit model: a bucket holds T tokens that refill at rate R per second. Each request consumes tokens. When empty, requests are throttled (429).',lesson:'API Limits & Retry Strategies',exam:'Tier 1-4 TPM/RPM limits use token buckets. Know refill math for Tier 2: 40k RPM = 666 RPS.'},
+    {term:'BFS Orchestrator',domain:'Architecture',def:'Breadth-First Search orchestration: an orchestrator that spawns all subagents at the same depth level in parallel before collecting results.',lesson:'Multi-Agent Orchestration',exam:'Fan-out/fan-in is BFS. Fan-out reduces wall-clock latency for independent subtasks.'},
+    {term:'FIFO Truncation',domain:'Context Management',def:'First-In, First-Out: oldest conversation turns are dropped when the context window approaches capacity. Causes amnesia for early instructions.',lesson:'Context Window & Compaction',exam:'FIFO truncation is the WRONG strategy. Use semantic compaction into <key_facts> tags instead.'},
+    {term:'cache_control',domain:'Prompt Caching',def:'API field placed at the END of a stable prefix block. Signals Anthropic to cache that prefix for 5 minutes. Min 1,024 tokens (Haiku: 2,048).',lesson:'Prompt Caching Deep Dive',exam:'Must be at END of static block. Dynamic content after breakpoint is NOT cached.'},
+    {term:'stop_reason',domain:'Messages API',def:'Field in API response indicating why generation ended: end_turn (natural), max_tokens (capped), tool_use (tool called), stop_sequence (trigger hit).',lesson:'Messages API Reference',exam:'tool_use stop_reason means the model wants to call a tool — you must send the tool_result back.'},
+    {term:'MicroVM',domain:'Security',def:'Lightweight VM (e.g., Firecracker) providing hardware-level isolation for tool execution. Kernel-per-VM prevents sandbox escape attacks.',lesson:'Zero-Trust Agentic Security',exam:'Claude runs tools in MicroVMs to enforce zero-trust execution boundaries per tool call.'},
+    {term:'Brier Score',domain:'Evaluation',def:'Mathematical calibration metric: mean squared difference between predicted probability and actual outcome (0=perfect, 1=worst). Lower = better calibration.',lesson:'Evaluation & Calibration',exam:'Used to measure prediction calibration quality. A well-calibrated model has Brier score approaching 0.'},
+    {term:'circuit breaker',domain:'Reliability',def:'Pattern that monitors failure rates and "opens" (blocks) calls to a failing downstream service after a threshold, preventing cascade failures.',lesson:'Resilience Patterns',exam:'Circuit breakers prevent cascading failures in multi-agent pipelines. Use with exponential backoff + jitter.'},
+    {term:'XML encapsulation',domain:'Prompting',def:'Technique of wrapping input data in XML tags (e.g., <document>) to prevent prompt injection — Claude treats tagged content as data, not instructions.',lesson:'Prompt Engineering Fundamentals',exam:'The primary defense against indirect prompt injection from tool outputs and retrieved documents.'},
+    {term:'extended thinking',domain:'Reasoning',def:'Claude feature that generates a <thinking> block of internal reasoning before responding. Improves accuracy on complex multi-step tasks. Requires budget_tokens ≥ 1,024.',lesson:'Extended Thinking & Reasoning',exam:'Extended thinking is visible in content[] as type:"thinking". budget_tokens sets the reasoning ceiling.'}
+  ];
+  const html=TERMS.map(t=>'<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;">'
+    +'<div style="display:flex;align-items:flex-start;gap:12px;">'
+    +'<div style="flex-shrink:0;background:var(--coral);color:#fff;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;">'+t.domain+'</div>'
+    +'<div style="flex:1;">'
+    +'<h4 style="margin:0 0 6px;font-size:15px;color:var(--text);">'+t.term+'</h4>'
+    +'<p style="font-size:12.5px;color:var(--text);line-height:1.6;margin:0 0 8px;">'+t.def+'</p>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;">'
+    +'<span style="font-size:11px;background:#5a9e6f22;color:#5a9e6f;border-radius:6px;padding:3px 8px;">📖 Lesson: '+t.lesson+'</span>'
+    +'<span style="font-size:11px;background:#d9775722;color:#d97757;border-radius:6px;padding:3px 8px;">🎯 '+t.exam+'</span>'
+    +'</div>'
+    +'</div></div></div>'
+  ).join('');
+  $('app').innerHTML='<button class="back" onclick="home()">← Back</button>'
+    +'<div class="panel">'
+    +'<div style="text-align:center;"><div style="font-size:36px;">📝</div>'
+    +'<h2 style="font-size:20px;margin-top:6px;">Glossary Term Callouts & Hover Definitions</h2>'
+    +'<p class="subtext" style="margin-top:6px;">Every key technical term defined with its exam-critical context, linked lesson, and why it matters for certification.</p>'
+    +'</div>'
+    +'<div style="margin-top:8px;"><input id="glossSearch" placeholder="🔍 Filter terms..." oninput="window._glossFilter(this.value)" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;box-sizing:border-box;margin-bottom:14px;"></div>'
+    +'<div id="glossBody">'+html+'</div>'
+    +'</div>';
+  window._glossFilter=function(q){
+    const b=document.getElementById('glossBody');
+    if(!b)return;
+    const lo=q.toLowerCase();
+    b.querySelectorAll('div[style*="border-radius:12px"]').forEach(el=>{
+      el.style.display=lo===''||el.textContent.toLowerCase().includes(lo)?'':'none';
+    });
+  };
+}
+/* ================= END NOVA TEACHING SUITE ================= */
+
 /* ================= LESSON WIDGETS ================= */
 function initLessonWidgets(){
   const boxes = document.querySelectorAll('.widget-box');

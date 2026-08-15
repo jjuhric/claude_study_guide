@@ -2,10 +2,10 @@
 
 [![Anthropic Certifications](https://img.shields.io/badge/Anthropic-Certifications%20Prep-d97757.svg)](https://www.pearsonvue.com/us/en/anthropic.html)
 [![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v24)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
-[![Tests Passing](https://img.shields.io/badge/Tests-308%20Passing-5b7fa6.svg)](test/smoke.js)
+[![Tests Passing](https://img.shields.io/badge/Tests-312%20Passing-5b7fa6.svg)](test/smoke.js)
 [![License](https://img.shields.io/badge/License-MIT-8a6fae.svg)](LICENSE)
 
-An enterprise-grade, gamified study platform and interactive simulator suite for the **Anthropic Claude Certification Program** — featuring 400 practice questions with 4-way per-option rationales, 100 Leitner spaced repetition flashcards, 44 deep-dive technical lessons, and 72+ interactive architectural sandboxes, mind mappers, inline lesson playgrounds, audio recaps, scenario explorers, sequence diagram visualizers, Socratic lesson probes, annotated SDK code walkthroughs, MicroVM execution models, Consensus voting engines, CLI emulators, rate limit visualizers, multiplayer arenas, AI tutors, topology validators, MCP execution engines, memory decay models, oral defense boards, and cryptographic credentials.
+An enterprise-grade, gamified study platform and interactive simulator suite for the **Anthropic Claude Certification Program** — featuring 400 practice questions with 4-way per-option rationales, 100 Leitner spaced repetition flashcards, 44 deep-dive technical lessons, and 76+ interactive architectural sandboxes, animated concept cards, live API payload inspectors, interactive decision trees, glossary callout engines, mind mappers, inline lesson playgrounds, audio recaps, scenario explorers, sequence diagram visualizers, Socratic lesson probes, annotated SDK code walkthroughs, MicroVM execution models, Consensus voting engines, CLI emulators, rate limit visualizers, multiplayer arenas, AI tutors, topology validators, MCP execution engines, memory decay models, oral defense boards, and cryptographic credentials.
 
 **🚀 Live Production App:** [https://jjuhric.github.io/claude_study_guide/](https://jjuhric.github.io/claude_study_guide/)
 
@@ -24,12 +24,16 @@ An enterprise-grade, gamified study platform and interactive simulator suite for
 
 ---
 
-## 🛠️ 72+ Interactive Labs, Simulators & Toolkits
+## 🛠️ 76+ Interactive Labs, Simulators & Toolkits
 
 Claude Cert Quest includes a comprehensive suite of hands-on sandboxes and diagnostic engines built right into the home dashboard:
 
 | Tool | Category | What it does |
 | :--- | :--- | :--- |
+| 🎴 **Animated Concept Cards** | Pedagogy | 5-step auto-advancing animated cards walking through the full Claude API request lifecycle. |
+| 🔬 **API Payload Inspector** | Pedagogy | Select Basic / Caching / Tool-Use / Extended Thinking and inspect the exact JSON request + response with annotated field tooltips. |
+| 🌳 **Concept Decision Trees** | Pedagogy | Interactive branching flowcharts for "Should I use Extended Thinking?", "Is my prompt cacheable?", and "Do I need multi-agent?" |
+| 📝 **Glossary Term Callouts** | Pedagogy | 10 key terms (Token Bucket, BFS Orchestrator, FIFO Truncation, etc.) with definitions, exam context, and filterable live search. |
 | 🧠 **Mind Mapper** | Pedagogy | Interactive visual node graph mapping Claude architectural relationships. |
 | 🧪 **Inline Playground** | Pedagogy | Edit live XML tags embedded directly inside study guide lesson text. |
 | 📖 **30s Audio Recap** | Pedagogy | 30-second high-yield audio lesson recaps highlighting top exam rules. |
@@ -126,7 +130,7 @@ Drill at maximum speed without touching the mouse. Press **`?`** or **`Ctrl + /`
 Claude Cert Quest has a zero-dependency test suite validating every component:
 
 ```bash
-# Run comprehensive offline test suite (308 assertions)
+# Run comprehensive offline test suite (312 assertions)
 node test/smoke.js
 ```
 
@@ -134,7 +138,7 @@ node test/smoke.js
 * ✅ Content integrity of all 400 questions, 4-way per-option rationales, and 100 flashcards.
 * ✅ Exact domain-to-lesson mapping across all 4 certification tracks.
 * ✅ Web Audio synthesizer, state migration, and Leitner spaced repetition ladders.
-* ✅ Full rendering and state validation for all 72+ interactive tools, multiplayer channels, and simulators.
+* ✅ Full rendering and state validation for all 76+ interactive tools, multiplayer channels, and simulators.
 * ✅ Compliance with official NDAs and unverified exam claim policies.
 
 ---

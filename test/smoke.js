@@ -974,6 +974,20 @@ vm.createContext(sandbox);
   call("scenarioWhatIfExplorer");
   check(/Socratic "What If\?" Edge-Case Scenario Explorer/.test(els.app.innerHTML), "scenarioWhatIfExplorer renders what-if scenario explorer");
 
+  /* ---------- 42. Nova Teaching Suite ---------- */
+  call("animatedConceptCards");
+  check(/Animated Concept Explainer Cards/.test(els.app.innerHTML) && /novaCarousel/.test(els.app.innerHTML), "animatedConceptCards renders step carousel");
+
+  call("apiPayloadInspector");
+  check(/API Payload Inspector: Live Request \/ Response Viewer/.test(els.app.innerHTML) && /apiPayloadTabs/.test(els.app.innerHTML), "apiPayloadInspector renders request/response viewer");
+
+  call("conceptDecisionTree");
+  check(/Interactive Concept Decision Trees/.test(els.app.innerHTML) && /dtnBody/.test(els.app.innerHTML), "conceptDecisionTree renders interactive branching tree");
+
+  call("glossaryTermCallouts");
+  check(/Glossary Term Callouts & Hover Definitions/.test(els.app.innerHTML) && /glossBody/.test(els.app.innerHTML), "glossaryTermCallouts renders glossary with search");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
+
