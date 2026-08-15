@@ -140,6 +140,33 @@ function handbookSelect(){
   $("app").innerHTML = h+'</div></div>';
 }
 
+/* Which tool groups the user has expanded. Deliberately a plain variable and
+   not part of S: it survives a re-render (open a tool, come back, your section
+   is still open) but not a reload, so a fresh visit still starts fully
+   collapsed the way the dashboard is meant to be met. */
+const openToolGroups = new Set();
+
+/* Records a user's expand/collapse. Ignored while the filter box has text,
+   because those toggles come from filterTools rather than from the user - and
+   `toggle` fires asynchronously, so a synchronous "I am filtering" flag would
+   not still be set by the time this ran. */
+function toggleToolGroup(el){
+  const box=$("toolsearch");
+  if(box && box.value.trim()) return;
+  const id=el.getAttribute("data-toolgroup");
+  if(el.open) openToolGroups.add(id); else openToolGroups.delete(id);
+}
+
+function setAllToolGroups(open){
+  document.querySelectorAll("[data-toolgroup]").forEach(sec=>{ sec.open=open; });
+  const b=$("toolexpand");
+  if(b){ b.textContent = open ? "Collapse all" : "Expand all"; b.setAttribute("aria-expanded", open?"true":"false"); }
+}
+function toggleAllToolGroups(){
+  const secs=[...document.querySelectorAll("[data-toolgroup]")];
+  setAllToolGroups(secs.some(s=>!s.open));
+}
+
 /* Live filter over the tool grid. Toggles visibility in place rather than
    re-rendering, so typing stays responsive with 50+ cards on screen. */
 function filterTools(q){
@@ -153,6 +180,9 @@ function filterTools(q){
   document.querySelectorAll("[data-toolgroup]").forEach(sec=>{
     const any=[...sec.querySelectorAll("[data-tool]")].some(el=>el.style.display!=="none");
     sec.style.display = any ? "" : "none";
+    /* A hit inside a collapsed group is invisible, so searching expands whatever
+       matched and puts it back the way the user left it once the box is empty. */
+    sec.open = term ? any : openToolGroups.has(sec.getAttribute("data-toolgroup"));
   });
   const n=$("toolcount"); if(n) n.textContent = shown+" of "+TOOLS.length+" tools";
 }
@@ -174,21 +204,27 @@ function renderToolGrid(){
   let h='<div style="margin-top:28px;">'
     +'<div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap; margin-bottom:10px;">'
     +'<div><h3 style="font-size:17px; font-weight:800; color:var(--ink);">🛠️ Labs, Simulators &amp; Toolkits</h3>'
-    +'<p style="font-size:12px; color:var(--muted); margin-top:2px;">Every interactive tool in the app · <span id="toolcount">'+TOOLS.length+' tools</span></p></div>'
+    +'<p style="font-size:12px; color:var(--muted); margin-top:2px;">Every interactive tool in the app · <span id="toolcount">'+TOOLS.length+' tools</span> · open a section to browse it</p></div>'
+    +'<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">'
     +'<input id="toolsearch" type="search" placeholder="Filter tools…" aria-label="Filter tools"'
     +' oninput="filterTools(this.value)"'
     +' style="flex:0 1 240px; min-width:160px; padding:8px 11px; border:2px solid var(--border); border-radius:10px;'
     +' background:var(--card); color:var(--ink); font-size:13px; font-family:inherit;">'
-    +'</div>';
+    +'<button id="toolexpand" class="btn sm" onclick="toggleAllToolGroups()" aria-expanded="false"'
+    +' style="font-size:12px; padding:8px 12px; background:var(--card); color:var(--ink); border:2px solid var(--border);">Expand all</button>'
+    +'</div></div>';
+  /* `open` is written only for groups the user expanded earlier this session.
+     openToolGroups is empty on a fresh load, so a first visit is all collapsed. */
   for(const g of TOOL_GROUPS){
     const items=TOOLS.filter(t=>t.g===g.id);
     if(!items.length) continue;
-    h+='<section data-toolgroup="'+g.id+'" style="margin-top:18px;">'
-      +'<h4 style="font-size:13.5px; font-weight:800; color:var(--ink); margin-bottom:2px;">'+g.name+'</h4>'
-      +'<p style="font-size:11.5px; color:var(--muted); margin-bottom:9px;">'+g.desc+'</p>'
-      +'<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px;">'
-      + items.map(toolCard).join('')
-      +'</div></section>';
+    h+='<details class="toolgroup" data-toolgroup="'+g.id+'" ontoggle="toggleToolGroup(this)"'
+      +(openToolGroups.has(g.id)?' open':'')+'>'
+      +'<summary><span class="tgchev" aria-hidden="true">▶</span>'
+      +'<span><span class="tgname">'+g.name+'</span><span class="tgdesc">'+g.desc+'</span></span>'
+      +'<span class="tgcount">'+items.length+'</span></summary>'
+      +'<div class="tgbody">'+items.map(toolCard).join('')+'</div>'
+      +'</details>';
   }
   return h+'</div>';
 }

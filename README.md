@@ -1,8 +1,8 @@
 # Claude Cert Quest 🧭
 
 [![Anthropic Certifications](https://img.shields.io/badge/Anthropic-Certifications%20Prep-d97757.svg)](https://www.pearsonvue.com/us/en/anthropic.html)
-[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v31)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
-[![Tests](https://img.shields.io/badge/Tests-349%20Passing-5b7fa6.svg)](test/smoke.js)
+[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v32)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
+[![Tests](https://img.shields.io/badge/Tests-355%20Passing-5b7fa6.svg)](test/smoke.js)
 [![License](https://img.shields.io/badge/License-MIT-8a6fae.svg)](LICENSE)
 
 A gamified study platform for the **Anthropic Claude Certification Program**:
@@ -46,9 +46,11 @@ Pearson VUE and Skilljar listings. Each certification has **100 questions and
 | 🎯 **Review Misses** | Serves only questions you have previously answered wrong. |
 | 🩹 **Weakest Domain** | Drills whichever domain you score lowest in; untested domains come first. |
 
-Plus **76 labs and simulators** grouped on the dashboard into Labs & Simulators,
-Practice & Testing, Diagnostics & Analytics, Reference & Study Aids, Audio &
-Voice, and Credentials/Sync/Community. Use the filter box to find one by name.
+Plus **76 labs and simulators** in six collapsible dashboard sections — Labs &
+Simulators, Practice & Testing, Diagnostics & Analytics, Reference & Study Aids,
+Audio & Voice, and Credentials/Sync/Community. They start collapsed so the
+certification cards stay in view; open one, use **Expand all**, or type in the
+filter box, which expands whichever sections match.
 
 **Spaced repetition.** Flashcards use Leitner boxes: recall a card and it moves
 up a box and returns later (1 → 2 → 4 → 9 → 21 days); miss it and it drops to

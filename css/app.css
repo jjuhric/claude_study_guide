@@ -68,6 +68,23 @@
   .pbar>div{height:100%; border-radius:4px; transition:width .5s;}
   .pmeta{display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-top:5px;}
 
+  /* Collapsible tool groups. 76 cards expanded at once pushed the certification
+     cards - the actual point of the dashboard - far off screen, so each group
+     ships collapsed. <details>/<summary> gives keyboard operation, the
+     aria-expanded semantics and find-in-page expansion for free. */
+  .toolgroup{margin-top:10px; border:2px solid var(--border); border-radius:14px; background:var(--card); overflow:hidden;}
+  .toolgroup>summary{list-style:none; cursor:pointer; padding:12px 15px; display:flex; align-items:center; gap:12px; transition:background .12s;}
+  .toolgroup>summary::-webkit-details-marker{display:none;}
+  .toolgroup>summary:hover{background:var(--border);}
+  .toolgroup[open]>summary{border-bottom:2px solid var(--border);}
+  .toolgroup .tgchev{flex-shrink:0; font-size:11px; color:var(--muted); transition:transform .18s;}
+  .toolgroup[open] .tgchev{transform:rotate(90deg);}
+  .toolgroup .tgname{display:block; font-size:13.5px; font-weight:800; color:var(--ink);}
+  .toolgroup .tgdesc{display:block; font-size:11.5px; color:var(--muted); margin-top:2px;}
+  .toolgroup .tgcount{margin-left:auto; flex-shrink:0; font-size:11px; font-weight:700; color:var(--muted);
+    background:var(--border); border-radius:8px; padding:3px 9px;}
+  .toolgroup .tgbody{padding:13px 15px 15px; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px;}
+
   .btn{display:inline-block; border:none; border-radius:12px; padding:12px 20px; font-size:14px; font-weight:600; cursor:pointer; background:var(--coral); color:#fff; transition:background .15s, transform .1s;}
   .btn:hover{background:var(--coral-dark);}
   .btn:active{transform:scale(.97);}

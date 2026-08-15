@@ -1080,6 +1080,28 @@ vm.createContext(sandbox);
     `card count matches the registry (${(homeHtml.match(/data-tool="/g) || []).length}/${TOOLS.length})`);
   check(/id="toolsearch"/.test(homeHtml), "the tool grid offers a filter box");
 
+  // 3b. Groups are collapsible and land collapsed. An `open` attribute slipping
+  //     into the markup would silently restore the 76-cards-at-once wall of
+  //     tools that pushed the certification cards off screen.
+  const groupTags = homeHtml.match(/<details class="toolgroup"[^>]*>/g) || [];
+  check(groupTags.length === TOOL_GROUPS.length,
+    `every tool group renders as a <details> (${groupTags.length}/${TOOL_GROUPS.length})`);
+  check(groupTags.every(t => !/\sopen[\s>=]/.test(t)), "a first visit finds every tool group collapsed");
+  check(groupTags.every(t => /ontoggle="toggleToolGroup\(this\)"/.test(t)),
+    "each group reports its expand/collapse so the state survives a re-render");
+  //     ...and the other half of that: a group expanded earlier in the session
+  //     comes back expanded, so opening a tool and returning is not punished.
+  evalIn(`openToolGroups.add(${JSON.stringify(TOOL_GROUPS[1].id)})`);
+  call("home");
+  const reopened = (els.app.innerHTML.match(/<details class="toolgroup"[^>]*>/g) || [])
+    .filter(t => /\sopen[\s>]/.test(t));
+  evalIn(`openToolGroups.clear()`);
+  check(reopened.length === 1 && reopened[0].indexOf(`data-toolgroup="${TOOL_GROUPS[1].id}"`) >= 0,
+    `a group expanded earlier in the session re-renders open, and only that one (${reopened.length} open)`);
+  check(TOOL_GROUPS.every(g => new RegExp('data-toolgroup="' + g.id + '"').test(homeHtml)),
+    "each declared group has a section on the dashboard");
+  check(/id="toolexpand"/.test(homeHtml), "the tool grid offers an expand-all control");
+
   // 4. The direction that caused this bug: a zero-argument tool view that is
   //    defined but absent from the registry has no way for a user to reach it.
   const INTERNAL = new Set([
