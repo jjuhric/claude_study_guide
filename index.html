@@ -449,6 +449,10 @@ const CERTS = [
 ];
 
 const BADGES = [
+ {id:"memory_master", em:"📉", name:"Memory Master", desc:"Simulate Ebbinghaus forgetting curve retention decay"},
+ {id:"cache_optimizer", em:"⚡", name:"Cache Optimizer", desc:"Debug and resolve prompt caching breakpoint invalidations"},
+ {id:"blitz_champion", em:"🎮", name:"Blitz Champion", desc:"Complete a 60-second rapid flashcard blitz session"},
+ {id:"custom_crammer", em:"🖨️", name:"Custom Crammer", desc:"Generate and print a personalized single-page exam cram sheet"},
  {id:"calibrated_mind", em:"📊", name:"Calibrated Mind", desc:"Compute Brier confidence score to eliminate overconfidence"},
  {id:"mcp_master_builder", em:"🔌", name:"MCP Master Builder", desc:"Execute mock MCP tool invocations in the live simulator"},
  {id:"cohort_leader", em:"👥", name:"Cohort Leader", desc:"Join or create a private study group cohort"},
@@ -536,7 +540,7 @@ function getFreshState(){
     domStats: {},
     lessonsRead: {},
     cardBox: {},
-    theme: "auto", customTheme: "terracotta", cohortCode: "", examDate: "", voiceNotes: {}, notifsEnabled: false, dailyBossHistory: {}, arcadeHighScore: 0, profile: { handle: "Curious Scholar", avatar: "🧭", title: "Claude Apprentice", uid: "cq-" + Math.random().toString(36).slice(2,8) }, lang: "en", gistToken: "", gistId: "", dailyTarget: { date: "", answered: 0, lessons: 0, cards: 0, claimed: false },
+    theme: "auto", blitzHighScore: 0, customTheme: "terracotta", cohortCode: "", examDate: "", voiceNotes: {}, notifsEnabled: false, dailyBossHistory: {}, arcadeHighScore: 0, profile: { handle: "Curious Scholar", avatar: "🧭", title: "Claude Apprentice", uid: "cq-" + Math.random().toString(36).slice(2,8) }, lang: "en", gistToken: "", gistId: "", dailyTarget: { date: "", answered: 0, lessons: 0, cards: 0, claimed: false },
     sound: false,
     customDecks: [],
     notes: {},
@@ -7590,6 +7594,251 @@ function applyPaletteTheme(pId){
   renderHeader();
   themeStudioView();
   toast("🎨 Theme palette set to " + p.name);
+}
+
+
+/* ================= 1. EBBINGHAUS FORGETTING CURVE SIMULATOR ================= */
+function forgettingCurveView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("memory_master");
+  
+  const boxes = [0, 0, 0, 0, 0];
+  Object.values(S.flashSchedule || {}).forEach(item => {
+    const b = Math.min(5, Math.max(1, (item && item.box) || 1));
+    boxes[b - 1]++;
+  });
+  
+  const retentionRates = [38, 58, 76, 89, 97];
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">📉</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Ebbinghaus Forgetting Curve Simulator</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Mathematical retention decay modeling: $R = e^{-t/S}$ across your Leitner flashcard ladders.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:620px; margin:20px auto; text-align:left;">'
+    + '<h4 style="font-size:13px; color:var(--muted); margin-bottom:12px;">Active Leitner Box Memory Decay Forecast:</h4>'
+    + '<div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">'
+    + [1, 2, 3, 4, 5].map(b => {
+        const count = boxes[b - 1];
+        const rate = retentionRates[b - 1];
+        const color = b >= 4 ? 'var(--green)' : b >= 3 ? 'var(--blue)' : b === 2 ? 'var(--gold)' : 'var(--coral)';
+        return '<div>'
+          + '<div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">'
+          + '<b>Leitner Box ' + b + ' (' + count + ' Cards)</b>'
+          + '<span style="color:' + color + '; font-weight:800;">' + rate + '% 30-Day Estimated Retention</span>'
+          + '</div>'
+          + '<div style="background:var(--bg); border-radius:6px; height:10px; overflow:hidden; border:1px solid var(--border);">'
+          + '<div style="background:' + color + '; width:' + rate + '%; height:100%; border-radius:6px;"></div>'
+          + '</div>'
+          + '</div>';
+      }).join('')
+    + '</div>'
+    + '<div style="font-size:12px; line-height:1.5; background:var(--bg); padding:12px; border-radius:8px; border:1px solid var(--border); margin-bottom:14px;">'
+    + '🧠 <b>Optimal Spaced Review Recommendation:</b><br>'
+    + '• ' + boxes[0] + ' cards in Box 1 are at high risk of forgetting. Review them today.<br>'
+    + '• Moving cards from Box 1 to Box 3 triples expected 30-day retention strength.'
+    + '</div>'
+    + '<button class="btn sm" onclick="flashcards()">▶️ Review Due Flashcards Now</button>'
+    + '</div>'
+    + '</div>';
+}
+
+/* ================= 2. PROMPT CACHING BREAKPOINT DEBUGGER ================= */
+function cachingBreakpointDebugger(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("cache_optimizer");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
+    + '<div><span class="ltag" style="background:var(--coral); color:#fff;">Cache Linter</span><h2 style="font-size:20px; margin-top:4px;">⚡ Prompt Caching Breakpoint Debugger</h2></div>'
+    + '<button class="btn sm" onclick="analyzeCachePrompt()">🔍 Inspect Cache Breakpoints</button>'
+    + '</div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">Paste your system prompt or multi-turn payload to detect prefix invalidations, sub-1024 token floors, and cache-control misconfigurations.</p>'
+    + '<div style="margin-bottom:12px;">'
+    + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">System Prompt & Request Payload:</label>'
+    + '<textarea id="cacheDebugInput" style="width:100%; height:110px; font-family:Consolas,monospace; font-size:11.5px; background:var(--card); color:var(--ink); border:1px solid var(--border); border-radius:6px; padding:10px;">'
+    + esc('// Request with dynamic timestamp placed BEFORE static guidelines:\n{\n  "system": [\n    {"type": "text", "text": "Session: " + Date.now()},\n    {"type": "text", "text": "You are a senior enterprise compliance auditor...", "cache_control": {"type": "ephemeral"}}\n  ]\n}')
+    + '</textarea>'
+    + '</div>'
+    + '<div id="cacheAuditResult" style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card);"></div>'
+    + '</div>';
+    
+  analyzeCachePrompt();
+}
+
+function analyzeCachePrompt(){
+  const res = document.getElementById("cacheAuditResult");
+  if (!res) return;
+  
+  const text = (document.getElementById("cacheDebugInput") ? document.getElementById("cacheDebugInput").value : "") || "";
+  const hasDynamicPrefix = /Date.now|timestamp|uuid|session_id/i.test(text);
+  
+  res.innerHTML = '<h4 style="font-size:13.5px; margin-bottom:8px; color:var(--coral);">⚠️ Cache Linter Findings & Diagnostic Report:</h4>'
+    + '<div style="display:flex; flex-direction:column; gap:8px; font-size:12px;">'
+    + (hasDynamicPrefix
+        ? '<div style="background:rgba(217,119,87,0.12); border:1px solid var(--coral); padding:10px; border-radius:6px; color:var(--coral); font-weight:700;">❌ Critical Cache Invalidation: Dynamic prefix detected before static guidelines! Exact prefix matching requires static instructions first.</div>'
+        : '<div style="background:rgba(90,158,111,0.12); border:1px solid var(--green); padding:10px; border-radius:6px; color:var(--green); font-weight:700;">✓ Prefix Alignment: Static instructions appear ahead of dynamic inputs.</div>')
+    + '<div style="background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:6px;"><b>Minimum Token Floor:</b> Ensure static prefix exceeds <b>1,024 tokens</b> for Sonnet/Opus and <b>2,048 tokens</b> for Haiku.</div>'
+    + '<div style="background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:6px;"><b>Cache Cap:</b> Maximum of <b>4 cache_control breakpoints</b> allowed per request.</div>'
+    + '</div>';
+}
+
+/* ================= 3. 60-SECOND FLASHCARD BLITZ MINI-GAME ================= */
+let blitzState = {
+  active: false,
+  timeLeft: 60,
+  score: 0,
+  timer: null,
+  currCard: null,
+  cards: []
+};
+
+function flashcardBlitzView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("blitz_champion");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">🎮</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">60-Second Flashcard Blitz</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Rapid-fire active recall challenge. Match as many cards as you can in 60 seconds!</p>'
+    + '<div style="margin:16px 0;">'
+    + '<div style="font-size:12px; color:var(--muted); margin-bottom:8px;">Personal High Score: <b style="color:var(--gold);">' + (S.blitzHighScore || 0) + ' pts</b></div>'
+    + '<button class="btn" onclick="startBlitzGame()">⚡ Start 60s Blitz Game</button>'
+    + '</div>'
+    + '<div id="blitzStage" style="display:none; border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:540px; margin:16px auto; text-align:left;"></div>'
+    + '</div>';
+}
+
+function startBlitzGame(){
+  blitzState.active = true;
+  blitzState.timeLeft = 60;
+  blitzState.score = 0;
+  
+  let allCards = [];
+  CERTS.forEach(c => { if (c.flashcards) allCards = allCards.concat(c.flashcards); });
+  blitzState.cards = allCards.sort(() => 0.5 - Math.random());
+  
+  const stage = document.getElementById("blitzStage");
+  if (stage) stage.style.display = "block";
+  
+  if (blitzState.timer) clearInterval(blitzState.timer);
+  blitzState.timer = setInterval(() => {
+    blitzState.timeLeft--;
+    const tEl = document.getElementById("blitzTimerDisplay");
+    if (tEl) tEl.textContent = blitzState.timeLeft + 's';
+    if (blitzState.timeLeft <= 0) endBlitzGame();
+  }, 1000);
+  
+  renderBlitzQuestion();
+}
+
+function renderBlitzQuestion(){
+  if (blitzState.cards.length === 0) return endBlitzGame();
+  blitzState.currCard = blitzState.cards.pop();
+  const stage = document.getElementById("blitzStage");
+  if (!stage) return;
+  
+  stage.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">'
+    + '<b id="blitzTimerDisplay" style="font-size:18px; color:var(--coral);">' + blitzState.timeLeft + 's</b>'
+    + '<b style="font-size:14px; color:var(--green);">Score: ' + blitzState.score + ' pts</b>'
+    + '</div>'
+    + '<div style="background:var(--bg); border:1.5px solid var(--border); border-radius:10px; padding:16px; margin-bottom:14px;">'
+    + '<div style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Front of Card:</div>'
+    + '<div style="font-size:15px; font-weight:800; margin-top:4px;">' + esc(blitzState.currCard.f) + '</div>'
+    + '</div>'
+    + '<button class="btn sm" onclick="revealBlitzAnswer()" style="width:100%; margin-bottom:8px;">👁️ Reveal Definition</button>'
+    + '<div id="blitzBackBox" style="display:none; background:var(--bg); border:1.5px solid var(--border); border-radius:10px; padding:14px; margin-bottom:14px; font-size:13px; line-height:1.4;">'
+    + esc(blitzState.currCard.b)
+    + '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;">'
+    + '<button class="opt correct" onclick="blitzAnswer(true)" style="padding:8px; text-align:center; font-weight:700;">✓ I Knew It (+10 pts)</button>'
+    + '<button class="opt wrong" onclick="blitzAnswer(false)" style="padding:8px; text-align:center; font-weight:700;">✗ Missed It</button>'
+    + '</div>'
+    + '</div>';
+}
+
+function revealBlitzAnswer(){
+  const box = document.getElementById("blitzBackBox");
+  if (box) box.style.display = "block";
+}
+
+function blitzAnswer(correct){
+  if (correct) {
+    blitzState.score += 10;
+    playSound('correct');
+  } else {
+    playSound('wrong');
+  }
+  renderBlitzQuestion();
+}
+
+function endBlitzGame(){
+  blitzState.active = false;
+  if (blitzState.timer) clearInterval(blitzState.timer);
+  
+  if (blitzState.score > (S.blitzHighScore || 0)) {
+    S.blitzHighScore = blitzState.score;
+    save();
+  }
+  
+  addXP(blitzState.score, "Flashcard Blitz");
+  
+  const stage = document.getElementById("blitzStage");
+  if (!stage) return;
+  
+  stage.innerHTML = '<div style="text-align:center;">'
+    + '<h3 style="font-size:18px; margin-bottom:4px;">⚡ Blitz Game Complete!</h3>'
+    + '<div style="font-size:32px; font-weight:900; color:var(--gold); margin:8px 0;">' + blitzState.score + ' Points</div>'
+    + '<div style="font-size:12px; color:var(--muted); margin-bottom:14px;">Earned +' + blitzState.score + ' XP for fast-paced active recall.</div>'
+    + '<button class="btn sm" onclick="startBlitzGame()">Play Again ⚡</button>'
+    + '</div>';
+}
+
+/* ================= 4. CUSTOM PRINTABLE SINGLE-PAGE CHEAT SHEET ================= */
+function cramSheetCustomizer(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("custom_crammer");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">'
+    + '<div><span class="ltag" style="background:var(--purple); color:#fff;">Printable Cheat Sheet</span><h2 style="font-size:20px; margin-top:4px;">🖨️ Custom Exam Day Cram Sheet</h2></div>'
+    + '<button class="btn sm" onclick="window.print()">🖨️ Print 1-Page Cheat Sheet</button>'
+    + '</div>'
+    + '<div id="customCramSheetFrame" style="background:#fff; color:#1a1a1a; border:2px solid #222; border-radius:12px; padding:24px; max-width:720px; margin:16px auto; text-align:left; font-family:sans-serif; box-shadow:0 8px 30px rgba(0,0,0,0.2);">'
+    + '<div style="display:flex; justify-content:space-between; border-bottom:2px solid #222; padding-bottom:10px; margin-bottom:14px;">'
+    + '<div><b style="font-size:16px;">ANTHROPIC CLAUDE EXAM DAY CRAM SHEET</b><br><span style="font-size:11px; color:#555;">High-Yield Architectural Formulas & Rules</span></div>'
+    + '<div style="text-align:right; font-size:11px; color:#555;">Candidate: <b>' + esc((S.profile && S.profile.handle) || "Candidate") + '</b><br>Date: ' + today() + '</div>'
+    + '</div>'
+    + '<div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; font-size:11px; line-height:1.4;">'
+    + '<div style="border:1px solid #ddd; padding:10px; border-radius:6px; background:#fafafa;">'
+    + '<b style="color:#d97757; font-size:12px; display:block; margin-bottom:4px;">1. Prompt Caching Economics</b>'
+    + '• 5-minute TTL refreshed on each read.<br>• 1,024 token minimum floor (Sonnet/Opus).<br>• Write: +25% cost, Read: -85% discount.<br>• Dynamic inputs MUST follow static prefixes.'
+    + '</div>'
+    + '<div style="border:1px solid #ddd; padding:10px; border-radius:6px; background:#fafafa;">'
+    + '<b style="color:#5a9e6f; font-size:12px; display:block; margin-bottom:4px;">2. MCP Architecture (JSON-RPC)</b>'
+    + '• Transport: STDIO (local) vs SSE (remote).<br>• Protocol: <code>initialize</code> ➔ <code>tools/list</code> ➔ <code>tools/call</code>.<br>• Client executes tools, NOT Claude directly.<br>• Always validate input schemas in MicroVMs.'
+    + '</div>'
+    + '<div style="border:1px solid #ddd; padding:10px; border-radius:6px; background:#fafafa;">'
+    + '<b style="color:#5b7fa6; font-size:12px; display:block; margin-bottom:4px;">3. Extended Thinking & Reasoning</b>'
+    + '• Temperature MUST be 1.0 (or omitted).<br>• <code>budget_tokens</code> determines reasoning length.<br>• Top-p and Top-k should remain default.<br>• Thinking blocks generated in <code>&lt;thinking&gt;</code> tags.'
+    + '</div>'
+    + '<div style="border:1px solid #ddd; padding:10px; border-radius:6px; background:#fafafa;">'
+    + '<b style="color:#8a6fae; font-size:12px; display:block; margin-bottom:4px;">4. 80% Context & Compaction</b>'
+    + '• Avoid raw FIFO message truncation.<br>• Trigger semantic compaction at 80% capacity.<br>• Extract structured <code>&lt;key_facts&gt;</code> summaries.<br>• Exponential backoff with jitter on 429/529.'
+    + '</div>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
 }
 
 /* ================= LESSON WIDGETS ================= */

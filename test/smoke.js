@@ -870,6 +870,19 @@ vm.createContext(sandbox);
   call("applyPaletteTheme", "terracotta");
   check(true, "applyPaletteTheme executes without throwing");
 
+  /* ---------- 34. Elysium Suite ---------- */
+  call("forgettingCurveView");
+  check(/Ebbinghaus Forgetting Curve Simulator/.test(els.app.innerHTML), "forgettingCurveView renders retention decay bars");
+
+  call("cachingBreakpointDebugger");
+  check(/Prompt Caching Breakpoint Debugger/.test(els.app.innerHTML) && /cacheDebugInput/.test(els.app.innerHTML), "cachingBreakpointDebugger renders prompt linter");
+
+  call("flashcardBlitzView");
+  check(/60-Second Flashcard Blitz/.test(els.app.innerHTML), "flashcardBlitzView renders 60s blitz arcade stage");
+
+  call("cramSheetCustomizer");
+  check(/Custom Exam Day Cram Sheet/.test(els.app.innerHTML) && /customCramSheetFrame/.test(els.app.innerHTML), "cramSheetCustomizer renders printable 1-page reference");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
