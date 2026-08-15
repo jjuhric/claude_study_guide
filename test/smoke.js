@@ -814,6 +814,19 @@ vm.createContext(sandbox);
   call("downloadCapacitorConfig");
   check(true, "downloadCapacitorConfig executes without throwing");
 
+  /* ---------- 30. Titan Suite: Arcade Survival, Socratic Tutor & Community Feed ---------- */
+  call("arcadeSurvivalView");
+  check(/Arcade Survival Gauntlet/.test(els.app.innerHTML) && /arcadeTrackSelect/.test(els.app.innerHTML), "arcadeSurvivalView renders survival stage");
+
+  call("socraticTutorView");
+  check(/Socratic AI Dialogue Tutor/.test(els.app.innerHTML) && /socraticChatBox/.test(els.app.innerHTML), "socraticTutorView renders interactive tutor topics");
+
+  call("communityLeaderboardView");
+  check(/Global Candidate Community Leaderboard/.test(els.app.innerHTML), "communityLeaderboardView renders community rankings");
+
+  call("exportAnkiBinaryDeck");
+  check(true, "exportAnkiBinaryDeck executes without throwing");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
