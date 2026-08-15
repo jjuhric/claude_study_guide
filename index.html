@@ -947,7 +947,9 @@ function certViewRender(c){
    +'<div class="mode" onclick="startMock(\''+id+'\')"><div class="em">⏱️</div><h4>Mock Exam</h4><p>20 questions, 40 min, practice scoring</p></div>'
    +'<div class="mode" onclick="startReview(\''+id+'\')"><div class="em">🎯</div><h4>Review Misses</h4><p>'+(misses?'<b style="color:var(--coral)">'+misses+' to revisit</b>':'Nothing missed yet')+'</p></div>'
    +'<div class="mode" onclick="startWeakest(\''+id+'\')"><div class="em">🩹</div><h4>Weakest Domain</h4><p>Target where you score lowest</p></div>'
-   +'</div></div>'
+   +'</div>'
+   +'<div style="margin-top:12px; display:flex; justify-content:center;"><button class="btn ghost sm" onclick="cramSheetView(\''+id+'\')">📋 View '+c.code+' Exam Cram Sheet</button></div>'
+   +'</div>'
    +'<div class="panel"><div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">'
    +'<div class="prepring" style="--pv:'+(rp.score*3.6)+'deg; --pc:'+c.color+'"><span>'+rp.score+'<small>%</small></span></div>'
    +'<div style="flex:1; min-width:200px;"><h3 style="font-size:15px;">Prep progress</h3>'
@@ -987,7 +989,6 @@ function learnList(id){
    +'<div class="lesson-list">'+rows+'</div></div>';
 }
 function lessonView(id,i){
-  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
   const c=CERTS.find(x=>x.id===id);
   const les=c.lessons[i];
   renderHeader();
@@ -1000,6 +1001,11 @@ function lessonView(id,i){
    +'<div class="lesson-body">'+les.b+'</div>'
    +'<div class="rowbtns">'+prevBtn+nextBtn+'</div></div>';
   initLessonWidgets();
+  if (typeof window !== 'undefined') {
+    if (typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+    if (document.documentElement) document.documentElement.scrollTop = 0;
+    if (document.body) document.body.scrollTop = 0;
+  }
 }
 
 function copyCode(btn){
@@ -1019,7 +1025,6 @@ function copyCode(btn){
     setTimeout(() => { btn.textContent = '📋 Copy'; }, 2000);
   }
 }
-
 
 /* ================= CRAM SHEETS & LAB TOOLS ================= */
 function cramSheetSelect(){
@@ -1382,166 +1387,6 @@ function calcThinkSim(){
   const res = document.getElementById('wThinkResult');
   if(res) res.innerHTML = html;
 }
-
-function renderComputerUseSimulator(container){
-  container.innerHTML = `
-    <h5>🖥️ Interactive Computer Use & Tool Beta Trace</h5>
-    <div style="display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap;">
-      <button class="btn ghost sm" onclick="simComputerStep(1)">1. Screenshot Capture</button>
-      <button class="btn ghost sm" onclick="simComputerStep(2)">2. Mouse Click Coordinate</button>
-      <button class="btn ghost sm" onclick="simComputerStep(3)">3. Text Editor Edit</button>
-      <button class="btn ghost sm" onclick="simComputerStep(4)">4. Bash Execution</button>
-    </div>
-    <div id="wCompResult" class="sim-terminal">Click a step above to inspect Computer Use action execution trace.</div>
-  `;
-  simComputerStep(1);
-}
-
-function simComputerStep(step){
-  let log = '';
-  if(step === 1){
-    log = '<span style="color:#569cd6;">// Step 1: Model requests display screenshot</span>\n'
-      + JSON.stringify({
-        type: "tool_use",
-        name: "computer_20241022",
-        input: { action: "screenshot" }
-      }, null, 2)
-      + '\n\n<span style="color:#4ec9b0;">// Application returns base64 screenshot (scaled to 1024x768 XGA):</span>\n'
-      + JSON.stringify({
-        type: "tool_result",
-        content: [{ type: "image", source: { type: "base64", media_type: "image/png", data: "iVBORw0KGgo..." } }]
-      }, null, 2);
-  } else if(step === 2){
-    log = '<span style="color:#569cd6;">// Step 2: Model calculates target button coordinate and clicks</span>\n'
-      + JSON.stringify({
-        type: "tool_use",
-        name: "computer_20241022",
-        input: { action: "mouse_move", coordinate: [450, 320] }
-      }, null, 2)
-      + '\n'
-      + JSON.stringify({
-        type: "tool_use",
-        name: "computer_20241022",
-        input: { action: "left_click" }
-      }, null, 2);
-  } else if(step === 3){
-    log = '<span style="color:#569cd6;">// Step 3: Model edits configuration file</span>\n'
-      + JSON.stringify({
-        type: "tool_use",
-        name: "text_editor_20241022",
-        input: {
-          command: "str_replace",
-          path: "/workspace/config.json",
-          old_str: '"port": 3000',
-          new_str: '"port": 8080'
-        }
-      }, null, 2);
-  } else if(step === 4){
-    log = '<span style="color:#569cd6;">// Step 4: Model executes sandboxed bash command</span>\n'
-      + JSON.stringify({
-        type: "tool_use",
-        name: "bash_20241022",
-        input: { command: "pytest tests/test_api.py" }
-      }, null, 2)
-      + '\n\n<span style="color:#4ec9b0;">// Sandboxed output returned as tool_result:</span>\n'
-      + JSON.stringify({
-        type: "tool_result",
-        content: "=== 14 passed in 0.82s ==="
-      }, null, 2);
-  }
-  const out = document.getElementById('wCompResult');
-  if(out) out.innerHTML = log;
-}
-
-function renderTokenCostCalculator(container){
-  container.innerHTML = `
-    <h5>🧮 Interactive Token & Cost Estimator</h5>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-      <div>
-        <label>Input Tokens (prompt + context)</label>
-        <input type="number" id="wCostInput" value="5000" min="0" step="1000" oninput="calcWidgetCost()">
-      </div>
-      <div>
-        <label>Output Tokens (generated reply)</label>
-        <input type="number" id="wCostOutput" value="1000" min="0" step="100" oninput="calcWidgetCost()">
-      </div>
-    </div>
-    <div style="display:flex; gap:12px; margin-bottom:10px; font-size:12px; flex-wrap:wrap;">
-      <label><input type="checkbox" id="wCacheHit" onchange="calcWidgetCost()" style="width:auto; margin-right:4px;"> Prompt Caching (85% off cached input)</label>
-      <label><input type="checkbox" id="wBatchApi" onchange="calcWidgetCost()" style="width:auto; margin-right:4px;"> Batches API (50% off total)</label>
-    </div>
-    <div id="wCostResult" style="font-size:13px; line-height:1.6; border-top:1px dashed var(--border); padding-top:10px;"></div>
-  `;
-  calcWidgetCost();
-}
-function calcWidgetCost(){
-  const inputTok = parseInt(document.getElementById('wCostInput')?.value||0, 10);
-  const outputTok = parseInt(document.getElementById('wCostOutput')?.value||0, 10);
-  const isCache = document.getElementById('wCacheHit')?.checked || false;
-  const isBatch = document.getElementById('wBatchApi')?.checked || false;
-
-  const models = [
-    { name: 'Claude Haiku 3.5', inP: 0.80, outP: 4.00 },
-    { name: 'Claude Sonnet 3.5', inP: 3.00, outP: 15.00 },
-    { name: 'Claude Opus 3.5', inP: 15.00, outP: 75.00 }
-  ];
-
-  let html = '';
-  models.forEach(m => {
-    let effInP = isCache ? m.inP * 0.15 : m.inP;
-    let cost = ((inputTok / 1000000) * effInP) + ((outputTok / 1000000) * m.outP);
-    if(isBatch) cost *= 0.5;
-    html += `<div><b>${m.name}:</b> $${cost.toFixed(5)} <span style="color:var(--muted); font-size:11px;">($${(cost*1000).toFixed(3)} / 1k runs)</span></div>`;
-  });
-  const res = document.getElementById('wCostResult');
-  if(res) res.innerHTML = html;
-}
-function renderXmlPromptChecker(container){
-  container.innerHTML = `
-    <h5>🏷️ Interactive XML Prompt Structure Checker</h5>
-    <label>Type or paste your prompt structure:</label>
-    <textarea id="wXmlText" rows="5" oninput="checkXmlPrompt()">&lt;context&gt;
-You are an expert technical editor.
-&lt;/context&gt;
-
-&lt;instructions&gt;
-Summarize the following findings in 3 bullet points.
-&lt;/instructions&gt;
-
-&lt;data&gt;
-Q3 revenue grew by 24% year-over-year.
-&lt;/data&gt;</textarea>
-    <div id="wXmlResult" style="font-size:12.5px; margin-top:6px;"></div>
-  `;
-  checkXmlPrompt();
-}
-function checkXmlPrompt(){
-  const val = document.getElementById('wXmlText')?.value || '';
-  const tags = [...val.matchAll(/<([a-zA-Z0-9_-]+)>/g)].map(m => m[1]);
-  const closeTags = [...val.matchAll(/<\/([a-zA-Z0-9_-]+)>/g)].map(m => m[1]);
-
-  let issues = [];
-  tags.forEach(t => {
-    if(!closeTags.includes(t)) issues.push(`Missing closing tag &lt;/${t}&gt;`);
-  });
-  closeTags.forEach(t => {
-    if(!tags.includes(t)) issues.push(`Unmatched closing tag &lt;/${t}&gt;`);
-  });
-
-  const hasInstructions = tags.includes('instructions') || tags.includes('task') || tags.includes('rules');
-
-  let html = '';
-  if(issues.length){
-    html = `<span style="color:var(--red);">⚠️ <b>XML Structure Issues:</b> ${issues.join('; ')}</span>`;
-  } else if(tags.length > 0){
-    html = `<span style="color:var(--green);">✓ <b>Valid XML Formatting!</b> Found ${tags.length} delimited section(s): <code>${tags.map(t=>'&lt;'+t+'&gt;').join(', ')}</code>.</span>`;
-    if(!hasInstructions) html += `<div style="color:var(--gold); font-size:11.5px; margin-top:4px;">💡 Exam Tip: Explicitly delimiting &lt;instructions&gt; or &lt;task&gt; helps Claude isolate instructions from data.</div>`;
-  } else {
-    html = `<span style="color:var(--muted);">No XML tags detected. Wrap sections in &lt;context&gt;, &lt;instructions&gt;, or &lt;examples&gt; for reliable parsing.</span>`;
-  }
-  const res = document.getElementById('wXmlResult');
-  if(res) res.innerHTML = html;
-}
 function renderStopReasonSimulator(container){
   container.innerHTML = `
     <h5>⚡ Interactive <code>stop_reason</code> Control-Flow Simulator</h5>
@@ -1604,6 +1449,11 @@ function markRead(id,i,goNext){
     award("scholar_"+c.id);
     const allDone=CERTS.every(cc=>{ const p=lessonProgress(cc); return p.total>0 && p.done>=p.total; });
     if(allDone) award("polymath");
+  }
+  if (typeof window !== 'undefined') {
+    if (typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+    if (document.documentElement) document.documentElement.scrollTop = 0;
+    if (document.body) document.body.scrollTop = 0;
   }
   if(goNext && i<c.lessons.length-1){ lessonView(id,i+1); }
   else{
