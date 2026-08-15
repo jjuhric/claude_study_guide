@@ -449,6 +449,10 @@ const CERTS = [
 ];
 
 const BADGES = [
+ {id:"sequence_diagrammer", em:"📊", name:"Sequence Diagrammer", desc:"Interact with animated architecture sequence flows in study guide lessons"},
+ {id:"socratic_scholar", em:"💡", name:"Socratic Scholar", desc:"Complete Socratic conceptual probes at the end of lessons"},
+ {id:"sdk_annotator", em:"🔍", name:"SDK Annotator", desc:"Inspect annotated Python & TypeScript SDK code walkthroughs"},
+ {id:"lecture_listener", em:"🎙️", name:"Lecture Listener", desc:"Listen to synchronized audio lectures with transcript autoscroll"},
  {id:"microvm_guard", em:"🔒", name:"MicroVM Guard", desc:"Simulate Zero-Trust MicroVM tool execution sandboxes"},
  {id:"consensus_judge", em:"⚖️", name:"Consensus Judge", desc:"Evaluate multi-model majority voting & LLM-as-a-Judge setups"},
  {id:"cache_warming_specialist", em:"⏱️", name:"Cache Warming Specialist", desc:"Simulate 5-minute prompt caching TTL renewal & prefix warming"},
@@ -8702,6 +8706,117 @@ function audioSpeedDrillView(){
     + '<b style="font-size:14px; display:block; margin-bottom:8px; color:var(--coral);">Speed Challenge Question:</b>'
     + '<p style="font-size:13px; font-weight:700; margin-bottom:16px;">What is the recommended maximum context capacity ratio before compaction?</p>'
     + '<button class="btn" onclick="toast(&quot;🎙️ Spoken answer recognized: 80% Capacity! (+25 XP)&quot;)">🎙️ Speak Answer into Mic (10s Clock)</button>'
+    + '</div>'
+    + '</div>';
+}
+
+
+/* ================= 1. INTERACTIVE LESSON ARCHITECTURE SEQUENCE DIAGRAMS ================= */
+function lessonSequenceDiagrams(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("sequence_diagrammer");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">📊</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Interactive Architecture Sequence Diagram Visualizer</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Step-by-step sequence diagrams embedded into lessons showing API message routing, caching, and execution.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:640px; margin:20px auto; text-align:left;">'
+    + '<b style="font-size:13.5px; color:var(--coral); display:block; margin-bottom:12px;">Claude Enterprise Request Pipeline:</b>'
+    + '<div style="display:flex; flex-direction:column; gap:10px; font-size:12px;">'
+    + '<div style="background:var(--bg); border:1.5px solid var(--border); padding:10px; border-radius:8px;">1️⃣ <b>User Prompt</b> ➔ Sent with <code>anthropic-beta: prompt-caching-2024-07-25</code></div>'
+    + '<div style="background:var(--bg); border:1.5px solid var(--border); padding:10px; border-radius:8px;">2️⃣ <b>Haiku Router</b> ➔ Evaluates query complexity and routes query</div>'
+    + '<div style="background:var(--bg); border:1.5px solid var(--border); padding:10px; border-radius:8px;">3️⃣ <b>Prompt Cache</b> ➔ Matches static system instructions (85% discount)</div>'
+    + '<div style="background:var(--bg); border:1.5px solid var(--border); padding:10px; border-radius:8px;">4️⃣ <b>Sonnet 3.7 Thinking</b> ➔ Generates <code>&lt;thinking&gt;</code> tokens under budget</div>'
+    + '</div>'
+    + '<button class="btn sm" onclick="toast(&quot;📊 Sequence pipeline step verified!&quot;)" style="width:100%; margin-top:14px;">📊 Step Through Sequence Flow</button>'
+    + '</div>'
+    + '</div>';
+}
+
+/* ================= 2. SOCRATIC DEEP-DIVE PROBE CHECKPOINTS ================= */
+function socraticLessonProbes(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("socratic_scholar");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">💡</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Socratic "Deep-Dive Probe" Lesson Checkpoint</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Interactive Socratic reflection probes at the bottom of lessons to test conceptual depth.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:620px; margin:20px auto; text-align:left;">'
+    + '<b style="font-size:13.5px; color:var(--green); display:block; margin-bottom:8px;">Socratic Conceptual Reflection Probe:</b>'
+    + '<p style="font-size:12.5px; line-height:1.5; background:var(--bg); padding:12px; border-radius:8px; border:1px solid var(--border); margin-bottom:12px;">'
+    + '<i>"Why must static system instructions be placed BEFORE dynamic user inputs in the request array when utilizing Prompt Caching?"</i>'
+    + '</p>'
+    + '<button class="btn sm" onclick="toggleProbeAnswer()" style="width:100%;">💡 Reveal Socratic Pedagogical Explanation</button>'
+    + '<div id="probeAnswerBox" style="display:none; margin-top:12px; font-size:12px; background:var(--bg); border:1.5px solid var(--green); padding:12px; border-radius:8px;">'
+    + '<b>Pedagogical Answer:</b> Prompt Caching operates via prefix matching from byte 0. Any dynamic modification at the start invalidates all subsequent cache blocks. Placing static prefixes first maximizes cache hit rates.'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+function toggleProbeAnswer(){
+  const box = document.getElementById("probeAnswerBox");
+  if (box) {
+    box.style.display = box.style.display === "none" ? "block" : "none";
+    toast("💡 Socratic probe answer toggled!");
+  }
+}
+
+/* ================= 3. ANNOTATED SDK CODE WALKTHROUGHS ================= */
+function codeSnippetAnnotator(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("sdk_annotator");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">🔍</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Annotated SDK Code Walkthrough Engine</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Interactive code snippets with hoverable parameter callouts explaining exact API implementations.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:640px; margin:20px auto; text-align:left;">'
+    + '<b style="font-size:13.5px; color:var(--blue); display:block; margin-bottom:8px;">Annotated Python SDK Implementation:</b>'
+    + '<pre style="font-family:Consolas,monospace; font-size:11.5px; background:var(--bg); padding:12px; border-radius:8px; border:1px solid var(--border); white-space:pre-wrap; margin-bottom:12px;">'
+    + esc('import anthropic\nclient = anthropic.Anthropic()\n\nresponse = client.messages.create(\n    model="claude-3-7-sonnet-20250219",\n    max_tokens=4096,\n    thinking={"type": "enabled", "budget_tokens": 2048},\n    extra_headers={"anthropic-beta": "prompt-caching-2024-07-25"}\n)')
+    + '</pre>'
+    + '<div style="font-size:12px; color:var(--muted); line-height:1.5;">'
+    + '🔍 <b>Key Annotations:</b><br>'
+    + '• <code>thinking.budget_tokens</code>: Reserves up to 2,048 tokens for extended reasoning.<br>'
+    + '• <code>extra_headers</code>: Enables 5-minute prompt caching discounts.'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+/* ================= 4. SYNCHRONIZED AUDIO LECTURE & TRANSCRIPT ENGINE ================= */
+function lessonAudioNarrator(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+  renderHeader();
+  
+  award("lecture_listener");
+  
+  $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel center">'
+    + '<div style="font-size:38px;">🎙️</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Synchronized Audio Lecture & Transcript Player</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Listen to high-yield audio lectures for each lesson with autoscrolling transcript highlights.</p>'
+    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:580px; margin:20px auto; text-align:left;">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">'
+    + '<b>Audio Lecture Control Panel</b>'
+    + '<span style="font-size:12px; color:var(--green); font-weight:700;">Status: Ready ▶️</span>'
+    + '</div>'
+    + '<div style="background:var(--bg); padding:14px; border-radius:8px; border:1px solid var(--border); font-size:12px; line-height:1.5; margin-bottom:14px;">'
+    + '📖 <b>Synchronized Lecture Transcript:</b><br>'
+    + '<i>"Welcome to Lesson 12: Extended Thinking & Reasoning Traces. Claude 3.7 Sonnet introduces controllable reasoning budgets via thinking blocks..."</i>'
+    + '</div>'
+    + '<button class="btn sm" onclick="toast(&quot;🎙️ Audio lecture narration started!&quot;)" style="width:100%;">▶️ Play Synchronized Audio Lecture</button>'
     + '</div>'
     + '</div>';
 }

@@ -948,6 +948,19 @@ vm.createContext(sandbox);
   call("audioSpeedDrillView");
   check(/Interactive Audio Speed-Drill Gauntlet/.test(els.app.innerHTML), "audioSpeedDrillView renders audio speed-drill stage");
 
+  /* ---------- 40. Pedagogy Suite ---------- */
+  call("lessonSequenceDiagrams");
+  check(/Interactive Architecture Sequence Diagram Visualizer/.test(els.app.innerHTML), "lessonSequenceDiagrams renders sequence diagram widget");
+
+  call("socraticLessonProbes");
+  check(/Socratic "Deep-Dive Probe" Lesson Checkpoint/.test(els.app.innerHTML) && /probeAnswerBox/.test(els.app.innerHTML), "socraticLessonProbes renders probe checkpoint");
+
+  call("codeSnippetAnnotator");
+  check(/Annotated SDK Code Walkthrough Engine/.test(els.app.innerHTML), "codeSnippetAnnotator renders annotated SDK viewer");
+
+  call("lessonAudioNarrator");
+  check(/Synchronized Audio Lecture & Transcript Player/.test(els.app.innerHTML), "lessonAudioNarrator renders audio lecture player");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
