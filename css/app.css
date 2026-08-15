@@ -347,8 +347,17 @@
 
   .sim-terminal{background:#1e1e1e; color:#d4d4d4; border-radius:8px; padding:12px; font-family:'SF Mono',Consolas,monospace; font-size:12px; line-height:1.5; overflow-x:auto; margin-top:8px;}
   
-  /* Modals */
-  .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; z-index:100; padding:16px;}
+  /* Modals.
+     Visible by default, because five of the six modals build the overlay and
+     append it only at the moment they want it shown, then remove it again on
+     close. This rule used to be display:none, which meant those five appended
+     an invisible element and the buttons opening them did nothing at all. The
+     search modal is the exception - it keeps its element and reuses it - so it
+     sets display inline both ways, which still wins over this. */
+  .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; z-index:100; padding:16px;}
+  /* Long modals (shortcuts, profile) must scroll rather than overflow the
+     viewport with their close button off the bottom edge. */
+  .modal-content{max-height:88vh; overflow-y:auto; width:100%;}
   .modal-box{background:var(--card); border-radius:16px; padding:20px; max-width:600px; width:100%; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 8px 30px rgba(0,0,0,.3); border:2px solid var(--border);}
   .modal-hdr{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
   .modal-hdr h3{font-size:17px;}

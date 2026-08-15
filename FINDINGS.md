@@ -83,6 +83,21 @@ Live at https://jjuhric.github.io/claude_study_guide/ · **170 checks** in
 - **Restructure**: `index.html` went from 11,288 lines to a 37-line shell, with
   styles in `css/app.css` and the app in twelve ordered classic scripts.
 
+- **Five dead modals**: `.modal-overlay` was declared `display:none`, and five
+  of the six modals build their overlay only at the moment they want it shown.
+  Visuals & Fonts, Keyboard Shortcuts, Language, Candidate Profile and Add
+  Custom Flashcard each appended an invisible element, so their buttons did
+  nothing at all. Only search worked, because it sets `display` inline. The
+  suite now calls every modal opener and checks a populated overlay reaches the
+  page with a way to close it.
+- **Font modes that lied**: none of Lexend, OpenDyslexic or JetBrains Mono is
+  bundled - there is no `@font-face` anywhere and no CDN in an offline build -
+  so each only worked if the user happened to have it installed. On a stock
+  Windows machine Lexend changed nothing while toasting that it had applied.
+  The picker now probes each family and names what it will really render in
+  ("not installed, uses Consolas"), and says plainly when a mode will do
+  nothing on this device.
+
 ### Still open
 
 1. **Content validation against the official blueprints** — the domain lists

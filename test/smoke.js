@@ -116,6 +116,8 @@ const optEls = [0, 1, 2, 3].map(i => mkEl("opt" + i));
 for (const id of ["hdr", "app", "toast"]) els[id] = mkEl(id);
 
 const storage = {};
+const absentIds = new Set();
+const bodyAppends = [];
 const downloads = [];
 const fetched = [];          // every URL the app requests, in order
 let lastBlob = null;
@@ -125,10 +127,15 @@ const sandbox = {
   confirm: () => false, alert: () => {},
   localStorage: { getItem: k => (k in storage ? storage[k] : null), setItem: (k, v) => { storage[k] = String(v); } },
   document: {
-    getElementById: id => els[id] || (els[id] = mkEl(id)),
+    // Auto-creates so the app can address any id without the shim knowing it in
+    // advance. absentIds opts specific ids out: some code branches on whether an
+    // element is already on the page, and for those "always exists" is a lie.
+    getElementById: id => (absentIds.has(id) ? null : (els[id] || (els[id] = mkEl(id)))),
     querySelectorAll: sel => (sel === ".opt" ? optEls : []),
     createElement: () => { const e = mkEl("tmp"); e.click = () => { downloads.push(e); }; return e; },
-    body: { appendChild() {} },
+    // Recorded so the modal checks can see what a modal opener actually put on
+    // the page. Five openers appended an overlay the CSS was hiding.
+    body: { appendChild(el) { bodyAppends.push(el); } },
     addEventListener() {},
     documentElement: {
       attrs: {},
@@ -1121,6 +1128,59 @@ vm.createContext(sandbox);
   const unreachable = toolShaped.filter(f => !registered.has(f) && !linkedFromHome.has(f) && !INTERNAL.has(f));
   check(unreachable.length === 0,
     `every tool view is reachable from the dashboard (${unreachable.slice(0, 5).join(", ") || toolShaped.length + " checked"})`);
+
+  /* ---------- 5. modals actually appear ----------
+     Reachable is not the same as visible. `.modal-overlay` was declared
+     display:none, and five of the six modals build the overlay only when they
+     want it shown - so Visuals & Fonts, Keyboard Shortcuts, Language, Profile
+     and Add Custom Flashcard all appended an invisible div and looked dead.
+     Only the search modal worked, because it sets display inline. */
+  const overlayRule = (css.match(/\.modal-overlay\s*\{([^}]*)\}/) || [, ""])[1];
+  check(overlayRule.length > 0, "the .modal-overlay rule exists");
+  check(!/display\s*:\s*none/.test(overlayRule),
+    "the .modal-overlay rule does not hide every modal that uses it");
+
+  // Every font mode the picker offers must be one applyFontMode can apply, and
+  // the picker has to say so when the device cannot honour the named face -
+  // Lexend is not bundled, so choosing it used to change nothing while toasting
+  // that it had.
+  const FONT_MODES = evalIn("FONT_MODES");
+  const applySrc = (html.match(/function applyFontMode[\s\S]*?\n\}/) || [""])[0];
+  check(FONT_MODES.length >= 2 && FONT_MODES.some(m => m.v === "default"),
+    `the font picker offers ${FONT_MODES.length} modes including a default`);
+  check(FONT_MODES.filter(m => m.v !== "default").every(m => !!m.family),
+    "every non-default font mode names the face it needs");
+  check(FONT_MODES.filter(m => m.v !== "default")
+    .every(m => new RegExp(`\\.font-${m.v}\\b`).test(css)),
+    "every font mode has a stylesheet rule behind it");
+  check(/fontModeSubstitute\(|fontAvailable\(/.test(applySrc),
+    "applyFontMode checks the font is really there before claiming it applied");
+  check(FONT_MODES.filter(m => m.v !== "default")
+    .every(m => Array.isArray(m.alts) && m.alts.every(a => css.indexOf(a) >= 0)),
+    "each mode's declared fallbacks are the ones the stylesheet actually lists");
+
+  const MODALS = [
+    ["accessibilityModal", "accessModal"],
+    ["openShortcutsModal", "shortcutsModal"],
+    ["openLanguageModal", "langModal"],
+    ["openProfileModal", "profileModal"],
+    ["openCustomCardModal", "customCardModal"],
+  ];
+  for (const [fn, id] of MODALS) {
+    bodyAppends.length = 0;
+    // Three of these toggle: if the overlay is already up, close it and stop.
+    // Say it is not up, or they would all take the early return.
+    absentIds.add(id);
+    if (fn === "openCustomCardModal") evalIn(`openCustomCardModal(${JSON.stringify(CERTS[0].id)})`);
+    else call(fn);
+    absentIds.delete(id);
+    const overlay = bodyAppends.find(el => el && el.className === "modal-overlay");
+    check(!!overlay && overlay.id === id && overlay.innerHTML.length > 0,
+      `${fn}() puts a populated overlay on the page`);
+    // A fixed full-screen overlay with no way out traps the user.
+    check(!!overlay && new RegExp(`getElementById\\(['"]${id}['"]\\)\\.remove\\(\\)`).test(overlay.innerHTML),
+      `${fn}() gives the user a way to close it`);
+  }
 
   /* ---------- no duplicate definitions, no uninitialised state ----------
      A second getFreshState was once added without 21 of the keys, and

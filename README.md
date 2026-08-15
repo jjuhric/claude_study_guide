@@ -1,8 +1,8 @@
 # Claude Cert Quest 🧭
 
 [![Anthropic Certifications](https://img.shields.io/badge/Anthropic-Certifications%20Prep-d97757.svg)](https://www.pearsonvue.com/us/en/anthropic.html)
-[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v32)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
-[![Tests](https://img.shields.io/badge/Tests-355%20Passing-5b7fa6.svg)](test/smoke.js)
+[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v33)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
+[![Tests](https://img.shields.io/badge/Tests-372%20Passing-5b7fa6.svg)](test/smoke.js)
 [![License](https://img.shields.io/badge/License-MIT-8a6fae.svg)](LICENSE)
 
 A gamified study platform for the **Anthropic Claude Certification Program**:
@@ -155,6 +155,8 @@ node test/links.js
 - No near-duplicate questions; every domain has at least 10
 - Per-option rationales stay aligned with their options through the shuffle
 - Lessons meet a word floor and carry ≥35 words of teaching per question
+- Every modal opener puts a *visible* overlay on the page, with a way to close it
+- Font modes name the face they will really render in, not the one they are called
 
 ---
 

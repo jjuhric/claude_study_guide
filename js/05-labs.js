@@ -697,7 +697,49 @@ function renderCertificate(certId){
     + '</div>';
 }
 
-/* ================= 6. COGNITIVE & ACCESSIBILITY MODES ================= */
+/* ================= 6. COGNITIVE & ACCESSIBILITY MODES =================
+   None of these faces are bundled: there is no @font-face anywhere and the
+   offline build has no CDN to pull one from, so each mode only works if the
+   user happens to have the font installed. On a stock Windows box that means
+   OpenDyslexic lands on Comic Sans MS and JetBrains Mono lands on Consolas -
+   both fine - but Lexend has no installed fallback, so picking it changed
+   absolutely nothing and gave a toast claiming it had. The picker now says
+   which ones this device can actually honour. */
+const FONT_MODES = [
+  { v: "default",  family: null,             alts: [],                          label: "System default" },
+  { v: "lexend",   family: "Lexend",         alts: [],                          label: "Lexend (reading fluency)" },
+  { v: "dyslexic", family: "OpenDyslexic",   alts: ["Comic Sans MS"],           label: "OpenDyslexic (wider letter &amp; word spacing)" },
+  { v: "mono",     family: "JetBrains Mono", alts: ["SF Mono", "Consolas"],     label: "Monospace (technical reading)" },
+];
+
+/* What a mode will really render in, which is not always what it is called.
+   `alts` mirrors the fallback chain in the stylesheet, so the answer stays
+   honest without hard-coding an assumption about the user's OS. */
+function fontModeSubstitute(m){
+  if(!m || !m.family || fontAvailable(m.family)) return null;      // nothing to explain
+  const alt = m.alts.find(fontAvailable);
+  return alt || "";   // "" = nothing in the chain is installed either
+}
+
+/* True if the family actually resolves here. Measured against a family that
+   cannot exist: identical widths mean the browser silently fell back. */
+const fontProbeCache = {};
+function fontAvailable(name){
+  if(name in fontProbeCache) return fontProbeCache[name];
+  const probe = document.createElement("span");
+  // No layout in the headless test harness; assume present rather than lie.
+  if(!probe.getBoundingClientRect) return (fontProbeCache[name] = true);
+  const width = stack => {
+    probe.textContent = "Handgloves mmmiiillWW 12345";
+    probe.style.cssText = "position:absolute; visibility:hidden; white-space:nowrap; font-size:64px; font-family:" + stack;
+    document.body.appendChild(probe);
+    const w = probe.getBoundingClientRect().width;
+    probe.remove();
+    return w;
+  };
+  return (fontProbeCache[name] = width('"' + name + '"') !== width('"__no_such_font__"'));
+}
+
 function accessibilityModal(){
   const modal = document.createElement("div");
   modal.id = "accessModal";
@@ -707,10 +749,13 @@ function accessibilityModal(){
     + '<p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Tailor typography and color contrast for late-night study sessions or cognitive reading preferences.</p>'
     + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Typography Font Family:</label>'
     + '<select id="accFontSel" onchange="applyFontMode(this.value)" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:13px; margin-bottom:14px;">'
-    + '<option value="default" '+(S.fontMode==='default'?'selected':'')+'>System Clean (Inter / San Francisco)</option>'
-    + '<option value="lexend" '+(S.fontMode==='lexend'?'selected':'')+'>Lexend (Enhanced Reading Fluency)</option>'
-    + '<option value="dyslexic" '+(S.fontMode==='dyslexic'?'selected':'')+'>OpenDyslexic (Cognitive Spacing)</option>'
-    + '<option value="mono" '+(S.fontMode==='mono'?'selected':'')+'>JetBrains Mono (Technical Monospace)</option>'
+    + FONT_MODES.map(m => {
+        const sub = fontModeSubstitute(m);
+        const note = sub === null ? ''
+          : sub ? ' — not installed, uses ' + sub
+                : ' — not installed, no change on this device';
+        return '<option value="'+m.v+'" '+(S.fontMode===m.v?'selected':'')+'>'+m.label+note+'</option>';
+      }).join('')
     + '</select>'
     + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Display Contrast Mode:</label>'
     + '<select id="accContrastSel" onchange="applyContrastMode(this.value)" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:13px; margin-bottom:18px;">'
@@ -730,7 +775,13 @@ function applyFontMode(mode){
   save();
   document.body.classList.remove('font-lexend', 'font-dyslexic', 'font-mono');
   if (mode !== 'default') document.body.classList.add('font-' + mode);
-  toast('Font mode: ' + mode);
+  const m = FONT_MODES.find(f => f.v === mode);
+  const plain = m ? m.label.replace(/&amp;/g, "&").replace(/\s*\(.*\)$/, "") : mode;
+  // Don't claim a font was applied when the browser quietly substituted one.
+  const sub = fontModeSubstitute(m);
+  toast(sub === null ? 'Font: ' + plain
+      : sub ? m.family + ' is not installed — using ' + sub
+            : m.family + ' is not installed on this device');
 }
 
 function applyContrastMode(mode){
