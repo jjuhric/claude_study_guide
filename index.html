@@ -978,6 +978,7 @@ function learnList(id){
    +'<div class="lesson-list">'+rows+'</div></div>';
 }
 function lessonView(id,i){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
   const c=CERTS.find(x=>x.id===id);
   const les=c.lessons[i];
   renderHeader();
