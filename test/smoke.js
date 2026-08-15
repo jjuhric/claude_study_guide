@@ -25,18 +25,37 @@ const vm = require("vm");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
-const blocks = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]);
+const shell = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+// The app is split into classic scripts sharing one global scope. Load them in
+// exactly the order index.html declares, so the harness mirrors the browser --
+// including per-file hoisting, which a concatenated read would paper over.
+const scriptSrcs = [...shell.matchAll(/<script src="(js\/[^"]+)">/g)].map(m => m[1]);
+const blocks = scriptSrcs.map(rel => fs.readFileSync(path.join(ROOT, rel), "utf8"));
+// Several checks scan "the whole codebase" for content and patterns. Styles now
+// live in css/app.css, so include them or the CSS assertions silently pass on
+// an empty haystack.
+const css = fs.readFileSync(path.join(ROOT, "css", "app.css"), "utf8");
+const html = shell + css + blocks.join("\n");
 
 let fails = 0;
 const check = (cond, label) => { if (cond) console.log(`  ok    ${label}`); else { console.log(`  FAIL  ${label}`); fails++; } };
 
-/* ---------- 1. scripts parse ---------- */
-check(blocks.length === 2, `index.html has 2 script blocks (found ${blocks.length})`);
-blocks.forEach((src, i) => {
-  try { new Function(src); check(true, `block ${i} parses (${src.length} chars)`); }
-  catch (e) { check(false, `block ${i} SYNTAX ERROR: ${e.message}`); }
+/* ---------- 1. every module is declared, present, and parses ---------- */
+check(scriptSrcs.length >= 2, `index.html declares ${scriptSrcs.length} script files`);
+check(scriptSrcs[scriptSrcs.length - 1].endsWith("11-boot.js"),
+  `boot loads last (${scriptSrcs[scriptSrcs.length - 1]})`);
+const onDisk = fs.readdirSync(path.join(ROOT, "js")).filter(f => f.endsWith(".js")).sort();
+const declared = scriptSrcs.map(s => s.replace("js/", "")).sort();
+check(JSON.stringify(onDisk) === JSON.stringify(declared),
+  `every file in js/ is loaded by index.html (disk ${onDisk.length}, declared ${declared.length})`);
+scriptSrcs.forEach((rel, i) => {
+  try { new Function(blocks[i]); check(true, `${rel} parses (${blocks[i].length} chars)`); }
+  catch (e) { check(false, `${rel} SYNTAX ERROR: ${e.message}`); }
 });
+// Offline is silently broken if a module is missing from the service worker cache.
+const sw = fs.readFileSync(path.join(ROOT, "sw.js"), "utf8");
+const uncached = scriptSrcs.concat(["css/app.css"]).filter(f => sw.indexOf(f) < 0);
+check(uncached.length === 0, `every asset is cached by sw.js (${uncached.join(", ") || "all listed"})`);
 
 /* ---------- 2. content files are present and well-formed ---------- */
 const IDS = ["ccao", "ccdv", "ccaf", "ccap"];
@@ -139,7 +158,7 @@ vm.createContext(sandbox);
 (async function run() {
   for (let i = 0; i < blocks.length; i++) {
     try { vm.runInContext(blocks[i], sandbox, { timeout: 15000 }); }
-    catch (e) { check(false, `block ${i} threw at load: ${e.message}`); process.exit(1); }
+    catch (e) { check(false, `${scriptSrcs[i]} threw at load: ${e.message}`); process.exit(1); }
   }
   // let the loader's promise chain settle
   for (let i = 0; i < 10; i++) await new Promise(r => setImmediate(r));

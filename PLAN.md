@@ -156,18 +156,27 @@ existing boundaries rather than inventing new ones.
       Sonnet's $3.00/$15.00 was already correct and deliberately left alone.
 
 ### Phase 3 — file restructure (largest; strictly mechanical)
-- [ ] **3.1** Create `css/app.css` from the inline `<style>` block; link it.
-- [ ] **3.2** Split the main script into `js/00-data.js` … `js/10-share.js` on
+- [x] **3.1** Create `css/app.css` from the inline `<style>` block; link it.
+- [x] **3.2** Split the main script into `js/00-data.js` … `js/10-share.js` on
       existing section boundaries. **Move only — no edits during the move**, so
       the diff stays reviewable.
-- [ ] **3.3** Extract the boot block to `js/11-boot.js`.
-- [ ] **3.4** Rewrite `index.html` as a shell with ordered `<script src>` tags.
-- [ ] **3.5** Update `test/smoke.js` to load `js/*.js` in order instead of
+- [x] **3.3** Extract the boot block to `js/11-boot.js`.
+- [x] **3.4** Rewrite `index.html` as a shell with ordered `<script src>` tags.
+- [x] **3.5** Update `test/smoke.js` to load `js/*.js` in order instead of
       extracting `<script>` blocks from `index.html`.
-- [ ] **3.6** Update `sw.js`: add all new assets, bump cache version.
-- [ ] **3.7** Test: assert every file in `js/` is referenced by `index.html`
+- [x] **3.6** Update `sw.js`: add all new assets, bump cache version.
+- [x] **3.7** Test: assert every file in `js/` is referenced by `index.html`
       **and** listed in `sw.js` (guards the offline-breaks-silently failure).
-- [ ] **3.8** Verify all 326+ checks still pass; commit.
+- [x] **3.8** Verified: **349 checks** pass, `links.js` clean.
+- [x] **3.9** *(added)* The split exposed a hoisting hazard the plan predicted
+      in the abstract but not the instance: five top-level statements ran at
+      load, and the day-streak initialiser called `checkDayStreak()` defined
+      ~400 lines later. One script hoists all declarations; twelve do not, so
+      that call would have thrown `ReferenceError` at boot. All five were
+      relocated to `js/11-boot.js`, which loads last. Behaviour is unchanged.
+- [x] **3.10** *(added)* `"use strict"` was file-scoped on the single script.
+      Restored in each module so the split does not silently drop to sloppy
+      mode.
 
 ### Phase 4 — documentation
 - [ ] **4.1** Rewrite `README.md`: new structure, accurate tool count, how to
