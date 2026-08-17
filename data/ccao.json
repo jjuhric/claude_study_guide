@@ -42,39 +42,39 @@
     },
     {
       "d": 0,
-      "q": "You want Claude to reason carefully through a complex analysis before answering. What should you do?",
+      "q": "You want Claude to reason carefully through a complex analysis before answering. What actually controls that?",
       "opts": [
-        "Ask it to answer as fast as possible",
-        "Ask it to think step by step / work through the problem before giving conclusions",
-        "Split the request into 20 separate chats",
-        "Tell it the answer you expect"
+        "Telling it to think step by step in the prompt",
+        "The thinking setting on the request, and how much effort you allow it",
+        "Writing the prompt in a formal tone",
+        "Asking the same question several times and comparing"
       ],
       "a": 1,
-      "exp": "Instructing Claude to reason step by step (or using extended thinking) improves accuracy on complex analytical tasks.",
+      "exp": "Reasoning depth is a property of the request, not a phrase in the prompt. Current models use adaptive thinking, meaning Claude decides how much to think per request, and you steer the depth with an effort setting. Asking a model to think step by step was a real technique on models that did not reason by default; on current ones it changes the wording of the answer, not whether the model reasons. What the prompt genuinely controls is the quality of the input: the task, the constraints, and what a good answer looks like.",
       "why": [
-        "Speed pressure works against careful reasoning.",
-        "Correct. Asking for step-by-step reasoning improves accuracy on complex analysis.",
-        "Splitting into many chats loses the shared context the analysis needs.",
-        "Stating your expected answer invites agreement rather than analysis."
+        "A prompt phrase does not switch reasoning on. This was sound advice for older models and is now the most common piece of dated prompting guidance still in circulation.",
+        "Correct. Thinking is configured on the request, with effort setting the depth, and Claude decides how much reasoning each specific request needs.",
+        "Tone affects register, not reasoning. A formal prompt does not buy a more careful answer.",
+        "Repeating a question gives you several samples at the same reasoning depth, for several times the cost. It is a check, not a control."
       ],
       "id": "ccaoq-4fc190f1"
     },
     {
       "d": 0,
-      "q": "When giving Claude a long document plus instructions, best practice is to:",
+      "q": "When giving Claude a long document plus instructions, the most reliable structure is:",
       "opts": [
-        "Put instructions before and reference the document clearly, e.g. with delimiters or tags",
-        "Mix instructions randomly throughout the document",
-        "Paste the document with no explanation",
-        "Summarize the document yourself first, always"
+        "Mix the instructions through the document so they stay near the relevant text",
+        "Document first inside clear delimiters, then the instruction at the end",
+        "Paste the document with no framing and ask afterwards",
+        "Summarise the document yourself first, always"
       ],
-      "a": 0,
-      "exp": "Clear separation of instructions and source material — using delimiters, XML-style tags, or clear headers — helps Claude apply instructions to the right content.",
+      "a": 1,
+      "exp": "Two things matter and they work together. Delimit the document, with XML-style tags as the convention, so the model can tell source material from instruction; without that boundary, text inside the document can read as a command, which is also how prompt injection gets in. Then put the actual ask at the end, closest to where generation begins, which measurably improves instruction-following on long inputs. Summarising the document yourself defeats the purpose: you have done the reading, and your summary is what gets analysed rather than the source.",
       "why": [
-        "Correct. Lead with instructions and mark the document clearly so the two are never confused.",
-        "Scattering instructions makes them easy to miss and hard to follow.",
-        "With no framing, the model has to guess what to do with the text.",
-        "Pre-summarizing discards detail the task may need, and is not always appropriate."
+        "Scattering instructions makes it ambiguous which text is a command and which is content, and leaves no single place to look when the output is wrong.",
+        "Correct. Delimiters separate source from task, and an instruction at the end sits closest to generation, which helps most on long inputs.",
+        "With no framing the model has to infer both the task and the boundary of the source, and it will sometimes infer wrong.",
+        "Occasionally useful, never a rule, and it shifts the analysis onto your summary rather than the document itself."
       ],
       "id": "ccaoq-5a7eb999"
     },
@@ -1334,7 +1334,7 @@
     },
     {
       "id": "ccaoq-71",
-      "d": 0,
+      "d": 2,
       "q": "A team needs to extract data from 100,000 scanned single-page invoices per month. Budget is constrained. Which model tier and strategy is optimal?",
       "opts": [
         "Process all invoices with Claude Haiku 4.5 using structured JSON extraction prompts",
@@ -1353,26 +1353,26 @@
     },
     {
       "id": "ccaoq-72",
-      "d": 0,
-      "q": "An image with resolution 1500 × 1000 pixels is submitted to Claude for diagram analysis. Approximately how many tokens will this image consume?",
+      "d": 2,
+      "q": "Your team sends full-page diagram scans to Claude. What should drive how you size those images?",
       "opts": [
-        "Approximately 2,000 tokens based on (1500 × 1000) / 750",
-        "Exactly 50 tokens because all images have a flat fee",
-        "Approximately 15,000 tokens (10 tokens per pixel row)",
-        "0 tokens because images are processed out-of-band"
+        "Images are billed at a flat rate, so resolution does not matter",
+        "Higher resolution costs more tokens, so send the smallest size that keeps the detail readable",
+        "Always send maximum resolution, since token cost is unaffected by image size",
+        "Images are processed outside the token budget entirely"
       ],
-      "a": 0,
+      "a": 1,
       "why": [
-        "Correct. Anthropic calculates vision token usage via (Width × Height) / 750, yielding (1,500,000 / 750) = 2,000 tokens.",
-        "Vision tokenization is area-dependent, not a flat 50 tokens.",
-        "15,000 tokens significantly overestimates the standard 1/750 area formula.",
-        "Images consume standard context window tokens billed under input tokens."
+        "There is no flat image fee. Billing tracks the tokens the image resolves to, which depends on its dimensions.",
+        "Correct. Cost scales with resolution, so the size that just preserves the detail you need is the efficient choice.",
+        "The opposite of the truth, and an expensive assumption at volume, since resolution is the main driver of image cost.",
+        "Images are part of the input token budget like everything else in the request."
       ],
-      "exp": "Correct. Anthropic calculates vision token usage via (Width × Height) / 750, yielding (1,500,000 / 750) = 2,000 tokens."
+      "exp": "Images consume input tokens and the count scales with resolution. Current models support markedly higher resolution than earlier ones, which is why they read dense diagrams and screenshots so much better, but a full-resolution image can cost several times what the same picture cost on an older model. The practical rule is to send the smallest size at which the detail you need stays legible: downscale a photo of a whiteboard, keep a dense schematic sharp. If cost matters at volume, measure it with the token-counting endpoint on representative images rather than trusting a remembered formula."
     },
     {
       "id": "ccaoq-73",
-      "d": 1,
+      "d": 0,
       "q": "When prompting Claude to summarize medical research papers, which prompt structure best separates the source text from the task directives?",
       "opts": [
         "Place instructions inside <instructions> and research text inside <document> tags",
@@ -1391,7 +1391,7 @@
     },
     {
       "id": "ccaoq-74",
-      "d": 1,
+      "d": 0,
       "q": "What is the primary risk of using 'Role Prompting' (e.g., 'You are a Nobel-prize winning physicist') without providing reference materials?",
       "opts": [
         "It styles tone and vocabulary but does not provide access to proprietary or ungrounded facts",
@@ -1410,7 +1410,7 @@
     },
     {
       "id": "ccaoq-75",
-      "d": 2,
+      "d": 1,
       "q": "An organization is deploying an internal customer support assistant that handles customer account inquiries. Which evaluation step is most critical prior to release?",
       "opts": [
         "Testing against a representative benchmark of edge cases and adversarial prompt injections",
@@ -1429,7 +1429,7 @@
     },
     {
       "id": "ccaoq-76",
-      "d": 2,
+      "d": 1,
       "q": "What is the role of a 'Golden Dataset' in prompt engineering evaluation?",
       "opts": [
         "A curated set of representative input prompts paired with human-validated ideal outputs",
@@ -1448,26 +1448,26 @@
     },
     {
       "id": "ccaoq-77",
-      "d": 3,
-      "q": "Under Anthropic's Responsible Scaling Policy (RSP), what distinguishes ASL-2 from ASL-3?",
+      "d": 5,
+      "q": "A customer asks how Anthropic decides what safeguards a frontier model needs. The accurate description is:",
       "opts": [
-        "ASL-3 requires strict physical security, air-gapping, and containment due to catastrophic CBRN/cyber risk thresholds",
-        "ASL-2 models are completely unregulated open-source weights",
-        "ASL-3 only applies to models deployed on mobile phones",
-        "ASL-2 models cannot be accessed via API"
+        "Safeguards are fixed at launch and do not change",
+        "A published, tiered framework: as a model's capability crosses defined risk thresholds, stronger security and deployment safeguards are required",
+        "Safeguards are decided case by case with no published policy",
+        "Safeguards apply only to models offered through the API"
       ],
-      "a": 0,
+      "a": 1,
       "why": [
-        "Correct. ASL-3 triggers severe containment, secure hardware enclaves, and multi-party sign-offs when models demonstrate dangerous autonomous capabilities.",
-        "ASL-2 covers frontier hosted models with extensive automated safety evaluations.",
-        "ASL safety levels govern model capabilities, not client device form factors.",
-        "ASL-2 covers current frontier models, which are standard API-accessible models."
+        "The framework is designed to escalate as capability grows, which is the opposite of fixed at launch.",
+        "Correct. Tiered and threshold-driven, with stronger requirements as capability crosses defined levels.",
+        "There is a published framework. Saying otherwise understates what the organisation has committed to in public.",
+        "It is tied to model capability, not to the surface a model is served on."
       ],
-      "exp": "Correct. ASL-3 triggers severe containment, secure hardware enclaves, and multi-party sign-offs when models demonstrate dangerous autonomous capabilities."
+      "exp": "Anthropic publishes a tiered responsible-scaling framework: capability is evaluated against defined thresholds, and crossing one triggers a stronger set of security and deployment requirements rather than a case-by-case judgement. Two things matter for an associate conversation. First, the framework is public, so point the customer at it rather than paraphrasing tiers from memory. Second, it is capability-triggered rather than product-triggered, so it is not a question of which surface a model ships on. For specific tier definitions and current commitments, cite the published policy; those details are updated over time."
     },
     {
       "id": "ccaoq-78",
-      "d": 3,
+      "d": 5,
       "q": "An enterprise customer requires that their confidential legal briefs processed by Claude are never retained on disk by Anthropic. Which mechanism provides this guarantee?",
       "opts": [
         "An Enterprise Zero-Data-Retention (ZDR) agreement",
@@ -1486,7 +1486,7 @@
     },
     {
       "id": "ccaoq-79",
-      "d": 4,
+      "d": 6,
       "q": "When Claude returns a safety refusal for a request to analyze a cybersecurity firewall log containing IP attack patterns, what is the best corrective action?",
       "opts": [
         "Reframe the prompt to clearly state the defensive, authorized security auditing context inside <context> tags",
@@ -1505,7 +1505,7 @@
     },
     {
       "id": "ccaoq-80",
-      "d": 4,
+      "d": 5,
       "q": "Why is human-in-the-loop (HITL) mandatory for high-stakes AI-generated regulatory compliance submissions?",
       "opts": [
         "Because legal accountability remains solely with the submitting organization, and LLMs can hallucinate plausible errors",
@@ -1524,7 +1524,7 @@
     },
     {
       "id": "ccaoq-81",
-      "d": 5,
+      "d": 4,
       "q": "In Claude Projects, what is the optimal use of Project Custom Instructions?",
       "opts": [
         "Defining organization-wide coding standards, output formats, and domain glossaries applied to all chats in the project",
@@ -1543,7 +1543,7 @@
     },
     {
       "id": "ccaoq-82",
-      "d": 5,
+      "d": 3,
       "q": "How do Claude Artifacts enhance user experience when generating standalone code or UI components?",
       "opts": [
         "They render code, SVG, and web apps in a dedicated interactive side-by-side pane without cluttering the chat history",
@@ -1562,7 +1562,7 @@
     },
     {
       "id": "ccaoq-83",
-      "d": 6,
+      "d": 0,
       "q": "When designing an automated sentiment classification prompt, why is providing 3 few-shot examples superior to a 5-paragraph textual explanation?",
       "opts": [
         "Examples demonstrate edge cases, label casing, and output syntax concretely, eliminating ambiguity",
@@ -1581,7 +1581,7 @@
     },
     {
       "id": "ccaoq-84",
-      "d": 6,
+      "d": 0,
       "q": "A developer wants Claude to format dates strictly as YYYY-MM-DD. Which prompt instruction is most resilient against format drift?",
       "opts": [
         "Specify `<format>Date must strictly match regex ^\\d{4}-\\d{2}-\\d{2}$ (e.g. 2026-08-15)</format>` with 2 worked examples",
@@ -1600,26 +1600,26 @@
     },
     {
       "id": "ccaoq-85",
-      "d": 0,
-      "q": "What is the primary factor driving latency differences between Claude Haiku 4.5 and Claude Sonnet 5?",
+      "d": 2,
+      "q": "Why does Claude Haiku 4.5 respond faster than Claude Sonnet 5?",
       "opts": [
-        "Model parameter scale and architecture depth resulting in faster per-token generation in Haiku",
-        "Haiku servers being physically closer to all users",
-        "Sonnet intentionally adding artificial 2-second sleep timers",
-        "Haiku skipping safety and guardrail evaluations"
+        "Haiku skips safety evaluation to save time",
+        "It is built as the fast, lower-cost tier, trading speed and price against capability on hard tasks",
+        "Haiku servers are physically closer to every user",
+        "Sonnet deliberately delays responses to differentiate the tiers"
       ],
-      "a": 0,
+      "a": 1,
       "why": [
-        "Correct. Haiku is a lighter-weight architecture optimized for ultra-low time-to-first-token (TTFT) and high tokens-per-second throughput.",
-        "API traffic is routed across global data centers based on capacity, not model brand geography.",
-        "Anthropic does not introduce artificial sleep timers on larger models.",
-        "All Anthropic models undergo identical safety and alignment filtering."
+        "Safety evaluation is not the variable being traded away, and telling a customer it is would be a serious misstatement.",
+        "Correct. A deliberate tier: faster and cheaper, with less headroom on genuinely hard reasoning.",
+        "Latency is dominated by generation rather than geography, and the tiers are served from the same infrastructure.",
+        "There is no artificial delay. The slower tier is slower because it is doing more work per token."
       ],
-      "exp": "Correct. Haiku is a lighter-weight architecture optimized for ultra-low time-to-first-token (TTFT) and high tokens-per-second throughput."
+      "exp": "The tiers exist to give you a speed, cost, and capability choice, and Haiku sits at the fast end of it. Rely on published behaviour rather than reasoning from model internals, which Anthropic does not disclose: Haiku 4.5 is the fastest and cheapest tier, with a 200K context window and a 64K output ceiling against 1M and 128K on Opus 5 and Sonnet 5. The decision that follows is about the work rather than the architecture. Route high-volume, latency-sensitive, well-specified steps to Haiku, and keep genuinely difficult reasoning on a more capable tier."
     },
     {
       "id": "ccaoq-86",
-      "d": 1,
+      "d": 0,
       "q": "Why should prompt instructions be placed AFTER context documents in long-context prompts ('Lost in the Middle' mitigation)?",
       "opts": [
         "Placing instructions at the very end ensures the model's attention is freshest on the required task when generation begins",
@@ -1638,7 +1638,7 @@
     },
     {
       "id": "ccaoq-87",
-      "d": 2,
+      "d": 1,
       "q": "What is 'LLM-as-a-Judge' evaluation methodology?",
       "opts": [
         "Using a high-capability model (e.g. Claude Sonnet 5) with a strict grading rubric to evaluate outputs from another model or prompt version",
@@ -1657,7 +1657,7 @@
     },
     {
       "id": "ccaoq-88",
-      "d": 3,
+      "d": 5,
       "q": "Which of the following data types requires the highest scrutiny before passing into an external LLM prompt?",
       "opts": [
         "Personally Identifiable Information (PII) such as Social Security Numbers and patient health records",
@@ -1676,7 +1676,7 @@
     },
     {
       "id": "ccaoq-89",
-      "d": 4,
+      "d": 5,
       "q": "What is 'Prompt Injection' in LLM applications?",
       "opts": [
         "An adversarial technique where untrusted input text overrides system instructions to hijack model behavior",
@@ -1695,7 +1695,7 @@
     },
     {
       "id": "ccaoq-90",
-      "d": 5,
+      "d": 0,
       "q": "What is the key advantage of using Markdown tables inside Claude prompt contexts for structured lookup data?",
       "opts": [
         "Claude preserves column relationships and headers reliably across tabular rows",
@@ -1714,7 +1714,7 @@
     },
     {
       "id": "ccaoq-91",
-      "d": 6,
+      "d": 1,
       "q": "When generating code with Claude, why should you instruct the model to provide explanatory comments alongside the code?",
       "opts": [
         "It allows developers to review the architectural intent and assumptions behind the implementation quickly",
@@ -1733,26 +1733,26 @@
     },
     {
       "id": "ccaoq-92",
-      "d": 0,
-      "q": "If an application requires sub-second responses for interactive typing autocompletion, which model is the mandatory choice?",
+      "d": 2,
+      "q": "An interactive autocomplete feature needs responses in well under a second. Which model fits best?",
       "opts": [
         "Claude Haiku 4.5",
-        "Claude Sonnet 5 with 50 few-shot examples",
-        "Claude Opus 5 with extended thinking enabled",
-        "A multi-agent orchestrator system"
+        "Claude Opus 5 with effort set to max",
+        "Claude Sonnet 5 with fifty few-shot examples",
+        "A multi-agent orchestrator that compares several drafts"
       ],
       "a": 0,
       "why": [
-        "Correct. Haiku is purpose-built for low-latency, real-time interactive workflows.",
-        "Sonnet with large prompts has higher time-to-first-token, unsuitable for instantaneous autocompletion.",
-        "Opus with extended thinking introduces substantial reasoning latency, unsuitable for typing autocompletion.",
-        "Multi-agent orchestrators introduce multi-hop network round trips, drastically increasing latency."
+        "Correct. Fast, cheap, and well matched to a high-volume task where each completion is individually low-stakes.",
+        "Raising effort deepens reasoning and lengthens the response, which is exactly the wrong trade against a sub-second budget.",
+        "Few-shot examples are input tokens on every request, adding both cost and latency at autocomplete volume.",
+        "Several models in sequence is the slowest option available, and autocomplete does not need cross-checking."
       ],
-      "exp": "Correct. Haiku is purpose-built for low-latency, real-time interactive workflows."
+      "exp": "Autocomplete is the archetypal Haiku workload: high volume, latency-visible, and individually low-stakes. Every other option buys capability the task does not need and pays for it in time. Raising effort deepens reasoning, fifty few-shot examples inflate the input of every single request, and an orchestrator multiplies round trips. Note this is a fit judgement rather than a hard rule: if quality at Haiku proves inadequate you move up a tier and accept the latency, but the discipline is to start from the cheapest model that clears the bar and only escalate on evidence."
     },
     {
       "id": "ccaoq-93",
-      "d": 1,
+      "d": 0,
       "q": "Why is 'Negative Prompting' (e.g. 'Do not mention competitors, do not be rude, do not use jargon') often less effective than 'Positive Specification'?",
       "opts": [
         "Positive specification provides an explicit pattern to follow, whereas negative lists leave an infinite space of alternate undesirable behaviors",
@@ -1771,7 +1771,7 @@
     },
     {
       "id": "ccaoq-94",
-      "d": 2,
+      "d": 1,
       "q": "When running automated prompt evaluations, what is 'Position Bias' in pairwise LLM comparison?",
       "opts": [
         "The tendency of an LLM evaluator to prefer whichever candidate response is presented first (or second)",
@@ -1790,7 +1790,7 @@
     },
     {
       "id": "ccaoq-95",
-      "d": 3,
+      "d": 5,
       "q": "What is the primary risk of deploying a public customer service chatbot without output moderation filters?",
       "opts": [
         "Adversarial users may trick the bot into uttering offensive, brand-damaging, or legally binding incorrect statements",
@@ -1809,7 +1809,7 @@
     },
     {
       "id": "ccaoq-96",
-      "d": 4,
+      "d": 3,
       "q": "In high-reliability extraction pipelines, what is 'Schema Validation'?",
       "opts": [
         "Parsing the LLM's JSON output against a strict JSON Schema (e.g. Zod / Pydantic) to catch missing keys or invalid types before saving",
@@ -1828,26 +1828,26 @@
     },
     {
       "id": "ccaoq-97",
-      "d": 5,
-      "q": "How does providing a reasoning scratchpad (`<thinking>` or `<analysis>`) before generating final JSON improve output validity?",
+      "d": 0,
+      "q": "You need Claude to return JSON that always matches your schema. The most reliable approach is:",
       "opts": [
-        "It allows Claude to verify constraints and resolve calculations before committing to the strict JSON token sequence",
-        "It reduces total token consumption by 50%",
-        "It automatically converts English into SQL queries",
-        "It bypasses the need for schema validation"
+        "Ask it to write reasoning in thinking tags before the JSON",
+        "Constrain the response with a schema, and validate what comes back before you use it",
+        "Instruct it to output only JSON and parse whatever arrives",
+        "Ask for JSON twice and use whichever response parses"
       ],
-      "a": 0,
+      "a": 1,
       "why": [
-        "Correct. Generating intermediate reasoning first prevents premature token commitments and significantly reduces structural JSON syntax errors.",
-        "Scratchpad tokens are billed as output tokens and increase total count.",
-        "Scratchpads do not automatically convert text to SQL.",
-        "Schema validation is still required to guarantee downstream integrity."
+        "A dated pattern. Current models reason without being asked, and reasoning inside the payload is exactly what breaks strict output.",
+        "Correct. Constrain the shape at the request level, then validate before use, so the guarantee lives in code.",
+        "An instruction is a request, not a guarantee. Without validation the first malformed response reaches your database.",
+        "Retrying until something parses hides the failure rather than fixing it, and doubles cost on every bad response."
       ],
-      "exp": "Correct. Generating intermediate reasoning first prevents premature token commitments and significantly reduces structural JSON syntax errors."
+      "exp": "Two layers do the work here and neither of them is a prompt phrase. Constrain the output shape at the request level so the model generates against your schema rather than being asked nicely for it, then validate the parsed result before it reaches anything downstream. The guarantee you want is enforced by your code, not by wording. The scratchpad pattern was a genuine technique on models that did not reason by default; current models think adaptively without being told to, and asking for reasoning inside the response fights the structured output rather than helping it."
     },
     {
       "id": "ccaoq-98",
-      "d": 6,
+      "d": 0,
       "q": "When designing prompts for multi-lingual translation, what instruction prevents the model from adding unnecessary conversational filler (e.g., 'Here is your translation:')?",
       "opts": [
         "Instruct: 'Output ONLY the direct translation inside <translation> tags with no preamble, explanations, or commentary.'",
@@ -1866,22 +1866,22 @@
     },
     {
       "id": "ccaoq-99",
-      "d": 0,
-      "q": "Which Claude model is recommended as the balanced default choice for enterprise coding, complex analysis, and multi-step reasoning?",
+      "d": 2,
+      "q": "Which Claude model is the balanced default for enterprise coding, complex analysis, and multi-step reasoning?",
       "opts": [
         "Claude Sonnet 5",
         "Claude Haiku 4.5",
-        "Claude 1.0 Legacy",
-        "Claude Nano"
+        "Claude Opus 5 for every task regardless of difficulty",
+        "Whichever model was released most recently"
       ],
       "a": 0,
       "why": [
-        "Correct. Claude Sonnet 5 is the flagship balanced model combining state-of-the-art intelligence with fast throughput and cost-effective pricing.",
-        "Haiku is optimized for ultra-fast, high-volume lightweight tasks.",
-        "Claude 1.0 is deprecated legacy infrastructure.",
-        "Claude Nano does not exist in Anthropic's model family."
+        "Correct. The balanced default, strong on coding and analysis without Opus pricing.",
+        "The fast, low-cost tier. Right for high-volume simple work, not the default for complex analysis.",
+        "Opus 5 earns its cost on hard reasoning and high-stakes work; applying it everywhere pays a premium on tasks that never needed it.",
+        "Release date says nothing about fit. Choose on the difficulty of the task and the cost of being wrong."
       ],
-      "exp": "Correct. Claude Sonnet 5 is the flagship balanced model combining state-of-the-art intelligence with fast throughput and cost-effective pricing."
+      "exp": "Sonnet 5 is the balance point: near-Opus quality on coding and agentic work at Sonnet pricing, with the same 1M context window and 128K output ceiling. Haiku 4.5 is the fast, cheap tier for high-volume simple work and carries tighter limits at 200K context and 64K output. Opus 5 earns its cost when the reasoning is genuinely hard or a wrong answer is expensive, but defaulting everything to it is how spend climbs without a matching gain in quality. Recency is not a selection criterion at all: the newest model is not automatically the best fit for a given task."
     },
     {
       "id": "ccaoq-100",
