@@ -1373,21 +1373,21 @@
     {
       "id": "ccdvq-73",
       "d": 2,
-      "q": "When implementing Computer Use with `computer_20251124`, what is the best practice for screenshot resolution handling?",
+      "q": "You are building a computer-use agent with `computer_20251124`. How should you size screenshots?",
       "opts": [
-        "Scale screenshots to standard resolutions (e.g., 1024×768 or 1280×800) to optimize token cost and latency",
-        "Send raw 4K uncompressed BMP images",
-        "Crop screenshots to 10×10 pixel squares",
-        "Convert screenshots into ASCII text before sending"
+        "1080p as the default, dropping to 720p or 1366x768 when cost matters more than fidelity",
+        "The highest resolution the display supports, always",
+        "The smallest readable size, since resolution does not affect accuracy",
+        "It makes no difference — screenshots are billed at a flat rate"
       ],
       "a": 0,
       "why": [
-        "Correct. Scaling to standard aspect ratios (like 1024×768 XGA) dramatically reduces token consumption while retaining sharp UI element readability.",
-        "4K screenshots consume excessive vision tokens and spike API latency without improving coordinate accuracy.",
-        "10×10 crops destroy visual context needed for desktop navigation.",
-        "ASCII conversion destroys graphical UI layout information."
+        "Correct. 1080p is the balanced default, with lower resolutions available when cost outweighs fidelity.",
+        "Maximum resolution costs the most per step and rarely improves accuracy on a legible interface — an expensive default in a per-step loop.",
+        "Resolution does affect accuracy: below a point the model can no longer resolve the control it needs to click.",
+        "Screenshots are images and images are billed by the tokens they resolve to, which scales with resolution."
       ],
-      "exp": "Correct. Scaling to standard aspect ratios (like 1024×768 XGA) dramatically reduces token consumption while retaining sharp UI element readability."
+      "exp": "Screenshot resolution is the main cost and accuracy lever in a computer-use loop, and it is a genuine trade rather than a maximise-one-side choice. 1080p balances the two well; 720p or 1366x768 cut cost meaningfully where the interface is still legible at that size. Current models read screenshots at much higher resolution than earlier ones, and coordinates map directly to image pixels, so no scale-factor arithmetic is needed on the way back — but that fidelity is billed, and an agent taking a screenshot per step pays it on every iteration. Measure on your own interface rather than assuming."
     },
     {
       "id": "ccdvq-74",
@@ -1468,21 +1468,21 @@
     {
       "id": "ccdvq-78",
       "d": 1,
-      "q": "What is the cache minimum token requirement when using Prompt Caching on Claude Haiku 4.5?",
+      "q": "Prompt caching minimums differ by model. Which statement is accurate?",
       "opts": [
-        "2,048 tokens",
-        "1,024 tokens",
-        "512 tokens",
-        "100 tokens"
+        "Every model shares a single 1,024-token minimum",
+        "They vary by model and are not ordered by recency — the newest models cache from 512 tokens while Haiku 4.5 needs 4,096",
+        "The minimum scales with the model's context window",
+        "There is no minimum; any prefix can be cached"
       ],
-      "a": 0,
+      "a": 1,
       "why": [
-        "Correct. Claude Haiku 4.5 requires at least 2,048 tokens for a cache block to be created (compared to 1,024 tokens for Sonnet/Opus).",
-        "1,024 tokens is the minimum for Sonnet and Opus, not Haiku.",
-        "512 tokens is below the minimum threshold for all models.",
-        "100 tokens will be processed without caching."
+        "A single shared minimum would be easier to remember and is not what the API does — the figures differ by model.",
+        "Correct. Per-model and not ordered by recency, which is why the figure has to be checked rather than inferred.",
+        "Context window and cache minimum are independent. Haiku 4.5 has the smallest window and one of the highest minimums.",
+        "There is a minimum, and falling below it fails silently rather than erroring — the most expensive way for a limit to work."
       ],
-      "exp": "Correct. Claude Haiku 4.5 requires at least 2,048 tokens for a cache block to be created (compared to 1,024 tokens for Sonnet/Opus)."
+      "exp": "The minimum cacheable prefix is per-model and deliberately unintuitive: Opus 5 caches from 512 tokens, Opus 4.8 and Sonnet 5 from 1,024, and Opus 4.6 and Haiku 4.5 from 4,096 — so a newer model is not automatically the more permissive one. This matters because a prefix below the threshold fails silently: no error, just cache_creation_input_tokens of zero and full price on every request. A 3,000-token system prompt caches on Opus 5 and does not on Haiku 4.5. Verify with the usage fields rather than assuming, and re-check the figure whenever you change model."
     },
     {
       "id": "ccdvq-79",
@@ -1620,21 +1620,21 @@
     {
       "id": "ccdvq-86",
       "d": 1,
-      "q": "What is the effect of setting `temperature: 0.0` on Claude Sonnet 5?",
+      "q": "What happens when you set `temperature: 0.0` on Claude Sonnet 5?",
       "opts": [
-        "The model uses greedy decoding for maximum determinism and consistency across runs",
-        "The model refuses all requests",
-        "The model generates completely random words",
-        "The model switches to Claude Haiku 4.5"
+        "The request is rejected — non-default sampling values are not accepted",
+        "The model uses greedy decoding, giving identical output every run",
+        "It is silently ignored and the request proceeds normally",
+        "It halves output token cost by shortening responses"
       ],
       "a": 0,
       "why": [
-        "Correct. Temperature 0.0 selects the highest-probability token at each step (greedy decoding), optimizing reproducibility.",
-        "Temperature 0.0 is a standard, valid setting.",
-        "Random sampling occurs at high temperature, not zero.",
-        "Temperature settings do not switch model architectures."
+        "Correct. Non-default sampling values are rejected on Sonnet 5, so this is a validation failure rather than a behaviour change.",
+        "Greedy decoding was never the guarantee even where temperature was accepted — low temperature narrows sampling without making output reproducible.",
+        "The API does not silently drop unsupported parameters. Silent-ignore would be worse: your code would look correct while doing nothing.",
+        "Temperature never affected pricing. Cost follows the tokens generated, not how they were sampled."
       ],
-      "exp": "Correct. Temperature 0.0 selects the highest-probability token at each step (greedy decoding), optimizing reproducibility."
+      "exp": "Sampling parameters were removed on this generation. Opus 5, Opus 4.8 and 4.7 reject temperature, top_p and top_k outright, and Sonnet 5 rejects any non-default value — so an integration carrying temperature=0 forward from an older model fails validation rather than behaving deterministically. Steer behaviour with prompting and structured outputs instead. Worth knowing even on models that still accept it: temperature=0 never guaranteed identical output across runs. It narrowed sampling, which is not the same as determinism, so any pipeline that depended on byte-identical responses was already resting on an assumption the API did not make."
     },
     {
       "id": "ccdvq-87",
