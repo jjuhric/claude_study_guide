@@ -70,8 +70,8 @@ defensible, the stem is unambiguous, it tests understanding over trivia, and
 every fact matches `docs/FACTS.md`.
 - [x] **2.1** CCAO-F (100 questions)
 - [ ] **2.2** CCDV-F (100)
-- [ ] **2.3** CCAR-F (100)
-- [ ] **2.4** CCAR-P (100)
+- [x] **2.3** CCAR-F (100)
+- [x] **2.4** CCAR-P (100)
 
 ### Phase 3 — explanation and rationale depth
 `exp` to a 60-word floor (target 80–120): what the answer means, the principle

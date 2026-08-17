@@ -15,7 +15,7 @@ const CERTS = [
   questions:[], cards:[]},
  {id:"ccaf", code:"CCAR-F", name:"Claude Certified Architect", sub:"Foundations", price:"$125", em:"🏛️", color:"#d97757",
   blurb:"For partners who design Claude solutions end to end — deployment platforms and agentic architectures.",
-  domains:["Agentic Architecture & Orchestration","Claude Code Workflows","Prompt Engineering & Structured Output","Tool Design & MCP Integration","Context Management & Reliability"],
+  domains:["Agentic Architecture & Orchestration","Claude Code Workflows","Prompt Engineering & Structured Output","Tool Design & MCP Integration","Context, Retrieval & Reliability"],
   questions:[], cards:[]},
  {id:"ccap", code:"CCAR-P", name:"Claude Certified Architect", sub:"Professional", price:"$175", em:"👑", color:"#8a6fae",
   blurb:"Advanced, scenario-driven agentic system design at production scale.",

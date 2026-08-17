@@ -992,7 +992,7 @@
     },
     {
       "id": "ccapq-53",
-      "d": 1,
+      "d": 4,
       "q": "An autonomous agent reads incoming vendor invoices and executes payment database mutations. How should the architecture prevent Indirect Prompt Injection?",
       "opts": [
         "Treat invoice text as untrusted data, enforce strict payment authorization limits, and require out-of-band multi-factor human approval for disbursements",
@@ -1011,7 +1011,7 @@
     },
     {
       "id": "ccapq-54",
-      "d": 2,
+      "d": 3,
       "q": "When configuring OpenTelemetry GenAI semantic conventions for Claude API calls, what standard span attributes must be recorded?",
       "opts": [
         "`gen_ai.system: 'anthropic'`, `gen_ai.request.model`, `gen_ai.usage.prompt_tokens`, and `gen_ai.usage.completion_tokens`",
@@ -1030,7 +1030,7 @@
     },
     {
       "id": "ccapq-55",
-      "d": 3,
+      "d": 1,
       "q": "An enterprise customer support fleet experiences sudden CRM database latency spikes. What Circuit Breaker pattern prevents thread pool exhaustion?",
       "opts": [
         "Trip the circuit breaker to OPEN after consecutive timeouts, immediately serving cached customer data without waiting for network timeouts",
@@ -1050,20 +1050,20 @@
     {
       "id": "ccapq-56",
       "d": 4,
-      "q": "Under Anthropic's Responsible Scaling Policy (RSP), what safety threshold triggers AI Safety Level 3 (ASL-3) containment controls?",
+      "q": "A regulated customer asks how Anthropic decides which safeguards a frontier model requires. The accurate answer is:",
       "opts": [
-        "Demonstrated model capabilities in autonomous cyberwarfare or biological/chemical weaponization that could cause catastrophic real-world harm",
-        "A customer asking the model to write a fictional comedy script",
-        "A model generating text at more than 500 words per minute",
-        "A user accessing the API from a mobile smartphone"
+        "A published, tiered framework in which crossing a defined capability threshold requires stronger security and deployment safeguards",
+        "Safeguards are fixed when a model launches and do not escalate",
+        "Each deployment negotiates its own safeguards privately with no published standard",
+        "Safeguards depend on the customer's contract tier rather than the model"
       ],
       "a": 0,
-      "exp": "Demonstrated model capabilities in autonomous cyberwarfare or biological/chemical weaponization that could cause catastrophic real-world harm",
+      "exp": "Anthropic publishes a tiered responsible-scaling framework: models are evaluated against defined capability thresholds, and crossing one triggers a stronger set of security and deployment requirements rather than a private judgement call. For an architect answering a regulated customer, two properties matter more than the tier numbers. It is capability-triggered, so it does not vary by contract or deployment surface, and it is public, so it can be cited in a compliance review rather than paraphrased. Point at the published policy for the current thresholds; those are updated as the framework evolves, which is exactly why quoting remembered figures into an audit response is unsafe.",
       "why": [
-        "Correct. Demonstrated model capabilities in autonomous cyberwarfare or biological/chemical weaponization that could cause catastrophic real-world harm",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Tiered and threshold-driven, escalating as measured capability crosses defined levels, and published so a customer can verify it.",
+        "The framework exists specifically to escalate as capability grows, so a fixed-at-launch description is backwards.",
+        "There is a published standard. Describing it as privately negotiated understates a public commitment and would not survive a compliance review.",
+        "Requirements follow the model's assessed capability, not what a customer is paying for. That distinction is the point of the framework."
       ]
     },
     {
@@ -1087,7 +1087,7 @@
     },
     {
       "id": "ccapq-58",
-      "d": 1,
+      "d": 4,
       "q": "When running untrusted agent-generated Python code in production, which containerization technology provides strong virtualization security?",
       "opts": [
         "gVisor or Firecracker microVMs with dedicated guest kernels and restricted syscall interception",
@@ -1125,7 +1125,7 @@
     },
     {
       "id": "ccapq-60",
-      "d": 3,
+      "d": 1,
       "q": "In a mission-critical banking application, what is the recommended fallback cascade sequence when Claude Sonnet 5 encounters an outage?",
       "opts": [
         "Retry with exponential backoff -> Fallback to Claude Haiku 4.5 -> Fallback to static rule-based templates -> Graceful human escalation",
@@ -1144,7 +1144,7 @@
     },
     {
       "id": "ccapq-61",
-      "d": 4,
+      "d": 3,
       "q": "Why should high-assurance enterprise deployments maintain a version-controlled Golden Evaluation Dataset of 500+ challenging scenarios?",
       "opts": [
         "To run automated regression tests before deploying any prompt, tool schema, or model version update to production",
@@ -1182,7 +1182,7 @@
     },
     {
       "id": "ccapq-63",
-      "d": 1,
+      "d": 4,
       "q": "What is the primary security vulnerability when an agent is given access to both internal confidential files and public web browsing tools?",
       "opts": [
         "Indirect prompt injection from public web pages instructing the agent to exfiltrate confidential internal context to an attacker's server",
@@ -1201,7 +1201,7 @@
     },
     {
       "id": "ccapq-64",
-      "d": 2,
+      "d": 3,
       "q": "Why is Pairwise Comparison (Model A vs Model B with position swapping) preferred over single 1-10 Likert scales for LLM-as-a-Judge evaluation?",
       "opts": [
         "Pairwise comparison eliminates absolute numerical scoring bias and achieves significantly higher inter-rater reliability",
@@ -1220,7 +1220,7 @@
     },
     {
       "id": "ccapq-65",
-      "d": 3,
+      "d": 1,
       "q": "Why must tools that perform financial transactions implement idempotency keys?",
       "opts": [
         "To ensure that network retries after timeouts do not execute duplicate payments or transfer funds multiple times",
@@ -1277,7 +1277,7 @@
     },
     {
       "id": "ccapq-68",
-      "d": 1,
+      "d": 4,
       "q": "What is Least-Privilege Egress filtering in secure agent execution environments?",
       "opts": [
         "Restricting outbound network traffic strictly to allowlisted API endpoints, preventing unauthorized data exfiltration from prompt injections",
@@ -1315,7 +1315,7 @@
     },
     {
       "id": "ccapq-70",
-      "d": 3,
+      "d": 1,
       "q": "How should a distributed multi-agent system handle partial tool execution failures during a multi-step database migration?",
       "opts": [
         "Implement transactional rollback logic or compensating actions to restore clean state before alerting human supervisors",
@@ -1372,7 +1372,7 @@
     },
     {
       "id": "ccapq-73",
-      "d": 1,
+      "d": 4,
       "q": "What architectural defense prevents an autonomous coding agent from modifying its own safety guardrails or permission files?",
       "opts": [
         "Read-only file permissions and kernel-level MAC (Mandatory Access Control) policies protecting configuration files outside the agent's workspace",
@@ -1391,7 +1391,7 @@
     },
     {
       "id": "ccapq-74",
-      "d": 2,
+      "d": 3,
       "q": "What does a high Inter-Rater Reliability score (e.g. Cohen's Kappa > 0.85) indicate in an automated LLM evaluation pipeline?",
       "opts": [
         "High consistency and agreement between LLM-as-a-judge evaluations and human expert ground-truth annotations",
@@ -1410,7 +1410,7 @@
     },
     {
       "id": "ccapq-75",
-      "d": 3,
+      "d": 1,
       "q": "Why should critical enterprise AI applications implement rate-limiting token bucket algorithms at the client gateway layer?",
       "opts": [
         "To proactively smooth internal traffic bursts and stay within Anthropic API rate limit tiers without triggering HTTP 429 errors",
@@ -1467,7 +1467,7 @@
     },
     {
       "id": "ccapq-78",
-      "d": 1,
+      "d": 4,
       "q": "How should sensitive API keys and secrets be passed to custom agent tools in production?",
       "opts": [
         "Injected securely via environment variables or secret vaults directly to the tool backend, keeping secrets completely out of LLM prompt text",
@@ -1486,7 +1486,7 @@
     },
     {
       "id": "ccapq-79",
-      "d": 2,
+      "d": 3,
       "q": "What is the primary indicator of Prompt Drift in production customer service applications?",
       "opts": [
         "A statistically significant drop in evaluation benchmark accuracy or safety compliance scores over time as user query distributions change",
@@ -1505,7 +1505,7 @@
     },
     {
       "id": "ccapq-80",
-      "d": 3,
+      "d": 1,
       "q": "What is the function of a Dead-Letter Queue (DLQ) in asynchronous batch AI processing pipelines?",
       "opts": [
         "Isolating failed or unprocessable batch items for manual inspection and retry without stalling the main processing pipeline",
@@ -1524,7 +1524,7 @@
     },
     {
       "id": "ccapq-81",
-      "d": 4,
+      "d": 3,
       "q": "Why should prompt evaluation benchmarks include a balanced distribution of both positive and negative (adversarial) test cases?",
       "opts": [
         "To accurately measure both functional capability (true positive rate) and guardrail resistance against attacks (false positive rate)",
@@ -1562,7 +1562,7 @@
     },
     {
       "id": "ccapq-83",
-      "d": 1,
+      "d": 4,
       "q": "What is the role of Content Security Policy (CSP) headers when rendering Claude Artifacts containing interactive HTML/JavaScript?",
       "opts": [
         "Restricting script execution, iframe nesting, and network egress to prevent Cross-Site Scripting (XSS) and data exfiltration from generated code",
@@ -1600,7 +1600,7 @@
     },
     {
       "id": "ccapq-85",
-      "d": 3,
+      "d": 1,
       "q": "In high-reliability microservice architectures, why should AI tool clients implement Thread Pool Bulkheading?",
       "opts": [
         "To isolate slow or failing AI tool calls into dedicated thread pools, preventing them from exhausting shared application server resources",
@@ -1657,7 +1657,7 @@
     },
     {
       "id": "ccapq-88",
-      "d": 1,
+      "d": 4,
       "q": "Why should agent tools that execute SQL queries use prepared statements with parameterized inputs?",
       "opts": [
         "To eliminate SQL injection vulnerabilities by separating SQL query code from user-supplied data parameters",
@@ -1676,7 +1676,7 @@
     },
     {
       "id": "ccapq-89",
-      "d": 2,
+      "d": 3,
       "q": "What is the primary value of distributed tracing spans in multi-hop agentic workflows?",
       "opts": [
         "Visualizing the complete request lifecycle across orchestrators, subagents, and external tool calls to pinpoint latency bottlenecks and failures",
@@ -1695,7 +1695,7 @@
     },
     {
       "id": "ccapq-90",
-      "d": 3,
+      "d": 1,
       "q": "How does a Weighted Round-Robin model routing strategy improve resilience during high-traffic enterprise operations?",
       "opts": [
         "It distributes request load proportionally across multiple API keys, accounts, or cloud provider regions to avoid localized rate limits",
@@ -1714,7 +1714,7 @@
     },
     {
       "id": "ccapq-91",
-      "d": 4,
+      "d": 3,
       "q": "Why is Human-in-the-Loop (HITL) calibration required when training automated LLM-as-a-Judge evaluators?",
       "opts": [
         "To establish ground-truth alignment and verify that the automated judge's scoring criteria match human domain expert standards",
@@ -1752,7 +1752,7 @@
     },
     {
       "id": "ccapq-93",
-      "d": 1,
+      "d": 4,
       "q": "What is the primary risk of granting an AI agent unrestricted read-write access to a local file system?",
       "opts": [
         "An adversarial prompt injection could instruct the agent to overwrite critical system files or delete proprietary project code",
@@ -1771,7 +1771,7 @@
     },
     {
       "id": "ccapq-94",
-      "d": 2,
+      "d": 3,
       "q": "In production GenAI observability, what metric best captures model hallucination rates on ground-truth extraction benchmarks?",
       "opts": [
         "Exact Match (EM) and F1-score against verified ground-truth key-value reference datasets",
@@ -1790,7 +1790,7 @@
     },
     {
       "id": "ccapq-95",
-      "d": 3,
+      "d": 1,
       "q": "Why should production AI applications implement Half-Open probing states in their Circuit Breaker logic?",
       "opts": [
         "To send a small percentage of canary requests to test if an upstream service has recovered before fully reopening traffic",
@@ -1847,7 +1847,7 @@
     },
     {
       "id": "ccapq-98",
-      "d": 1,
+      "d": 4,
       "q": "When building an agent that generates customer refund checks, why is cryptographic multi-party authorization required for transactions over $1,000?",
       "opts": [
         "To prevent single-agent compromise or prompt injection from autonomously executing high-value unauthorized financial transfers",
@@ -1885,7 +1885,7 @@
     },
     {
       "id": "ccapq-100",
-      "d": 3,
+      "d": 1,
       "q": "Why should enterprise AI architectures decouple prompt execution from downstream database persistence using asynchronous message queues?",
       "opts": [
         "To absorb traffic spikes, prevent database write connection bottlenecks, and ensure durable retries for failed database transactions",

@@ -455,6 +455,28 @@ vm.createContext(sandbox);
   }
   check(thin.length === 0, `every domain has at least 10 questions (${thin.join(", ") || "all domains ≥10"})`);
 
+  /* Domain tags assigned by position rather than content.
+     129 questions across three certs cycled d0,d1,d2...  in lockstep with their
+     index, so the Responsible Scaling question sat in Workflow Integration and
+     every security question in CCAR-P sat in Reliability. Nothing else notices:
+     the bank looks balanced, each domain clears its floor, and the questions
+     themselves are fine. But Weakest Domain, the per-domain results breakdown,
+     and the domain-to-lesson link all read these tags, so a third of the bank
+     sent learners to the wrong lesson. A long perfect cycle is the signature. */
+  const cycled = [];
+  for (const [id, dd] of Object.entries(data)) {
+    const seq = dd.questions.map(qq => qq.d);
+    const nDom = Math.max(...seq) + 1;
+    let run = 1, worst = 1;
+    for (let i = 1; i < seq.length; i++) {
+      run = seq[i] === (seq[i - 1] + 1) % nDom ? run + 1 : 1;
+      if (run > worst) worst = run;
+    }
+    if (worst >= 15) cycled.push(`${id} (${worst} in a row)`);
+  }
+  check(cycled.length === 0,
+    `no cert tags domains by position instead of content (${cycled.join(", ") || "all content-tagged"})`);
+
   // Near-duplicate questions make a bank feel smaller than it is — a learner
   // meets the same item twice in one round. Dice coefficient over character
   // bigrams of the normalised stem; distinct questions sit well below 0.80.
