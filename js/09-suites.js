@@ -241,7 +241,7 @@ function cramSheetCustomizer(){
     + '</div>'
     + '<div style="border:1px solid #ddd; padding:10px; border-radius:6px; background:#fafafa;">'
     + '<b style="color:#5b7fa6; font-size:12px; display:block; margin-bottom:4px;">3. Extended Thinking & Reasoning</b>'
-    + '• Temperature MUST be 1.0 (or omitted).<br>• <code>budget_tokens</code> determines reasoning length.<br>• Top-p and Top-k should remain default.<br>• Thinking blocks generated in <code>&lt;thinking&gt;</code> tags.'
+    + '• <code>thinking:{type:"adaptive"}</code> — Claude decides depth per request.<br>• Depth is controlled by <code>output_config.effort</code>, not a token budget.<br>• <code>temperature</code>, <code>top_p</code> and <code>top_k</code> are <b>removed</b> — sending one is a 400.<br>• Reasoning returns as <code>thinking</code> content blocks; <code>display:"summarized"</code> to read them.'
     + '</div>'
     + '<div style="border:1px solid #ddd; padding:10px; border-radius:6px; background:#fafafa;">'
     + '<b style="color:#8a6fae; font-size:12px; display:block; margin-bottom:4px;">4. 80% Context & Compaction</b>'
@@ -253,18 +253,20 @@ function cramSheetCustomizer(){
 }
 
 
-/* ================= 1. CLAUDE VS 3.7 HYBRID REASONING MATRIX ================= */
+/* ================= 1. CLAUDE MODEL CAPABILITY & COST MATRIX ================= */
 function modelMatrixView(){
   if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
   renderHeader();
   
   award("hybrid_architect");
   
+  /* Rates, context windows and output caps from docs/FACTS.md. Cache reads are
+     ~0.1x the input rate; cache writes are 1.25x (5-minute TTL) or 2x (1-hour). */
   const models = [
-    { name: "Claude Sonnet 5", type: "Hybrid Reasoning", input: "$3.00", output: "$15.00", cacheRead: "$0.30", maxThinking: "128,000t", P99: "1.2s - 8s", useCase: "Complex Coding, Math & Deep Architectural Tradeoffs" },
-    { name: "Claude Sonnet 5", type: "Standard LLM", input: "$3.00", output: "$15.00", cacheRead: "$0.30", maxThinking: "N/A", P99: "800ms", useCase: "General Enterprise Reasoning, Vision & RAG" },
-    { name: "Claude Haiku 4.5", type: "Fast Classifier", input: "$0.80", output: "$4.00", cacheRead: "$0.08", maxThinking: "N/A", P99: "250ms", useCase: "Sub-second Triage, Formatting & High-Volume Routing" },
-    { name: "Claude Opus 5", type: "Frontier Intelligence", input: "$15.00", output: "$75.00", cacheRead: "$1.50", maxThinking: "N/A", P99: "2.5s", useCase: "Executive Strategy & Deep Multi-Lingual Synthesis" }
+    { name: "Claude Opus 5", type: "Frontier", input: "$5.00", output: "$25.00", cacheRead: "$0.50", ctx: "1M / 128K out", effort: "low → max", useCase: "Hardest agentic and long-horizon coding; deep multi-step judgment" },
+    { name: "Claude Sonnet 5", type: "Balanced", input: "$3.00", output: "$15.00", cacheRead: "$0.30", ctx: "1M / 128K out", effort: "low → max", useCase: "Near-Opus quality on coding and agentic work at Sonnet cost" },
+    { name: "Claude Haiku 4.5", type: "Fast", input: "$1.00", output: "$5.00", cacheRead: "$0.10", ctx: "200K / 64K out", effort: "not supported", useCase: "High-volume triage, classification and routing" },
+    { name: "Claude Fable 5", type: "Most capable", input: "$10.00", output: "$50.00", cacheRead: "$1.00", ctx: "1M / 128K out", effort: "low → max", useCase: "The most demanding reasoning and long-horizon autonomous runs" }
   ];
   
   $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
@@ -272,7 +274,7 @@ function modelMatrixView(){
     + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
     + '<div><span class="ltag" style="background:var(--coral); color:#fff;">Model Selection</span><h2 style="font-size:20px; margin-top:4px;">📊 Claude Model Capability & Cost Matrix</h2></div>'
     + '</div>'
-    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">Side-by-side architectural decision matrix evaluating model pricing, latency P99, and extended thinking budgets.</p>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">Side-by-side architectural decision matrix comparing published pricing, context and output limits, and effort range. Haiku 4.5 is the only current model that is not 1M context and 128K output.</p>'
     + '<div style="overflow-x:auto; border:1px solid var(--border); border-radius:12px; background:var(--card); margin-bottom:16px;">'
     + '<table style="width:100%; border-collapse:collapse; font-size:12px; text-align:left;">'
     + '<thead style="background:var(--bg); border-bottom:1.5px solid var(--border);">'
@@ -293,14 +295,14 @@ function modelMatrixView(){
         + '<td style="padding:10px 12px; color:var(--green); font-weight:700;">' + m.input + '</td>'
         + '<td style="padding:10px 12px; color:var(--coral); font-weight:700;">' + m.output + '</td>'
         + '<td style="padding:10px 12px; color:var(--blue); font-weight:700;">' + m.cacheRead + '</td>'
-        + '<td style="padding:10px 12px; font-weight:700;">' + m.maxThinking + '</td>'
-        + '<td style="padding:10px 12px; color:var(--muted);">' + m.P99 + '</td>'
+        + '<td style="padding:10px 12px; font-weight:700;">' + m.ctx + '</td>'
+        + '<td style="padding:10px 12px; color:var(--muted);">' + m.effort + '</td>'
         + '</tr>').join('')
     + '</tbody>'
     + '</table>'
     + '</div>'
     + '<div style="font-size:12px; background:var(--bg); padding:12px; border-radius:8px; border:1px solid var(--border);">'
-    + '🎯 <b>Architectural Rule:</b> Use <b>Haiku 3.5</b> for high-volume entry routing, <b>Sonnet 3.5</b> for standard tool calls, and <b>Sonnet 3.7</b> with <code>budget_tokens</code> for complex multi-step reasoning.'
+    + '🎯 <b>Architectural Rule:</b> Route by the cost of being wrong. <b>Haiku 4.5</b> for high-volume classification and entry routing, <b>Sonnet 5</b> for standard tool calls and most agentic work, and <b>Opus 5</b> with <code>output_config.effort</code> raised for multi-step reasoning where a wrong answer is expensive.'
     + '</div>'
     + '</div>';
 }
@@ -677,7 +679,7 @@ function whiteboardDuelView(){
     + '</div>'
     + '<div style="display:flex; gap:8px;">'
     + '<button class="btn sm" onclick="addWhiteboardNode(&quot;Prompt Cache (1024t+)&quot;)">+ Add Prompt Cache</button>'
-    + '<button class="btn sm" onclick="addWhiteboardNode(&quot;Sonnet 3.7 Specialist&quot;)">+ Add Sonnet 3.7</button>'
+    + '<button class="btn sm" onclick="addWhiteboardNode(&quot;Opus 5 Specialist&quot;)">+ Add Opus 5</button>'
     + '<button class="btn sm" onclick="addWhiteboardNode(&quot;Firecracker MicroVM&quot;)">+ Add MicroVM</button>'
     + '</div>'
     + '</div>';
@@ -1035,12 +1037,12 @@ function consensusVotingView(){
     + '<div class="panel center">'
     + '<div style="font-size:38px;">⚖️</div>'
     + '<h2 style="font-size:20px; margin-top:6px;">Multi-Model Consensus Voting & Judge Engine</h2>'
-    + '<p class="subtext" style="margin-top:6px;">Simulate Majority Vote and LLM-as-a-Judge evaluation setups across Sonnet 3.5, Sonnet 3.7, and Haiku.</p>'
+    + '<p class="subtext" style="margin-top:6px;">Simulate Majority Vote and LLM-as-a-Judge evaluation setups across Sonnet 5, Opus 5, and Haiku 4.5.</p>'
     + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:620px; margin:20px auto; text-align:left;">'
     + '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:14px; text-align:center; font-size:12px;">'
-    + '<div style="background:var(--bg); padding:10px; border-radius:8px; border:1px solid var(--border);"><b>Sonnet 3.5</b><br><span style="color:var(--green); font-weight:800;">Vote: Option A</span></div>'
-    + '<div style="background:var(--bg); padding:10px; border-radius:8px; border:1px solid var(--border);"><b>Sonnet 3.7</b><br><span style="color:var(--green); font-weight:800;">Vote: Option A</span></div>'
-    + '<div style="background:var(--bg); padding:10px; border-radius:8px; border:1px solid var(--border);"><b>Haiku 3.5</b><br><span style="color:var(--coral); font-weight:800;">Vote: Option B</span></div>'
+    + '<div style="background:var(--bg); padding:10px; border-radius:8px; border:1px solid var(--border);"><b>Sonnet 5</b><br><span style="color:var(--green); font-weight:800;">Vote: Option A</span></div>'
+    + '<div style="background:var(--bg); padding:10px; border-radius:8px; border:1px solid var(--border);"><b>Opus 5</b><br><span style="color:var(--green); font-weight:800;">Vote: Option A</span></div>'
+    + '<div style="background:var(--bg); padding:10px; border-radius:8px; border:1px solid var(--border);"><b>Haiku 4.5</b><br><span style="color:var(--coral); font-weight:800;">Vote: Option B</span></div>'
     + '</div>'
     + '<div style="background:var(--bg); padding:12px; border-radius:8px; border:1px solid var(--green); text-align:center; margin-bottom:14px;">'
     + '<b style="font-size:13px; color:var(--green);">Majority Decision: Option A (66.7% Consensus)</b>'
@@ -1116,7 +1118,7 @@ function lessonSequenceDiagrams(){
     + '<div style="background:var(--bg); border:1.5px solid var(--border); padding:10px; border-radius:8px;">1️⃣ <b>User Prompt</b> ➔ Sent with <code>anthropic-beta: prompt-caching-2024-07-25</code></div>'
     + '<div style="background:var(--bg); border:1.5px solid var(--border); padding:10px; border-radius:8px;">2️⃣ <b>Haiku Router</b> ➔ Evaluates query complexity and routes query</div>'
     + '<div style="background:var(--bg); border:1.5px solid var(--border); padding:10px; border-radius:8px;">3️⃣ <b>Prompt Cache</b> ➔ Matches static system instructions (85% discount)</div>'
-    + '<div style="background:var(--bg); border:1.5px solid var(--border); padding:10px; border-radius:8px;">4️⃣ <b>Sonnet 3.7 Thinking</b> ➔ Generates <code>&lt;thinking&gt;</code> tokens under budget</div>'
+    + '<div style="background:var(--bg); border:1.5px solid var(--border); padding:10px; border-radius:8px;">4️⃣ <b>Opus 5 + adaptive thinking</b> ➔ Generates <code>&lt;thinking&gt;</code> tokens under budget</div>'
     + '</div>'
     + '<button class="btn sm" onclick="toast(&quot;📊 Sequence pipeline step verified!&quot;)" style="width:100%; margin-top:14px;">📊 Step Through Sequence Flow</button>'
     + '</div>'
@@ -1171,11 +1173,11 @@ function codeSnippetAnnotator(){
     + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:640px; margin:20px auto; text-align:left;">'
     + '<b style="font-size:13.5px; color:var(--blue); display:block; margin-bottom:8px;">Annotated Python SDK Implementation:</b>'
     + '<pre style="font-family:Consolas,monospace; font-size:11.5px; background:var(--bg); padding:12px; border-radius:8px; border:1px solid var(--border); white-space:pre-wrap; margin-bottom:12px;">'
-    + esc('import anthropic\nclient = anthropic.Anthropic()\n\nresponse = client.messages.create(\n    model="claude-sonnet-5",\n    max_tokens=4096,\n    thinking={"type": "enabled", "budget_tokens": 2048},\n    extra_headers={"anthropic-beta": "prompt-caching-2024-07-25"}\n)')
+    + esc('import anthropic\nclient = anthropic.Anthropic()\n\nresponse = client.messages.create(\n    model="claude-sonnet-5",\n    max_tokens=4096,\n    thinking={"type": "adaptive"},\n    output_config={"effort": "high"}\n)')
     + '</pre>'
     + '<div style="font-size:12px; color:var(--muted); line-height:1.5;">'
     + '🔍 <b>Key Annotations:</b><br>'
-    + '• <code>thinking.budget_tokens</code>: Reserves up to 2,048 tokens for extended reasoning.<br>'
+    + '• <code>thinking:{type:"adaptive"}</code>: Claude decides how much to think per request.<br>'+ '• <code>output_config.effort</code> (<code>low</code>–<code>max</code>) sets depth. The old <code>budget_tokens</code> dial is <b>rejected with a 400</b> on Opus 5, Sonnet 5, Opus 4.8 and 4.7.<br>'
     + '• <code>extra_headers</code>: Enables 5-minute prompt caching discounts.'
     + '</div>'
     + '</div>'
@@ -1225,7 +1227,7 @@ function lessonMindMapper(){
     + '<b style="font-size:13.5px; color:var(--coral); display:block; margin-bottom:12px;">Claude Architectural Node Relationships:</b>'
     + '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:12px; margin-bottom:14px;">'
     + '<div style="background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:8px;"><b>Prompt Caching</b><br><span style="color:var(--muted);">Requires 1024t floor & prefix stability</span></div>'
-    + '<div style="background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:8px;"><b>Extended Thinking</b><br><span style="color:var(--muted);">Sonnet 3.7 &lt;thinking&gt; token allocation</span></div>'
+    + '<div style="background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:8px;"><b>Extended Thinking</b><br><span style="color:var(--muted);">Sonnet 5 &lt;thinking&gt; token allocation</span></div>'
     + '<div style="background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:8px;"><b>Context Compaction</b><br><span style="color:var(--muted);">80% threshold &lt;rolling_state&gt;</span></div>'
     + '<div style="background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:8px;"><b>Subagent Topologies</b><br><span style="color:var(--muted);">Blackboard memory & DAG delegation</span></div>'
     + '</div>'
@@ -1272,7 +1274,7 @@ function lessonAudioRecap(){
     + '<b style="font-size:14px; display:block; margin-bottom:6px; color:var(--green);">High-Yield Exam Rules Summary:</b>'
     + '<div style="font-size:12px; color:var(--muted); line-height:1.5; margin-bottom:14px;">'
     + '1. Minimum token floor for Prompt Caching: 1,024 tokens on Sonnet/Opus.<br>'
-    + '2. Extended Thinking budget: Requires max_tokens &gt; budget_tokens.<br>'
+    + '2. <code>max_tokens</code> caps thinking <i>and</i> response text together — leave headroom for both.<br>'
     + '3. MicroVM tool execution: Zero-trust memory wiping upon return.'
     + '</div>'
     + '<button class="btn" onclick="toast(&quot;🎙️ Playing 30-second audio recap...&quot;)">▶️ Play 30-Second Audio Recap</button>'
@@ -1364,22 +1366,22 @@ function apiPayloadInspector(){
   const PAYLOADS={
     basic:{
       label:'Basic Request',
-      req:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1024,messages:[{role:'user',content:'Explain MCP in one sentence.'}]},null,2),
-      res:JSON.stringify({id:'msg_01Xk',type:'message',role:'assistant',content:[{type:'text',text:'MCP is an open JSON-RPC 2.0 standard that lets Claude connect to external tools and data sources via a standardized server interface.'}],model:'claude-sonnet-4-5',stop_reason:'end_turn',usage:{input_tokens:18,output_tokens:32}},null,2)
+      req:JSON.stringify({model:'claude-sonnet-5',max_tokens:1024,messages:[{role:'user',content:'Explain MCP in one sentence.'}]},null,2),
+      res:JSON.stringify({id:'msg_01Xk',type:'message',role:'assistant',content:[{type:'text',text:'MCP is an open JSON-RPC 2.0 standard that lets Claude connect to external tools and data sources via a standardized server interface.'}],model:'claude-sonnet-5',stop_reason:'end_turn',usage:{input_tokens:18,output_tokens:32}},null,2)
     },
     cache:{
       label:'With Prompt Caching',
-      req:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:512,system:[{type:'text',text:'You are an expert Claude tutor. [1024+ tokens of stable context...]',cache_control:{type:'ephemeral'}}],messages:[{role:'user',content:'What is cache_control?'}]},null,2),
+      req:JSON.stringify({model:'claude-sonnet-5',max_tokens:512,system:[{type:'text',text:'You are an expert Claude tutor. [1024+ tokens of stable context...]',cache_control:{type:'ephemeral'}}],messages:[{role:'user',content:'What is cache_control?'}]},null,2),
       res:JSON.stringify({id:'msg_02Yk',type:'message',role:'assistant',content:[{type:'text',text:'cache_control marks the prefix breakpoint where Anthropic caches your input for 5 minutes, reducing re-send cost by 85%.'}],stop_reason:'end_turn',usage:{input_tokens:8,output_tokens:26,cache_creation_input_tokens:1250,cache_read_input_tokens:0}},null,2)
     },
     tool:{
       label:'Tool Use',
-      req:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1024,tools:[{name:'get_weather',description:'Get current weather',input_schema:{type:'object',properties:{location:{type:'string',description:'City name'}},required:['location']}}],messages:[{role:'user',content:"What's the weather in NYC?"}]},null,2),
+      req:JSON.stringify({model:'claude-sonnet-5',max_tokens:1024,tools:[{name:'get_weather',description:'Get current weather',input_schema:{type:'object',properties:{location:{type:'string',description:'City name'}},required:['location']}}],messages:[{role:'user',content:"What's the weather in NYC?"}]},null,2),
       res:JSON.stringify({id:'msg_03Zk',type:'message',role:'assistant',content:[{type:'tool_use',id:'toolu_01',name:'get_weather',input:{location:'New York, NY'}}],stop_reason:'tool_use',usage:{input_tokens:75,output_tokens:28}},null,2)
     },
     thinking:{
       label:'Extended Thinking',
-      req:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:16000,thinking:{type:'enabled',budget_tokens:10000},messages:[{role:'user',content:'Design a zero-trust multi-agent pipeline for PCI-DSS.'}]},null,2),
+      req:JSON.stringify({model:'claude-sonnet-5',max_tokens:16000,thinking:{type:'adaptive'},output_config:{effort:'high'},messages:[{role:'user',content:'Design a zero-trust multi-agent pipeline for PCI-DSS.'}]},null,2),
       res:JSON.stringify({id:'msg_04Wk',type:'message',role:'assistant',content:[{type:'thinking',thinking:'[Extended reasoning across MicroVM segmentation, circuit breakers, audit logging...]'},{type:'text',text:'Here is the zero-trust architecture: 1. MicroVM isolation per tool...'}],stop_reason:'end_turn',usage:{input_tokens:42,output_tokens:4300}},null,2)
     }
   };
@@ -1389,7 +1391,7 @@ function apiPayloadInspector(){
     messages:'Ordered conversation array. Each turn has role: user | assistant and content string or array.',
     cache_control:'Marks a caching breakpoint. Must be at the end of a stable static prefix block.',
     tools:'Array of tool definitions. Each has name, description, and JSON Schema input_schema.',
-    thinking:'Enables extended thinking. budget_tokens sets max reasoning tokens (min 1,024).',
+    thinking:'{type:"adaptive"} lets Claude set its own depth. Pair with output_config.effort. budget_tokens is a 400 on current models.',
     stop_reason:'Why Claude stopped: end_turn | max_tokens | tool_use | stop_sequence.',
     usage:'Token accounting block. Shows input, output, cache_creation, and cache_read token counts.'
   };
@@ -1435,8 +1437,8 @@ function conceptDecisionTree(){
       root:{q:'Do you need multi-step logical reasoning or complex analysis?',
         yes:{q:'Is latency acceptable (thinking adds 2–30 s)?',
           yes:{q:'Is your task verifiable — math, code, architecture?',
-            yes:{result:'✅ Use Extended Thinking. Set budget_tokens ≥ 1,024. Use claude-sonnet-4-5 or claude-opus-4.',color:'#5a9e6f'},
-            no:{result:'⚠️ Consider Thinking. Creative tasks benefit less. Set a low budget_tokens (1,024–4,000).',color:'#d97757'}
+            yes:{result:'✅ Use adaptive thinking. Set thinking type to adaptive, then raise output_config.effort to high or xhigh.',color:'#5a9e6f'},
+            no:{result:'⚠️ Thinking still helps, but keep it cheap — effort low or medium. Never reach for budget_tokens; it is a 400.',color:'#d97757'}
           },
           no:{result:'❌ Skip Thinking. Use standard inference for latency-sensitive use cases. Use streaming to reduce perceived latency.',color:'#c94f4f'}
         },
@@ -1514,7 +1516,7 @@ function glossaryTermCallouts(){
     {term:'Brier Score',domain:'Evaluation',def:'Mathematical calibration metric: mean squared difference between predicted probability and actual outcome (0=perfect, 1=worst). Lower = better calibration.',lesson:'Evaluation & Calibration',exam:'Used to measure prediction calibration quality. A well-calibrated model has Brier score approaching 0.'},
     {term:'circuit breaker',domain:'Reliability',def:'Pattern that monitors failure rates and "opens" (blocks) calls to a failing downstream service after a threshold, preventing cascade failures.',lesson:'Resilience Patterns',exam:'Circuit breakers prevent cascading failures in multi-agent pipelines. Use with exponential backoff + jitter.'},
     {term:'XML encapsulation',domain:'Prompting',def:'Technique of wrapping input data in XML tags (e.g., <document>) to prevent prompt injection — Claude treats tagged content as data, not instructions.',lesson:'Prompt Engineering Fundamentals',exam:'The primary defense against indirect prompt injection from tool outputs and retrieved documents.'},
-    {term:'extended thinking',domain:'Reasoning',def:'Claude feature that generates a <thinking> block of internal reasoning before responding. Improves accuracy on complex multi-step tasks. Requires budget_tokens ≥ 1,024.',lesson:'Extended Thinking & Reasoning',exam:'Extended thinking is visible in content[] as type:"thinking". budget_tokens sets the reasoning ceiling.'}
+    {term:'extended thinking',domain:'Reasoning',def:'Claude feature that generates a <thinking> block of internal reasoning before responding. Improves accuracy on complex multi-step tasks. Enabled with thinking:{type:"adaptive"}; depth comes from output_config.effort.',lesson:'Extended Thinking & Reasoning',exam:'Extended thinking is visible in content[] as type:"thinking". budget_tokens sets the reasoning ceiling.'}
   ];
   const html=TERMS.map(t=>'<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;">'
     +'<div style="display:flex;align-items:flex-start;gap:12px;">'
@@ -1562,7 +1564,7 @@ function studyRoadmapView(){
     {week:"Week 1",title:"Core API Mastery",color:"#d97757",hrs:"8-10 hrs",
      topics:["Messages API structure","Streaming & stop_reason","Token counting & max_tokens","System prompts & roles"]},
     {week:"Week 2",title:"Advanced Prompting & Caching",color:"#5a9e6f",hrs:"8-10 hrs",
-     topics:["XML prompt structure","Prompt caching & cache_control","Extended thinking budget_tokens","Positive framing & trap avoidance"]},
+     topics:["XML prompt structure","Prompt caching & cache_control","Adaptive thinking and output_config.effort","Positive framing & trap avoidance"]},
     {week:"Week 3",title:"Agentic Patterns & Security",color:"#5b7fa6",hrs:"10-12 hrs",
      topics:["Orchestrator-worker topology","MCP protocol & tool definitions","MicroVM zero-trust execution","Circuit breakers & HITL checkpoints"]},
     {week:"Week 4",title:"FinOps, Eval & Mock Exams",color:"#8a6fae",hrs:"6-8 hrs",
@@ -1640,9 +1642,9 @@ function architecturePatternLibrary(){
      def:"Asynchronous batch processing for high-volume, non-time-sensitive workloads at 50% reduced cost.",
      exam:"Max 10,000 requests per batch. Use for evals, bulk classification, nightly summarization. Not real-time."},
     {name:"Model Selection Matrix",icon:"📊",cat:"Architecture",
-     diag:"Speed + low cost → Haiku\nReasoning accuracy → Sonnet\nComplex multi-step → Sonnet+Thinking\nComputer use → claude-sonnet-4-5",
+     diag:"Speed + low cost → Haiku\nReasoning accuracy → Sonnet\nComplex multi-step → Sonnet+Thinking\nComputer use → claude-sonnet-5",
      def:"Model selection depends on task complexity, latency budget, and cost — not a single default.",
-     exam:"Sonnet 4.5 = best balance. Haiku = speed/cost. Extended Thinking on Sonnet = beats Opus on hard tasks."},
+     exam:"Sonnet 5 = best balance. Haiku = speed/cost. Extended Thinking on Sonnet = beats Opus on hard tasks."},
     {name:"LLM-as-a-Judge",icon:"⚖️",cat:"Evaluation",
      diag:"[Response A] → [Judge Model] ← [Response B]\n                     ↓\n              Winner + Reasoning",
      def:"A separate LLM evaluates and compares model responses against a rubric, enabling automated eval.",
@@ -1716,9 +1718,9 @@ function promptTransformGallery(){
      rule:"Segment prompts: [static context + cache_control] then [dynamic user input]. Never mix dynamic content into the cached prefix."},
     {title:"Extended Thinking Activation",
      bad:'Prompt text: "Think carefully and reason step by step before answering."',
-     good:'API parameter:\n{\n  "thinking": {"type": "enabled", "budget_tokens": 8000},\n  "messages": [{"role": "user", "content": "Design a zero-trust pipeline."}]\n}',
+     good:'API parameter:\n{\n  "thinking": {"type": "adaptive"},\n  "messages": [{"role": "user", "content": "Design a zero-trust pipeline."}]\n}',
      why:"Asking Claude to think carefully in prompt text does NOT activate extended thinking. It is an API parameter, not a prompt instruction.",
-     rule:"Enable thinking via the API thinking parameter. budget_tokens minimum = 1,024. The <thinking> block appears in content[] as type: thinking."},
+     rule:"Thinking is an API parameter, never a prompt instruction. Current shape is thinking:{type:adaptive} plus output_config.effort; reasoning comes back as content blocks of type: thinking."},
     {title:"Handling Tool Results Correctly",
      bad:'// Wrong: send plain user message after tool call\nmessages.push({role:"user",content:"Now answer based on the weather."});',
      good:'// Correct: append tool_result content block\nmessages.push({role:"assistant",content:[{type:"tool_use",id:"toolu_01",name:"get_weather",input:{location:"NYC"}}]});\nmessages.push({role:"user",content:[{type:"tool_result",tool_use_id:"toolu_01",content:"72 degrees, partly cloudy"}]});',
@@ -1796,7 +1798,7 @@ function knowledgeGraphView(){
   const DEFS={
     api:"The Anthropic Messages API is the primary interface for all Claude interactions. Every feature — caching, tools, thinking, streaming — is a parameter within this API.",
     cache:"Prompt Caching stores static prompt prefixes server-side for 5 minutes at 15% of full cost. Requires cache_control breakpoints at 1,024+ tokens.",
-    thinking:"Extended Thinking enables Claude to reason in a hidden thinking block before responding. Activated via thinking:{type:enabled,budget_tokens:N}.",
+    thinking:"Extended Thinking enables Claude to reason in a hidden thinking block before responding. Activated via thinking:{type:adaptive}; depth is set with output_config.effort, not a token budget.",
     tools:"Tool Use allows Claude to call external functions. Claude returns tool_use content blocks; you execute the tool and return tool_result.",
     mcp:"Model Context Protocol (MCP) is an open JSON-RPC 2.0 standard for connecting Claude to external tool servers via a standardized interface.",
     agents:"Multi-Agent systems use an orchestrator subagent to manage multiple worker subagents. Enables parallelism and specialization beyond single-model limits.",
@@ -1871,7 +1873,7 @@ function apiErrorSimulator(){
     {code:400,name:"Bad Request — max_tokens too large",color:"#c94f4f",
      cause:"max_tokens exceeds the model output limit or the remaining context window space.",
      body:JSON.stringify({type:"error",error:{type:"invalid_request_error",message:"max_tokens: 32001 > 32000 maximum"}},null,2),
-     fix:"Reduce max_tokens. For claude-haiku-4-5 the max is 8,192. For claude-sonnet-4-5 it is 64,000."},
+     fix:"Lower max_tokens below the model's output cap: 128,000 on Opus 5 and Sonnet 5, 64,000 on Haiku 4.5. Remember max_tokens caps thinking AND response text together, so adaptive thinking eats into the same budget."},
     {code:401,name:"Unauthorized — authentication_error",color:"#c94f4f",
      cause:"API key is missing, malformed, or has been revoked.",
      body:JSON.stringify({type:"error",error:{type:"authentication_error",message:"invalid x-api-key"}},null,2),
@@ -2060,7 +2062,7 @@ function conversationFlowDiagram(){
     thinking:{
       label:"Extended Thinking Flow",
       steps:[
-        {role:"user",color:"#5b7fa6",icon:"👤",label:"User Turn",body:"Design a zero-trust multi-agent pipeline. [API: thinking:{type:enabled,budget_tokens:8000}]"},
+        {role:"user",color:"#5b7fa6",icon:"👤",label:"User Turn",body:"Design a zero-trust multi-agent pipeline. [API: thinking:{type:adaptive}, output_config:{effort:'high'}]"},
         {role:"system",color:"#8a6fae",icon:"🧠",label:"Thinking Block Generated (hidden reasoning)",body:'content[0]: {type:"thinking", thinking:"Considering MicroVM isolation, circuit breakers..."}'},
         {role:"assistant",color:"#d97757",icon:"🤖",label:"Assistant Final Response",body:'content[1]: {type:"text", text:"Here is the zero-trust architecture: ..."}'},
         {role:"system",color:"#5a9e6f",icon:"📋",label:"Note on Next Turn",body:"Include the thinking block in the next messages[] turn. Claude needs its own thinking to reason coherently."}
@@ -2112,9 +2114,9 @@ function finopsCostCalculator(){
   award("finops_optimizer");
   /* Prices per million tokens (as of 2025) */
   const MODELS=[
-    {name:"claude-haiku-4-5",label:"Haiku 4.5",inM:0.80,outM:4.00,speed:"Fastest"},
-    {name:"claude-sonnet-4-5",label:"Sonnet 4.5",inM:3.00,outM:15.00,speed:"Balanced"},
-    {name:"claude-opus-4",label:"Opus 4",inM:15.00,outM:75.00,speed:"Most Capable"}
+    {name:"claude-haiku-4-5",label:"Haiku 4.5",inM:1.00,outM:5.00,speed:"Fastest"},
+    {name:"claude-sonnet-5",label:"Sonnet 5",inM:3.00,outM:15.00,speed:"Balanced"},
+    {name:"claude-opus-5",label:"Opus 5",inM:5.00,outM:25.00,speed:"Most Capable"}
   ];
   const CACHE_READ_DISC=0.10; /* cache read = 10% of input price */
   const BATCH_DISC=0.50;      /* Batch API = 50% off */
@@ -2307,51 +2309,51 @@ function modelCapabilityNavigator(){
     {task:"Simple Q&A / Classification",winner:"Haiku",
      rankings:[
        {model:"Haiku 4.5",score:5,note:"Best choice. Ultra-fast, cheapest. Perfect for classification, routing, and simple lookups."},
-       {model:"Sonnet 4.5",score:3,note:"Overkill for simple tasks. Use Haiku to save 75% on cost."},
-       {model:"Opus 4",score:1,note:"Significant overkill. 20x more expensive than Haiku for no quality gain on simple tasks."}
+       {model:"Sonnet 5",score:3,note:"Overkill for simple tasks. Use Haiku to save 75% on cost."},
+       {model:"Opus 5",score:1,note:"Significant overkill. 20x more expensive than Haiku for no quality gain on simple tasks."}
      ],rationale:"Simple classification tasks do not benefit from stronger models. Haiku handles these reliably at a fraction of Sonnet cost."},
     {task:"Code Generation",winner:"Sonnet",
      rankings:[
        {model:"Haiku 4.5",score:2,note:"Adequate for boilerplate. Struggles with complex logic, edge cases, and multi-file refactors."},
-       {model:"Sonnet 4.5",score:5,note:"Best balance of speed, cost, and quality for the vast majority of code generation tasks."},
-       {model:"Opus 4",score:4,note:"Marginally better on complex algorithmic tasks but 5x more expensive. Rarely justified for code."}
-     ],rationale:"Sonnet 4.5 is the standard choice for code generation. Use Sonnet + Extended Thinking for complex algorithmic challenges."},
+       {model:"Sonnet 5",score:5,note:"Best balance of speed, cost, and quality for the vast majority of code generation tasks."},
+       {model:"Opus 5",score:4,note:"Marginally better on complex algorithmic tasks but 5x more expensive. Rarely justified for code."}
+     ],rationale:"Sonnet 5 is the standard choice for code generation. Use Sonnet + Extended Thinking for complex algorithmic challenges."},
     {task:"Long Document Analysis",winner:"Sonnet",
      rankings:[
        {model:"Haiku 4.5",score:3,note:"Can process long documents but may miss nuanced connections. Good for simple extraction."},
-       {model:"Sonnet 4.5",score:5,note:"Excellent at long-form analysis, cross-referencing, and synthesizing insights from 100k+ token documents."},
-       {model:"Opus 4",score:4,note:"Slightly stronger on nuanced judgment calls but cost rarely justified vs Sonnet for analysis."}
+       {model:"Sonnet 5",score:5,note:"Excellent at long-form analysis, cross-referencing, and synthesizing insights from 100k+ token documents."},
+       {model:"Opus 5",score:4,note:"Slightly stronger on nuanced judgment calls but cost rarely justified vs Sonnet for analysis."}
      ],rationale:"Sonnet handles 200k token contexts well. Use with Prompt Caching to reduce re-read costs on repeated analysis of the same document."},
     {task:"Complex Multi-Step Reasoning",winner:"Sonnet+Thinking",
      rankings:[
        {model:"Haiku 4.5",score:1,note:"Not recommended. Struggles significantly with multi-hop reasoning chains and logical deduction."},
-       {model:"Sonnet 4.5",score:4,note:"Strong baseline. Add Extended Thinking (budget 8k-16k) to surpass Opus on complex reasoning."},
-       {model:"Opus 4",score:4,note:"Strong without thinking. Consider Sonnet + Thinking as often cheaper with equal or better results."}
-     ],rationale:"Extended Thinking on Sonnet 4.5 matches or exceeds Opus 4 on complex reasoning benchmarks at lower cost. Benchmark your specific task."},
+       {model:"Sonnet 5",score:4,note:"Strong baseline. Add Extended Thinking (budget 8k-16k) to surpass Opus on complex reasoning."},
+       {model:"Opus 5",score:4,note:"Strong without thinking. Consider Sonnet + Thinking as often cheaper with equal or better results."}
+     ],rationale:"Extended Thinking on Sonnet 5 matches or exceeds Opus 5 on complex reasoning benchmarks at lower cost. Benchmark your specific task."},
     {task:"Computer Use (GUI Automation)",winner:"Sonnet",
      rankings:[
-       {model:"Haiku 4.5",score:1,note:"Not supported. Computer use requires claude-sonnet-4-5 or claude-opus-4 model family."},
-       {model:"Sonnet 4.5",score:5,note:"Primary model for computer use. Supports screenshot -> action -> observation loops with bash and computer tools."},
-       {model:"Opus 4",score:3,note:"Supports computer use but significantly more expensive. Use Sonnet unless task requires Opus-level judgment."}
-     ],rationale:"Computer use requires claude-sonnet-4-5 (or later). Haiku does not support computer use tool calls."},
+       {model:"Haiku 4.5",score:2,note:"Check current tool support before designing around it. Haiku's 200K window and 64K output are also tighter than the 1M/128K of Opus 5 and Sonnet 5."},
+       {model:"Sonnet 5",score:5,note:"Primary model for computer use. Supports screenshot -> action -> observation loops with bash and computer tools."},
+       {model:"Opus 5",score:3,note:"Supports computer use but significantly more expensive. Use Sonnet unless task requires Opus-level judgment."}
+     ],rationale:"Computer use is a beta, client-side tool — your harness runs the environment and executes each action. Current version string is computer_20251124 with beta header computer-use-2025-11-24. Sonnet 5 is the usual choice: it handles the screenshot to action loop well without Opus pricing."},
     {task:"Batch Evaluation Pipelines",winner:"Haiku",
      rankings:[
        {model:"Haiku 4.5",score:5,note:"Ideal for high-volume eval. Fast, cheap, and works with Batch API for 50% additional discount."},
-       {model:"Sonnet 4.5",score:3,note:"Use when eval task requires deeper judgment such as rubric scoring or nuanced comparison."},
-       {model:"Opus 4",score:2,note:"Use only as judge model for critical high-stakes evals where quality of judgment is paramount."}
+       {model:"Sonnet 5",score:3,note:"Use when eval task requires deeper judgment such as rubric scoring or nuanced comparison."},
+       {model:"Opus 5",score:2,note:"Use only as judge model for critical high-stakes evals where quality of judgment is paramount."}
      ],rationale:"Batch eval pipelines: use Haiku as default evaluator, Sonnet as quality judge, Opus only for highest-stakes decisions."},
     {task:"Real-Time Customer Chat",winner:"Haiku",
      rankings:[
        {model:"Haiku 4.5",score:5,note:"Best latency for real-time chat. P50 first-token under 500ms. Combine with streaming for instant feel."},
-       {model:"Sonnet 4.5",score:3,note:"Acceptable latency for chat but noticeably slower. Use for complex product or technical support queries."},
-       {model:"Opus 4",score:1,note:"Too slow and expensive for real-time chat unless the use case demands it."}
+       {model:"Sonnet 5",score:3,note:"Acceptable latency for chat but noticeably slower. Use for complex product or technical support queries."},
+       {model:"Opus 5",score:1,note:"Too slow and expensive for real-time chat unless the use case demands it."}
      ],rationale:"For latency-critical chat: Haiku + streaming. Escalate to Sonnet for complex queries requiring deeper understanding."},
     {task:"Agentic / Multi-Step Tasks",winner:"Sonnet",
      rankings:[
        {model:"Haiku 4.5",score:2,note:"Acceptable as a worker subagent for simple, well-defined subtasks. Not recommended as orchestrator."},
-       {model:"Sonnet 4.5",score:5,note:"Best choice for orchestrator and complex worker roles. Strong tool selection, reasoning, and error recovery."},
-       {model:"Opus 4",score:4,note:"Use Opus as orchestrator only for the most complex, long-running agentic tasks requiring strategic judgment."}
-     ],rationale:"Sonnet 4.5 as orchestrator with Haiku workers is the most cost-effective multi-agent pattern for most use cases."}
+       {model:"Sonnet 5",score:5,note:"Best choice for orchestrator and complex worker roles. Strong tool selection, reasoning, and error recovery."},
+       {model:"Opus 5",score:4,note:"Use Opus as orchestrator only for the most complex, long-running agentic tasks requiring strategic judgment."}
+     ],rationale:"Sonnet 5 as orchestrator with Haiku workers is the most cost-effective multi-agent pattern for most use cases."}
   ];
   window._mcnLoad=function(i){
     const t=TASKS[i];
@@ -2431,7 +2433,7 @@ function lessonMarginNotes(){
        {text:"Extended thinking is activated via the API thinking parameter, not via prompt text instructions.",
         why:"This is a top-3 misconception. Telling Claude to think carefully does NOT activate extended thinking.",
         trap:"Prompt instructions like reason step by step invoke standard reasoning, not the extended thinking API feature.",
-        qtype:"Scenario: A developer adds think carefully before answering to the system prompt. Does this activate budget_tokens?"},
+        qtype:"Scenario: A developer adds think carefully before answering to the system prompt. Does this turn on adaptive thinking?"},
        {text:"The thinking block with type: thinking appears in content[] before the text block in the response.",
         why:"Knowing the exact response structure is tested. Candidates must correctly parse multi-block content arrays.",
         trap:"The thinking block is NOT a system-level artifact — it appears in the regular API response content array as content[0].",
@@ -2498,7 +2500,7 @@ function examTopicPrioritizer(){
     {rank:5,topic:"Context Window & Semantic Compaction (80% rule)",effort:2,payoff:4,domain:"Context Management",cert:"All",
      why:"The 80% compaction trigger and FIFO vs semantic compaction trade-off is tested across all four tracks.",
      lessons:["Context Window & Compaction","Multi-Agent Orchestration"]},
-    {rank:6,topic:"Extended Thinking (API param, budget_tokens, structure)",effort:2,payoff:4,domain:"Reasoning",cert:"CCAR + CCAF",
+    {rank:6,topic:"Adaptive thinking (API param, effort levels, structure)",effort:2,payoff:4,domain:"Reasoning",cert:"CCAR + CCAF",
      why:"Extended thinking is a differentiating feature for Architect and Advanced Foundation. The API parameter vs prompt text distinction is commonly tested.",
      lessons:["Extended Thinking & Reasoning"]},
     {rank:7,topic:"Model Selection Matrix (Haiku vs Sonnet vs Opus)",effort:1,payoff:4,domain:"Model Selection",cert:"All",
@@ -2577,7 +2579,7 @@ function misconceptionDebunker(){
   const MYTHS=[
     {myth:'Adding "think carefully" to a prompt activates extended thinking.',
      why:"Sounds logical — asking Claude to think more should engage the thinking feature.",
-     truth:"Extended thinking is an API-level parameter: thinking:{type:'enabled',budget_tokens:N}. Prompt text instructions have zero effect on whether extended thinking is activated.",
+     truth:"Thinking is an API-level parameter: thinking:{type:'adaptive'}, with depth from output_config.effort. Prompt text has zero effect on whether it is active — asking Claude to think step by step does not set the parameter.",
      field:"thinking.type in the API request body, not the messages array."},
     {myth:"cache_control should go at the beginning of the system prompt.",
      why:"Most people assume you cache from the top down.",
@@ -2637,7 +2639,7 @@ function misconceptionDebunker(){
      field:"MCP spec: JSON-RPC 2.0. Methods: initialize, tools/list, tools/call. Open standard at modelcontextprotocol.io."},
     {myth:"Opus is always the best model to use for important tasks.",
      why:"The top model should be used for anything that matters.",
-     truth:"Sonnet 4.5 + Extended Thinking outperforms Opus 4 on many reasoning benchmarks at lower cost. Model choice depends on task type, latency needs, and budget — not prestige.",
+     truth:"Sonnet 5 + Extended Thinking outperforms Opus 5 on many reasoning benchmarks at lower cost. Model choice depends on task type, latency needs, and budget — not prestige.",
      field:"Model selection matrix: Haiku=speed/cost, Sonnet=balance, Sonnet+Thinking=complex reasoning, Opus=highest-stakes judgment."},
     {myth:"The full context window is always usable for your input.",
      why:"The window is the total, so all of it must be available for input.",
@@ -2719,15 +2721,16 @@ function cheatSheetGenerator(){
       {k:"Max requests per batch",v:"10,000"},
       {k:"Batch processing window",v:"Up to 24 hours"},
       {k:"Compaction trigger",v:"80% context capacity"},
-      {k:"Haiku max output (Sonnet-equiv)",v:"8,192 tokens"},
-      {k:"Sonnet 4.5 max output",v:"64,000 tokens"}
+      {k:"Max output — Opus 5 / Sonnet 5",v:"128,000 tokens (stream above ~16K)"},
+      {k:"Max output — Haiku 4.5",v:"64,000 tokens (the one exception)"}
     ]},
     api:{label:"Critical API Fields",items:[
-      {k:"model",v:"Required. e.g. claude-sonnet-4-5"},
+      {k:"model",v:"Required. e.g. claude-sonnet-5"},
       {k:"messages",v:"Required. Array of {role, content} objects"},
       {k:"max_tokens",v:"Required. Upper limit on output tokens"},
       {k:"system",v:"Optional. System prompt string or content array"},
-      {k:"thinking",v:"{type:'enabled', budget_tokens:N} for extended thinking"},
+      {k:"thinking",v:"{type:'adaptive'} — Claude sets its own depth. budget_tokens is a 400 on current models"},
+      {k:"output_config",v:"{effort:'low'|'medium'|'high'|'xhigh'|'max'} — nested, not top-level"},
       {k:"cache_control",v:"{type:'ephemeral'} at end of static prefix"},
       {k:"stream",v:"true for Server-Sent Events streaming"},
       {k:"stop_sequences",v:"Array of strings. Claude stops before emitting them"},
@@ -2743,10 +2746,10 @@ function cheatSheetGenerator(){
     ]},
     models:{label:"Model Quick Reference",items:[
       {k:"claude-haiku-4-5",v:"Fastest + cheapest. Simple tasks, routing, classification, chat"},
-      {k:"claude-sonnet-4-5",v:"Best balance. Code, analysis, agentic orchestrator, computer use"},
-      {k:"claude-opus-4",v:"Highest capability. Complex multi-step, highest-stakes judgment"},
-      {k:"Sonnet+Thinking",v:"Beats Opus on complex reasoning. Use budget_tokens 8k-16k"},
-      {k:"Computer Use model",v:"claude-sonnet-4-5 (required for computer use tool)"}
+      {k:"claude-sonnet-5",v:"Best balance. Code, analysis, agentic orchestrator, computer use"},
+      {k:"claude-opus-5",v:"Highest capability. Complex multi-step, highest-stakes judgment"},
+      {k:"Sonnet 5 + effort",v:"Near-Opus quality on coding and agentic work. Raise effort to xhigh for the hardest tasks"},
+      {k:"Computer Use model",v:"claude-sonnet-5 (required for computer use tool)"}
     ]},
     patterns:{label:"Architecture Patterns",items:[
       {k:"Orchestrator-Worker",v:"Default multi-agent topology. Fan-out to workers, fan-in to aggregator"},

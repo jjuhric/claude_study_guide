@@ -1243,6 +1243,14 @@ vm.createContext(sandbox);
   const badNames = nameHits.filter(n => !VALID_MODEL_NAMES.has(n));
   check(badNames.length === 0,
     `every Claude model name is current (${badNames.slice(0, 6).join(", ") || nameHits.length + " names ok"})`);
+  // The bare form is far more common in this app than the "Claude "-prefixed
+  // one, and matching only the prefixed form let three retired models through.
+  const VALID_SHORT_NAMES = new Set([...VALID_MODEL_NAMES].map(n => n.replace(/^Claude /, "")));
+  const shortHits = [...new Set(
+    (corpus.match(/\b(?:Opus|Sonnet|Haiku|Fable|Mythos) \d+(?:\.\d+)?/g) || []))];
+  const badShort = shortHits.filter(n => !VALID_SHORT_NAMES.has(n));
+  check(badShort.length === 0,
+    `every bare model name is current (${badShort.slice(0, 6).join(", ") || shortHits.length + " ok"})`);
   const oldStyleNames = [...new Set((corpus.match(/Claude \d+(?:\.\d+)? (?:Opus|Sonnet|Haiku)/g) || []))];
   check(oldStyleNames.length === 0,
     `no retired-generation model names (${oldStyleNames.slice(0, 4).join(", ") || "none"})`);
@@ -1279,15 +1287,22 @@ vm.createContext(sandbox);
   // check is proximity-based rather than a blanket ban - the transition is
   // worth teaching, just never as the current way to do it.
   const FIVE_GEN = /claude-(?:opus-5|sonnet-5|opus-4-[78]|fable-5|mythos-5)|Claude (?:Opus 5|Sonnet 5|Opus 4\.[78]|Fable 5|Mythos 5)/;
+  // The pairing is only a defect when it is presented as workable. Saying
+  // "budget_tokens returns a 400 on Opus 5" is the teaching we want, and an
+  // earlier version of this check flagged it — so the rule is: never beside a
+  // model that rejects it *without* saying so.
+  const REJECTS = /\b400\b|rejected|removed|not supported|no longer/i;
   const thinkingHits = [...corpus.matchAll(/budget_tokens|type:\s*['"]enabled['"]/g)];
   const badThinking = thinkingHits.filter(m => {
-    const around = corpus.slice(Math.max(0, m.index - 300), m.index + 300);
-    return FIVE_GEN.test(around);
+    const around = corpus.slice(Math.max(0, m.index - 400), m.index + 400);
+    return FIVE_GEN.test(around) && !REJECTS.test(around);
   });
   check(badThinking.length === 0,
-    `budget_tokens is never shown alongside a model that rejects it (${badThinking.length} violations)`);
-  check(!/budget_tokens/.test(corpus) || /budget_tokens[\s\S]{0,600}?(400|rejected|removed|deprecated)/i.test(corpus),
-    "if budget_tokens appears at all, the app says it is rejected on current models");
+    `budget_tokens never appears beside a model that rejects it without saying so (${badThinking.length} violations)`);
+  // ...and the transition has to be taught somewhere, not silently deleted.
+  check(/budget_tokens[\s\S]{0,400}?(400|removed|rejected)/i.test(corpus) &&
+        /adaptive/.test(corpus) && /effort/.test(corpus),
+    "the enabled-to-adaptive transition is taught, not just erased");
 
   // FACTS.md §1/§6 — the two figures the app previously got wrong outright.
   check(!/200,?000 tokens \(all current models\)/.test(corpus),

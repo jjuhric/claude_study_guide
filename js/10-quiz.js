@@ -98,10 +98,10 @@ function simMcp(method){
 
 function renderThinkingSimulator(container){
   container.innerHTML = `
-    <h5>🧠 Interactive Extended Thinking & Reasoning Budget Simulator</h5>
+    <h5>🧠 Adaptive Thinking &amp; Output Budget Simulator</h5>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
       <div>
-        <label>Thinking Budget Tokens (budget_tokens)</label>
+        <label>Tokens Claude spends thinking (adaptive — you do not set this directly)</label>
         <input type="range" id="wThinkBudget" min="1024" max="16384" step="1024" value="2048" oninput="calcThinkSim()">
         <div id="wThinkBudgetVal" style="font-size:12px; font-weight:700; color:var(--coral-dark);">2,048 tokens</div>
       </div>
@@ -124,7 +124,7 @@ function calcThinkSim(){
   const valid = maxTok > budget;
   let html = '';
   if(!valid){
-    html = '<div style="color:var(--red); font-weight:700;">⚠️ Invalid Configuration: max_tokens ('+maxTok+') must be STRICTLY GREATER than budget_tokens ('+budget+').</div>';
+    html = '<div style="color:var(--red); font-weight:700;">⚠️ max_tokens ('+maxTok+') leaves no room for the answer: adaptive thinking would consume all of it ('+budget+'). max_tokens caps thinking AND response text together, so raise it or lower output_config.effort.</div>';
   } else {
     const remain = maxTok - budget;
     html = '<div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px;">'

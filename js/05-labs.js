@@ -943,7 +943,7 @@ function lintPrompt(){
   // 4. Extended Thinking Budget Recommendation
   const hasReasoningKeywords = /\b(analyze|evaluate|step-by-step|diagnose|prove|debug|architect)\b/i.test(text);
   if (hasReasoningKeywords && !text.includes("<thinking>")) {
-    issues.push({ type: "info", icon: "🧠", title: "Recommended: Extended Thinking Budget (2,048+ tokens)", desc: "This prompt requires deep multi-step deduction. Pair with <code>thinking: { type: 'enabled', budget_tokens: 2048 }</code>." });
+    issues.push({ type: "info", icon: "🧠", title: "Recommended: adaptive thinking at high effort", desc: "This prompt requires deep multi-step deduction. Pair with <code>thinking:{type:'adaptive'}</code> and <code>output_config:{effort:'high'}</code>. Do not reach for <code>budget_tokens</code> — it returns a 400 on current models." });
   }
 
   const clamped = Math.max(10, Math.min(100, score));
@@ -1187,7 +1187,8 @@ client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 response = client.messages.create(
     model="${mStr}",
     max_tokens=4096,`
-    + (sdkState.thinking ? `\n    thinking={"type": "enabled", "budget_tokens": 2048},` : "")
+    + (sdkState.thinking ? `\n    thinking={"type": "adaptive"},
+    output_config={"effort": "high"},` : "")
     + `\n    system=[`
     + (sdkState.caching ? `\n        {"type": "text", "text": "You are an enterprise AI architect assistant.", "cache_control": {"type": "ephemeral"}}` : `\n        {"type": "text", "text": "You are an enterprise AI architect assistant."}`)
     + `\n    ],`
@@ -1217,7 +1218,8 @@ async function run() {
   const response = await anthropic.messages.create({
     model: '${mStr}',
     max_tokens: 4096,`
-    + (sdkState.thinking ? `\n    thinking: { type: 'enabled', budget_tokens: 2048 },` : "")
+    + (sdkState.thinking ? `\n    thinking: { type: 'adaptive' },
+    output_config: { effort: 'high' },` : "")
     + `\n    system: [`
     + (sdkState.caching ? `\n      { type: 'text', text: 'You are an enterprise AI architect assistant.', cache_control: { type: 'ephemeral' } }` : `\n      { type: 'text', text: 'You are an enterprise AI architect assistant.' }`)
     + `\n    ],`

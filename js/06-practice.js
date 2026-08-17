@@ -282,7 +282,7 @@ function renderRoiCalculations(){
   tbl.innerHTML = '<h4 style="font-size:13.5px; margin-bottom:10px;">💵 Monthly Spend Comparison (' + Math.round(totalMonthlyQueries).toLocaleString() + ' calls)</h4>'
     + rowsHtml
     + '<div style="font-size:11.5px; color:var(--green); margin-top:12px; line-height:1.4;">'
-    + '💡 <b>Architect FinOps Takeaway:</b> Enabling Prompt Caching with a ' + roiState.cachingHitRate + '% hit rate saves <b>' + ('$' + Math.round(rawInputMTok * 3.00 * cacheHit * 0.85).toLocaleString()) + '/mo</b> on Sonnet 3.5 alone!'
+    + '💡 <b>Architect FinOps Takeaway:</b> Enabling Prompt Caching with a ' + roiState.cachingHitRate + '% hit rate saves <b>' + ('$' + Math.round(rawInputMTok * 3.00 * cacheHit * 0.85).toLocaleString()) + '/mo</b> on Sonnet 5 alone!'
     + '</div>';
   
   award("roi_architect");
@@ -373,7 +373,7 @@ const SPEED_MATCH_PAIRS = [
   { id: 2, a: "429 Too Many Requests", b: "Full Jitter Exponential Retry Backoff" },
   { id: 3, a: "cache_control: {type: 'ephemeral'}", b: "5-Minute TTL Prompt Caching Prefix" },
   { id: 4, a: "RRF = Σ [1 / (60 + Rank)]", b: "Reciprocal Rank Fusion (Vector + BM25)" },
-  { id: 5, a: "budget_tokens: 2048", b: "Extended Thinking Deduction Ceiling" },
+  { id: 5, a: "output_config.effort", b: "Adaptive thinking depth control" },
   { id: 6, a: "80% Rule (160k tokens)", b: "Proactive Context Compaction Trigger" }
 ];
 
@@ -765,7 +765,7 @@ const TRAP_SCENARIOS = [
       { t: "response = client.messages.create(", err: false },
       { t: "    model='claude-sonnet-5',", err: false },
       { t: "    max_tokens=4000,", err: false },
-      { t: "    thinking={'type': 'enabled', 'budget_tokens': 4096},", err: true, reason: "FATAL ERROR: budget_tokens (4096) must be STRICTLY LESS than max_tokens (4000). Setting budget >= max_tokens causes an immediate HTTP 400 bad request error." },
+      { t: "    thinking={'type': 'enabled', 'budget_tokens': 4096},", err: true, reason: "FATAL: budget_tokens was removed. On Opus 5, Sonnet 5, Opus 4.8 and 4.7 this returns an immediate HTTP 400. Use thinking={'type':'adaptive'} and control depth with output_config={'effort':...}." },
       { t: "    messages=[{'role': 'user', 'content': 'Prove the Riemann Hypothesis'}]", err: false },
       { t: ")", err: false }
     ]
@@ -1018,7 +1018,7 @@ function thinkingTraceExplorer(){
     + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Simulate Claude Sonnet 5\'s internal chain-of-thought generation inside private <code>&lt;thinking&gt;</code> blocks.</p>'
     + '<div style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card); margin-bottom:16px;">'
     + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">'
-    + '<label style="font-size:12.5px; font-weight:700;">Select <code>budget_tokens</code> Ceiling: <span id="traceBudgetVal" style="color:var(--purple); font-size:15px;">' + traceBudget.toLocaleString() + ' tokens</span></label>'
+    + '<label style="font-size:12.5px; font-weight:700;">Simulated thinking spend at this effort level: <span id="traceBudgetVal" style="color:var(--purple); font-size:15px;">' + traceBudget.toLocaleString() + ' tokens</span></label>'
     + '<div style="display:flex; gap:6px;">'
     + '<button class="btn ghost sm" onclick="setTraceBudget(1024)">1,024t</button>'
     + '<button class="btn ghost sm" onclick="setTraceBudget(2048)">2,048t</button>'

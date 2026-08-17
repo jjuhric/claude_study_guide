@@ -54,15 +54,15 @@ version strings, or parameter shapes.
       model that rejects it.
 
 ### Phase 1 — API-surface correctness sweep
-- [ ] **1.1** `js/09-suites.js` — 49 hits: ids, pricing, tool versions,
+- [x] **1.1** `js/09-suites.js` — 49 hits: ids, pricing, tool versions,
       thinking parameter, max-output figures.
-- [ ] **1.2** `js/06-practice.js`, `js/05-labs.js`, `js/04-study.js`,
+- [x] **1.2** `js/06-practice.js`, `js/05-labs.js`, `js/04-study.js`,
       `js/10-quiz.js` — remaining 17 hits.
-- [ ] **1.3** Rewrite the 6 questions built on drift-prone facts. `ccdv[70]`
+- [x] **1.3** Rewrite the 6 questions built on drift-prone facts. `ccdv[70]`
       and `ccdv[92]` rest entirely on `budget_tokens` and need new stems.
-- [ ] **1.4** Teach the transition, do not just delete it: `adaptive` on 4.6+,
+- [x] **1.4** Teach the transition, do not just delete it: `adaptive` on 4.6+,
       `budget_tokens` on pre-4.6, a 400 on 5-generation models.
-- [ ] **1.5** Suite green again. Commit.
+- [x] **1.5** Suite green again. Commit.
 
 ### Phase 2 — question-bank accuracy audit
 For each cert: the keyed answer is actually correct, no distractor is *also*

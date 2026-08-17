@@ -909,7 +909,7 @@ const CRAM_DATA = {
         items: [
           "1. Mandatory API request keys: <code>model</code>, <code>max_tokens</code>, <code>messages</code>.",
           "2. <code>tool_result</code> turn must match <code>tool_use.id</code> exactly.",
-          "3. <code>max_tokens</code> must always exceed <code>thinking.budget_tokens</code>.",
+          "3. <code>max_tokens</code> caps thinking <b>and</b> response text together — adaptive thinking spends from the same budget.",
           "4. Prompt caching gives 85% discount on reads with 5-minute TTL.",
           "5. Batches API gives 50% discount on input & output with 24-hr SLA.",
           "6. MCP tool failures must return <code>isError: true</code> inside the payload.",
