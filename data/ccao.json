@@ -658,12 +658,12 @@
         "Report the tool as broken"
       ],
       "a": 1,
-      "exp": "A refusal is information about the request. The professional response is to understand it, not to route around it.",
+      "exp": "A partial refusal is information, not an obstacle. The model completed what it could and declined a specific part, which tells you exactly where the boundary fell - so read it, decide whether the concern is reasonable, and either adjust the task or take it to someone who can authorise the work. Rephrasing until it complies treats a considered judgement as a lock to pick, and it is the one response that is wrong whether or not the concern was valid: if the concern was misplaced you have skipped the clarification that would have resolved it, and if it was sound you have circumvented it.",
       "why": [
-        "Rephrasing to defeat a safeguard is a misuse pattern, not a technique.",
-        "Correct. Evaluate the concern, then adjust the task or use the right channel.",
-        "Tool-switching to evade a refusal has the same problem as rephrasing.",
-        "A refusal is designed behavior, not a defect."
+        "Repeated rephrasing to force compliance treats the assessment as an obstacle rather than a signal, and it is the wrong move whether or not the concern was valid.",
+        "Correct. Read what was declined, judge whether the concern holds, then adjust the task or escalate through a channel that can authorise it.",
+        "Switching tools skips the question of whether the concern was legitimate, and carries the same underlying task somewhere with less scrutiny.",
+        "A refusal on part of a request is a deliberate judgement rather than a malfunction, so a bug report goes to the wrong place entirely."
       ],
       "id": "ccaoq-9a43fc15"
     },
@@ -677,12 +677,12 @@
         "Alternate between models to spread load"
       ],
       "a": 1,
-      "exp": "Match capability to task difficulty. Simple, repetitive classification at volume is exactly where a small model wins on cost and speed.",
+      "exp": "Every property of this workload points the same way: the categories are known, the inputs are short, the volume is high, and it runs overnight so latency does not matter. That is the profile a small fast model is built for, and at thousands of items nightly the per-item cost difference is the economics of the whole job. Start there and escalate only if measured accuracy on your own tickets falls short - which is a real possibility worth testing rather than assuming away. What you should not do is default upward for reassurance, because that pays a premium on every item indefinitely.",
       "why": [
-        "Paying top-tier rates for trivial classification wastes budget with no quality gain.",
-        "Correct. Small model, high volume, simple task — the textbook fit.",
-        "Recency is not a selection criterion; task difficulty is.",
-        "Rotating models adds inconsistency without a benefit."
+        "The largest model brings reasoning capability that five-way classification of short text does not draw on, and charges for it on every ticket.",
+        "Correct. Simple, high-volume and latency-tolerant is exactly the profile the fast tier exists to serve.",
+        "Recency describes release order rather than fit. A newer model might be more capable, more expensive, or both.",
+        "Alternating models gives you inconsistent classification behaviour across the same dataset, which makes the output harder to trust rather than easier."
       ],
       "id": "ccaoq-9ff15685"
     },
@@ -696,12 +696,12 @@
         "The time of day the job runs"
       ],
       "a": 1,
-      "exp": "Capability tiers differ mainly in reasoning depth. Long-but-simple work does not need a stronger model; hard judgment does.",
+      "exp": "Two things justify the cost, and they multiply rather than add: how hard the reasoning genuinely is, and what happens if the answer is wrong. Hard reasoning with cheap errors can often tolerate a smaller model plus review; easy work with expensive errors usually needs process controls more than model capability. It is when both are high that the premium clearly pays. Input length is a different axis entirely - a long document is a context-window question - and team size and schedule have no bearing at all. Getting this framing right is most of what good model selection is.",
       "why": [
-        "Length is a context-window question, largely separate from reasoning difficulty.",
-        "Correct. Reasoning difficulty and error cost are the deciding factors.",
-        "Team size has no bearing on which model suits the task.",
-        "Scheduling affects batching decisions, not capability needs."
+        "Document length is a context-window question. A long but straightforward input does not require more reasoning capability.",
+        "Correct. Reasoning difficulty and the cost of being wrong, which is why both have to be judged rather than just one.",
+        "How many people are involved says nothing about how hard the task is or what an error would cost.",
+        "Run time affects scheduling and latency tolerance, not the reasoning capability the task actually needs."
       ],
       "id": "ccaoq-1b42fa20"
     },
@@ -715,12 +715,12 @@
         "Only in the paid tier"
       ],
       "a": 1,
-      "exp": "Training data has a cutoff. Current information requires retrieval — search or a connected data source — not recall.",
+      "exp": "Training data has a cutoff, so a live figure like a current share price is not something the model can recall - not because the task is hard, but because the information was never there. Something has to fetch it at request time. The precise wording matters when you are advising a customer: saying it is impossible for AI is wrong and will be contradicted the moment they see a connected assistant do it, while saying yes invites them to trust a number that may be confidently fabricated from stale training data. The accurate answer names the mechanism.",
       "why": [
-        "Training data is a snapshot; it cannot contain today's prices.",
-        "Correct. Live data requires a retrieval path, not memory.",
-        "It is very possible with the right connection; the limitation is on recall alone.",
-        "This is a capability-architecture question, not a pricing-tier one."
+        "Training data has a cutoff and prices move continuously, so a recalled figure would be stale even when it sounds current and precise.",
+        "Correct. Not from training data alone - it needs a tool or connection that retrieves live information at request time.",
+        "It is entirely possible with retrieval, and telling a customer otherwise will be disproved the first time they see it work.",
+        "This is a question of whether anything fetches live data, not of which plan someone is on."
       ],
       "id": "ccaoq-b93cbcec"
     },
@@ -734,12 +734,12 @@
         "Whether to shorten everyone's prompts by a few words"
       ],
       "a": 1,
-      "exp": "Right-sizing per step is the largest and least disruptive cost lever in most workflows.",
+      "exp": "When one model serves everything, the cost is dominated by whichever steps run most often - and those are usually the simple ones. Look there first: classification, routing, extraction and formatting are typically both the highest-volume and the least demanding, so moving them to a cheaper tier cuts spend without touching the work that actually needed capability. That beats trimming prompts, which addresses a rounding error, and it beats restricting usage, which reduces the value rather than the cost per unit. Abandoning the tool entirely gives up the benefit to solve a problem that has a straightforward fix.",
       "why": [
-        "Usage volume is often the point; the question is whether each call is right-sized.",
-        "Correct. Move the easy, high-volume work down a tier first.",
-        "An overreaction that discards the value along with the cost.",
-        "Trimming a few words is negligible next to tier and volume decisions."
+        "Usage volume is where the value is coming from. Reducing it lowers the bill by lowering the benefit, which is not an optimisation.",
+        "Correct. The simplest, highest-volume steps dominate the bill, and they are the ones a cheaper model can usually handle unchanged.",
+        "Abandoning the tool forfeits the benefit entirely to solve a cost problem that has a much narrower fix available.",
+        "A few words per prompt is a rounding error against the volume that is actually driving the cost."
       ],
       "id": "ccaoq-94afc330"
     },
@@ -753,12 +753,12 @@
         "The task is important to a senior stakeholder"
       ],
       "a": 1,
-      "exp": "Escalate on observed failure of a specific kind — reasoning errors — not on length, importance, or preference.",
+      "exp": "The reliable signal is observed failure on your own work: a smaller model attempting the task and making logical errors on multi-step reasoning is direct evidence that capability is the binding constraint. That is worth insisting on, because the alternatives are all proxies that mislead. Unexpectedly short output usually indicates an unclear prompt rather than an incapable model, prompt length is about the context window, and stakeholder seniority is about consequence rather than difficulty. A senior stakeholder's simple question is still a simple question - though it may well justify more review.",
       "why": [
-        "Output length is controlled by instructions, not capability.",
-        "Correct. Observed reasoning failures are the signal that justifies escalating.",
-        "A long prompt needs context room, not necessarily more reasoning power.",
-        "Stakeholder seniority does not change the task's actual difficulty."
+        "Short output usually points at an underspecified prompt. Check the request before concluding the model lacks capability.",
+        "Correct. Observed reasoning failures on the actual task are direct evidence that capability is the binding constraint.",
+        "Prompt length is a context-window consideration. A long, simple prompt does not need more reasoning capability.",
+        "Seniority raises the cost of being wrong, which may justify more review, but it does not make the task itself harder."
       ],
       "id": "ccaoq-4212a2bc"
     },
@@ -772,12 +772,12 @@
         "Which option the competitor chose"
       ],
       "a": 1,
-      "exp": "Data residency and compliance constrain the option set before cost or features are worth comparing.",
+      "exp": "Deployment choice is a compliance decision before it is a technical one. Where data may be processed and stored, which residency and retention commitments apply, and what the customer's regulatory obligations require will often eliminate most options before capability or price enters the conversation - so establishing that first saves recommending something that cannot be used. Cost is a real factor once the permissible set is known. What is never a factor is which option launched most recently or what a competitor picked, since neither says anything about this customer's obligations.",
       "why": [
-        "Cost only matters among options the customer is permitted to use.",
-        "Correct. Compliance and data-handling constraints narrow the field first.",
-        "Recency is not a requirement-gathering input.",
-        "A competitor's choice reflects their constraints, not this customer's."
+        "Cost matters once you know which options are permissible. Leading with it risks recommending something their compliance rules rule out.",
+        "Correct. Data residency and compliance requirements usually narrow the field before any other consideration applies.",
+        "Release date says nothing about whether an option meets a customer's regulatory obligations.",
+        "A competitor's choice reflects their constraints rather than this customer's, and their obligations may be entirely different."
       ],
       "id": "ccaoq-f66e793d"
     },
@@ -791,12 +791,12 @@
         "Converting the manual to a spreadsheet"
       ],
       "a": 1,
-      "exp": "Sending an entire corpus on every query is expensive and dilutes attention. Retrieving the relevant portion is usually better on both cost and quality.",
+      "exp": "Sending an entire manual with every query is expensive and often counterproductive: you pay for the whole document each time, and the relevant passage competes with hundreds of pages of irrelevant material. Retrieving the sections that bear on each question is usually both cheaper and more accurate, which is the unusual case where the economical option is also the better one. The judgement to make is whether queries genuinely need the whole manual - some do, and blanket retrieval can miss material that matters when a question spans the document. Ask what each query actually needs.",
       "why": [
-        "Repeatedly sending everything is costly and buries the relevant passage.",
-        "Correct. Retrieve what is relevant rather than resending everything.",
-        "Dividing work between people does not address how the content reaches the model.",
-        "Reformatting does not change the underlying volume problem."
+        "Sending everything every time pays full cost per query and buries the relevant passage among hundreds of irrelevant pages.",
+        "Correct. Ask whether each query needs the whole manual, since retrieving the relevant sections is usually both cheaper and more accurate.",
+        "Splitting a document across people is an organisational workaround that does not address how the model gets the right context.",
+        "Changing file format does not change how much material is sent or how relevant it is to the question asked."
       ],
       "id": "ccaoq-1a8fa0c8"
     },
@@ -810,12 +810,12 @@
         "The step with the strictest audit requirements"
       ],
       "a": 1,
-      "exp": "Start where the value is real and the downside is contained, and where you can tell quickly whether it worked.",
+      "exp": "The best place to start is where the upside is high and the downside is contained: frequent enough to matter, slow enough by hand to be worth changing, low-risk if it goes wrong, and easy to check so you find out quickly. That last property is what makes early adoption safe - you learn where the tool is reliable before anything depends on it. The instinct to start with the most business-critical step gets this exactly backwards, and the step nobody understands is the worst possible candidate, since you cannot evaluate output against a standard no one can articulate.",
       "why": [
-        "Critical steps are the worst place to learn how a new tool behaves.",
-        "Correct. High frequency, low risk, easy to check — the ideal starting point.",
-        "Automating a step nobody understands means nobody can verify the output.",
-        "Heavily audited steps carry the most process overhead for a first attempt."
+        "Starting with the most critical step concentrates the risk at the exact moment you know least about where the tool is reliable.",
+        "Correct. Frequent, time-consuming, low-risk and easy to verify, so you learn quickly and cheaply where it works.",
+        "If nobody understands the step, nobody can evaluate the output, which makes it the worst possible place to begin.",
+        "A strict audit requirement raises the cost of an error and the burden of proof, which argues for starting elsewhere."
       ],
       "id": "ccaoq-9047e9f3"
     },
@@ -829,12 +829,12 @@
         "Send drafts to customers marked 'AI-generated'"
       ],
       "a": 1,
-      "exp": "Irreversible, outward-facing actions need human approval. Drafting is assistive; sending is a commitment.",
+      "exp": "A human approval step before anything reaches a customer is the control that matters, because it is the last point at which an error is still internal. Everything upstream - drafting, tone, structure - is assistable precisely because that gate exists. Removing it to save time optimises the wrong variable: the review is where the accountability lives. Having the model review its own drafts adds confidence without adding independence, and labelling output as AI-generated is a transparency measure rather than a quality one, since a disclosed error is still an error the customer has to deal with.",
       "why": [
-        "Removing the human from an irreversible external action is the risk, not the saving.",
-        "Correct. A human approves before anything leaves the organization.",
-        "Self-review adds no independent judgment.",
-        "Labeling does not substitute for reviewing the content."
+        "Direct sending removes the last point at which a mistake is still internal, which is the entire value of the control.",
+        "Correct. Human approval before anything reaches a customer, which is what makes everything upstream of it safe to assist.",
+        "Self-review adds confidence rather than independence. The same process that produced the draft is assessing it.",
+        "A label is a transparency measure, not a quality control. A disclosed error still reaches the customer as an error."
       ],
       "id": "ccaoq-e49ab54a"
     },
@@ -848,12 +848,12 @@
         "Make the prompt longer"
       ],
       "a": 1,
-      "exp": "Trust follows evidence. A measured comparison against the old process is the argument that actually lands.",
+      "exp": "Trust is not won by mandate or lost to stubbornness - it is usually a measurement gap. Take a sample, compare quality against the previous process on criteria the team already agrees with, and share the result honestly, including where the new approach is worse. That either earns the confidence or surfaces a real problem, and both outcomes are useful. Mandating use without evidence converts a quality question into a compliance one and tends to entrench the doubt. Removing the tool discards a working time saving over a problem you have not diagnosed, and a longer prompt does not address trust at all.",
       "why": [
-        "Mandating use without evidence deepens resistance.",
-        "Correct. Evidence from a fair comparison is what changes minds.",
-        "Abandoning without measuring discards a possibly real gain.",
-        "Prompt length is unrelated to organizational trust."
+        "A mandate converts a legitimate quality question into a compliance one, which tends to harden the resistance rather than resolve it.",
+        "Correct. Measure against the previous process on agreed criteria and share the result, including where it comes out worse.",
+        "Removing it discards a real time saving to solve a problem you have not yet diagnosed, and you learn nothing.",
+        "Prompt length is unrelated to whether the team trusts the output, and a longer prompt gives them nothing new to judge."
       ],
       "id": "ccaoq-2acb9608"
     },
@@ -867,12 +867,12 @@
         "Which day the workflow was created"
       ],
       "a": 1,
-      "exp": "Purpose, quality bar, and accountability are what make a workflow repeatable by someone else.",
+      "exp": "Documentation that survives contact with a team captures intent, standard and ownership: what the step is for, what good output looks like, and who checks it. Those three let someone else run the workflow, recognise when it has gone wrong, and know where to take it. Exact prompt wording is worth keeping too, but as an artefact rather than the documentation - wording changes as prompts improve, and a record of one historical version tells a newcomer nothing about the purpose. Token counts and creation dates are metadata that answer questions nobody running the workflow is asking.",
       "why": [
-        "One-off prompt text ages quickly and rarely transfers.",
-        "Correct. Intent, acceptance criteria, and ownership are the durable parts.",
-        "Useful for cost tracking but not for running the workflow correctly.",
-        "Creation date is metadata, not operating instructions."
+        "Wording changes as prompts improve, and a snapshot of one version explains neither the purpose nor the standard to a newcomer.",
+        "Correct. Purpose, quality standard and ownership - the three things someone needs to run it and recognise when it has gone wrong.",
+        "Token consumption is a cost metric. It tells you nothing about what the step is for or whether its output is acceptable.",
+        "A creation date is filing metadata that answers no question anyone running the workflow will actually have."
       ],
       "id": "ccaoq-5811ef88"
     },
@@ -886,12 +886,12 @@
         "Run each request several times and pick the best"
       ],
       "a": 1,
-      "exp": "Inconsistent inputs produce inconsistent outputs. Shared templates remove the variance at its source.",
+      "exp": "Inconsistent results across people almost always mean inconsistent inputs. Everyone is writing their own version of the prompt and supplying slightly different context, so the variation is in the requests rather than the model. A shared, versioned template fixes both halves - the same wording and the same required context - and versioning means an improvement propagates instead of living in one person's history. Asking people to be more careful identifies the symptom without giving them anything to be careful with. Restricting the work to one person makes output consistent by removing the capability from everyone else, which is a loss disguised as a fix.",
       "why": [
-        "Care does not fix a process that lets everyone improvise inputs.",
-        "Correct. Standardize the input and the outputs converge.",
-        "Creating a bottleneck hides the inconsistency rather than fixing it.",
-        "Picking the best of several runs is expensive and still unrepeatable."
+        "Care is not the missing ingredient. Without a shared definition of the request, each person is carefully doing something slightly different.",
+        "Correct. Standardise the prompt and the required context into a shared, versioned template so improvements propagate rather than staying local.",
+        "Restricting the workflow to one person achieves consistency by removing the capability from everyone else, and creates a bottleneck.",
+        "Running repeatedly and picking a favourite is manual quality control on every single run, and different people will pick differently."
       ],
       "id": "ccaoq-ec5eaa83"
     },
@@ -905,12 +905,12 @@
         "Leadership approved it"
       ],
       "a": 1,
-      "exp": "Perception and volume are weak proxies. Cycle time or rework, with quality held flat, is the real signal.",
+      "exp": "A workflow is working when the numbers move and quality holds: less cycle time or less rework, with output at least as good as before. The second half is what makes it a real measure - speed bought by lowering the standard is not an improvement, it is a deferred cost that resurfaces as rework or as a customer problem. Perceived speed is worth having but is a poor primary measure, since novelty and enthusiasm both inflate it early. Rising request volume can mean the workflow is valued or simply that it is cheap to invoke, and approval is a decision rather than evidence.",
       "why": [
-        "Perceived speed is easily wrong in either direction.",
-        "Correct. A measured improvement with quality controlled is the evidence.",
-        "More usage can indicate churn and retries as easily as success.",
-        "Approval is a decision, not an outcome measurement."
+        "It usually feels faster early on, and that impression is inflated by novelty. It is worth knowing but not worth deciding on.",
+        "Correct. Measurable reduction in cycle time or rework with quality held constant, which is what makes it an improvement rather than a trade.",
+        "Higher volume can mean the workflow is valued or simply that it is easy to invoke. It measures usage rather than benefit.",
+        "Approval authorises the work. It is a decision about the workflow rather than evidence about how it is performing."
       ],
       "id": "ccaoq-f70c8206"
     },
@@ -924,12 +924,12 @@
         "It guarantees the answer is correct"
       ],
       "a": 1,
-      "exp": "Grounding in your own material is what makes answers specific and current. It improves relevance; it does not remove the need to check.",
+      "exp": "Your own documents answer from your actual material rather than from general knowledge, which is what makes responses specific, current and defensible - you can point at where an answer came from. Hold onto the two limits, because both get overestimated. It does not guarantee correctness: the model can still misread a passage or combine two sources badly, so review remains necessary. And it does not make responses shorter or faster, which people sometimes expect. What it changes is the source of truth the answer is drawn from, and that is a substantial change on its own.",
       "why": [
-        "Grounding affects what the answer draws on, not its length.",
-        "Correct. Your documents supply specificity and currency that training data cannot.",
-        "Review is still required — grounding reduces error, it does not eliminate it.",
-        "No retrieval approach guarantees correctness."
+        "Length is set by the request rather than the source, and grounding often produces more detail rather than less.",
+        "Correct. Answers are grounded in your actual, current material rather than in general knowledge, which makes them specific and traceable.",
+        "Grounding improves relevance without guaranteeing correctness. A passage can still be misread or two sources combined badly.",
+        "There is no accuracy guarantee. Supplying good sources improves the odds substantially; it does not remove the need to check."
       ],
       "id": "ccaoq-8adb6f43"
     },
@@ -943,12 +943,12 @@
         "Ask the question repeatedly until it works"
       ],
       "a": 1,
-      "exp": "Retrieval selects what matters per query. This is the core idea behind retrieval-augmented approaches.",
+      "exp": "When a corpus is far larger than any single request and most of it is irrelevant to any one question, selection is the whole problem. Retrieving just the passages that bear on the question keeps the relevant material prominent and the cost proportionate to the query rather than to the corpus. Sending as much as fits is arbitrary - you get whatever happens to be first, not what matters. A single standing summary is worse than it looks: it discards the detail that specific questions actually need, and it silently goes stale as the corpus changes while continuing to answer confidently.",
       "why": [
-        "Arbitrary truncation drops content with no regard for relevance.",
-        "Correct. Select per query rather than sending everything or a fixed digest.",
-        "A single global summary loses the detail that specific questions need.",
-        "Repetition does not change what information is available."
+        "Whatever fits is chosen by position rather than relevance, so the passage you needed is as likely to be omitted as included.",
+        "Correct. Retrieve the passages relevant to each question, so cost and attention scale with the query rather than the corpus.",
+        "A standing summary drops the detail specific questions need, and goes stale silently while still producing confident answers.",
+        "Asking repeatedly resamples the same inadequate context. The material the question needs is still not present."
       ],
       "id": "ccaoq-7836ea2f"
     },
@@ -962,12 +962,12 @@
         "Team members reading the documents"
       ],
       "a": 1,
-      "exp": "Grounding inherits the quality of what it is grounded in. Outdated source material produces confident, wrong answers.",
+      "exp": "The characteristic failure of a shared knowledge space is not too much material or too little - it is stale material, because nothing about the output signals that a source is out of date. Answers stay fluent, specific and confident while quietly reflecting a superseded policy, and they are more dangerous than a missing answer precisely because they look authoritative and are traceable to a real internal document. That is why curation is the ongoing cost of a shared space rather than a one-off setup step: someone has to own removing what is no longer true, and no amount of prompting compensates for skipping it.",
       "why": [
-        "Detail is usually the goal of supplying references.",
-        "Correct. Staleness is the main failure mode — assign ownership and review dates.",
-        "Multiple documents are normal and expected.",
-        "People reading the reference material is a benefit."
+        "Detail level is a prompting question and easily adjusted. It is not a risk that needs managing at the knowledge-source level.",
+        "Correct. Stale documents produce confidently outdated answers, and nothing in the output reveals that the source was superseded.",
+        "Multiple documents are normal and usually desirable. Quantity is not the risk; currency is.",
+        "People reading the shared documents is the point of having them, and reviewing them is how staleness gets caught."
       ],
       "id": "ccaoq-8575f46d"
     },
@@ -981,12 +981,12 @@
         "Ask the question in a different way"
       ],
       "a": 1,
-      "exp": "Unflagged conflicts produce arbitrary answers. Either establish precedence or require the disagreement be surfaced.",
+      "exp": "When sources conflict, the model has to resolve it somehow, and silent resolution is the outcome you least want: you get a confident answer with no indication that the underlying material disagreed. Either establish precedence explicitly - this source governs - or ask for the conflict to be surfaced so a person decides. Which one you choose depends on whether the precedence is genuinely known. Deleting the older document without checking assumes recency equals authority, which is often but not always true, and it destroys the evidence of the conflict along with it.",
       "why": [
-        "An arbitrary choice between conflicting sources is not a decision you can defend.",
-        "Correct. Set precedence explicitly, or have the conflict reported.",
-        "The older document may be the correct one; deleting without checking loses information.",
-        "Rephrasing does not resolve a genuine contradiction in the sources."
+        "Left to choose, the model resolves the conflict invisibly, and you get a confident answer with no sign the sources disagreed.",
+        "Correct. Either name the authoritative source or ask for the disagreement to be surfaced, so a person makes the call.",
+        "Recency is a reasonable heuristic but not a rule, and deleting without checking destroys the evidence of the conflict too.",
+        "Rephrasing changes which source the answer happens to draw on without resolving which one should govern."
       ],
       "id": "ccaoq-3258120d"
     },
@@ -1000,12 +1000,12 @@
         "Whether it was written recently"
       ],
       "a": 1,
-      "exp": "Everything in a shared space becomes visible to everyone with access. Classification comes before convenience.",
+      "exp": "Adding a document to a shared space changes who can see its contents, so the check is about permission and sensitivity: is this approved for everyone with access, and does it contain anything that should not be shared this widely. That is the question that can make the addition a problem regardless of how useful the document is. Formatting, length and age are all worth considering for quality reasons - a stale document is a real risk covered elsewhere - but they never make an addition impermissible. Get the access question settled first, then worry about whether it is a good document.",
       "why": [
-        "Formatting affects readability, not whether sharing is permitted.",
-        "Correct. Approval and sensitivity determine whether it belongs there at all.",
-        "Length is a practical consideration, not a governance one.",
-        "Recency matters for accuracy but does not make sharing appropriate."
+        "Presentation affects how usefully the model reads a document, but a well-formatted document containing data that should not be shared is still a problem.",
+        "Correct. Whether the contents are approved for that audience, and free of anything that should not be shared this widely.",
+        "Length affects retrieval and cost. It has no bearing on whether the document may be shared with everyone who has access.",
+        "Recency matters for accuracy, and stale documents are a genuine risk, but age does not determine whether sharing is permitted."
       ],
       "id": "ccaoq-f4d15caf"
     },
@@ -1019,12 +1019,12 @@
         "Fewer people ask questions"
       ],
       "a": 1,
-      "exp": "Traceability to a named source is what makes a grounded answer checkable and trustworthy.",
+      "exp": "The signal that grounding is working is traceability: answers that name the internal document and section they came from, so you can check them in seconds and defend them later. That is the property that distinguishes a grounded answer from a fluent one, and it is the only one on this list you can act on. Length, speed and question volume all move for unrelated reasons - fewer questions might mean people are getting good answers, or that they have stopped asking because the answers were unhelpful, which is exactly the ambiguity that makes it useless as a measure.",
       "why": [
-        "Length is not a quality indicator.",
-        "Correct. Specific, checkable attribution is the signal that grounding is working.",
-        "Speed reflects model and load, not grounding quality.",
-        "Fewer questions could equally mean people gave up on the tool."
+        "Longer answers may reflect more retrieved material or simply a more verbose response. Length is not evidence of grounding.",
+        "Correct. Citing the specific internal document and section makes an answer checkable in seconds and defensible afterwards.",
+        "Response speed is unrelated to whether the answer drew on your material, and retrieval usually adds a little time.",
+        "Fewer questions could mean people are well served or that they gave up. The ambiguity makes it useless as a signal."
       ],
       "id": "ccaoq-ad577027"
     },
@@ -1038,12 +1038,12 @@
         "Because Claude requires it"
       ],
       "a": 1,
-      "exp": "Decisions get revisited. Knowing which version of the source was used is what makes an old answer auditable.",
+      "exp": "Recording which version informed an answer is what makes the answer defensible later. Documents change, and when someone asks six months on why a decision was made, the current version may no longer say what the decision relied on - without the version record you cannot distinguish a wrong answer from a correct answer against superseded material. That distinction matters most in exactly the situations where it is hardest to reconstruct: audits, disputes, and regulatory review. It is a small overhead that buys the ability to re-check rather than re-litigate.",
       "why": [
-        "Storage is a cost, not a purpose.",
-        "Correct. Version provenance is what makes an answer defensible after the fact.",
-        "Provenance is metadata; it does not change answer length.",
-        "This is an organizational practice, not a product requirement."
+        "Storage is a trivial cost and not a reason to do anything. The value is in what the record lets you reconstruct later.",
+        "Correct. It lets the answer be re-checked or defended once the source has changed, which is when the question usually arises.",
+        "Version records are metadata about the answer rather than part of it. They do not change the response at all.",
+        "Nothing in the tooling requires it. It is a professional practice adopted because reconstructing this later is otherwise impossible."
       ],
       "id": "ccaoq-5ca69082"
     },
@@ -1057,12 +1057,12 @@
         "Which model will be used"
       ],
       "a": 1,
-      "exp": "Data classification and policy come before any question of quality or configuration.",
+      "exp": "A customer contract is third-party confidential information, often with explicit restrictions on how it may be handled, so the first question is whether your policy permits processing it with this tool at all. That is the check that can stop the task outright, and it has to come before questions of quality or model choice - a perfect summary of a document you were not permitted to upload is still a problem. If the answer is no, the useful help is a permitted route rather than a better prompt: an approved deployment, a redacted extract, or a different process entirely.",
       "why": [
-        "Accuracy matters, but only once the data is permitted to be there at all.",
-        "Correct. Policy and classification gate the decision.",
-        "Length is a practical detail, not a governance check.",
-        "Model choice is downstream of whether the data may be used."
+        "Summary accuracy matters once the processing is permitted. An excellent summary of a document you should not have uploaded is still an incident.",
+        "Correct. Whether that contract is approved for this tool under your data policy, since that answer can stop the task entirely.",
+        "Length affects cost and how you chunk the work. It has no bearing on whether the document may be processed at all.",
+        "Model choice is a quality and cost decision that only arises once the data itself is cleared for use."
       ],
       "id": "ccaoq-20d6d808"
     },
@@ -1076,12 +1076,12 @@
         "The prompt author only"
       ],
       "a": 1,
-      "exp": "Accountability follows the decision to send. Tools assist; people and organizations remain responsible for what they publish.",
+      "exp": "Accountability follows the decision to send. The person who reviewed and released the document, and the organisation on whose behalf it went out, answer for what it says - the drafting tool does not transfer that, any more than a word processor would. This is the principle that makes every other control meaningful: review matters because someone is answerable for the result. Note that blaming the prompt author alone is also wrong; the prompt produced a draft, and it was the review and the sending that made it the organisation's statement. Automation never creates a gap where nobody is responsible.",
       "why": [
-        "Vendors supply a tool; they do not assume responsibility for your client communications.",
-        "Correct. Whoever approved and sent it owns the outcome.",
-        "Automation does not remove accountability.",
-        "Writing the prompt is not the same as approving the final output."
+        "The vendor supplies a tool. It has no visibility into your document, your review process, or your decision to send it.",
+        "Correct. Whoever reviewed and released it, and the organisation it went out on behalf of, answer for what it says.",
+        "Automation does not create a gap in accountability. Someone chose to deploy it and someone chose to send the output.",
+        "The prompt produced a draft. It was the review and the decision to send that made it the organisation's statement."
       ],
       "id": "ccaoq-df920b39"
     },
@@ -1095,12 +1095,12 @@
         "Proceed but keep it undocumented"
       ],
       "a": 1,
-      "exp": "Consequential decisions about individuals attract specific legal and fairness obligations that must be assessed before deployment.",
+      "exp": "Decisions about people carry obligations most other tasks do not: anti-discrimination law, explainability requirements, and in some jurisdictions specific rules about automated decision-making in employment. That is a legal and HR question before it is a technical one, so it goes to the people who own it rather than being resolved by whoever is building the workflow. Note the answer is not necessarily no - reviewed, well-governed uses exist - but it is not a call for the implementing team to make alone. Mentioning fairness in a prompt does not create fairness, and keeping it undocumented removes the audit trail exactly where one is most likely to be demanded.",
       "why": [
-        "Time saved is irrelevant if the use is not permitted.",
-        "Correct. High-stakes decisions about people require review before deployment.",
-        "A fairness instruction in a prompt is not a compliance assessment.",
-        "Avoiding documentation makes the risk worse, not smaller."
+        "Proceeding on time savings alone skips obligations that attach specifically to employment decisions, which is where the legal exposure is.",
+        "Correct. Legal and HR review first, because decisions about people carry fairness and regulatory obligations that a project team cannot sign off alone.",
+        "A fairness instruction in the prompt is not a fairness control, and it would not satisfy any regulator or survive a challenge.",
+        "Keeping it undocumented removes the audit trail precisely where one is most likely to be required, which compounds the original risk."
       ],
       "id": "ccaoq-e6f0bdda"
     },
@@ -1114,12 +1114,12 @@
         "A requirement that all output be rewritten by hand"
       ],
       "a": 1,
-      "exp": "Practical guidance on data, review thresholds, and escalation covers the decisions people actually face.",
+      "exp": "The guidance people actually use answers the three questions that come up daily: what data may I use, what needs a human check, and who do I ask when I am unsure. Those turn a vague sense of caution into decisions someone can make at their desk, and the third is what keeps the first two from ossifying - there is a route for the cases the policy did not anticipate. Banned-word lists fail because they enumerate surface patterns rather than principles, a usage leaderboard measures activity rather than safety, and requiring everything to be rewritten by hand removes the benefit rather than managing the risk.",
       "why": [
-        "Word lists do not address data handling or review.",
-        "Correct. Data rules, review thresholds, and an escalation path cover real decisions.",
-        "Leaderboards encourage volume, which is not a safety goal.",
-        "Rewriting everything by hand removes the benefit entirely."
+        "A word list enumerates surface patterns rather than principles, and it will not cover the situations people actually hit.",
+        "Correct. What data may be used, what needs human review, and who to ask when unsure - the three questions that come up daily.",
+        "A leaderboard measures activity. It says nothing about whether the use was appropriate, and it quietly rewards volume.",
+        "Mandatory manual rewriting removes the benefit instead of managing the risk, and tends to be ignored rather than followed."
       ],
       "id": "ccaoq-f1d41038"
     },
@@ -1133,12 +1133,12 @@
         "Escalate to get approval to bypass the refusal"
       ],
       "a": 1,
-      "exp": "Some outputs should not be produced regardless of tooling. Getting a tool to comply does not make the content acceptable.",
+      "exp": "When a request is itself the problem, no phrasing fixes it. Content designed to mislead customers about a product limitation is wrong regardless of which tool produces it, so the right response is to decline and, if there is pressure behind it, raise it. That is the distinction worth internalising: a refusal on legitimate work is a context problem worth clarifying, but a refusal on a genuinely improper request is the system working, and treating it as an obstacle to route around means the person has become the failure mode. A disclaimer does not repair misleading content, and seeking approval to bypass the refusal asks someone to authorise the same thing.",
       "why": [
-        "Rephrasing to defeat a safeguard does not change what the content does to customers.",
-        "Correct. The request itself is the problem.",
-        "A disclaimer does not repair deliberately misleading content.",
-        "There is no approval that makes misleading customers acceptable."
+        "Rephrasing until it complies pursues the same improper outcome. The problem is the content, not the wording that produced it.",
+        "Correct. Decline - the request is the problem, and no tool or phrasing makes misleading a customer acceptable.",
+        "A disclaimer attached to misleading content does not make it honest, and would not help if the claim were challenged.",
+        "Escalating for permission to bypass asks someone else to authorise the same improper outcome, which does not change what it is."
       ],
       "id": "ccaoq-bf87ea09"
     },
@@ -1152,12 +1152,12 @@
         "Rename the file"
       ],
       "a": 1,
-      "exp": "Minimize personal data before processing unless there is an approved basis. Deleting afterward does not undo the exposure.",
+      "exp": "Personal data needs a lawful basis before it is processed, not a cleanup afterwards. Removing or masking it unless there is an approved basis keeps the task possible while removing the exposure, and it is usually straightforward - most tasks need the structure and content of a document rather than the identities in it. Deleting output afterwards does not help, because processing happened when the data was sent. Processing only part of a document reduces the volume without changing the question of permission, and renaming a file changes nothing about its contents at all.",
       "why": [
-        "Deleting output later does not address the processing that already happened.",
-        "Correct. Minimize or mask unless processing is approved.",
-        "Partial processing still processes personal data.",
-        "Renaming changes nothing about the contents."
+        "The processing happens when the data is sent. Deleting the output afterwards does not undo it or make it permitted.",
+        "Correct. Remove or mask the personal data unless there is an approved basis, which usually keeps the task possible with the exposure gone.",
+        "Processing part of a document is still processing personal data. Reducing the volume does not address whether it was permitted.",
+        "A filename has no bearing on the contents. The personal data is in the document either way."
       ],
       "id": "ccaoq-fdcf2407"
     },
@@ -1171,12 +1171,12 @@
         "Say it does not matter for most companies"
       ],
       "a": 1,
-      "exp": "Data-handling answers must come from authoritative documentation for their actual deployment, not from generalization.",
+      "exp": "Data handling varies by deployment, plan and contract, so the honest answer points at the documentation and terms for the specific arrangement the customer is on, and brings in a specialist when the question goes beyond what you can source. Guessing from how similar tools behave is how commitments get made that the organisation cannot keep, and blanket assurances - it is completely private - are the specific failure to avoid, because they are unverifiable and will be tested. Saying it does not matter for most companies dismisses a question that is often a legal requirement for the person asking it.",
       "why": [
-        "Guessing about data handling creates real liability.",
-        "Correct. Cite the authoritative source for their specific deployment.",
-        "Blanket privacy claims are not accurate across deployments.",
-        "Dismissing the question is both wrong and damaging to trust."
+        "Guessing from similar tools risks stating a commitment your organisation cannot honour, in writing, to a customer.",
+        "Correct. Point at the documentation and terms for their specific deployment, and bring in a specialist when it goes beyond what you can source.",
+        "A blanket privacy assurance is unverifiable and varies by deployment. It is the answer most likely to be tested and found wrong.",
+        "For many customers this is a regulatory requirement rather than a preference, and dismissing it damages the relationship and the answer."
       ],
       "id": "ccaoq-8b75f12f"
     },
@@ -1190,12 +1190,12 @@
         "Shorten the input document"
       ],
       "a": 1,
-      "exp": "Buried requirements get missed. Structure makes each requirement individually visible and checkable.",
+      "exp": "Long prose instructions bury requirements. When half of one gets dropped, the fix is structural - break the requirements into a numbered list and ask for each to be addressed - because a list makes each item individually visible and gives you a way to check coverage afterwards. Repeating the whole instruction twice doubles the length without improving the structure, which usually makes the competition for attention worse. Capitals signal urgency without adding clarity and tend to skew the tone of everything around them. Shortening the source document addresses the wrong input entirely; the problem is in the instruction, not the material.",
       "why": [
-        "Duplication adds length without adding clarity.",
-        "Correct. Enumerate requirements so none can be buried in prose.",
-        "Capitalization does not change how instructions are parsed.",
-        "The problem is instruction structure, not source length."
+        "Repeating the whole thing doubles the length without improving structure, so the requirement that was already losing still loses.",
+        "Correct. A numbered list makes each requirement individually visible and gives you a way to verify coverage afterwards.",
+        "Capitals convey urgency rather than structure, and heavy emphasis tends to distort the tone of the surrounding response.",
+        "The document is not the problem. Shortening the source changes what is analysed rather than how the instruction is followed."
       ],
       "id": "ccaoq-433a0f06"
     },
@@ -1209,12 +1209,12 @@
         "The subscription is throttled"
       ],
       "a": 1,
-      "exp": "Long conversations push earlier content out of effective reach. Restating key constraints or starting fresh with a summary restores quality.",
+      "exp": "Long conversations accumulate everything: superseded drafts, abandoned directions, resolved tangents. Earlier material that still matters ends up competing with all of it, so instructions become less prominent and quality drifts without any single moment of failure. That is the explanation the evidence fits - a gradual, cumulative decline. The alternatives all predict a different shape: fatigue would recover with rest, a network problem would show as errors or delays rather than subtly worse content, and throttling affects whether requests are served rather than how well they are answered. Matching the shape of the symptom to the shape of the cause is the troubleshooting skill here.",
       "why": [
-        "Models do not fatigue; the cause is contextual.",
-        "Correct. Crowding is the standard explanation for late-conversation drift.",
-        "Connectivity affects delivery, not reasoning quality.",
-        "Throttling affects rate and availability, not answer quality."
+        "There is no fatigue and nothing that recovers with rest. The decline tracks conversation length rather than elapsed time.",
+        "Correct. Early context gets crowded out as the conversation grows, which produces exactly this gradual, cumulative decline.",
+        "A network problem shows up as errors, delays or truncation rather than as subtly less relevant content.",
+        "Throttling affects whether requests are served at all. You would see rejections or waits rather than a quality slide."
       ],
       "id": "ccaoq-aed89b32"
     },
@@ -1228,12 +1228,12 @@
         "Ask the question in a different language"
       ],
       "a": 1,
-      "exp": "Under-specified prompts leave room for variation. Constraints and an example narrow the acceptable output space.",
+      "exp": "Variation between runs is normal, and the lever you have is specification. Naming the format, the constraints and an example narrows the range of acceptable outputs, so the remaining variation happens inside a shape you defined rather than across the whole space. Accepting it as unavoidable gives up a control you have not used yet - most run-to-run variation traces to an underspecified request rather than to inherent randomness. Request timing has no effect whatever, and changing language introduces a much larger source of variation than the one you were trying to remove.",
       "why": [
-        "Much of the variation is avoidable with better specification.",
-        "Correct. Specificity and a worked example are the practical consistency levers.",
-        "Timing has no bearing on output variability.",
-        "Changing language adds a variable rather than removing one."
+        "Much of this variation comes from an underspecified request rather than inherent randomness, so there is a control you have not used.",
+        "Correct. Specify format, constraints and an example, so the remaining variation happens inside a shape you defined.",
+        "Timing and pacing have no bearing on how a response is generated. Nothing about the request has changed.",
+        "Switching language introduces far more variation than it removes, and changes the output in ways you did not intend."
       ],
       "id": "ccaoq-7a9f5852"
     },
@@ -1247,12 +1247,12 @@
         "Ask Claude to guess the meaning"
       ],
       "a": 1,
-      "exp": "Internal jargon is not shared knowledge. Defining it inline is the direct fix.",
+      "exp": "Internal jargon is genuinely unknowable from outside: a term that means something specific inside your company has a different common meaning or none at all, and the model will use the common one. Defining it the first time you use it is a one-line fix that resolves the whole conversation, and it is worth building into shared templates so it is not rediscovered each time. Avoiding the term forces circumlocution and loses precision. Using it more often reinforces nothing, since there is no learning between requests, and asking the model to guess invites a confident wrong reading that then propagates through everything downstream.",
       "why": [
-        "Avoiding the term may make the request harder to express accurately.",
-        "Correct. Supply the definition rather than assuming it.",
-        "Repetition within a conversation does not teach a company-specific meaning.",
-        "Guessing invites exactly the misunderstanding you are trying to fix."
+        "Avoiding the term costs you the precision it carries and forces awkward circumlocution around the concept you actually mean.",
+        "Correct. Define it on first use - a one-line fix that resolves the ambiguity for the rest of the conversation.",
+        "Repetition teaches nothing. There is no learning between requests, so the term is misread consistently rather than gradually understood.",
+        "Guessing produces a confident wrong interpretation that then propagates silently through everything built on it."
       ],
       "id": "ccaoq-a55626fd"
     },
@@ -1266,12 +1266,12 @@
         "Change model"
       ],
       "a": 1,
-      "exp": "Register and depth follow from a stated audience and purpose. Neither is inferable if you never say who is reading.",
+      "exp": "A summary pitched at the wrong level is a specification failure rather than a quality one - the content is right and the framing is wrong. Naming the audience, their expertise, and what they need to do with the summary fixes all three dimensions at once: vocabulary, assumed background, and which details survive. That last part is what makes it work, since what a board member needs cut is exactly what an engineer needs kept. Making it shorter changes length without changing register, asking for something better restates the dissatisfaction without specifying the target, and changing model does not supply information you never gave.",
       "why": [
-        "Length and reading level are different problems.",
-        "Correct. State the audience, their expertise, and the intended use.",
-        "'Better' does not identify what was wrong.",
-        "A different model will make the same assumption about an unstated audience."
+        "Length and register are different problems. A shorter summary at the wrong level of expertise is still at the wrong level.",
+        "Correct. Name the audience, their expertise and what they need to do with it - that fixes vocabulary, assumed background and what survives.",
+        "Asking for something better restates the dissatisfaction without saying what would be right, so the next attempt is another guess.",
+        "A different model cannot infer an audience you never named. The information is missing from the request, not from the model."
       ],
       "id": "ccaoq-b038250f"
     },
@@ -1285,12 +1285,12 @@
         "Rephrase the original question"
       ],
       "a": 1,
-      "exp": "Asking for the underlying passage makes the grounding visible and immediately checkable against the source.",
+      "exp": "Asking for the exact passage before it continues turns a suspicion into a check you can complete in seconds: either the quote is in the document and you can see how it was read, or it is not and you have found the problem directly. It also stops the error propagating into further work built on the same misreading. Re-attaching the file changes nothing about the interpretation. Asking whether it read the document invites a self-report generated the same way the original answer was. Rephrasing the question produces another answer without telling you whether the first one was grounded in the source at all.",
       "why": [
-        "Re-attaching without checking does not tell you what went wrong.",
-        "Correct. Requesting the exact passage exposes the actual grounding.",
-        "A yes/no answer about reading is not verifiable evidence.",
-        "Rephrasing may produce a different answer without revealing the original error."
+        "Re-attaching does not change how the document was interpreted, and you still have no evidence either way.",
+        "Correct. A quoted passage is checkable in seconds, and a quote that is not in the document exposes the problem immediately.",
+        "A self-report is generated the same way the original answer was, so it produces reassurance rather than evidence.",
+        "A rephrased question yields another answer without telling you whether either one was grounded in the source."
       ],
       "id": "ccaoq-8b169cc5"
     },
@@ -1304,12 +1304,12 @@
         "Longer answers are more reliable"
       ],
       "a": 0,
-      "exp": "Confident, fluent presentation is not a signal of accuracy. This is why verification scales with stakes rather than with how good the output looks.",
+      "exp": "This is the single most important habit to build: fluency and accuracy are independent properties. The polish of an answer - its coherence, its confident tone, its specificity - is produced by the same process whether or not the content is right, so none of it carries information about correctness. That is why review has to be deliberate rather than instinctive, because the instinct being overridden is a reasonable one that works on human writing, where care usually does correlate with accuracy. Assuming prompt length or model choice explains a confidently wrong answer misses the general lesson in favour of a specific and usually incorrect diagnosis.",
       "why": [
-        "Correct. Presentation quality carries no information about factual accuracy.",
-        "Prompt length may or may not be a factor; the general lesson is about fluency.",
-        "Every model can produce fluent errors; replacement does not solve it.",
-        "Length is unrelated to reliability."
+        "Correct. Polish is not evidence of correctness, which is why review must be deliberate rather than instinctive.",
+        "Prompt length may or may not be a factor here, and treating it as the lesson misses the general point about fluent output.",
+        "A well-written wrong answer is characteristic behaviour rather than a defect. Replacing the model does not remove the property.",
+        "Length correlates with neither accuracy nor reliability. A longer wrong answer is simply a longer wrong answer."
       ],
       "id": "ccaoq-2a2debae"
     },
@@ -1323,12 +1323,12 @@
         "Whether the wiki has images"
       ],
       "a": 1,
-      "exp": "Grounded answers and general-knowledge answers fail differently. Establish which one you got before diagnosing anything else.",
+      "exp": "Before investigating a discrepancy, establish whether the wiki was ever in play. If it was not supplied as a source, the model answered from general knowledge and the difference is expected rather than a defect - and the fix is to supply it, not to debug the answer. That check takes seconds and prevents a long investigation into a problem that does not exist. It also reframes the customer conversation usefully: the question becomes how to ground answers in their material, which is actionable, rather than why the model disagrees with them, which is not.",
       "why": [
-        "Popularity says nothing about whether the content reached the model.",
-        "Correct. If the wiki was never supplied, the answer was never grounded in it.",
-        "Phrasing does not determine which sources were available.",
-        "Images are a formatting detail, not the reason for the discrepancy."
+        "Internal popularity says nothing about whether the model had access to the document, which is the question that decides everything else.",
+        "Correct. Check whether the wiki was actually supplied as a source, since if it was not, a difference is expected rather than a defect.",
+        "Phrasing affects how a question is interpreted. It does not determine which sources the model had access to.",
+        "Images may affect how a document is processed, but that only matters once you know the document was supplied at all."
       ],
       "id": "ccaoq-7fc26b69"
     },
@@ -1344,12 +1344,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Haiku offers the lowest token cost and highest throughput, perfectly suited for high-volume structured document extraction.",
-        "Opus is significantly more expensive and high temperature increases variability, which is counterproductive for structured extraction.",
-        "Manual data entry is far slower and more costly than automated Haiku extraction.",
-        "Omitting system instructions leads to inconsistent output formatting and higher failure rates."
+        "Correct. Haiku suits high-volume, well-specified extraction, and structured JSON makes the output machine-usable and checkable.",
+        "This pairs the most expensive tier with a sampling parameter that current models reject outright, so it fails on both counts.",
+        "Manual re-typing trades a modest token cost for a large and ongoing labour cost, and introduces transcription errors.",
+        "Removing the system prompt saves a trivial number of input tokens while discarding the instructions that make extraction consistent."
       ],
-      "exp": "Correct. Haiku offers the lowest token cost and highest throughput, perfectly suited for high-volume structured document extraction."
+      "exp": "Invoice extraction is high-volume, well-specified and structurally repetitive, which makes it the profile the fast tier serves best - and at 100,000 documents a month the per-item cost is the whole economics of the project. Asking for structured JSON output matters as much as the model choice: it makes the results machine-usable and checkable against a schema rather than needing to be parsed out of prose. Escalating to a more capable model is a reasonable response to measured accuracy problems on your own invoices, but it should follow evidence rather than precede it."
     },
     {
       "id": "ccaoq-72",
@@ -1382,12 +1382,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. XML tags like <instructions> and <document> provide unambiguous boundaries that prevent instruction-data confusion.",
-        "Capitalization does not establish structural boundaries and degrades readability.",
-        "Interleaving instructions inside data causes parsing confusion and missed requirements.",
-        "Generic polite phrasing without structural boundaries leaves section boundaries ambiguous."
+        "Correct. Tagged sections give an unambiguous boundary between source material and instructions, which helps both quality and safety.",
+        "Capitals convey emphasis rather than structure, degrade readability, and do nothing to separate the paper from the task.",
+        "Interleaving instructions creates precisely the ambiguity that delimiters exist to remove, and text in a document can then read as a command.",
+        "A politeness suffix adds no structure and no specification, so the model still has to infer where the source ends and the task begins."
       ],
-      "exp": "Correct. XML tags like <instructions> and <document> provide unambiguous boundaries that prevent instruction-data confusion."
+      "exp": "Tagged sections give the model an unambiguous boundary between the material to analyse and the instructions to follow. That matters for quality, since instructions buried in a long document compete poorly with it, and it matters for safety: without a clear boundary, text inside a document can read as a command, which is the mechanism behind prompt injection. Putting the paper in capitals signals emphasis rather than structure and makes it harder to read. Scattering instructions through the text creates exactly the ambiguity tags remove, and a politeness suffix specifies nothing at all."
     },
     {
       "id": "ccaoq-74",
@@ -1401,12 +1401,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Role prompting establishes perspective, tone, and formatting conventions, but cannot substitute for grounding data.",
-        "Role prompting has no effect on rate limits.",
-        "Role prompting is valid prompt syntax and does not return HTTP 400.",
-        "Role prompting does not cause infinite generation loops."
+        "Correct. It styles tone and vocabulary without granting access to proprietary or otherwise ungrounded facts.",
+        "There is no rate-limit penalty associated with framing. Roles are ordinary prompt text as far as the API is concerned.",
+        "A role is valid prompt content and does not cause a validation error of any kind.",
+        "Roles do not cause loops. The model responds normally, in the register the role implies."
       ],
-      "exp": "Correct. Role prompting establishes perspective, tone, and formatting conventions, but cannot substitute for grounding data."
+      "exp": "Role prompting shapes how something is written - vocabulary, emphasis, which considerations get raised - and that is genuinely useful. What it does not do is supply knowledge. Telling the model it is a Nobel laureate does not give it access to your proprietary data or make an unsupported claim more reliable; it makes the same claim in a more authoritative register, which is arguably worse because it is harder to doubt. The practical rule is to use roles for framing and supply facts as facts. The distinction is worth holding firmly, because role prompting is often mistaken for an accuracy technique."
     },
     {
       "id": "ccaoq-75",
@@ -1420,12 +1420,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Rigorous evaluation against real-world edge cases and adversarial injection tests ensures system robustness before production deployment.",
-        "A single sample run provides zero statistical confidence on edge-case behavior.",
-        "Temperature 1.0 increases variance, making customer support answers less predictable.",
-        "Arbitrary word length caps do not measure safety or functional accuracy."
+        "Correct. A representative benchmark including edge cases and adversarial prompts, which is where an untested assistant actually fails.",
+        "One polite-looking response tests the easy path, which was never the risk. It tells you nothing about hostile or confusing input.",
+        "This names a sampling parameter that current models reject, and sampling settings were never a substitute for evaluation anyway.",
+        "Prompt length is unrelated to whether the assistant behaves safely on difficult input."
       ],
-      "exp": "Correct. Rigorous evaluation against real-world edge cases and adversarial injection tests ensures system robustness before production deployment."
+      "exp": "Before a customer-facing assistant ships, test it on inputs that resemble what will actually arrive - including the awkward ones. A representative benchmark of edge cases and adversarial prompts tells you how it behaves when a customer is confused, hostile, or deliberately probing, which is precisely where an unevaluated assistant does damage. Adversarial testing matters specifically because the assistant handles account inquiries: anything untrusted arriving in its context is a potential injection vector. Checking a single polite response tells you about the easy path only, which is the path that was never going to be the problem."
     },
     {
       "id": "ccaoq-76",
@@ -1439,12 +1439,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. A golden dataset serves as a fixed, reproducible regression suite to evaluate prompt revisions objectively.",
-        "Golden datasets are for quality evaluation, not financial transaction filtering.",
-        "Dataset cost has no bearing on golden evaluation sets.",
-        "Evaluation suites must include hard edge cases, not just cherry-picked marketing examples."
+        "Correct. Representative inputs paired with human-validated ideal outputs, which is what makes prompt changes measurable rather than impressionistic.",
+        "The content domain is irrelevant. What makes a dataset golden is that its expected outputs have been validated by a person.",
+        "Cost is not a property of an evaluation set. Golden refers to the validation of the outputs, not to what the runs cost.",
+        "A set that never fails cannot discriminate between prompt versions, which is the entire purpose of holding one."
       ],
-      "exp": "Correct. A golden dataset serves as a fixed, reproducible regression suite to evaluate prompt revisions objectively."
+      "exp": "A golden dataset is the fixed reference that makes prompt changes measurable: representative inputs paired with outputs a human has confirmed are correct. Without one you are comparing new output against your impression of the old, which is not a measurement and quietly drifts. With one, you can tell whether a change helped, hurt, or traded one failure for another - and that last case is the one informal comparison always misses. The word golden refers to the outputs being human-validated rather than to any property of the inputs, which is why curation cost is the real investment."
     },
     {
       "id": "ccaoq-77",
@@ -1477,12 +1477,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. An Enterprise ZDR agreement provides contractual and technical guarantees that data is processed strictly in-memory without persistent disk retention.",
-        "max_tokens limits output length, not backend data retention policies.",
-        "Prompt text instructions cannot alter vendor cloud infrastructure retention terms.",
-        "Base64 encoding is decoded immediately upon API ingestion and does not affect storage policies."
+        "Correct. A Zero-Data-Retention agreement is the contractual mechanism that provides this guarantee.",
+        "That parameter caps output length. It has no relationship to retention, storage or contractual commitments.",
+        "Text in a prompt is content rather than contract. Writing an instruction into the payload creates no obligation on anyone.",
+        "Encoding changes the representation of the data, not what was transmitted or what either party agreed to."
       ],
-      "exp": "Correct. An Enterprise ZDR agreement provides contractual and technical guarantees that data is processed strictly in-memory without persistent disk retention."
+      "exp": "When a customer's requirement is that content is not retained, the answer is a contractual arrangement rather than anything expressible in a request. A Zero-Data-Retention agreement is the enterprise mechanism that provides that guarantee, and it is negotiated rather than configured. This distinction matters because the alternatives look like technical controls and are not: parameters govern generation rather than storage, instructions in prompt text carry no contractual force whatever they say, and encoding the payload changes its representation without changing what was transmitted or who agreed to what."
     },
     {
       "id": "ccaoq-79",
@@ -1496,12 +1496,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Explicitly establishing the authorized defensive context and benign purpose helps safety classifiers distinguish legitimate auditing from malicious intent.",
-        "Blind retries of identical text will repeatedly hit the same safety classifier trigger.",
-        "Jailbreak framing violates acceptable use policies and is actively blocked.",
-        "Temperature has no effect on safety policy classification boundaries."
+        "Correct. State the defensive, authorised context explicitly in a delimited section, which is both the honest framing and the effective one.",
+        "Identical prompts with different punctuation resubmit the same ambiguity, so there is no reason for the outcome to change.",
+        "Adopting an attacker persona is deception rather than clarification, and it makes a legitimate task look like an illegitimate one.",
+        "Sampling parameters do not affect safety assessment and are rejected on current models regardless."
       ],
-      "exp": "Correct. Explicitly establishing the authorized defensive context and benign purpose helps safety classifiers distinguish legitimate auditing from malicious intent."
+      "exp": "Defensive security work sits close to material that is genuinely restricted, so a refusal here is usually about missing context rather than the task itself. Stating the defensive, authorised purpose explicitly and in a clearly delimited section gives the assessment what it needs, and it is also simply the truthful description of the work. What separates this from the wrong answers is intent: clarifying is honest, whereas retrying with different punctuation is noise and adopting an attacker persona is deception. Sampling parameters are irrelevant, and current models reject them anyway - the framing of that option as bypassing a classifier is the giveaway."
     },
     {
       "id": "ccaoq-80",
@@ -1515,12 +1515,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Organizations bear strict legal liability for regulatory filings; human expert review is required to catch subtle, authoritative-sounding hallucinations.",
-        "Models have no word-length constraints based on human approval.",
-        "Regulatory bodies judge document content and legal validity, not the authoring keystrokes.",
-        "Token expiration has nothing to do with human review requirements."
+        "Correct. Accountability stays with the submitting organisation, and plausible-sounding errors are exactly what review exists to catch.",
+        "There is no such word-length behaviour, and nothing about human review is triggered by vocabulary.",
+        "Regulators assess content and compliance rather than how a document was typed. The concern is accuracy, not authorship mechanics.",
+        "Token expiry is an unrelated technical detail and has nothing to do with why review is required on a filing."
       ],
-      "exp": "Correct. Organizations bear strict legal liability for regulatory filings; human expert review is required to catch subtle, authoritative-sounding hallucinations."
+      "exp": "Human review is required on regulatory submissions because accountability cannot be delegated to a tool: the organisation signs the filing and answers for its contents. Combine that with the characteristic failure mode - fluent, specific, confidently wrong text - and the risk is a plausible error passing straight into a document a regulator relies on. Review is what catches it. The point is not that models are unusually error-prone here, but that this is a context where an error is both expensive and hard to retract, and where the reviewer is the accountable party regardless of what drafted the text."
     },
     {
       "id": "ccaoq-81",
@@ -1534,12 +1534,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Project Custom Instructions inject persistent context and standards across all conversations within that project workspace.",
-        "Rapidly changing temporary notes belong in individual chat messages, not persistent project instructions.",
-        "Sensitive payment information should never be pasted into instruction boxes.",
-        "Large documents should be uploaded as Project Knowledge Files, not pasted into instructions."
+        "Correct. Standards, formats and glossaries that should apply across every chat in the project, set once rather than re-pasted.",
+        "Rapidly changing notes belong in the conversation. Editing shared configuration for a transient scratchpad affects everyone using the project.",
+        "Payment credentials must never be placed in prompt or project configuration. This is a serious data-handling failure regardless of convenience.",
+        "A manuscript is content to work on rather than instruction about how to work, and instructions are not the place to store it."
       ],
-      "exp": "Correct. Project Custom Instructions inject persistent context and standards across all conversations within that project workspace."
+      "exp": "Project instructions are the right home for anything that should apply to every conversation in that project: coding standards, output formats, domain glossaries, the conventions a team has agreed. Setting them once means every chat starts consistent without anyone re-pasting preamble, which is also what stops per-person drift. The test for what belongs there is stability - things that change every few minutes belong in the conversation, since editing shared configuration for a transient note affects everyone. Credentials never belong there under any circumstances, and a manuscript is content rather than instruction."
     },
     {
       "id": "ccaoq-82",
@@ -1553,12 +1553,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Artifacts provide a dedicated workspace pane for visual inspection, live rendering, and iterative editing of substantial standalone content.",
-        "Artifacts do not perform autonomous cloud infrastructure deployments.",
-        "Artifacts are a UI rendering feature, not blockchain encryption.",
-        "Artifacts remain persisted in the project history unless deleted by the user."
+        "Correct. Code, SVG and web apps render in a dedicated pane, so you can see the result without the chat filling with repeated copies.",
+        "Nothing is deployed anywhere. Publishing generated code without review would be a serious problem rather than a feature.",
+        "There is no blockchain involvement. This describes a rendering surface, not a storage or verification mechanism.",
+        "Content is not discarded on a timer, and a feature that deleted your work after ten minutes would be a defect rather than a benefit."
       ],
-      "exp": "Correct. Artifacts provide a dedicated workspace pane for visual inspection, live rendering, and iterative editing of substantial standalone content."
+      "exp": "Artifacts give generated code, markup and small applications a dedicated pane to render in, separate from the conversation. The practical benefit is that you can see the thing working while the chat stays readable, and you can iterate on it without scrolling back through successive full copies of the same file. What it does not do is change deployment, security or persistence: nothing is published anywhere, nothing is encrypted differently, and the content is not discarded on a timer. It is a rendering and iteration surface, which is a smaller claim than the alternatives make and the accurate one."
     },
     {
       "id": "ccaoq-83",
@@ -1572,12 +1572,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Few-shot examples anchor pattern recognition on exact output schemas and edge cases far more reliably than descriptive rules.",
-        "Few-shot examples consume standard input tokens and are billed normally.",
-        "The system prompt is always processed alongside examples.",
-        "Examples do not change the underlying token generation speed."
+        "Correct. Examples fix label vocabulary, casing, output shape and edge-case handling concretely, where prose leaves interpretive room.",
+        "Examples are input tokens like any other prompt content and are billed accordingly. There is no billing exemption.",
+        "Examples do not replace the system prompt. Both are read, and they work together rather than one bypassing the other.",
+        "Generation speed is unaffected by examples, and adding input tokens marginally increases processing rather than reducing it."
       ],
-      "exp": "Correct. Few-shot examples anchor pattern recognition on exact output schemas and edge cases far more reliably than descriptive rules."
+      "exp": "Examples specify by demonstration, which is why a few of them beat a long description. Three well-chosen sentiment examples fix the label vocabulary, the exact casing, the output shape, and how borderline cases are handled - all at once and unambiguously, where five paragraphs of prose leave room for interpretation that shows up as inconsistency. Choose them deliberately: examples are the strongest signal in a prompt, so the edge cases you include define the behaviour you get, and including only easy cases teaches the easy path. They cost input tokens like any other content, which is a real trade at volume."
     },
     {
       "id": "ccaoq-84",
@@ -1591,12 +1591,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Providing explicit schema constraints, regex patterns, and concrete worked examples eliminates formatting ambiguity.",
-        "'Nice dates' is subjective and undefined.",
-        "Negative constraints alone ('do not use slashes') are weaker than positive explicit format definitions.",
-        "Relying on manual post-processing defeats the purpose of prompt-level formatting control."
+        "Correct. An exact pattern plus worked examples removes the interpretive room where format drift lives.",
+        "Nice is not a specification. It gives the model nothing to match and leaves every formatting decision open.",
+        "Ruling out slashes eliminates one wrong form and leaves every other one available, including dot and word-month variants.",
+        "Manual correction accepts the drift as permanent and pays for it on every run, rather than removing it once in the prompt."
       ],
-      "exp": "Correct. Providing explicit schema constraints, regex patterns, and concrete worked examples eliminates formatting ambiguity."
+      "exp": "The most resilient format instruction is unambiguous and demonstrated: an exact pattern the output must match, plus worked examples showing it satisfied. That combination removes the interpretive room where drift lives - a date can be written a dozen ways, and anything short of an exact specification leaves the choice open. Note this reduces drift rather than eliminating it, so a pipeline that depends on the format should still validate before use. The alternatives get progressively weaker: a single prohibition rules out one wrong form and leaves the rest, a vague adjective specifies nothing, and manual correction accepts the drift permanently."
     },
     {
       "id": "ccaoq-85",
@@ -1629,12 +1629,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Positioning the task instruction at the end of the context prevents attention fading over long reference documents.",
-        "The API accepts any message content ordering, but prompt quality varies with attention curves.",
-        "Token pricing is invariant to position within the request.",
-        "Cacheability depends on cache_control breakpoints, not document ordering alone."
+        "Correct. An instruction at the end sits closest to generation, which is where instruction-following is most reliable on long inputs.",
+        "There is no ordering requirement in the API. Both arrangements are valid requests; one simply works better.",
+        "Position within the prompt does not change token cost. The same content is billed the same either way.",
+        "Caching depends on a stable prefix rather than on document position, and putting documents first is compatible with caching."
       ],
-      "exp": "Correct. Positioning the task instruction at the end of the context prevents attention fading over long reference documents."
+      "exp": "On long inputs, the instruction placed last sits closest to where generation begins and is followed more reliably than the same instruction buried above thousands of tokens of source material. That is the practical half of the lost-in-the-middle finding: material at the extremes of a long context gets attended to more consistently than material in the interior. Pair it with clear delimiters around the document, which is the other half - the model needs to know where the source ends and the task begins, and without that boundary text inside the document can be read as instruction."
     },
     {
       "id": "ccaoq-87",
@@ -1648,12 +1648,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. LLM-as-a-judge leverages frontier models to automate scalable, rubric-based evaluation of complex generative outputs.",
-        "It refers to software testing pipelines, not judicial legal systems.",
-        "LLM evaluation assesses semantic reasoning, accuracy, and compliance, far beyond spell-checking.",
-        "Social media polling is unstandardized and not automated evaluation."
+        "Correct. A capable model applying a strict rubric to score another model's or prompt's output, which is what makes evaluation scale.",
+        "This describes replacing judicial decision-making, which is an entirely different claim and not what the technique refers to.",
+        "Spell-checking is mechanical text validation. A judge evaluates quality against criteria, which requires reasoning about content.",
+        "A public vote is unstructured opinion without a rubric, and is neither reproducible nor comparable between runs."
       ],
-      "exp": "Correct. LLM-as-a-judge leverages frontier models to automate scalable, rubric-based evaluation of complex generative outputs."
+      "exp": "LLM-as-a-judge uses a capable model with an explicit rubric to score outputs at a scale human review cannot reach - which is what makes systematic prompt comparison practical. The rubric is the load-bearing part: without concrete criteria the judge produces impressions rather than measurements, and those are not comparable across runs. Two limits are worth carrying. Judges inherit the biases of models, including a preference for whichever answer they see first, so serious comparisons swap positions. And they need calibrating against human judgement periodically, or you end up optimising confidently against a standard that has quietly drifted from the one you care about."
     },
     {
       "id": "ccaoq-88",
@@ -1667,12 +1667,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Regulated data (PII, HIPAA PHI, PCI DSS) requires strict data privacy assessments, redaction, or enterprise BAA/ZDR agreements prior to processing.",
-        "Public marketing materials carry minimal data confidentiality risk.",
-        "Open-source documentation is public information.",
-        "Dictionary definitions contain no private or sensitive data."
+        "Correct. Identifiers and health records carry the strictest statutory obligations and the highest penalties for mishandling.",
+        "Published marketing material is already public by intent, so sending it externally raises no confidentiality question.",
+        "Open-source documentation is published for public use and carries no confidentiality obligation.",
+        "Dictionary definitions are general reference material with no sensitivity or handling obligations of any kind."
       ],
-      "exp": "Correct. Regulated data (PII, HIPAA PHI, PCI DSS) requires strict data privacy assessments, redaction, or enterprise BAA/ZDR agreements prior to processing."
+      "exp": "Identifiers and health records carry the strictest handling obligations of anything on this list - specific statutory regimes, consent requirements, and real penalties for mishandling. They warrant the most scrutiny before leaving your systems, and often the answer is to remove or mask them rather than to find a way to send them, since most tasks need the structure of a record rather than the identity in it. The others are published or public material where the sensitivity question does not arise. Getting this ordering right is what stops a data-handling decision being made implicitly by whoever happens to be building the workflow."
     },
     {
       "id": "ccaoq-89",
@@ -1686,12 +1686,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Prompt injection occurs when malicious user or third-party data contains instructions designed to bypass developer guardrails.",
-        "Prompt injection is a security vulnerability, not a speed optimization.",
-        "Vector database indexing is unrelated to prompt injection attacks.",
-        "This is a nonsense distractor."
+        "Correct. Column relationships and headers stay explicit across rows, where the same data in prose becomes ambiguous quickly.",
+        "A table is ordinary text and counts toward the context limit exactly as any other content does.",
+        "Nothing is converted automatically. The model reads what you supply and does not transform values on its own.",
+        "Formatting has no relationship to batch processing or pricing. The discount comes from the endpoint used, not the content."
       ],
-      "exp": "Correct. Prompt injection occurs when malicious user or third-party data contains instructions designed to bypass developer guardrails."
+      "exp": "A Markdown table makes the relationship between a value and its column explicit, so the model can tell which figure belongs to which field across many rows. That structure survives where the same data as prose becomes ambiguous by the third or fourth row, and it is why tabular reference data is worth formatting deliberately rather than pasting. The benefit is comprehension only - a table is ordinary text that consumes tokens like any other, so it does not affect limits, cost or processing. Choose it because the model reads it more reliably, not because it changes anything about how the request is handled."
     },
     {
       "id": "ccaoq-90",
@@ -1705,12 +1705,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Markdown tables provide clear structural delimiters for relational data, improving tabular reasoning and extraction precision.",
-        "Tables consume standard tokens within the context window.",
-        "Tables do not perform automatic currency conversion unless instructed.",
-        "Discounts require the Batches API, not markdown tables."
+        "Correct. Reviewers can see intent and assumptions quickly, which is what makes reviewing generated code practical.",
+        "Comments are ignored at execution and have no effect on compilation or runtime speed in any language.",
+        "Security scanners analyse code rather than comments. Comments neither hide nor prevent any part of an audit.",
+        "Comments are output tokens like any other text, so they add slightly to cost rather than reducing it."
       ],
-      "exp": "Correct. Markdown tables provide clear structural delimiters for relational data, improving tabular reasoning and extraction precision."
+      "exp": "Comments alongside generated code let a reviewer see the intent and the assumptions, which is what makes review fast enough to actually happen. The important assumptions are the ones the code cannot state for itself - why this approach over the obvious alternative, what invariant the caller must hold, which edge case a branch exists for. Comments that narrate what the next line does add noise rather than help, so the instruction is worth phrasing as explain the reasoning rather than comment the code. None of this changes execution: comments are stripped or ignored at run time and affect neither speed nor security scanning."
     },
     {
       "id": "ccaoq-91",
@@ -1724,12 +1724,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Clear comments and docstrings document assumptions and facilitate human review and maintainability.",
-        "Compilers ignore comments; they have no effect on binary execution speed.",
-        "Comments do not block static security analyzers.",
-        "Comments add output tokens and are billed normally."
+        "Correct. A reviewer can see intent and assumptions quickly, which is what makes reviewing generated code practical at any volume.",
+        "Comments are ignored at execution in every language and have no effect on compilation or runtime speed.",
+        "Security scanners analyse code rather than comments. Comments neither conceal anything nor prevent any part of an audit.",
+        "Comments are output tokens like any other text, so they add marginally to cost rather than reducing it."
       ],
-      "exp": "Correct. Clear comments and docstrings document assumptions and facilitate human review and maintainability."
+      "exp": "Comments alongside generated code let a reviewer see the intent and the assumptions, which is what makes review fast enough to actually happen. The assumptions worth stating are the ones the code cannot show for itself: why this approach rather than the obvious alternative, what the caller must guarantee, which edge case a branch exists for. Comments that narrate what the next line does add noise instead, so phrase the instruction as explain the reasoning rather than comment the code. None of this affects execution - comments are ignored at run time and do not influence speed or security scanning either way."
     },
     {
       "id": "ccaoq-92",
@@ -1762,12 +1762,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Telling the model what TO do and providing concrete target structures constrains generation far more effectively than endless negative rules.",
-        "The API processes standard natural language with no syntax errors for negative words.",
-        "Claude understands negative phrasing, but positive constraints provide clearer guidance.",
-        "All tokens are priced identically regardless of grammatical polarity."
+        "Correct. A positive specification supplies a pattern to follow, where a list of prohibitions leaves every unlisted alternative available.",
+        "Negation is ordinary language and causes no error. The issue is that it under-specifies rather than that it fails.",
+        "Negative instructions are understood. They simply constrain less than a positive specification of the same requirement.",
+        "Token pricing is uniform regardless of wording. Negation costs no more than any other phrasing."
       ],
-      "exp": "Correct. Telling the model what TO do and providing concrete target structures constrains generation far more effectively than endless negative rules."
+      "exp": "A prohibition rules out one behaviour and leaves everything else open, so a list of things not to do still leaves the model choosing from an unbounded space of alternatives - including ones you would also reject but did not think to forbid. Describing what you do want closes that space: it supplies a target instead of a boundary. Prohibitions are not useless, and a few specific ones are worth keeping where a particular failure keeps recurring. But when a prompt is mostly a list of don'ts, the usual fix is to state the desired behaviour once, positively, and delete most of the list."
     },
     {
       "id": "ccaoq-94",
@@ -1781,12 +1781,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. LLM judges often exhibit slight preferences for Candidate A over Candidate B; mitigating this requires swapping positions and averaging scores.",
-        "Server location does not define LLM evaluation position bias.",
-        "IDE line numbers have no effect on API evaluation outputs.",
-        "Font rendering is irrelevant to API token processing."
+        "Correct. A preference for whichever candidate appears first or second, regardless of quality, which quietly corrupts pairwise results.",
+        "Server geography has no influence on how an evaluator judges content. This is a property of the model, not the infrastructure.",
+        "Where a prompt sits in a source file is invisible to the evaluator, which sees only the content it is given.",
+        "Rendering and font are not part of what the evaluator receives. It reads text, not a visual presentation."
       ],
-      "exp": "Correct. LLM judges often exhibit slight preferences for Candidate A over Candidate B; mitigating this requires swapping positions and averaging scores."
+      "exp": "Position bias is the tendency of a model evaluator to favour whichever response it sees first or second, independent of quality. It matters because it silently corrupts pairwise comparison: if every run presents your new prompt second, a consistent positional preference reads as a consistent quality difference and you ship a change that did nothing. The standard mitigation is to run each pair in both orders and average, which costs twice as much and is worth it on any decision you intend to act on. It is a property of the evaluator rather than of the candidates being compared."
     },
     {
       "id": "ccaoq-95",
@@ -1800,12 +1800,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Public-facing bots require output guardrails to prevent brand damage, disinformation, and unauthorized commitments.",
-        "Chatbots have no capability to delete hosting websites without explicit server tool permissions.",
-        "Bandwidth consumption is capped by network infrastructure and rate limits.",
-        "Chatbots do not discriminate based on client device."
+        "Correct. Adversarial users can elicit offensive or brand-damaging content, or statements a customer can reasonably treat as binding.",
+        "A chatbot has no access to infrastructure. The risk is what it says, not what it can do to your systems.",
+        "Bandwidth is not a failure mode of a text assistant, and nothing about missing moderation affects network capacity.",
+        "Device type is irrelevant to moderation. This describes no behaviour the absence of output filtering would produce."
       ],
-      "exp": "Correct. Public-facing bots require output guardrails to prevent brand damage, disinformation, and unauthorized commitments."
+      "exp": "A public chatbot faces adversarial input by default, and without output controls the failure is reputational and sometimes legal: offensive content published under your brand, or a commitment - a refund, a guarantee, a price - that a customer can reasonably hold you to. Both are hard to retract once screenshotted. The reason moderation is the specific control is that prompt instructions alone are not a boundary; anything a user can write is untrusted input, and a determined user will find phrasing the system prompt did not anticipate. Treat the output path as the place to enforce what may leave."
     },
     {
       "id": "ccaoq-96",
@@ -1819,12 +1819,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Validating outputs with strict schemas ensures corrupt or missing fields are detected immediately before entering production databases.",
-        "UI color preferences have nothing to do with data schema validation.",
-        "Gzip compression is transport encoding, not structural validation.",
-        "Virus scanning does not validate JSON schema keys and data types."
+        "Correct. Parsing against a strict schema catches missing keys and wrong types before the data reaches anything downstream.",
+        "This describes a user-experience question and has nothing to do with validating the structure of returned data.",
+        "Compression changes how data is stored or transmitted. It performs no checking of structure or content.",
+        "A virus scan looks for malicious files. It does not verify that a JSON payload matches an expected schema."
       ],
-      "exp": "Correct. Validating outputs with strict schemas ensures corrupt or missing fields are detected immediately before entering production databases."
+      "exp": "Schema validation checks the parsed output against an explicit definition - required keys present, types correct, values within allowed sets - before anything downstream consumes it. That is where the guarantee has to live, because instruction alone is a request rather than a contract: the first malformed response reaches your database unless something is checking. The distinction worth holding is between structurally valid and correct. Validation catches a missing field or a string where a number belongs; it cannot catch a plausible value that happens to be wrong, which is why it complements review rather than replacing it."
     },
     {
       "id": "ccaoq-97",
@@ -1857,12 +1857,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Explicitly forbidding conversational preambles and enforcing dedicated container tags yields clean, directly parseable translations.",
-        "Politeness requests often increase conversational filler rather than reducing it.",
-        "High temperature increases stylistic variance and preambles.",
-        "Looping requests wastes tokens without fixing prompt instructions."
+        "Correct. State the output contract explicitly and delimit it, so extraction stays reliable even if a stray sentence appears.",
+        "Politeness shapes register rather than structure, and does nothing about preamble appearing before the content you want.",
+        "Sampling settings do not govern output structure, and current models reject them regardless.",
+        "Repeating the request produces several responses each with their own preamble, which multiplies the problem rather than solving it."
       ],
-      "exp": "Correct. Explicitly forbidding conversational preambles and enforcing dedicated container tags yields clean, directly parseable translations."
+      "exp": "Conversational preamble appears because the model is being helpful in a chat register, and the fix is to state the output contract explicitly: only the translation, inside delimiters, with no commentary. The delimiters do the real work in a pipeline, because they give you something unambiguous to extract even if a stray sentence does slip through - which turns a formatting problem into a parsing step rather than a failure. Politeness instructions do not address structure at all, sampling settings are unrelated and rejected on current models anyway, and repeating the request produces three responses with three preambles."
     },
     {
       "id": "ccaoq-99",
@@ -1895,12 +1895,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Forcing explicit extraction of both positive and critical themes with supporting evidence ensures balanced, objective synthesis.",
-        "Ignoring critical reviews introduces severe selection bias.",
-        "Subjective friendliness criteria prevents objective analysis.",
-        "Fabricating fake reviews violates truthfulness and integrity."
+        "Correct. Categorised themes with supporting quotes force balanced coverage and anchor every claim to text you can verify.",
+        "Reading only five-star reviews selects for the conclusion in advance, which produces a summary of your filter rather than of the feedback.",
+        "Tone is not a proxy for representativeness. The friendliest reviewer is not the most typical one.",
+        "Inventing reviews fabricates evidence. This would misrepresent customer feedback entirely, regardless of how the summary reads."
       ],
-      "exp": "Correct. Forcing explicit extraction of both positive and critical themes with supporting evidence ensures balanced, objective synthesis."
+      "exp": "Asking for categorised themes with supporting quotes does two things at once. It forces coverage of both sides, so a synthesis cannot quietly weight toward whichever reviews were more numerous or more emphatic; and it makes the summary checkable, because each theme is anchored to text you can go and read. That combination is what turns a plausible-sounding synthesis into one you can defend. Note it does not resolve the disagreement for you - conflicting reviews often reflect genuinely different experiences, and a summary that surfaces the conflict clearly is usually more useful than one that smooths it into a single verdict."
     }
   ],
   "cards": [
