@@ -85,7 +85,7 @@ clear 25 adds words without adding information. Set the enforced floor at 18
 in task 3.5 and target ~22 average, rather than writing to a number.
 - [x] **3.1** CCAO-F — 100/100. exp avg **100w** (min 88), why avg **19w**
       (min 12). See the floor note below.
-- [ ] **3.2** CCDV-F
+- [~] **3.2** CCDV-F — 56/100. Resume at index 51.
 - [ ] **3.3** CCAR-F
 - [ ] **3.4** CCAR-P
 - [ ] **3.5** Raise the suite's depth floors so it cannot slide back.

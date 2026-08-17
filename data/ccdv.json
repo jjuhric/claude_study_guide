@@ -12,12 +12,12 @@
         "The prompt was rejected"
       ],
       "a": 1,
-      "exp": "'max_tokens' means truncation — raise max_tokens or continue the response. 'end_turn' is the natural completion signal.",
+      "exp": "`max_tokens` is a hard ceiling on generation, and hitting it stops the response wherever it happened to be - usually mid-sentence. The critical consequence is that the content you have is a fragment, not an answer, and nothing in the text itself says so. That is why branching on `stop_reason` before consuming `content` is the discipline: `end_turn` means finished, `max_tokens` means truncated, and code that reads the text without checking will present half an answer as a whole one. Raise the ceiling or continue the response - and remember it caps thinking and response text together, so adaptive thinking draws on the same budget.",
       "why": [
-        "Natural completion reports stop_reason 'end_turn'.",
-        "Correct. 'max_tokens' means the output hit your own cap and was truncated.",
-        "Rate limiting surfaces as HTTP 429, not a stop reason.",
-        "A rejected prompt returns an error rather than a truncated message."
+        "That is `end_turn`. Conflating the two is exactly how a truncated response gets presented to a user as complete.",
+        "Correct. Generation hit the ceiling you set and stopped there, so the content is a fragment rather than a finished answer.",
+        "Rate limiting surfaces as HTTP 429 with retry headers, not as a stop reason on a successful response.",
+        "A rejected prompt is a 4xx error. You would not receive a 200 with content and a stop reason at all."
       ],
       "id": "ccdvq-b8eb6b17"
     },
@@ -31,12 +31,12 @@
         "temperature"
       ],
       "a": 1,
-      "exp": "model, max_tokens, and messages are the required fields; system and tools are optional. Sampling parameters like temperature are rejected on current Claude models.",
+      "exp": "Three fields are required on every request: `model`, `max_tokens`, and a `messages` array. Everything else is optional - `system`, `tools`, `output_config` - and `max_tokens` being mandatory is the one that surprises people coming from other APIs, where an output cap is often defaulted. Knowing the minimum matters because it tells you what a failure means: a rejected request with none of these missing is a content or parameter problem rather than a shape problem. Worth noting that sampling parameters are not merely optional on current models - they are rejected outright.",
       "why": [
-        "The system prompt is optional.",
-        "Correct. model, max_tokens, and messages are the required fields.",
-        "Tools are only needed when you want tool use.",
-        "Sampling parameters are optional, and are rejected on current models."
+        "A system prompt is optional and often unnecessary. Many perfectly valid requests never set one.",
+        "Correct. Those three are the minimum any Messages API request needs; everything else is optional.",
+        "Tools are optional and only relevant when you want the model to call something.",
+        "Sampling parameters are not required, and on current models they are rejected rather than merely optional."
       ],
       "id": "ccdvq-174e0fc2"
     },
@@ -50,12 +50,12 @@
         "Retry every request twice"
       ],
       "a": 1,
-      "exp": "Streaming (server-sent events) delivers tokens incrementally, dramatically improving perceived latency.",
+      "exp": "Streaming does not make generation faster - it changes when the user sees the first token. That is the whole fix for an interface that feels sluggish to start, because perceived latency is dominated by the wait before anything appears rather than by total completion time. Lowering `max_tokens` to 50 does make responses arrive sooner, by truncating them, which trades a real answer for a fast one. Batch processing moves in the opposite direction entirely: it is for throughput on latency-tolerant work, not for interactive UI. Retrying every request doubles load without changing when the first token appears.",
       "why": [
-        "A tiny output cap truncates answers rather than speeding them up.",
-        "Correct. Streaming renders tokens as they are produced, cutting perceived latency.",
-        "Batch processing is asynchronous and much slower to first response.",
-        "Duplicate requests double cost and do nothing for latency."
+        "This makes responses arrive sooner by cutting them off. Speed bought by truncating the answer is not a fix.",
+        "Correct. Tokens render as they are generated, which removes the wait before anything appears - the part users experience as slowness.",
+        "Batch processing optimises throughput on latency-tolerant work and is the wrong direction entirely for an interactive UI.",
+        "Duplicate requests double the load and cost while doing nothing about when the first token reaches the screen."
       ],
       "id": "ccdvq-b417b9e8"
     },
@@ -69,12 +69,12 @@
         "Send the request to a different model in parallel"
       ],
       "a": 1,
-      "exp": "429 = rate limit. Exponential backoff with jitter, honoring retry-after headers, is the expected pattern.",
+      "exp": "A 429 is normal operation at volume rather than an outage. The robust response is exponential backoff that respects the rate-limit headers, which tell you what the limit is, what remains, and when the window resets - so you can wait the right amount instead of guessing. Failing immediately turns ordinary throttling into a user-visible error. Rotating keys to evade a limit is a terms problem rather than an engineering solution. Fanning the same request out in parallel is the worst option: it adds load to the system that just told you it had too much, which is how a transient limit becomes a sustained one.",
       "why": [
-        "Failing on the first 429 makes normal rate limiting look like an outage.",
-        "Correct. Exponential backoff that respects the rate-limit headers is the robust pattern.",
-        "Key rotation to evade limits is a terms problem, not an engineering fix.",
-        "Fanning out under rate limiting amplifies the pressure."
+        "Failing on the first 429 turns routine throttling into a user-visible error, when the correct behaviour is to wait and retry.",
+        "Correct. Exponential backoff honouring the rate-limit headers, which tell you exactly when the window resets rather than leaving you to guess.",
+        "Rotating keys to evade limits is a terms problem rather than an engineering fix, and it does not address the underlying volume.",
+        "Parallel duplicates add load to a system that just reported being over capacity, which extends the throttling rather than clearing it."
       ],
       "id": "ccdvq-9c999ce4"
     },
@@ -88,12 +88,12 @@
         "Use the same API key"
       ],
       "a": 1,
-      "exp": "Each request stands alone — you manage and resend conversation history yourself.",
+      "exp": "There is no server-side conversation store and no session identifier. Continuing a conversation means resending the full prior history - user and assistant turns - on every call, so the model reads the whole exchange each time. Two consequences follow directly. Cost grows with conversation length, since you are re-sending everything each turn, which is why prompt caching matters so much in practice: the repeated prefix is exactly what caching is for. And your application owns the history, so trimming, compacting or summarising it is your decision and your responsibility.",
       "why": [
-        "There is no session identifier that carries conversation state.",
-        "Correct. Resend the full history each call; the API keeps no state for you.",
-        "There is no such mode to enable.",
-        "The key authenticates you; it stores nothing about the conversation."
+        "There is no session identifier. Nothing on the server holds conversation state between calls.",
+        "Correct. Resend the full prior history each call, since the API holds no state of its own between requests.",
+        "There is no memory mode to switch on. Continuity comes from what you resend, not from a setting.",
+        "The API key authenticates the request. It does not associate one call with another or carry any conversation state."
       ],
       "id": "ccdvq-51b62f11"
     },
@@ -107,12 +107,12 @@
         "Return the raw tool call to the user"
       ],
       "a": 1,
-      "exp": "The tool-use loop: Claude requests a tool → your code runs it → you return tool_result → Claude continues. Core CCDV-F material.",
+      "exp": "`tool_use` is expected control flow, not an error. The model has decided it needs something it cannot produce itself and is asking your code to run it: execute the tool, append the result as a `tool_result` block referencing the matching `tool_use_id`, and call again so the model can continue with the answer. The loop repeats until the model stops requesting tools. Treating it as a failure is the classic first-integration bug, and it produces an agent that appears to give up halfway through every task that needed a tool.",
       "why": [
-        "'tool_use' is expected control flow, not a failure.",
-        "Correct. Run the tool and return a tool_result to continue the loop.",
-        "Ignoring it strands the model waiting for information it requested.",
-        "Raw tool calls are an implementation detail, not user-facing output."
+        "This is the most common first-integration bug. A tool request is the model working as designed, not failing.",
+        "Correct. Run the tool and return the result as a tool_result in the ongoing history, so the model can continue from there.",
+        "Re-prompting discards the request and the context around it. The model asked for something specific and still needs it.",
+        "The raw tool call is an internal protocol detail. A user has no way to act on it and should never see it."
       ],
       "id": "ccdvq-c465de53"
     },
@@ -126,12 +126,12 @@
         "Setting temperature to 1.0"
       ],
       "a": 1,
-      "exp": "Tool descriptions are effectively prompts. Precise descriptions + strict JSON schemas drive correct selection and arguments.",
+      "exp": "Tool descriptions are the interface the model reasons over, and detail there is by far the strongest lever on tool-calling accuracy. Say what the tool does, when it applies, when it does not, and what each parameter means - a description that states its trigger condition performs measurably better than one that only states its function. Tight schemas with required fields and enums do the complementary half, narrowing what the model can produce. Registering more tools works against you: it costs context on every request and increases the chance of a near-miss selection between overlapping options.",
       "why": [
-        "More tools creates more opportunity to confuse similar options.",
-        "Correct. Descriptions and schemas are what drive correct selection and arguments.",
-        "Terse names strip out the information needed to choose.",
-        "Sampling parameters are rejected on current models and never governed tool accuracy."
+        "More tools means more context spent on every request and more chances to select a near-miss from overlapping options.",
+        "Correct. Detailed descriptions and tight schemas are the strongest lever, since the description is what the model reasons over.",
+        "Terse names remove the information the model uses to choose. Clarity matters far more than brevity here.",
+        "Sampling parameters do not affect tool selection, and current models reject them regardless."
       ],
       "id": "ccdvq-3ae76b37"
     },
@@ -145,12 +145,12 @@
         "Set max_tokens very high"
       ],
       "a": 1,
-      "exp": "Schema-enforced structured output (or a 'response' tool with input schema) is the reliable way to get valid JSON.",
+      "exp": "When the output has to conform to a schema, constrain it at the request level rather than asking for it in prose. Structured outputs make the model generate against your schema, so conformance is a property of the request instead of a hope about the response - and you still validate before use, because the guarantee you want lives in your code. Asking nicely produces valid JSON most of the time, which is the worst failure profile available: rare enough to look reliable in testing, common enough to break in production. Regex repair compounds that by silently accepting malformed data.",
       "why": [
-        "Prose requests for JSON fail unpredictably.",
-        "Correct. A schema-constrained response conforms by construction.",
-        "Regex repair is the fragility structured outputs exist to remove.",
-        "A high output cap does nothing for structural validity."
+        "Prose requests produce valid JSON most of the time, which is the worst failure rate - reliable in testing, broken in production.",
+        "Correct. Constrain the response with a schema so conformance comes from the request rather than from hoping about the output.",
+        "Regex repair silently accepts malformed data and turns a clear parse failure into a subtle wrong value downstream.",
+        "A high output ceiling affects length, not structure. A long response can be just as malformed as a short one."
       ],
       "id": "ccdvq-510d877b"
     },
@@ -164,12 +164,12 @@
         "Always retry 100 times"
       ],
       "a": 0,
-      "exp": "Feeding errors back as tool_result lets the model recover gracefully — a tested resilience pattern.",
+      "exp": "Return the error to the model in a `tool_result` with `is_error` set, and let it decide what to do - retry, try a different tool, or tell the user it could not complete the step. That keeps the loop intact and gives the model the information it needs to adapt. Crashing loses the whole run over one transient failure. Returning empty results silently is worse than either, because the model reasons confidently from a false premise - it will conclude the search found nothing rather than that the search failed. Unbounded retries turn a transient error into a hang.",
       "why": [
-        "Correct. Return the error as a tool_result so the model can retry or adapt.",
-        "Crashing the loop discards all progress over a transient blip.",
-        "Silently returning nothing produces confidently wrong output.",
-        "Unbounded retries amplify an outage and can exhaust budget."
+        "Correct. Report the error back through tool_result so the model can retry, adapt, or explain - and the loop survives.",
+        "Crashing discards the entire run over a transient failure that the model could reasonably have worked around.",
+        "Silence is the worst option: the model reasons confidently from a false premise, concluding nothing was found rather than that the call failed.",
+        "Unbounded retries turn a transient failure into a hang, and hammer a service that may already be struggling."
       ],
       "id": "ccdvq-684f0fa3"
     },
@@ -183,12 +183,12 @@
         "Agents are always faster"
       ],
       "a": 1,
-      "exp": "Agent = model + tools + loop with feedback. Single-turn calls just map input→output.",
+      "exp": "The distinction is the loop. A simple integration is one call and one response; an agent runs repeatedly - the model chooses an action, your code executes it, the result comes back, and it iterates toward a goal it was not given step-by-step instructions for. That is what makes agents powerful on open-ended tasks and what makes them harder to operate: the path is decided at run time, so cost, latency and failure modes are all less predictable. Model size is unrelated, agents need better prompts rather than fewer, and they are almost always slower because they take multiple turns.",
       "why": [
-        "Model size is unrelated to whether something is an agent.",
-        "Correct. The defining feature is the loop: choose, act, observe, iterate.",
-        "Agents still rely on prompts.",
-        "Agents are usually slower than a single call, not faster."
+        "Model choice is independent of architecture. An agent can run on a small model and a single call can use a large one.",
+        "Correct. The loop is the difference - choose an action, observe the result, iterate toward a goal without step-by-step instructions.",
+        "Agents need more careful prompting, not less. Their instructions have to hold up across many turns without supervision.",
+        "Agents are generally slower because they take multiple turns. The gain is capability on open-ended tasks, not speed."
       ],
       "id": "ccdvq-1c992455"
     },
@@ -202,12 +202,12 @@
         "Model fine-tuning"
       ],
       "a": 1,
-      "exp": "The Agent SDK exposes the same agent loop infrastructure behind Claude Code for building custom agents.",
+      "exp": "The Agent SDK packages the harness that powers Claude Code: the agent loop, tool execution, context management, permissions and built-in tools. What you supply is a prompt and options rather than the loop itself. The distinction worth holding is that it provides the harness but not the deployment - you still host and run it, which is what separates it from a managed agent platform. It is also a different package from the API SDK's tool runner, which loops over tools you define with no built-in tools of its own.",
       "why": [
-        "The SDK is a developer library, not a prompt editor.",
-        "Correct. It provides the agent harness — loop, tool execution, context, and permissions.",
-        "It is not a credit programme.",
-        "It does not perform fine-tuning."
+        "It is a library rather than an interface. There is no GUI component to it.",
+        "Correct. The loop, tool execution, context management and permissions - the harness, which you supply a prompt and options to.",
+        "It is a development library. Credits and billing are entirely separate concerns.",
+        "Fine-tuning is a different capability altogether and not what this SDK provides."
       ],
       "id": "ccdvq-301e5572"
     },
@@ -221,12 +221,12 @@
         "When you have many tools"
       ],
       "a": 1,
-      "exp": "Anthropic's guidance: use the simplest pattern that works. Reserve autonomous agents for open-ended tasks.",
+      "exp": "When the steps are known in advance, encode them. A fixed workflow is cheaper, faster, easier to test and easier to debug, because the path is the same every time and a failure happens somewhere you can point at. Agents earn their overhead when the path genuinely cannot be specified up front - when the next action depends on what the last one returned in ways you cannot enumerate. The common mistake is reaching for an agent because the task feels sophisticated rather than because it is actually open-ended, and paying loop cost and unpredictability for a pipeline you could have written.",
       "why": [
-        "Agents add cost and failure surface that fixed workflows avoid.",
-        "Correct. Predictable, well-defined tasks are cheaper and more reliable as fixed steps.",
-        "Creative tasks can still be a single well-specified call.",
-        "Tool count alone does not require an autonomous loop."
+        "Agents cost more, run slower and behave less predictably. They are the right choice sometimes, not by default.",
+        "Correct. Predictable, well-defined work runs better as fixed steps - cheaper, faster, and far easier to test and debug.",
+        "Creativity is a property of the generation rather than the control flow. A single well-prompted call can be highly creative.",
+        "Tool count is not the criterion. A workflow can call many tools in a fixed order without any autonomous decision-making."
       ],
       "id": "ccdvq-7c093e81"
     },
@@ -240,12 +240,12 @@
         "Configure billing"
       ],
       "a": 1,
-      "exp": "CLAUDE.md holds project conventions, commands, and context that Claude Code reads automatically.",
+      "exp": "`CLAUDE.md` holds the project context that should apply to every session: architecture notes, conventions, the commands that build and test the project, and anything a newcomer would otherwise have to be told each time. It is loaded automatically, which is what makes it worth maintaining - the instructions live with the repository rather than in individual habits. Keep it to things that stay true, since it is read on every session and stale guidance there is worse than none. Credentials never belong in it: it is a checked-in file.",
       "why": [
-        "Secrets must never be committed to a repository.",
-        "Correct. It supplies persistent, project-specific instructions and context each session.",
-        "It is not a conversation log.",
-        "It has nothing to do with billing."
+        "It is a checked-in file. Placing credentials there commits them to version control, which is a serious security failure.",
+        "Correct. Persistent project instructions and context, loaded into every session, so they live with the repository rather than in habits.",
+        "It provides instructions rather than storing history. Conversation logging is unrelated to it.",
+        "Billing is account configuration and has nothing to do with a project file."
       ],
       "id": "ccdvq-f1d132d6"
     },
@@ -259,12 +259,12 @@
         "Opus with extended thinking"
       ],
       "a": 1,
-      "exp": "Small model + caching + Batches API (50% discount) is the canonical cost-optimization stack for high-volume simple tasks.",
+      "exp": "At a million documents a day, three levers compound. The fast tier handles short summarisation at a fraction of the per-token cost; caching makes the repeated prefix - system prompt, instructions, format examples - cheap after the first call; and batch processing halves the token price for work that does not need an immediate response. A daily pipeline is exactly the latency-tolerant profile batching is designed for. The one thing to verify is quality on your own documents at the fast tier, because everything here is a real saving only if the output is still good enough.",
       "why": [
-        "Top-tier capability is wasted on high-volume short summaries.",
-        "Correct. Small model plus caching plus batch processing is the canonical cost stack.",
-        "Streaming helps interactive latency, not batch cost.",
-        "Extra reasoning on a simple task multiplies cost for no gain."
+        "The top tier at this volume costs many times more for summarisation of short documents that do not need that capability.",
+        "Correct. Three compounding levers - the fast tier, a cached prefix, and batch pricing on work that tolerates delay.",
+        "Streaming improves perceived latency for interactive users. A daily pipeline has no user waiting for tokens.",
+        "This pairs the most expensive tier with the most expensive setting, on a task whose defining constraint is cost."
       ],
       "id": "ccdvq-ec90682b"
     },
@@ -278,12 +278,12 @@
         "Reducing output length"
       ],
       "a": 1,
-      "exp": "Caching applies to repeated prompt prefixes — big system prompts and shared documents become nearly free on cache hits.",
+      "exp": "Caching stores the processed prefix so repeated content is billed at a fraction of the input rate on subsequent calls. It is a prefix match, which is the property that governs everything else: any byte change invalidates the cache from that point on, so stable content - system prompt, documents, tool definitions - has to come first and volatile content last. It does not compress anything and does not cache responses; two identical questions still generate independently. Watch `cache_read_input_tokens` to confirm it is working, because a silent invalidator like a timestamp in the system prompt fails with no error at all.",
       "why": [
-        "Caching reuses a prefix; it does not compress anything.",
-        "Correct. A repeated prefix is billed at a fraction of normal input cost on cache hits.",
-        "It caches prompt prefixes, not finished responses keyed by query.",
-        "Caching applies to input, not output length."
+        "Nothing is compressed. The prefix is processed once and reused, which is a different mechanism entirely.",
+        "Correct. A cached prefix reused across calls at a fraction of the input cost, with the ordering rule that stable content comes first.",
+        "Responses are not cached. Two identical questions generate independently, and caching applies to input rather than output.",
+        "Output length is unaffected. Caching reduces the cost of re-reading input, not the amount generated."
       ],
       "id": "ccdvq-e6c8ae38"
     },
@@ -297,12 +297,12 @@
         "Formatting fixes"
       ],
       "a": 1,
-      "exp": "Extended thinking trades tokens/latency for reasoning quality — use it selectively where difficulty warrants.",
+      "exp": "Thinking earns its cost where reasoning is the bottleneck: multi-step analysis, mathematics, architectural trade-offs, anything where the model needs to work through intermediate steps rather than recall a pattern. On simple classification or formatting it adds tokens and latency for no gain, because there was nothing to reason about. On current models the control is the effort level rather than a token budget, and the practical discipline is to sweep effort on your own workload instead of assuming higher is better - lower settings often perform surprisingly well and cost markedly less.",
       "why": [
-        "Extra reasoning on every call multiplies cost with no benefit on easy work.",
-        "Correct. Reserve it for genuinely hard multi-step reasoning where accuracy matters.",
-        "Simple classification gains nothing from deeper reasoning.",
-        "Formatting is not a reasoning problem."
+        "Applying it everywhere pays reasoning cost on requests with nothing to reason about, which is most of a typical workload.",
+        "Correct. Multi-step reasoning, mathematics and hard analysis, where working through intermediate steps is what produces the accuracy gain.",
+        "Classification is pattern recognition. There are no intermediate steps for extra reasoning to improve.",
+        "Formatting is mechanical. Reasoning depth changes nothing about applying a known transformation."
       ],
       "id": "ccdvq-40b6e514"
     },
@@ -316,12 +316,12 @@
         "Fine-tune instead"
       ],
       "a": 0,
-      "exp": "Retrieval keeps context focused and costs down; giant contexts dilute attention and cost more.",
+      "exp": "Retrieving the relevant sections is both cheaper and more accurate than sending 500 pages every call - the cost scales with the question rather than the corpus, and the relevant passage is not competing with hundreds of pages of unrelated material. That combination is unusual and worth noticing: normally the economical choice costs you quality. The trade-off to watch is retrieval quality, since a question whose answer spans several distant sections can be under-served by naive chunk retrieval. Fine-tuning is the wrong tool for a knowledge problem: it adapts behaviour rather than installing facts, and the manual would still change.",
       "why": [
-        "Correct. Retrieve the relevant sections so each call carries only what matters.",
-        "Resending everything every call is expensive and dilutes attention.",
-        "Telling users to read the manual abandons the use case.",
-        "Fine-tuning is a heavier, slower answer to what is a retrieval problem."
+        "Correct. Retrieve the relevant sections, so cost tracks the question and the passage that matters is not buried in unrelated material.",
+        "Sending everything pays full cost on every query and dilutes the relevant passage among hundreds of irrelevant pages.",
+        "This abandons the use case. The point is to answer from the manual so the user does not have to read it.",
+        "Fine-tuning adapts behaviour rather than installing facts, and the manual would still change after training."
       ],
       "id": "ccdvq-7426d846"
     },
@@ -335,12 +335,12 @@
         "It reduces token count"
       ],
       "a": 1,
-      "exp": "Anthropic's long-context guidance: put docs up top, task at the end — measurable quality gains.",
+      "exp": "On long inputs, an instruction placed after the material sits closest to where generation begins and is followed more reliably than the same instruction buried above thousands of tokens. That is the actionable half of the lost-in-the-middle finding - content at the ends of a long context is attended to more consistently than content in the interior. Pair it with clear delimiters around the document, which handle the other half: without a boundary, text inside the source can be read as instruction, and that is the mechanism behind prompt injection as well as a source of ordinary confusion.",
       "why": [
-        "Aesthetics are not the reason.",
-        "Correct. Placing the task after the material anchors attention on what to do with it.",
-        "There is no positional loading difference.",
-        "Ordering does not change the token count."
+        "Aesthetics are not the reason. This is about which parts of a long context are attended to most reliably.",
+        "Correct. The query at the end sits closest to generation, which improves instruction-following on long inputs.",
+        "There is no incremental loading. The entire prompt is processed as one unit regardless of ordering.",
+        "Ordering does not change token count. The same content costs the same however it is arranged."
       ],
       "id": "ccdvq-9d69c722"
     },
@@ -354,12 +354,12 @@
         "They enable streaming"
       ],
       "a": 1,
-      "exp": "Clear delimiters prevent instruction/content bleed; Claude handles XML-style structure especially well.",
+      "exp": "Tags give an unambiguous boundary between content types, and models are trained on this structure so they respect it reliably. The benefit is not just tidiness: without a clear boundary, instructions buried in a long document compete poorly with it, and text inside the document can read as a command you did not issue. That second point is the security-relevant one, since delimiting untrusted content is the first line of defence against prompt injection - though on its own it is not sufficient, and anything fetched from outside should still be treated as data rather than instruction.",
       "why": [
-        "The API does not require any particular markup.",
-        "Correct. Explicit delimiters separate content types unambiguously.",
-        "Tags add tokens rather than saving them.",
-        "Streaming is unrelated to prompt structure."
+        "Nothing in the API requires them. They are a prompting convention that works well, not a syntax requirement.",
+        "Correct. They separate content types unambiguously, and the models are trained to respect that structure.",
+        "Tags are ordinary text and add tokens rather than saving them. The gain is clarity, not compression.",
+        "Streaming is a transport concern set on the request. It has nothing to do with how the prompt is structured."
       ],
       "id": "ccdvq-bc2e8c78"
     },
@@ -373,12 +373,12 @@
         "In the URL as a query param"
       ],
       "a": 1,
-      "exp": "Client-exposed keys will be stolen and abused. Proxy all calls through your backend.",
+      "exp": "An API key in client-side code is public, whatever the build tooling suggests - anyone can read it from the bundle or the network tab, and then spend against your account. The key belongs on a server you control, with the browser calling your endpoint and your endpoint calling the API. That also gives you the place to enforce rate limits, authorisation and logging, which you cannot do from the client. A key in a URL query parameter is barely better than the frontend: query strings end up in server logs, proxies and browser history.",
       "why": [
-        "Anything in frontend code is readable and extractable by users.",
-        "Correct. Keep the key server-side and expose only your own authorized endpoints.",
-        "A committed secret persists in history even after deletion.",
-        "URLs are logged and cached in many places along the path."
+        "Anything in frontend code is readable by anyone using the site. A key there is effectively published.",
+        "Correct. Server-side only, with the browser calling your endpoint - which is also the only place you can enforce limits and authorisation.",
+        "A repository is not a secret store, and committed keys are routinely found by automated scanners within minutes.",
+        "Query strings are logged by servers, proxies and browsers. A key there leaks into several systems at once."
       ],
       "id": "ccdvq-94c6f769"
     },
@@ -392,12 +392,12 @@
         "Harmless"
       ],
       "a": 1,
-      "exp": "Prompt injection via untrusted content is the signature agentic-security threat. Sandboxing, least-privilege tools, and human approval for sensitive actions mitigate it.",
+      "exp": "This is prompt injection: untrusted content carrying text designed to be read as instruction. The model is not malfunctioning - it received text and processed it, which is what it does - so the defence has to be architectural. Treat everything fetched from outside as data, delimit it clearly, and never let content from a page reach a position where it can authorise an action. That is why least-privilege tooling matters so much for agents that browse: the injection only becomes an incident if the agent has a tool capable of doing what the injected text asks.",
       "why": [
-        "This is an application design issue, not a model defect.",
-        "Correct. Fetched content is untrusted data and must never be treated as instructions.",
-        "It is an attack, not a request for functionality.",
-        "Without safeguards, models can and do follow injected instructions."
+        "Nothing is malfunctioning. The model processed text it was given, which is the expected behaviour and precisely the problem.",
+        "Correct. Untrusted content attempting to hijack the agent - so fetched content must be handled as data, never as instruction.",
+        "This is a well-known attack class rather than a gap in functionality. Treating it as a feature request misses the risk entirely.",
+        "It is harmless only if the agent lacks the tools to act on it, which is a reason to limit tools rather than to dismiss the attempt."
       ],
       "id": "ccdvq-0a99a757"
     },
@@ -411,12 +411,12 @@
         "Share one admin credential across agents"
       ],
       "a": 1,
-      "exp": "Least privilege limits blast radius when the model errs or is injected.",
+      "exp": "Least privilege is the control that limits the blast radius when something goes wrong - and with an agent, something going wrong includes being manipulated by content it read. Grant only the tools and scopes the task needs, and put approval gates in front of anything hard to reverse: sending, deleting, paying, publishing. The reason this matters more for agents than for ordinary software is that the action sequence is decided at run time, so you cannot enumerate in advance everything it might attempt. Shared admin credentials additionally destroy attribution, so you cannot tell which agent did what.",
       "why": [
-        "Broad grants turn any injection into a privilege escalation.",
-        "Correct. Least privilege, with approval gates before destructive actions.",
-        "Default production write access is the widest possible blast radius.",
-        "A shared admin credential destroys attribution and least privilege at once."
+        "Broad access removes every boundary at once, so any manipulation or mistake has the full permission set available to it.",
+        "Correct. Only the tools and scopes the task needs, with approval gates on anything hard to reverse.",
+        "Production write access by default means the first mistake or successful injection lands on live data.",
+        "A shared credential destroys attribution and means revoking access for one agent revokes it for all of them."
       ],
       "id": "ccdvq-0f640dcd"
     },
@@ -430,12 +430,12 @@
         "Claude's internal memory format"
       ],
       "a": 1,
-      "exp": "MCP standardizes how clients (like Claude) discover and call tools/resources exposed by servers — 'USB-C for AI'.",
+      "exp": "MCP is an open standard for connecting AI applications to external tools and data through servers that speak a common protocol. The point is the standardisation: write a server once and any MCP-aware client can use it, instead of building a bespoke integration per application per tool. That is a combinatorial saving rather than a marginal one. It is a connection protocol, not a training method and not a memory format - which is worth being precise about, because MCP gets loosely used to mean any kind of tool integration.",
       "why": [
-        "MCP is an integration protocol, not a training method.",
-        "Correct. An open standard connecting applications to tools and data through servers.",
-        "It is unrelated to billing.",
-        "It is a protocol between systems, not an internal memory format."
+        "Fine-tuning changes model weights. MCP connects an unchanged model to external capabilities at run time.",
+        "Correct. An open standard connecting AI applications to external tools and data sources through MCP servers.",
+        "It carries tool and data interactions rather than billing. Cost is unrelated to the protocol.",
+        "It is an external connection protocol rather than anything internal to the model."
       ],
       "id": "ccdvq-d9055ea6"
     },
@@ -449,12 +449,12 @@
         "Export everything to CSV weekly"
       ],
       "a": 1,
-      "exp": "An MCP server wraps the data source in controlled tools — Claude gets capability without raw credentials.",
+      "exp": "The idiomatic approach is a server exposing safe, purpose-built query tools that Claude calls. That gives you a boundary you control: which queries are permitted, what is parameterised, what is returned, and what is logged. Pasting the database in is impossible at any real scale and stale immediately. Putting root credentials in a prompt is the worst option available - it places a long-lived secret into content that gets stored in conversation history, and grants unbounded access besides. A weekly CSV export is a data pipeline rather than an integration, and answers yesterday's questions.",
       "why": [
-        "A database cannot be meaningfully pasted into a prompt.",
-        "Correct. Expose safe, scoped query tools through an MCP server.",
-        "Credentials must never appear in a prompt.",
-        "Stale weekly exports defeat the purpose of querying live data."
+        "A database of any real size does not fit, and a snapshot is stale the moment it is pasted.",
+        "Correct. An MCP server exposing safe query tools, which gives you a boundary controlling what can be asked and what is returned.",
+        "Credentials in prompt text are persisted in conversation history, and root access removes every boundary at once.",
+        "A weekly export answers last week's questions and is a data pipeline rather than a live integration."
       ],
       "id": "ccdvq-af8859b3"
     },
@@ -468,12 +468,12 @@
         "Users, roles, tokens"
       ],
       "a": 1,
-      "exp": "MCP servers expose tools (actions), resources (data), and prompts (templates).",
+      "exp": "An MCP server exposes three primitives. Tools are actions the model can invoke, resources are data it can read, and prompts are reusable templates the server offers. The split matters when you are designing one: something the model should *do* is a tool, something it should *read* is a resource, and conflating them produces servers that either expose actions as inert data or make reads look like side-effecting operations. The other options describe model internals, filesystem concepts and identity management - none of which are what the protocol exposes.",
       "why": [
-        "These are model internals, not protocol primitives.",
-        "Correct. Tools, resources, and prompts are the three primitives.",
-        "Filesystem concepts may be exposed as resources but are not primitives.",
-        "Identity concepts are not MCP primitives."
+        "These are model internals. MCP concerns what an application exposes to a model, not how the model is built.",
+        "Correct. Tools to invoke, resources to read, and prompts as reusable templates - the three things a server exposes.",
+        "These are filesystem concepts. A server may expose files as resources, but they are not the protocol's primitives.",
+        "Identity and access are handled around the protocol rather than being primitives it defines."
       ],
       "id": "ccdvq-bcc18ba9"
     },
@@ -487,12 +487,12 @@
         "Increase max_tokens and retry"
       ],
       "a": 1,
-      "exp": "'refusal' means generation was stopped on safety grounds. It is a terminal state that needs explicit handling, not a retry loop.",
+      "exp": "A refusal is terminal for that request. Surface it rather than retrying the identical prompt, which will generally be assessed the same way and just costs another call. The subtler failure is treating whatever content arrived as an answer: a refusal can come before any output or partway through one, and a partial response consumed without checking `stop_reason` reaches the user looking complete. Note `stop_details` is populated only on a refusal and is null otherwise, so guard before reading it. If the request was legitimate, the fix is different context or an escalation path, not repetition.",
       "why": [
-        "Retrying an identical refused request wastes calls and will generally refuse again.",
-        "Correct. Check stop_reason before consuming content, and handle refusal explicitly.",
-        "Consuming content without checking stop_reason is how truncated or refused output reaches users.",
-        "max_tokens is unrelated to a safety refusal."
+        "Retrying the same request will generally be assessed the same way, so it costs a call and changes nothing.",
+        "Correct. Terminal for that request - surface it, and do not treat whatever content arrived as a finished answer.",
+        "Parsing content without checking the stop reason is exactly how a partial or refused response reaches a user as complete.",
+        "The ceiling was not the constraint. Raising it does not change a safety assessment."
       ],
       "id": "ccdvq-e2963133"
     },
@@ -506,12 +506,12 @@
         "The client timeout firing"
       ],
       "a": 1,
-      "exp": "'end_turn' is the natural-completion signal. Streaming delivers incremental events, but the terminal reason is what tells you why generation stopped.",
+      "exp": "`end_turn` on the completed message is the signal that generation finished naturally. Everything else on this list is a proxy that misidentifies other outcomes as success: a first content block only shows generation started, whitespace is ordinary output, and a timeout means your client gave up rather than that the model finished. This matters because the failure is silent - truncation at `max_tokens`, a refusal, or a `tool_use` pause all produce a stream that stops, and only the stop reason distinguishes them from completion.",
       "why": [
-        "The first block signals the start of content, not completion.",
-        "Correct. end_turn is the natural finish; max_tokens means truncation.",
-        "Whitespace in the stream carries no completion semantics.",
-        "A timeout indicates your client gave up, not that the model finished."
+        "A first content block shows generation began. It says nothing about whether it finished or why it stopped.",
+        "Correct. end_turn on the completed message is the natural-completion signal, and the only one that distinguishes it from truncation or refusal.",
+        "Whitespace is ordinary content. Treating it as a terminator would cut responses off at arbitrary points.",
+        "A timeout means your client stopped waiting. That is a client-side failure rather than the model finishing."
       ],
       "id": "ccdvq-dc0f1f3d"
     },
@@ -525,12 +525,12 @@
         "Higher cost per token"
       ],
       "a": 1,
-      "exp": "Current Claude models reject sampling parameters such as temperature. Behavior is steered through prompting and structured outputs instead.",
+      "exp": "Sampling parameters were removed on current models: Opus 5, Opus 4.8 and 4.7 reject `temperature`, `top_p` and `top_k` outright, and Sonnet 5 rejects any non-default value. So an integration carrying `temperature=0` forward from an older model fails validation rather than behaving deterministically. Steer behaviour with prompting and structured outputs instead. Worth knowing even where it is still accepted: `temperature=0` never guaranteed identical output across runs - it narrowed sampling, which is not the same thing - so any pipeline depending on byte-identical responses was already resting on an assumption the API did not make.",
       "why": [
-        "Even where temperature was accepted, it never guaranteed determinism.",
-        "Correct. Sampling parameters are rejected — steer with prompting and schemas.",
-        "Latency is unrelated to this parameter.",
-        "Pricing is per token and unaffected by sampling settings."
+        "Determinism was never guaranteed even where temperature was accepted. Narrower sampling is not reproducible output.",
+        "Correct. Rejected on current models, so this fails validation rather than changing behaviour.",
+        "Sampling settings did not affect latency, and the parameter is not accepted here in any case.",
+        "Pricing follows tokens generated rather than how they were sampled. Temperature never affected cost."
       ],
       "id": "ccdvq-f76b735f"
     },
@@ -544,12 +544,12 @@
         "Re-send only the system prompt"
       ],
       "a": 1,
-      "exp": "The Messages API is stateless. Conversation continuity is the caller's responsibility: resend the history each turn.",
+      "exp": "The API holds no state between calls. Continuing a conversation means resending the full prior history - user and assistant turns - so the model reads the whole exchange each time. There is no conversation identifier that stands in for it. Two consequences follow: cost grows with conversation length because you re-send everything each turn, which is exactly what prompt caching is for; and your application owns the history, so deciding what to trim, summarise or compact is your responsibility rather than something handled for you.",
       "why": [
-        "There is no server-side conversation store for the Messages API.",
-        "Correct. You own the history and resend it, which is also why caching matters.",
-        "There is no conversation ID that substitutes for sending history.",
-        "The system prompt alone carries none of the dialogue."
+        "There is no server-side conversation store. Nothing persists between calls unless you resend it.",
+        "Correct. Full prior history on every request, since the API is stateless and holds nothing between calls.",
+        "No conversation identifier exists. Sending only the latest message discards everything that came before it.",
+        "The system prompt sets behaviour. It carries none of the conversational content the model needs to continue."
       ],
       "id": "ccdvq-b0245cc3"
     },
@@ -563,12 +563,12 @@
         "Lower max_tokens and retry"
       ],
       "a": 0,
-      "exp": "stop_reason distinguishes truncation from natural completion, refusal, and tool use. Read it before guessing.",
+      "exp": "Check `stop_reason` first, because it distinguishes outcomes that look identical in the content: `max_tokens` means truncated, `end_turn` means finished, `refusal` means declined. A single field answers the question that guessing cannot. The others all skip the diagnosis - assuming a network failure or a refusal commits you to a fix before knowing the cause, and lowering `max_tokens` is actively backwards, since a smaller ceiling truncates sooner. If it is `max_tokens`, remember it caps thinking and response text together, so adaptive thinking draws on the same budget you sized for the answer.",
       "why": [
-        "Correct. max_tokens means you hit your own output cap — raise it or continue the response.",
-        "Network failures usually surface as transport errors, not clean truncated messages.",
-        "A refusal reports stop_reason 'refusal', not a mid-sentence cut.",
-        "Lowering the cap makes truncation more likely, not less."
+        "Correct. The stop reason distinguishes truncation from completion and from refusal, which the content alone cannot.",
+        "A network failure would usually surface as a transport error rather than a well-formed response that stops early.",
+        "A refusal is a distinct stop reason. Assuming it commits you to a fix before you have checked which outcome occurred.",
+        "Lowering the ceiling makes truncation happen sooner. This is the opposite of the fix."
       ],
       "id": "ccdvq-90cfb38b"
     },
@@ -582,12 +582,12 @@
         "Setting a stop sequence at '}'"
       ],
       "a": 1,
-      "exp": "Structured outputs constrain generation to the schema, so the response is valid by construction. Prefilling the assistant turn is rejected on current models.",
+      "exp": "Structured outputs are the supported mechanism: `output_config.format` with a JSON schema constrains generation so the response conforms. Prefilling the assistant turn was the older technique and is now rejected with a 400 on current models, so code carrying it forward fails outright rather than degrading. Asking in the system prompt and repairing failures produces valid JSON most of the time - the worst failure profile there is, reliable enough to pass testing and frequent enough to break in production. A stop sequence at a closing brace cuts generation at the first one, which is wrong for any nested object.",
       "why": [
-        "Assistant-turn prefill returns an error on current Claude models.",
-        "Correct. output_config.format guarantees schema conformance.",
-        "Prompt-and-repair is the failure-prone pattern structured outputs replaced.",
-        "Stop sequences terminate generation; they do not enforce a shape."
+        "Prefill is rejected with a 400 on current models, so this fails validation rather than producing constrained output.",
+        "Correct. output_config.format with a json_schema constrains generation, so conformance comes from the request.",
+        "This is the worst failure profile available - correct often enough to pass testing, wrong often enough to break in production.",
+        "A stop sequence on a closing brace terminates at the first one, truncating any nested object partway through."
       ],
       "id": "ccdvq-7bdab442"
     },
@@ -601,12 +601,12 @@
         "Calling tools in a fixed order"
       ],
       "a": 1,
-      "exp": "Tool descriptions and schemas are effectively prompts. Ambiguity there produces wrong tool choices and malformed arguments.",
+      "exp": "Precise descriptions and tight schemas are the two levers that matter. The description is what the model reasons over when deciding whether a tool applies, and one that states its trigger condition - call this when the user asks about current pricing - performs measurably better than one that only states its function. The schema constrains the arguments: required fields, enums, and clear parameter descriptions narrow what can be produced. Registering more tools works against both, spending context on every request and creating near-miss selections between overlapping options.",
       "why": [
-        "More tools means more opportunity for confusion between similar options.",
-        "Correct. Describe when to use each tool, and constrain arguments in the schema.",
-        "Terse names remove the information needed to choose correctly.",
-        "Forcing an order defeats the point of letting the model select."
+        "More tools costs context on every call and increases the chance of selecting a near-miss from overlapping options.",
+        "Correct. Precise descriptions and tight schemas - the description drives selection, the schema constrains the arguments.",
+        "Short names remove the signal the model uses to choose. Clarity matters much more than brevity.",
+        "A fixed order removes the model's judgement entirely, which is a workflow rather than tool use."
       ],
       "id": "ccdvq-2f6b0256"
     },
@@ -620,12 +620,12 @@
         "Permission to skip validating inputs entirely"
       ],
       "a": 1,
-      "exp": "Strict tool use guarantees the generated arguments match the schema. Runtime validation of business rules is still your responsibility.",
+      "exp": "`strict: true` guarantees that tool inputs conform to the declared schema, so you can rely on required fields being present and types being right. It requires `additionalProperties: false` and an explicit `required` list, and it sits on the tool definition rather than on `tool_choice` - a common misplacement. What it does not do is validate semantics: a date range with the end before the start is schema-valid and still impossible, so your tool still checks the meaning of what it receives. Structural guarantees and correctness guarantees are different things.",
       "why": [
-        "Execution speed is determined by your own tool implementation.",
-        "Correct. Strict mode constrains generated arguments to the schema.",
-        "Retry behavior is something your application implements.",
-        "Schema conformance is not the same as business-rule validity — keep validating."
+        "Execution speed is a property of your implementation. The flag governs the shape of the inputs, not how fast they run.",
+        "Correct. Tool inputs are guaranteed to conform to the declared schema, so required fields and types can be relied on.",
+        "Retries are your application's concern. The flag validates inputs rather than handling failures.",
+        "It guarantees structure, not meaning. Semantically impossible but schema-valid input still needs checking in the tool."
       ],
       "id": "ccdvq-bd341913"
     },
@@ -639,12 +639,12 @@
         "Send the result as a new system prompt"
       ],
       "a": 1,
-      "exp": "Tool use is a loop: the model requests, you execute, you return the result in the conversation, and generation continues with that result available.",
+      "exp": "Execute the tool and append the result as a `tool_result` block in the same conversation, referencing the matching `tool_use_id`. Continuity is what makes this work: the model needs its own tool request and your result in the same history to continue reasoning from where it stopped. Starting a new conversation discards that context. Ignoring the request because you already know the answer breaks the protocol - the model is waiting on a result and will not proceed coherently without one. A system prompt is the wrong channel; results belong in the message history as tool results.",
       "why": [
-        "Starting over discards the reasoning that led to the tool call.",
-        "Correct. Return a tool_result in the same conversation to continue the loop.",
-        "Skipping the result leaves the model waiting on information it asked for.",
-        "System prompts are not the channel for tool results."
+        "A new conversation discards the reasoning that led to the tool call, so the model starts from nothing.",
+        "Correct. Execute it and return the result as a tool_result in the ongoing history, referencing the matching tool_use_id.",
+        "The model is waiting on a result for a request it made. Skipping it breaks the exchange even if your answer is right.",
+        "The system prompt sets behaviour. Tool results belong in the message history in the block type designed for them."
       ],
       "id": "ccdvq-ca9f02d2"
     },
@@ -658,12 +658,12 @@
         "Widen the schema so it never fails"
       ],
       "a": 1,
-      "exp": "Schemas constrain shape, not meaning. Returning a specific, actionable error lets the model correct itself on the next turn.",
+      "exp": "Validate in the tool and return a clear error the model can act on. Schema validation guarantees structure, not meaning - an end date before a start date satisfies any reasonable schema and is still impossible - so semantic checks belong in your implementation. Returning a specific error lets the model correct itself on the next turn, which is usually all it needs. Expecting the behaviour to stop on its own leaves a live failure path. Widening the schema so nothing fails is the worst option: it converts a caught error into silently wrong data downstream.",
       "why": [
-        "Hoping for different behavior is not a control.",
-        "Correct. Validate semantics and return an error the model can read and retry against.",
-        "Removing capability to avoid an edge case is disproportionate.",
-        "Loosening the schema increases the range of bad inputs."
+        "Hoping the pattern stops leaves a live failure path with nothing to catch it when it recurs.",
+        "Correct. Validate semantics in the tool and return an actionable error, which is usually enough for the model to correct itself.",
+        "Removing a useful tool over a fixable input problem loses the capability rather than addressing the cause.",
+        "A permissive schema converts a caught error into silently wrong data downstream, which is far harder to diagnose."
       ],
       "id": "ccdvq-859b8550"
     },
@@ -677,12 +677,12 @@
         "It is the only way to call an external API"
       ],
       "a": 1,
-      "exp": "Contract-first extraction removes parsing as a failure mode. You still handle transport, semantics, and downstream errors.",
+      "exp": "A guaranteed output shape removes an entire class of failure. Free-text parsing has to cope with formatting drift, unexpected preamble and subtle structural variation, and every one of those is a path to a wrong value or a crash. A schema-constrained tool removes the parse step and its failure modes together. Note what it does not remove: you still handle semantically wrong values, missing external data and downstream errors, so error handling is reduced rather than eliminated. Token cost is not the argument either - a schema is not automatically cheaper.",
       "why": [
-        "Schemas can add tokens; the win is reliability, not always size.",
-        "Correct. A guaranteed shape eliminates parse failures by construction.",
-        "Other error classes remain and still need handling.",
-        "Tools are one integration path among several."
+        "Token cost depends on the content and schema definitions add tokens of their own. Cost is not the reason.",
+        "Correct. The shape is guaranteed, which removes formatting drift, stray preamble and structural variation as failure modes.",
+        "It removes parse failures rather than all failures. Semantically wrong values and downstream errors still need handling.",
+        "Tool calling is one way to reach external systems, not the only one. Your code can call an API directly."
       ],
       "id": "ccdvq-075368a3"
     },
@@ -696,12 +696,12 @@
         "Several people will read the result"
       ],
       "a": 1,
-      "exp": "Agents earn their complexity when the path is discovered at run time. Known, fixed pipelines are better served by explicit orchestration.",
+      "exp": "The signal is that the sequence cannot be specified up front - when the next step depends on what the last one returned, in ways you cannot enumerate. That is what a loop buys you, and it is the only thing that justifies its cost and unpredictability. Prompt length, output format and audience are all irrelevant to that judgement: a long prompt is a context question, JSON is a formatting question, and readership affects review rather than control flow. The common mistake is reaching for an agent because a task feels sophisticated rather than because its path is genuinely unknown.",
       "why": [
-        "Length is a context concern, not a control-flow one.",
-        "Correct. Unknown step count and order is the defining case for an agent loop.",
-        "Structured output is achievable in a single call.",
-        "Audience size does not change the control flow required."
+        "Prompt length is a context-window question. A very long prompt can still be a single, well-defined call.",
+        "Correct. When the number and order of steps cannot be known in advance, which is the only thing a loop actually buys you.",
+        "Output format is a structured-output concern and has no bearing on whether iteration is needed.",
+        "Who reads the result affects review and presentation rather than whether the work needs a loop."
       ],
       "id": "ccdvq-ee8bd157"
     },
@@ -715,12 +715,12 @@
         "A longer system prompt"
       ],
       "a": 1,
-      "exp": "Loop guards are what keep an autonomous system bounded. Without them, ambiguity becomes unbounded spend.",
+      "exp": "Explicit stopping conditions are the safeguard: an iteration cap, a spend ceiling, and a defined path for what happens when either is hit. Without them an ambiguous task can loop indefinitely, and the cost is unbounded in a way a single call never is. The escalation path is the part people leave out - a cap that just stops leaves the work in an undefined state, whereas one that hands off with its partial results is recoverable. More capability, more tools and longer instructions all give the agent more to do; none of them bound how long it does it for.",
       "why": [
-        "Capability does not create termination conditions.",
-        "Correct. Caps, budgets, and escalation are the guardrails that bound a loop.",
-        "More tools widen the search space and can worsen looping.",
-        "Instructions alone do not enforce termination."
+        "A more capable model can loop just as long. Capability does not bound iteration or spend.",
+        "Correct. Iteration caps, budget limits and a defined escalation path, so the loop is bounded and its ending is recoverable.",
+        "More tools expands what the agent can attempt. That widens the space to wander in rather than bounding it.",
+        "Longer instructions may improve behaviour but impose no hard limit on how long a loop runs."
       ],
       "id": "ccdvq-14333d4d"
     },
@@ -734,12 +734,12 @@
         "It removes the need for retries"
       ],
       "a": 1,
-      "exp": "Partial delivery turns a total loss into a partial success, and gives a retry somewhere to resume from.",
+      "exp": "Persisting intermediate results means a failure late in a long run does not discard everything before it. On a run measured in minutes or hours that is the difference between resuming and restarting, and it also gives you a record of what the agent actually did, which matters for debugging and for audit. It does not reduce token cost - the work already done was already billed - and it does not make anything faster on the happy path. What it removes is the all-or-nothing failure profile that makes long autonomous runs risky.",
       "why": [
-        "Persistence does not eliminate token cost.",
-        "Correct. Checkpointing converts an all-or-nothing failure into recoverable progress.",
-        "Storage does not change inference speed.",
-        "Retries are still needed; checkpoints make them cheaper."
+        "Tokens for completed work are already billed. Persistence protects the results, not the cost.",
+        "Correct. A late failure still delivers the work already completed, which turns a restart into a resume.",
+        "Writing state adds a small overhead rather than saving time. The gain is durability, not speed.",
+        "Retries are still needed. Persistence limits what a failure destroys rather than preventing failures."
       ],
       "id": "ccdvq-4b877c43"
     },
@@ -753,12 +753,12 @@
         "It guarantees correctness"
       ],
       "a": 1,
-      "exp": "Isolation keeps the orchestrator's context clean and enables genuine parallelism. It is a structural benefit, not a capability one.",
+      "exp": "A separate context window isolates the subtask. The main thread does not fill with the subagent's intermediate reading and tool output - only the result comes back - and independent subtasks can run in parallel. That is a real architectural gain on work that fans out. What it is not is a capability or correctness improvement: the subagent runs the same models with the same limits, and it can be wrong in exactly the same ways. It also costs more rather than less, since each subagent re-establishes its own context before it can start.",
       "why": [
-        "Context isolation does not change model capability.",
-        "Correct. Isolation preserves focus and unlocks parallel execution.",
-        "Parallel subagents typically increase total token use.",
-        "No architecture guarantees correct results."
+        "The subagent runs the same models with the same limits. Isolation changes what it sees, not how capable it is.",
+        "Correct. It isolates the work so the main thread stays focused, and independent subtasks can run in parallel.",
+        "Each subagent re-establishes its own context, so delegation generally increases token cost rather than avoiding it.",
+        "Nothing about isolation guarantees correctness. A subagent can be confidently wrong exactly as the main thread can."
       ],
       "id": "ccdvq-2942dc87"
     },
@@ -772,12 +772,12 @@
         "Whether the budget allows it"
       ],
       "a": 1,
-      "exp": "Published guidance is consistent: use the simplest pattern that works, and escalate only when the task demands it. Each layer adds cost, latency, and failure surface.",
+      "exp": "Ask whether the simplest pattern that works has actually been exhausted. Each additional agent adds coordination, latency, cost and new failure modes - agents overwriting each other, waiting on each other, or disagreeing - and those are only worth paying when a single agent has demonstrably hit its limit. Team enthusiasm, vendor advice and available budget are all reasons someone might want a second agent, and none of them is evidence the first one is insufficient. The discipline is the same one that applies to reaching for an agent at all: escalate on evidence.",
       "why": [
-        "Preference is not an architectural justification.",
-        "Correct. Escalate complexity only when the simpler pattern demonstrably fails.",
-        "Vendor guidance in fact points toward the simplest workable pattern.",
-        "Affordability does not make added complexity beneficial."
+        "Preference is not evidence. Wanting to use more agents says nothing about whether the current one is inadequate.",
+        "Correct. Whether the simplest thing that works has genuinely been exhausted, since every added agent brings coordination cost and new failure modes.",
+        "A recommendation is not a diagnosis of your system. It cannot tell you whether your single agent is actually limited.",
+        "Affordability is not a reason to add complexity. Budget tells you what you can spend, not what will help."
       ],
       "id": "ccdvq-878a9db6"
     },
@@ -791,12 +791,12 @@
         "Silently pretend the tool returned nothing"
       ],
       "a": 1,
-      "exp": "Transient failures deserve bounded retries; a persistent failure should become visible information the agent can reason about rather than a silent gap.",
+      "exp": "Retry with backoff, and when it keeps failing, return a clear error the agent can reason about. That preserves both halves of what you want: transient failures resolve themselves, and persistent ones become information the model can act on - trying another approach, or reporting that it could not complete the step. Abandoning the whole run throws away everything else that succeeded. Retrying immediately and forever turns a transient failure into a hang while hammering a struggling service. Silently returning nothing is worst: the agent reasons confidently from a false premise, concluding the data does not exist.",
       "why": [
-        "Abandoning on a transient blip wastes completed work.",
-        "Correct. Bounded backoff, then surface a actionable error.",
-        "Unbounded immediate retries amplify the outage.",
-        "Silently swallowing failures produces confidently wrong results."
+        "Abandoning the run discards everything else that succeeded because of one failing tool.",
+        "Correct. Backoff handles the transient case, and a clear error makes the persistent case something the agent can reason about.",
+        "Immediate unbounded retries hang the run and add load to a service that is already failing.",
+        "Silence makes the agent conclude the data does not exist, which is a confident wrong answer rather than a visible failure."
       ],
       "id": "ccdvq-2e8d5ada"
     },
@@ -810,12 +810,12 @@
         "Adding more tools"
       ],
       "a": 1,
-      "exp": "Asynchronous batch processing is designed for exactly this shape: high volume, no urgency. It is priced well below synchronous calls.",
+      "exp": "The Batches API is the strongest lever here: it processes asynchronously at a substantial discount, and a nightly job with no latency requirement is precisely the profile it exists for. Results return within 24 hours, which is irrelevant to a job that runs overnight anyway. Streaming optimises perceived latency for a user who is waiting, and there is no user here. Raising `max_tokens` increases cost rather than reducing it. Adding tools adds work. The general point is that the cheapest change is usually the one that exploits a constraint you do not have - here, urgency.",
       "why": [
-        "Streaming improves perceived latency for interactive use, not batch cost.",
-        "Correct. Batch processing trades latency for a significant discount.",
-        "A higher output cap tends to increase cost.",
-        "Tools add capability and cost, not savings."
+        "Streaming improves perceived latency for a waiting user. A nightly batch job has nobody waiting.",
+        "Correct. Asynchronous processing at a substantial discount, which is exactly what a latency-tolerant nightly job can exploit.",
+        "A higher ceiling permits longer and therefore more expensive responses. This raises cost rather than lowering it.",
+        "Tools add capability and calls. Neither reduces the cost of summarising a large document set."
       ],
       "id": "ccdvq-725123b9"
     },
@@ -829,12 +829,12 @@
         "Add more parallelism"
       ],
       "a": 1,
-      "exp": "When a large prefix repeats at volume, caching dominates the savings. Order stable content first so the cache prefix is as long as possible.",
+      "exp": "Caching the stable prefix is the first move, because the system prompt and tool definitions are identical on every one of those calls and are billed in full each time without it. Cached reads cost a fraction of the input rate, so at 100k daily calls this is the change with by far the largest effect. The requirement is ordering: caching is a prefix match, so stable content must come first and anything volatile - timestamps, per-request identifiers - must come after the last breakpoint, or the cache is invalidated silently and you pay full price with no error to tell you.",
       "why": [
-        "Token savings from naming are negligible at this scale.",
-        "Correct. Cache the stable prefix; cache reads cost a fraction of normal input.",
-        "Output caps barely affect a cost profile dominated by repeated input.",
-        "Parallelism changes throughput, not cost per call."
+        "Variable naming has no effect on token cost. The prompt content is what is billed, not how your code is written.",
+        "Correct. The stable prefix is re-billed in full on every call without caching, which makes it the largest single lever at this volume.",
+        "The output ceiling caps generation length. It does nothing about the large input sent on every request.",
+        "Parallelism affects throughput and rate limits rather than the cost of each individual call."
       ],
       "id": "ccdvq-802e2c5a"
     },
@@ -848,12 +848,12 @@
         "You use many different models"
       ],
       "a": 1,
-      "exp": "Caching works on repeated prefixes. Variation early in the prompt breaks the cache; stable content first is the design rule.",
+      "exp": "Caching pays off when a large block of identical content sits at the start of many requests - a long system prompt, a fixed document set, a stable tool list. Both properties matter: large, because there is a minimum cacheable size and it varies by model; and at the start, because caching is a prefix match and any byte change invalidates everything after it. Completely different requests share no prefix and cache nothing. Response length is irrelevant, since caching applies to input. Using many models actively hurts, because caches are per-model and switching means writing a fresh one.",
       "why": [
-        "Fully distinct requests share no prefix to cache.",
-        "Correct. A large, identical, leading block is the ideal case.",
-        "Caching applies to input, not output length.",
-        "Caches are per model; spreading across models fragments them."
+        "Requests with nothing in common share no prefix, so there is nothing to reuse and the write premium is wasted.",
+        "Correct. A large identical block at the start of many requests, which is what a prefix match can actually reuse.",
+        "Caching applies to input. Output length has no bearing on what can be cached.",
+        "Caches are per-model, so spreading traffic across models means paying to write a separate cache for each."
       ],
       "id": "ccdvq-2227b5d2"
     },
@@ -867,12 +867,12 @@
         "Sending the prompt twice"
       ],
       "a": 1,
-      "exp": "Current models expose reasoning depth as an effort level with adaptive thinking. The older fixed token budget has been removed.",
+      "exp": "Reasoning depth is controlled by the effort level on current models. Adaptive thinking means Claude decides how much to think per request, and effort - low through max - sets how deep that goes, so raising it for a genuinely hard step is the supported lever. The older fixed token budget was removed and now returns a 400 on Opus 5, Sonnet 5, Opus 4.8 and 4.7. Sampling parameters never controlled reasoning and are rejected on current models besides. Worth sweeping effort on your own workload rather than assuming higher is better: lower settings often perform well at markedly lower cost.",
       "why": [
-        "The fixed budget_tokens dial has been removed on current models.",
-        "Correct. Effort is the supported control for how much the model reasons.",
-        "Sampling parameters are rejected on current models and never controlled reasoning depth.",
-        "Duplicate requests double cost without improving reasoning."
+        "The fixed budget was removed and now returns a 400 on current models, so this is not available even if you wanted it.",
+        "Correct. Effort is the supported control for reasoning depth, with adaptive thinking sizing the work per request.",
+        "Sampling parameters affect token selection rather than reasoning, and current models reject them outright.",
+        "Two identical requests give you two samples at the same depth for twice the cost. That is a check, not a control."
       ],
       "id": "ccdvq-a81c7010"
     },
@@ -886,12 +886,12 @@
         "Run the steps in a different order"
       ],
       "a": 1,
-      "exp": "Per-step right-sizing captures most of the available savings without harming the steps that need capability.",
+      "exp": "Right-size each step. In a pipeline of mixed difficulty, most steps are usually well-specified work - extraction, classification, formatting - that a cheaper model handles at the same quality, and the strong model earns its cost on the one or two steps where reasoning is genuinely hard. Matching capability to each step captures most of the saving without touching quality where it matters. Moving everything up pays a premium on the easy steps; moving everything down degrades the hard one. Reordering changes sequence rather than what each step costs.",
       "why": [
-        "Uniformly upgrading raises cost with no benefit on easy steps.",
-        "Correct. Match model tier to each step's actual difficulty.",
-        "Uniformly downgrading degrades the steps that need reasoning.",
-        "Ordering does not change per-step difficulty."
+        "Moving every step up pays the premium on the simple ones, which are usually the majority of the pipeline.",
+        "Correct. Match capability to each step, keeping the strong model only where the reasoning is genuinely hard.",
+        "Moving everything down degrades the step that actually needed capability, trading quality for a saving on the wrong axis.",
+        "Order affects sequencing and dependencies. It does not change what any individual step costs to run."
       ],
       "id": "ccdvq-ec180399"
     },
@@ -905,12 +905,12 @@
         "Trying it once on a sample input"
       ],
       "a": 1,
-      "exp": "Model substitution decisions should rest on measured quality against your own cases, not on general benchmarks or single spot checks.",
+      "exp": "Run an eval on representative cases and compare against the model you are using now. That is the only method that answers the question you are actually asking - is it good enough for this task, on this data - and it gives you a number you can defend when someone asks why the pipeline changed. Intuition is unreliable and tends to favour whatever is familiar. Vendor benchmarks measure general capability on tasks that are not yours. A single sample is the most dangerous option, because one good result feels like evidence and tells you nothing about the distribution.",
       "why": [
-        "Intuition is unreliable and unreviewable.",
-        "Correct. Measure on representative cases before switching.",
-        "Public benchmarks rarely reflect your specific task distribution.",
-        "One example cannot characterize a distribution."
+        "Intuition is unreliable and biased toward the familiar. It produces confidence rather than evidence.",
+        "Correct. An eval on representative cases against the current model, which is the only thing that answers the question for your data.",
+        "Published benchmarks measure general capability on tasks that are not yours. They cannot tell you about your workload.",
+        "One sample is the most misleading option available - a single good result feels like proof and says nothing about the distribution."
       ],
       "id": "ccdvq-c37231c3"
     },
@@ -924,12 +924,12 @@
         "The API is billing incorrectly"
       ],
       "a": 1,
-      "exp": "Flat traffic with rising cost points at growth in per-call tokens, which usually creeps in through history, retrieval, and tool definitions.",
+      "exp": "Flat traffic with rising cost points at growth in what each call sends. The usual culprits are conversation history accumulating, retrieved chunks getting larger or more numerous, and tool definitions being added over time - all of which increase input tokens per request without any change in request volume. That is measurable: compare token counts per call now against a few months ago. Prices do not change silently, and billing errors are far rarer than prompt growth. Starting with the explanation you can measure is what turns a cost investigation into a finding rather than a suspicion.",
       "why": [
-        "Pricing changes are announced and would not be a silent creep.",
-        "Correct. Per-call token growth is the usual cause of drift at flat volume.",
-        "Typing speed has no bearing on token usage.",
-        "Billing errors are possible but far less likely than context growth."
+        "Pricing changes are announced rather than silent, and would not produce a steady climb against flat traffic.",
+        "Correct. Growth in what each call sends - accumulated history, larger retrieved chunks, more tools - raises cost with volume unchanged.",
+        "How fast users type has no bearing on token consumption. The content is what is billed.",
+        "Billing errors are far rarer than prompt growth, and this is the last hypothesis to reach for rather than the first."
       ],
       "id": "ccdvq-e32b6ddf"
     },
@@ -943,12 +943,12 @@
         "Switch to a smaller model"
       ],
       "a": 1,
-      "exp": "Compaction preserves the important state past window limits, instead of relying on everything staying in raw history.",
+      "exp": "Compaction is the architectural answer: periodically summarise the decisions, constraints and state that still matter into a durable note, and re-inject that rather than carrying the entire transcript. It keeps what is load-bearing prominent while dropping superseded drafts and resolved tangents, which is exactly what a growing conversation buries. Asking the user to repeat themselves pushes the problem onto them and does not stop it recurring. A larger output ceiling addresses generation length rather than context, and a smaller model has less headroom, not more.",
       "why": [
-        "Pushing the problem to the user is not an architecture.",
-        "Correct. Summarize state into a durable note and re-inject it.",
-        "max_tokens governs output length, not input retention.",
-        "A smaller model typically has less room, not more."
+        "This makes the user do the compaction manually, and the same drift recurs a few turns later.",
+        "Correct. Summarise decisions and state into a durable note that is re-injected, so what matters stays prominent as the transcript grows.",
+        "That parameter caps generation length. It has no effect on how much earlier context remains influential.",
+        "A smaller model generally has less context headroom, which makes the problem worse rather than better."
       ],
       "id": "ccdvq-93a241d9"
     },
@@ -962,12 +962,12 @@
         "After every single tool call"
       ],
       "a": 1,
-      "exp": "Compacting at a threshold leaves room to actually perform the compaction. Waiting for a hard failure leaves none.",
+      "exp": "Compact proactively at a utilisation threshold, leaving headroom for the summarisation itself - which is the part people miss, since compaction is a model call that needs room to run. Waiting for a failure means the first sign of the problem is a broken request, and at that point there may not be space to compact your way out of it. Leaving it entirely to the provider gives up control over what is preserved, which on a long agent run is exactly the judgement you want to keep. Compacting after every tool call is wasteful and destroys recent context you still need.",
       "why": [
-        "By the time it fails you may not have room to summarize.",
-        "Correct. Compact proactively with headroom reserved.",
-        "Context management is the application's responsibility.",
-        "Compacting constantly destroys useful recent detail and burns tokens."
+        "A failed request is a poor first signal, and at that point there may not be room left to compact your way out.",
+        "Correct. Proactively at a threshold, with headroom left for the summarisation call itself.",
+        "This gives up control over what is preserved, which on a long agent run is the judgement most worth keeping.",
+        "Compacting constantly wastes calls and destroys recent context the agent still needs to work with."
       ],
       "id": "ccdvq-a21ceec9"
     },
