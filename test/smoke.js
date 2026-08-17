@@ -1204,22 +1204,96 @@ vm.createContext(sandbox);
   check(evalIn(`!!migrate({}).profile && typeof migrate({}).profile.handle === "string"`), "fresh state initialises the user profile");
   check(evalIn(`typeof migrate({}).dailyTarget === "object" && migrate({}).dailyTarget !== null`), "fresh state initialises dailyTarget");
 
-  /* ---------- no retired or non-existent models ----------
-     Every Claude 3.x model is retired and 404s today, so naming one as current
-     teaches an API call that fails. "Claude 3.5 Opus" is worse — it never
-     existed at all. Model names appear in both code and content, so scan both. */
-  const RETIRED = [
-    /Claude 3\.5 Sonnet/, /Claude 3\.5 Haiku/, /Claude 3\.7 Sonnet/, /Claude 3 Opus/,
-    /claude-3-5-sonnet/, /claude-3-5-haiku/, /claude-3-7-sonnet/, /claude-3-opus/,
-  ];
+  /* ---------- Claude facts: allow-list, not denylist ----------
+     This was a denylist of Claude 3.x names, which by construction could not
+     catch anything newer. It missed 14 uses of claude-sonnet-4-5, 4 of the
+     non-existent claude-opus-4, Opus priced at $15/$75, every server-tool
+     version string a generation out of date, and 50 uses of budget_tokens -
+     a parameter that now returns a 400 on the models a learner will use.
+
+     Everything below is checked against docs/FACTS.md. Adding a model means
+     editing that file and this list together. */
   const corpus = html + JSON.stringify(data);
-  const retiredHits = RETIRED.filter(re => re.test(corpus)).map(re => re.source);
-  check(retiredHits.length === 0, `no retired Claude models referenced (${retiredHits.join(", ") || "none"})`);
-  check(!/Claude 3\.5 Opus/.test(corpus), "no reference to Claude 3.5 Opus, a model that never existed");
-  check(/Claude (Fable 5|Mythos 5|Opus 5|Opus 4\.[678]|Sonnet 5|Sonnet 4\.6|Haiku 4\.5)/.test(corpus),
+
+  // FACTS.md §1 — the only model ids that may appear anywhere in the app.
+  const VALID_MODEL_IDS = new Set([
+    "claude-fable-5", "claude-mythos-5",
+    "claude-opus-5", "claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6",
+    "claude-sonnet-5", "claude-sonnet-4-6",
+    "claude-haiku-4-5", "claude-haiku-4-5-20251001",
+  ]);
+  // Only match ids: `claude-` followed by a model family. This deliberately
+  // skips app slugs like claude-cert-quest-offline-bundle and claude-md.
+  const idHits = [...new Set(
+    (corpus.match(/claude-(?:opus|sonnet|haiku|fable|mythos)[a-z0-9-]*/g) || []))];
+  const badIds = idHits.filter(id => !VALID_MODEL_IDS.has(id));
+  check(badIds.length === 0,
+    `every claude-* model id is current (${badIds.slice(0, 6).join(", ") || idHits.length + " ids ok"})`);
+
+  // FACTS.md §1 — display names. Both orderings, since the retired generation
+  // wrote the number first ("Claude 3.5 Sonnet") and the current one writes it
+  // last ("Claude Sonnet 5").
+  const VALID_MODEL_NAMES = new Set([
+    "Claude Fable 5", "Claude Mythos 5",
+    "Claude Opus 5", "Claude Opus 4.8", "Claude Opus 4.7", "Claude Opus 4.6",
+    "Claude Sonnet 5", "Claude Sonnet 4.6", "Claude Haiku 4.5",
+  ]);
+  const nameHits = [...new Set(
+    (corpus.match(/Claude (?:Opus|Sonnet|Haiku|Fable|Mythos) \d+(?:\.\d+)?/g) || []))];
+  const badNames = nameHits.filter(n => !VALID_MODEL_NAMES.has(n));
+  check(badNames.length === 0,
+    `every Claude model name is current (${badNames.slice(0, 6).join(", ") || nameHits.length + " names ok"})`);
+  const oldStyleNames = [...new Set((corpus.match(/Claude \d+(?:\.\d+)? (?:Opus|Sonnet|Haiku)/g) || []))];
+  check(oldStyleNames.length === 0,
+    `no retired-generation model names (${oldStyleNames.slice(0, 4).join(", ") || "none"})`);
+  check(/Claude (?:Opus|Sonnet|Haiku|Fable) \d/.test(corpus),
     "content names at least one current Claude model");
+
+  // FACTS.md §1 — per-1M pricing. Every rate pair in the app must be a real
+  // one. Catches Opus at 15/75 and Haiku at 0.80/4.00 without the check
+  // needing to know which model each table row describes.
+  const VALID_RATES = new Set(["10/50", "5/25", "3/15", "2/10", "1/5"]);
+  const rateHits = [...corpus.matchAll(/inM:\s*([\d.]+)\s*,\s*outM:\s*([\d.]+)/g)]
+    .map(m => `${parseFloat(m[1])}/${parseFloat(m[2])}`);
+  const badRates = [...new Set(rateHits.filter(r => !VALID_RATES.has(r)))];
+  check(badRates.length === 0,
+    `every model price pair matches the rate card (${badRates.join(", ") || rateHits.length + " pairs ok"})`);
+  check(!/\$75(\.00)?\b/.test(corpus), "no $75/1M rate — no current model is priced there");
+
+  // FACTS.md §5 — server-tool version strings are all dated and drift silently.
+  const VALID_TOOL_VERSIONS = new Set([
+    "web_search_20260209", "web_fetch_20260209", "web_search_20250305", "web_fetch_20250910",
+    "code_execution_20260521", "code_execution_20260120",
+    "computer_20251124", "bash_20250124", "text_editor_20250728", "memory_20250818",
+    "tool_search_tool_regex_20251119", "tool_search_tool_bm25_20251119", "advisor_20260301",
+  ]);
+  const toolHits = [...new Set(
+    (corpus.match(/\b(?:web_search|web_fetch|code_execution|computer|bash|text_editor|memory|advisor|tool_search_tool_(?:regex|bm25))_\d{8}\b/g) || []))];
+  const badTools = toolHits.filter(t => !VALID_TOOL_VERSIONS.has(t));
+  check(badTools.length === 0,
+    `every server-tool version string is current (${badTools.slice(0, 6).join(", ") || toolHits.length + " ok"})`);
+
+  // FACTS.md §3 — the highest-stakes one. budget_tokens is not merely dated:
+  // it is rejected with a 400 on Opus 5, Sonnet 5, Opus 4.8, 4.7 and Fable 5.
+  // Showing it beside one of those models teaches a call that fails, so the
+  // check is proximity-based rather than a blanket ban - the transition is
+  // worth teaching, just never as the current way to do it.
+  const FIVE_GEN = /claude-(?:opus-5|sonnet-5|opus-4-[78]|fable-5|mythos-5)|Claude (?:Opus 5|Sonnet 5|Opus 4\.[78]|Fable 5|Mythos 5)/;
+  const thinkingHits = [...corpus.matchAll(/budget_tokens|type:\s*['"]enabled['"]/g)];
+  const badThinking = thinkingHits.filter(m => {
+    const around = corpus.slice(Math.max(0, m.index - 300), m.index + 300);
+    return FIVE_GEN.test(around);
+  });
+  check(badThinking.length === 0,
+    `budget_tokens is never shown alongside a model that rejects it (${badThinking.length} violations)`);
+  check(!/budget_tokens/.test(corpus) || /budget_tokens[\s\S]{0,600}?(400|rejected|removed|deprecated)/i.test(corpus),
+    "if budget_tokens appears at all, the app says it is rejected on current models");
+
+  // FACTS.md §1/§6 — the two figures the app previously got wrong outright.
   check(!/200,?000 tokens \(all current models\)/.test(corpus),
     "no claim that 200K is the context window on all current models");
+  check(!/max(imum)? (output )?(is |of )?8,?192/i.test(corpus) || /Haiku/.test(corpus),
+    "no stale per-model output cap stated without naming the model it applies to");
 
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
