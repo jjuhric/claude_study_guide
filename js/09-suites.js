@@ -284,8 +284,8 @@ function modelMatrixView(){
     + '<th style="padding:10px 12px;">Input / 1M</th>'
     + '<th style="padding:10px 12px;">Output / 1M</th>'
     + '<th style="padding:10px 12px;">Cache Read</th>'
-    + '<th style="padding:10px 12px;">Thinking Budget</th>'
-    + '<th style="padding:10px 12px;">P99 Latency</th>'
+    + '<th style="padding:10px 12px;">Context / Output</th>'
+    + '<th style="padding:10px 12px;">Effort range</th>'
     + '</tr>'
     + '</thead>'
     + '<tbody>'
@@ -391,7 +391,7 @@ function tokenProfilerLab(){
     + '<input type="range" min="0" max="' + rawInput + '" step="5000" value="' + cachedInput + '" oninput="tokenProfilerState.cachedTokens=parseInt(this.value,10); tokenProfilerLab()" style="width:100%;">'
     + '</div>'
     + '<div>'
-    + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Thinking Budget: ' + thinking.toLocaleString() + '</label>'
+    + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Tokens spent thinking (adaptive): ' + thinking.toLocaleString() + '</label>'
     + '<input type="range" min="0" max="32000" step="1000" value="' + thinking + '" oninput="tokenProfilerState.thinkingTokens=parseInt(this.value,10); tokenProfilerLab()" style="width:100%;">'
     + '</div>'
     + '<div>'
@@ -2015,14 +2015,14 @@ function tokenBudgetVisualizer(){
     +"<input id=\"tbCtx\" type=\"range\" min=\"0\" max=\"160000\" value=\"20000\" oninput=\"_tbUpdate()\" style=\"width:100%;\">"
     +"</div>"
     +"<div style=\"margin-bottom:16px;\">"
-    +"<label style=\"font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:6px;\">🧠 Extended Thinking Budget Tokens</label>"
+    +"<label style=\"font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:6px;\">🧠 Tokens spent thinking (set by effort, not by you)</label>"
     +"<input id=\"tbThink\" type=\"range\" min=\"0\" max=\"64000\" value=\"0\" oninput=\"_tbUpdate()\" style=\"width:100%;\">"
     +"</div>"
     +"</div>"
     +"<div>"
     +bar("tbSys","#d97757","System Prompt")
     +bar("tbCtx","#5b7fa6","Context / Conversation")
-    +bar("tbThink","#8a6fae","Thinking Budget")
+    +bar("tbThink","#8a6fae","Thinking tokens")
     +bar("tbOut","#5a9e6f","Remaining Output Budget")
     +"<div style=\"text-align:right;font-size:11px;color:var(--muted);margin-top:4px;\">Total used: <strong id=\"tbTotal\">0 / 200,000</strong></div>"
     +"</div>"
