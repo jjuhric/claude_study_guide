@@ -77,7 +77,15 @@ every fact matches `docs/FACTS.md`.
 `exp` to a 60-word floor (target 80–120): what the answer means, the principle
 under it, and when it stops applying. Each `why` to a 25-word floor naming the
 specific misconception. Per-question teaching text ~56 → ~180 words.
-- [ ] **3.1** CCAO-F
+
+**Floor note (from writing the first 40):** the 60-word `exp` floor lands well
+— batches average ~100 words. The 25-word `why` floor does not: rationales that
+name the misconception cleanly come out at 18–25 words, and padding them to
+clear 25 adds words without adding information. Set the enforced floor at 18
+in task 3.5 and target ~22 average, rather than writing to a number.
+- [~] **3.1** CCAO-F — 40/100 done (indices 0-33 plus the 8 rewritten in 2.1).
+      Resume at index 34. Achieved: exp ~100w, why ~21w. See the note below on
+      the why floor.
 - [ ] **3.2** CCDV-F
 - [ ] **3.3** CCAR-F
 - [ ] **3.4** CCAR-P
