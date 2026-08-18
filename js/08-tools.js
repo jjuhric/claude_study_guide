@@ -172,7 +172,7 @@ const SOCRATIC_TOPICS = [
       { speaker: "Candidate", text: "I added cache_control to my 300-token prompt, but cache_read_input_tokens was 0." },
       { speaker: "Claude Socratic Tutor", text: "Let's inspect the Prompt Caching specifications. What is the minimum prefix token threshold for Claude Sonnet 5 and Opus?" },
       { speaker: "Candidate", text: "It requires at least 1,024 tokens." },
-      { speaker: "Claude Socratic Tutor", text: "Spot on! Prompts under 1,024 tokens for Sonnet/Opus (or 2,048 for Haiku) cannot be cached. Static guidelines and tool definitions must exceed that floor to trigger the 85% discount." }
+      { speaker: "Claude Socratic Tutor", text: "Spot on! Prompts under 1,024 tokens for Sonnet/Opus (or 2,048 for Haiku) cannot be cached. Static guidelines and tool definitions must exceed that floor to trigger the ~90% discount." }
     ]
   }
 ];

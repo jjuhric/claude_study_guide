@@ -55,7 +55,7 @@ function calcCacheSim(){
   
   const baseRate = (model === "haiku") ? 0.80 : (model === "sonnet") ? 3.00 : 15.00;
   const writeRate = baseRate * 1.25;
-  const readRate = baseRate * 0.15; // 85% discount
+  const readRate = baseRate * 0.15; // ~90% discount
   
   // Cost WITHOUT caching
   const rawTotalTokens = reqs * (prefix + dyn);

@@ -962,12 +962,12 @@
         "Retry until they agree"
       ],
       "a": 1,
-      "exp": "Silent overwrites hide contradictions in the source material. Conflicts should be made visible and resolved by an explicit rule.",
+      "exp": "Surface the conflict with both sources attached and resolve it by a defined rule or a person. A disagreement between agents is usually a signal about the corpus - two passages genuinely say different things, or one is stale - and that signal is worth more than a smoothed-over answer. Letting the later agent overwrite makes correctness depend on ordering. Averaging is meaningless for facts; the midpoint of two dates is not a date either of them supports. Retrying until they agree selects for convergence rather than truth, and will happily converge on the wrong answer.",
       "why": [
-        "Recency is not authority; the earlier conclusion may be the correct one.",
-        "Correct. Surface the conflict with provenance and apply a defined precedence rule.",
-        "Averaging facts is meaningless and can produce a claim neither source supports.",
-        "Retrying until agreement selects for luck, not truth."
+        "Ordering is not authority. Whichever agent happened to run last would decide the answer regardless of which source is better.",
+        "Correct. Surface the conflict with both sources attached, then resolve by a defined precedence rule or human judgement.",
+        "Averaging is meaningless for facts. A midpoint between two conflicting dates supports neither source.",
+        "Retrying until they agree selects for convergence rather than correctness, and will converge on a wrong answer just as readily."
       ],
       "id": "ccafq-f2938c0c"
     },
@@ -982,12 +982,12 @@
         "Claude cannot execute more than one prompt per day"
       ],
       "a": 0,
-      "exp": "Deterministic workflows enforce strict regulatory auditability and predictable execution order for known business logic",
+      "exp": "A regulated approval process has known stages and a legal requirement to show what happened in what order. A deterministic state machine gives you both: the execution path is fixed and auditable, and every decision point is a place you can point at afterwards. An autonomous loop decides its path at run time, which is exactly the property that makes it unsuitable here - two identical applications could be processed differently and neither run would be reconstructable. Autonomy is valuable where the path genuinely cannot be specified; in a compliance workflow, the path being specified is the point.",
       "why": [
-        "Correct. Deterministic workflows enforce strict regulatory auditability and predictable execution order for known business logic",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Fixed, auditable execution order for known business logic, which is what a regulated approval process requires.",
+        "Nothing prohibits autonomous loops at the infrastructure level. The constraint here is regulatory, not physical.",
+        "Control flow has no effect on token pricing. Both approaches bill for what they consume.",
+        "There is no such limit. The choice is about auditability and predictability rather than throughput."
       ]
     },
     {
@@ -1001,12 +1001,12 @@
         "Copy the entire Git log history into the prompt"
       ],
       "a": 0,
-      "exp": "Document the exact pytest command, virtual environment activation path, and unit test directory",
+      "exp": "Document the exact invocation: the command, the environment activation, and where the tests live. Agentic tooling has to run tests the way your project actually runs them, and a slightly wrong command fails in ways that look like broken code rather than a broken instruction - which is the expensive kind of ambiguity. Being specific here is what turns run the tests from a hope into a reliable step. Never put credentials in this file: it is checked in and visible to everyone with repository access.",
       "why": [
-        "Correct. Document the exact pytest command, virtual environment activation path, and unit test directory",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. The exact command, environment activation and test location, so the tests run the way the project actually runs them.",
+        "The file is committed and readable by everyone with repository access, which makes it the worst possible place for credentials.",
+        "Deleting failing tests removes the signal that catches incorrect changes, which is the opposite of what tests are for.",
+        "Git history is retrievable on demand and would consume enormous context for no benefit."
       ]
     },
     {
@@ -1020,12 +1020,12 @@
         "Embedding models charge higher fees for misspelled text"
       ],
       "a": 0,
-      "exp": "Corrupted OCR text causes embedding drift and leads to high semantic retrieval miss rates",
+      "exp": "Embeddings encode whatever text they are given, so OCR errors become part of the vector. A passage full of misrecognised characters lands somewhere unrelated in the vector space, and the retrieval simply never surfaces it - the failure is silent, which is what makes it dangerous. Nothing errors and no one notices; the answer is just missing a source it should have had. Cleaning before embedding is cheap compared with re-indexing a corpus later, and scanned records are exactly the material where OCR quality varies most.",
       "why": [
-        "Correct. Corrupted OCR text causes embedding drift and leads to high semantic retrieval miss rates",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Corrupted text embeds to the wrong region of the vector space, so relevant passages are silently never retrieved.",
+        "Databases store whatever vectors they are given. Misspellings produce poor retrieval rather than crashes.",
+        "There is no such refusal. The model reads text with punctuation and errors alike.",
+        "Pricing follows token count rather than spelling quality. The cost is in retrieval accuracy, not fees."
       ]
     },
     {
@@ -1039,12 +1039,12 @@
         "A flag that forces all ticket text into uppercase"
       ],
       "a": 0,
-      "exp": "A mandatory limit parameter capping the maximum number of returned ticket objects",
+      "exp": "A mandatory limit parameter caps how much comes back, which protects the context window from a query that happens to match thousands of tickets. Context is the scarce resource in an agent loop: an oversized result buries the relevant tickets, and every later turn re-pays for carrying them. Making the limit mandatory rather than optional is the design decision - an optional cap is one the model can omit, and it will, on exactly the broad query that most needed it. Pair it with filtering so the agent can narrow rather than merely truncate.",
       "why": [
-        "Correct. A mandatory limit parameter capping the maximum number of returned ticket objects",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. A mandatory cap on returned objects protects the context window from a broad query matching thousands of tickets.",
+        "Format conversion is unrelated to result size and would make the tickets harder to read rather than easier.",
+        "Destructive operations have no place in a read-oriented lookup tool.",
+        "Text casing has no effect on token count or context pressure."
       ]
     },
     {
@@ -1052,18 +1052,18 @@
       "d": 4,
       "q": "A customer support bot receives 100,000 queries per day with a 15,000-token system prompt and policy handbook. How does Prompt Caching reduce operating costs?",
       "opts": [
-        "Cached prefix blocks receive an 85% input token discount on subsequent requests within the 5-minute TTL",
+        "Cached prefix blocks receive roughly a tenth of the base input rate on subsequent requests within the 5-minute TTL",
         "Prompt caching makes output tokens free",
         "Prompt caching converts requests into offline batch jobs",
         "Prompt caching replaces Claude with an SQL database"
       ],
       "a": 0,
-      "exp": "Cached prefix blocks receive an 85% input token discount on subsequent requests within the 5-minute TTL",
+      "exp": "Caching turns the repeated prefix into a cheap read. A 15,000-token system prompt and handbook is identical on every one of those 100,000 daily calls, and without caching it is billed in full each time; cached reads cost roughly a tenth of the base input rate, so the saving at that volume is the dominant cost lever available. Two conditions make it work: the stable content must come first, because caching is a prefix match, and traffic must be frequent enough to stay within the TTL - which at 100,000 queries a day it comfortably is.",
       "why": [
-        "Correct. Cached prefix blocks receive an 85% input token discount on subsequent requests within the 5-minute TTL",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. The repeated prefix is served at roughly a tenth of the base input rate instead of being billed in full on every call.",
+        "Caching applies to input. Output tokens are billed normally regardless.",
+        "Batch processing is a separate mechanism with its own discount and latency profile. Caching does not convert requests into batch jobs.",
+        "Caching stores a processed prefix. Nothing is replaced by a database."
       ]
     },
     {
@@ -1077,12 +1077,12 @@
         "Running the query on the production master database as root"
       ],
       "a": 0,
-      "exp": "Static SQL AST validation ensuring only read-only SELECT queries are executed without DROP or DELETE keywords",
+      "exp": "Validate the query before it runs, structurally rather than by inspection: parse it and confirm it is a read-only statement, rejecting anything that mutates. That is a check code can make with certainty, which is what you want in front of an irreversible operation - the model generating the SQL is the thing you are guarding against, so its judgement cannot be the guard. Pair it with a read-only connection to a replica, so the permission and the validation both have to fail before anything is lost.",
       "why": [
-        "Correct. Static SQL AST validation ensuring only read-only SELECT queries are executed without DROP or DELETE keywords",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Parse and validate that only read-only statements execute, which is a check code can make with certainty.",
+        "Comment volume says nothing about whether a query is destructive. A well-commented DELETE is still a DELETE.",
+        "Language of the comments is irrelevant to what the query does.",
+        "Running generated SQL as root on production is the exact scenario the check exists to prevent."
       ]
     },
     {
@@ -1096,12 +1096,12 @@
         "It automatically selects the incoming branch for every change"
       ],
       "a": 0,
-      "exp": "It parses the merge conflict markers, analyzes the functional intent of both branches, writes the reconciled code, and runs tests",
+      "exp": "The useful behaviour is to read both sides, work out what each branch was trying to achieve, write code that satisfies both intents, and then run the tests. The last step is what makes it trustworthy - a reconciliation that compiles is not necessarily correct, and tests are the evidence. Note this is a capability to supervise rather than to trust blindly: merge conflicts are exactly where two people's assumptions collide, and a plausible reconciliation can quietly drop one side's intent. Review the resulting diff.",
       "why": [
-        "Correct. It parses the merge conflict markers, analyzes the functional intent of both branches, writes the reconciled code, and runs tests",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Read both sides, reconcile the functional intent, then run the tests - the verification is what makes it trustworthy.",
+        "Deleting conflicted files discards work from both branches, which is data loss rather than resolution.",
+        "Renaming and halting defers the problem without attempting the reconciliation.",
+        "Always taking the incoming branch discards the other side's changes wholesale, which is not a merge."
       ]
     },
     {
@@ -1115,12 +1115,12 @@
         "Delete all salary files from the company network"
       ],
       "a": 0,
-      "exp": "Apply access control metadata filters in the vector database query before passing candidate chunks to Claude",
+      "exp": "Enforce access control in the retrieval query, before candidate chunks ever reach the model. Filtering by permission metadata at query time means unauthorised content is never retrieved, so it cannot be summarised, quoted or inferred from. Trying to enforce it in the prompt is the mistake: an instruction not to use certain information is a request rather than a boundary, and the content is already in the context by then - one injection or one ambiguous question away from surfacing. Security boundaries belong where they can be enforced deterministically.",
       "why": [
-        "Correct. Apply access control metadata filters in the vector database query before passing candidate chunks to Claude",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Filter by access metadata in the retrieval query, so unauthorised content never enters the context at all.",
+        "An instruction is a request rather than a boundary, and the content is already in context by the time it applies.",
+        "Model weights are not user-specific and encrypting them is neither possible nor relevant to access control.",
+        "Deleting the files destroys legitimate business data to solve an access-control problem that filtering handles."
       ]
     },
     {
@@ -1134,12 +1134,12 @@
         "Claude is unable to understand natural language responses"
       ],
       "a": 0,
-      "exp": "Structured JSON provides unambiguous parameter names and data types, minimizing token overhead and parsing errors",
+      "exp": "Structured payloads give the model unambiguous field names and types, which removes the parsing step and the errors that come with it. Prose has to be interpreted before it can be used, and interpretation is where subtly wrong values enter. It is also usually more compact, since the structure carries meaning that prose has to spell out. The general principle for tool design is that a tool result is data for a machine to consume rather than a message for a person to read - the model can narrate it afterwards if a human needs prose.",
       "why": [
-        "Correct. Structured JSON provides unambiguous parameter names and data types, minimizing token overhead and parsing errors",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Unambiguous field names and types remove the interpretation step where subtly wrong values enter.",
+        "Prose does not crash the protocol. It is accepted and simply harder to use reliably.",
+        "Computers handle many formats. The argument is about clarity and parseability rather than exclusivity.",
+        "The model reads prose perfectly well. The problem is ambiguity in what a value means, not comprehension."
       ]
     },
     {
@@ -1147,18 +1147,18 @@
       "d": 4,
       "q": "An autonomous agent executing a 40-step problem-solving loop resends conversation history on every step. How should caching be configured?",
       "opts": [
-        "Add an ephemeral cache control breakpoint on the latest assistant turn so previous steps are read at an 85% discount",
+        "Add an ephemeral cache control breakpoint on the latest assistant turn so previous steps are read at roughly a tenth of the base input rate",
         "Delete all previous turns after step 3",
         "Pause the agent for 24 hours between every step",
         "Switch the agent to run on a 1980s mainframe computer"
       ],
       "a": 0,
-      "exp": "Add an ephemeral cache control breakpoint on the latest assistant turn so previous steps are read at an 85% discount",
+      "exp": "Place a cache breakpoint on the most recent turn so the accumulated history is read from cache on the next step. In a 40-step loop the transcript is resent every time and grows continuously, which makes it the largest and most repetitive part of the request - exactly what caching is for, at roughly a tenth of the base input rate. Two mechanics matter: a breakpoint looks back a limited number of content blocks, so long tool-heavy turns may need an intermediate one, and the TTL means a stalled loop can lose the cache between steps.",
       "why": [
-        "Correct. Add an ephemeral cache control breakpoint on the latest assistant turn so previous steps are read at an 85% discount",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. A breakpoint on the latest turn lets the accumulated history be read from cache instead of re-billed in full each step.",
+        "Deleting earlier turns discards the reasoning and results the agent still needs to complete the task.",
+        "Long pauses waste time and risk the cache expiring between steps, which is the opposite of the goal.",
+        "Hardware is not the variable. The cost comes from re-sending the same tokens repeatedly."
       ]
     },
     {
@@ -1172,12 +1172,12 @@
         "Parallel workers use zero server memory"
       ],
       "a": 0,
-      "exp": "Independent protocol checks can be evaluated in parallel by worker subagents, drastically cutting total wall-clock response latency",
+      "exp": "Twelve independent protocol checks are the fan-out shape: workers evaluate them in parallel and a synthesis step combines the findings, so total latency approaches the slowest single check rather than the sum of all twelve. Independence is what makes this valid - if the protocols depended on each other's conclusions, parallelism would buy nothing. Note the trade: this reduces wall-clock time while increasing token spend, since each worker establishes its own context. In triage that is usually the right way round, because latency is the binding constraint.",
       "why": [
-        "Correct. Independent protocol checks can be evaluated in parallel by worker subagents, drastically cutting total wall-clock response latency",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Independent checks evaluated in parallel cut wall-clock latency toward the slowest single check rather than the sum.",
+        "Parallel workers increase token cost, since each one establishes its own context. The gain is latency.",
+        "There is no such prohibition. This is an architectural decision about latency.",
+        "Every worker consumes resources. Parallelism trades cost for speed rather than eliminating either."
       ]
     },
     {
@@ -1191,12 +1191,12 @@
         "It increases network bandwidth by 40%"
       ],
       "a": 0,
-      "exp": "It provides Claude Code with the exact CLI invocation needed to execute tests within the project's dependency structure",
+      "exp": "The exact command is what makes test execution reliable. Projects differ in package manager, script names and environment setup, and a near-miss invocation fails in a way that looks like broken code rather than a wrong command - which is the ambiguity that wastes the most time. Writing it down converts run the tests from an inference into an instruction. This generalises: anything about your project that cannot be deduced from reading the code is worth recording, because that is precisely the information the tooling cannot recover on its own.",
       "why": [
-        "Correct. It provides Claude Code with the exact CLI invocation needed to execute tests within the project's dependency structure",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. It supplies the exact invocation, so tests run the way this project runs them rather than by inference.",
+        "Disk usage is unrelated to whether a documented command exists.",
+        "A documented command is not a security control and has no bearing on malware.",
+        "Network performance is unaffected by project documentation."
       ]
     },
     {
@@ -1210,12 +1210,12 @@
         "Convert all English documentation into hexadecimal codes"
       ],
       "a": 0,
-      "exp": "Use a multilingual dense embedding model that maps semantic concepts across languages into a shared vector space",
+      "exp": "A multilingual embedding model maps meaning from different languages into one shared vector space, so a Spanish question lands near English documentation about the same concept. Retrieval then works across the language boundary without translating anything. The alternative architecture - translate the query, then search - is also viable and worth knowing, but it adds a step that can lose nuance and introduces a failure mode of its own. What you cannot do is push the problem onto customers, which is what requiring them to translate amounts to.",
       "why": [
-        "Correct. Use a multilingual dense embedding model that maps semantic concepts across languages into a shared vector space",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. A multilingual embedding model places equivalent concepts near each other regardless of language.",
+        "Discarding queries in other languages abandons the customers the system exists to serve.",
+        "This pushes the problem onto the customer and degrades the experience the system is meant to provide.",
+        "Encoding changes representation without preserving meaning, so semantic search over it would not work at all."
       ]
     },
     {
@@ -1229,12 +1229,12 @@
         "MCP replaces all relational databases with flat files"
       ],
       "a": 0,
-      "exp": "MCP provides an open, standardized protocol for tools, resources, and prompt templates that works across multiple AI clients and IDEs",
+      "exp": "MCP standardises how tools, resources and prompt templates are exposed, so one server works with any compatible client. That turns integrations into shared infrastructure: written once, versioned independently, reusable across applications and IDEs. Bespoke integrations solve the same problem once per client per source, which multiplies rather than adds. The argument is about the ecosystem rather than capability - the model is unchanged and the work behind each tool still has to be done. For a capability only one application will ever use, a direct integration remains simpler.",
       "why": [
-        "Correct. MCP provides an open, standardized protocol for tools, resources, and prompt templates that works across multiple AI clients and IDEs",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. An open, standardised protocol for tools, resources and prompts that works across multiple clients and IDEs.",
+        "The protocol governs how tools are exposed. It has no bearing on infrastructure or power.",
+        "MCP connects capabilities to models. It does not generate applications.",
+        "It is a connection protocol rather than a storage technology, and it replaces nothing in your data tier."
       ]
     },
     {
@@ -1248,12 +1248,12 @@
         "Compaction is only supported on mobile devices"
       ],
       "a": 0,
-      "exp": "Compaction synthesizes key user goals and active state while FIFO blindly discards critical early instructions",
+      "exp": "Compaction is selective and FIFO truncation is not. Summarising synthesises the goals, decisions and state that are still in force, whereas dropping the oldest messages removes exactly the early instructions that usually still apply - the original task, the constraints, the definitions agreed at the start. That is the whole distinction, and it is why the cheap mechanism is the wrong one. Compaction costs a model call and some judgement about what to keep, which is a real price worth paying on any run long enough to need it.",
       "why": [
-        "Correct. Compaction synthesizes key user goals and active state while FIFO blindly discards critical early instructions",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Compaction keeps goals and active state, where FIFO discards the early instructions that are usually still in force.",
+        "Compaction shortens the working context. That is its purpose.",
+        "Truncation removes information and cannot improve accuracy. It makes forgetting the original task more likely.",
+        "Compaction is an architectural technique unrelated to the device anything runs on."
       ]
     },
     {
@@ -1267,12 +1267,12 @@
         "Haiku is provided free of charge to all businesses"
       ],
       "a": 0,
-      "exp": "Haiku delivers sub-second classification latency at a fraction of the cost, making it ideal for high-throughput routing",
+      "exp": "Intent routing is high-volume, well-specified classification - exactly what the fast tier is built for. Haiku 4.5 handles it at a fraction of the cost and returns quickly, which matters when every email pays for the classification before any real work starts. The reasoning generalises: put capability where the reasoning is hard, not where the volume is high. What would justify escalating is measured accuracy trouble on your own categories, and that decision should follow evidence rather than caution.",
       "why": [
-        "Correct. Haiku delivers sub-second classification latency at a fraction of the cost, making it ideal for high-throughput routing",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Sub-second classification at a fraction of the cost, which suits a high-throughput routing step.",
+        "Opus handles intent classification comfortably. It is overqualified for it, which is the cost problem.",
+        "Haiku 4.5 has a 200K window against 1M on Opus 5. Its window is smaller, not larger.",
+        "It is the lowest-cost tier rather than a free one, and cost per item is precisely why it fits here."
       ]
     },
     {
@@ -1286,12 +1286,12 @@
         "To prevent developers from editing their code"
       ],
       "a": 0,
-      "exp": "To prevent wasting token budgets and search time on giant vendor directories, compiled binaries, and build artifacts",
+      "exp": "Respecting ignore patterns keeps the search on the code that matters. Vendor directories, build artifacts and compiled binaries are large, machine-generated, and irrelevant to almost every question - reading them burns tokens and time while burying the source files someone actually asked about. The signal is already there: the repository has declared these files uninteresting, so reusing that declaration is both cheap and accurate. It also reduces the chance of a match in a generated file sending the work down the wrong path entirely.",
       "why": [
-        "Correct. To prevent wasting token budgets and search time on giant vendor directories, compiled binaries, and build artifacts",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. It keeps the search off vendor directories, binaries and build artifacts, saving tokens and avoiding misleading matches.",
+        "There is no such failure. Ordinary source files are read without difficulty.",
+        "The file lists paths to exclude. It contains no secrets.",
+        "It scopes search rather than restricting editing. Developers work normally."
       ]
     },
     {
@@ -1305,12 +1305,12 @@
         "Removing all adjectives from source text"
       ],
       "a": 0,
-      "exp": "Retrieving fine-grained single sentences based on vector match while expanding surrounding paragraph context for Claude's prompt",
+      "exp": "Sentence window retrieval separates what you match on from what you send. Matching on a single sentence keeps the embedding precise, because a sentence expresses one idea and does not get diluted the way a long chunk does; expanding to the surrounding paragraph before sending gives the model enough context to interpret the match. It resolves the usual chunking tension directly - small chunks retrieve better and read worse, large chunks the reverse - by refusing to use one size for both jobs.",
       "why": [
-        "Correct. Retrieving fine-grained single sentences based on vector match while expanding surrounding paragraph context for Claude's prompt",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Match on a precise sentence, then expand to surrounding context so the model can interpret what was matched.",
+        "Query length is unrelated to how documents are chunked or retrieved.",
+        "Chunking follows semantic structure rather than any display property.",
+        "Removing words degrades meaning and would harm both retrieval and comprehension."
       ]
     },
     {
@@ -1324,12 +1324,12 @@
         "Translating Python code into Java"
       ],
       "a": 0,
-      "exp": "Informing the MCP server which workspace directory paths it is authorized to inspect and modify",
+      "exp": "roots/list tells the server which workspace paths it may operate on - a boundary the client declares rather than a privilege the server holds. In a multi-tenant environment that is the mechanism keeping one tenant's server away from another tenant's files. The name is the trap: this is about workspace roots, not superuser access, and reading it the other way inverts a security control into a privilege escalation. Treat it as the client stating a scope, and remember the server is untrusted code that should never be able to widen it.",
       "why": [
-        "Correct. Informing the MCP server which workspace directory paths it is authorized to inspect and modify",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. It tells the server which workspace paths it is authorised to inspect, which is a boundary the client declares.",
+        "It concerns workspace directories rather than operating-system privilege. Reading it as superuser access inverts a security control.",
+        "The name refers to directory roots in a filesystem sense and has no other meaning here.",
+        "The protocol carries capability and data access. It performs no code translation."
       ]
     },
     {
@@ -1362,12 +1362,12 @@
         "Send every query to 10 parallel Opus models and average their answers"
       ],
       "a": 0,
-      "exp": "Use a lightweight router model to classify customer intent and dispatch to specialized prompt templates with dedicated toolsets",
+      "exp": "Classify cheaply, then dispatch to a specialist. A lightweight router assigns intent for a fraction of a cent, and each specialist carries a focused prompt and only the tools its category needs - which improves selection accuracy and keeps cost proportionate to difficulty. Loading two hundred tools into every prompt is the failure this avoids: the context cost is paid on every request and tool selection degrades as near-miss options multiply. Forcing a dropdown pushes the classification onto the customer, and fanning out to ten models multiplies cost to answer a question one could handle.",
       "why": [
-        "Correct. Use a lightweight router model to classify customer intent and dispatch to specialized prompt templates with dedicated toolsets",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. A cheap router classifies intent and dispatches to a specialist with a focused prompt and the tools that category needs.",
+        "Two hundred tools cost context on every request and degrade selection as near-miss options multiply.",
+        "A dropdown makes the customer do the classification, which is the work the system should be doing.",
+        "Ten parallel models multiply cost to answer a question a single specialist would handle correctly."
       ]
     },
     {
@@ -1381,12 +1381,12 @@
         "Instruct Claude to delete all existing assertions"
       ],
       "a": 0,
-      "exp": "Instruct Claude to inspect existing test patterns in the repo, identify untested edge cases, and execute test commands to verify",
+      "exp": "Ground the work in what already exists, then verify. Reading current test patterns keeps new tests idiomatic and runnable; identifying untested edge cases targets the gaps rather than padding coverage with more of the same; and running the tests is what proves they compile and actually exercise something. That last step is the one that separates real coverage from apparent coverage - tests that were never executed can pass trivially or not run at all, and a coverage number rises either way.",
       "why": [
-        "Correct. Instruct Claude to inspect existing test patterns in the repo, identify untested edge cases, and execute test commands to verify",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Follow existing patterns, target untested edge cases, and execute the tests so coverage is real rather than apparent.",
+        "Volume without verification produces tests that may not compile and coverage that does not reflect anything exercised.",
+        "Testing incidental output rather than behaviour produces no meaningful coverage of what the code does.",
+        "Removing assertions leaves tests that execute code without checking anything, which is coverage without verification."
       ]
     },
     {
@@ -1400,12 +1400,12 @@
         "It translates text into 10 different languages"
       ],
       "a": 0,
-      "exp": "It performs full cross-attention over query-document pairs to accurately score semantic relevance before sending top context to Claude",
+      "exp": "A cross-encoder scores the query and document together, so it can judge relevance in a way that comparing two independently computed vectors cannot. It is far more expensive per pair, which is why it runs as a second stage: cheap retrieval narrows thousands of candidates to a few dozen, and re-ranking orders those precisely. The two-stage shape is the point - accuracy where the candidate set is small, speed where it is large - and it matters because retrieval quality, not model capability, is usually what caps a RAG system.",
       "why": [
-        "Correct. It performs full cross-attention over query-document pairs to accurately score semantic relevance before sending top context to Claude",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Cross-attention over query-document pairs scores relevance more accurately than comparing independent vectors.",
+        "Re-ranking orders candidates by relevance. It performs no format conversion.",
+        "Deduplication is a separate indexing concern and not what re-ranking does.",
+        "Translation is unrelated to scoring how relevant a candidate is to a query."
       ]
     },
     {
@@ -1419,12 +1419,12 @@
         "To convert PostgreSQL into MongoDB"
       ],
       "a": 0,
-      "exp": "To manage concurrent tool execution requests efficiently without exhausting database backend connection limits",
+      "exp": "Connection pooling lets concurrent tool calls share a bounded set of database connections. Without it, each call opens its own and a burst of parallel agent activity exhausts the backend's connection limit - which fails everything hitting that database, not just your agent. Agents make this more likely than conventional applications, because parallel tool execution can produce request bursts with no human pacing them. Pooling is ordinary database practice; what changes is that the traffic shape is now decided by a model at run time.",
       "why": [
-        "Correct. To manage concurrent tool execution requests efficiently without exhausting database backend connection limits",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. It shares a bounded set of connections across concurrent calls, so a burst does not exhaust the backend's limit.",
+        "Pooling avoids connection setup overhead but does not make query execution instantaneous.",
+        "Authentication still applies. Pooling manages connections rather than bypassing access control.",
+        "Pooling is a connection management technique and does not change the database technology."
       ]
     },
     {
@@ -1438,12 +1438,12 @@
         "Jitter eliminates all network latency"
       ],
       "a": 0,
-      "exp": "Jitter breaks synchronization across distributed clients, smoothing retry waves and preventing thundering herd server overload",
+      "exp": "Jitter randomises the retry interval so clients that failed together do not retry together. Plain exponential backoff synchronises a fleet - everyone waits one second, then two, then four - and each wave arrives in lockstep, which is how a brief overload becomes a sustained one. Full jitter picks uniformly from zero to the current window, spreading load across the interval. It is a coordination fix, and it matters most exactly when the most clients are failing, which is also when the service can least afford a synchronised wave.",
       "why": [
-        "Correct. Jitter breaks synchronization across distributed clients, smoothing retry waves and preventing thundering herd server overload",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Randomised intervals break synchronisation across clients, preventing the retry waves that extend an overload.",
+        "Jitter varies timing rather than payload. Nothing about the request content changes.",
+        "Retry timing has no effect on generation speed. The model performs identically whenever the request arrives.",
+        "Latency is a property of the network and the service. Jitter changes when you retry, not how fast the round trip is."
       ]
     },
     {
@@ -1527,15 +1527,15 @@
       "d": 4,
       "q": "What is the impact of placing a Prompt Cache breakpoint on an unchanging 50,000-token enterprise knowledge base?",
       "opts": [
-        "Subsequent queries against that knowledge base read from cache at an 85% discount and experience significantly reduced time-to-first-token",
+        "Subsequent queries against that knowledge base read from cache at roughly a tenth of the base input rate and experience significantly reduced time-to-first-token",
         "The knowledge base is deleted after 5 minutes",
         "The knowledge base becomes read-only forever",
         "The API charges double for the first 100 queries"
       ],
       "a": 0,
-      "exp": "Subsequent queries against that knowledge base read from cache at an 85% discount and experience significantly reduced time-to-first-token",
+      "exp": "Subsequent queries against that knowledge base read from cache at roughly a 90% discount and experience significantly reduced time-to-first-token",
       "why": [
-        "Correct. Subsequent queries against that knowledge base read from cache at an 85% discount and experience significantly reduced time-to-first-token",
+        "Correct. Subsequent queries against that knowledge base read from cache at roughly a 90% discount and experience significantly reduced time-to-first-token",
         "Incorrect. This does not align with enterprise architectural best practices.",
         "Incorrect. This represents an anti-pattern or invalid technical claim.",
         "Incorrect. This violates core system design principles."
@@ -1622,15 +1622,15 @@
       "d": 4,
       "q": "How should an enterprise application structure Prompt Caching when handling documents that change once per day?",
       "opts": [
-        "Place a cache breakpoint on the daily document; after the first query creates the cache, all queries throughout the day hit the 85% discount",
+        "Place a cache breakpoint on the daily document; after the first query creates the cache, all queries throughout the day hit the ~90% discount",
         "Re-upload the document every 30 seconds to refresh the cache",
         "Disable caching because the document is not static forever",
         "Store the document in browser cookies"
       ],
       "a": 0,
-      "exp": "Place a cache breakpoint on the daily document; after the first query creates the cache, all queries throughout the day hit the 85% discount",
+      "exp": "Place a cache breakpoint on the daily document; after the first query creates the cache, all queries throughout the day hit the ~90% discount",
       "why": [
-        "Correct. Place a cache breakpoint on the daily document; after the first query creates the cache, all queries throughout the day hit the 85% discount",
+        "Correct. Place a cache breakpoint on the daily document; after the first query creates the cache, all queries throughout the day hit the ~90% discount",
         "Incorrect. This does not align with enterprise architectural best practices.",
         "Incorrect. This represents an anti-pattern or invalid technical claim.",
         "Incorrect. This violates core system design principles."
@@ -2017,7 +2017,7 @@
     {
       "id": "ccafc-caching-cost-benefit",
       "f": "What is the cost reduction of Prompt Caching on input tokens?",
-      "b": "Prompt cache reads receive an 85% discount relative to standard input token pricing."
+      "b": "Prompt cache reads receive roughly a 90% discount relative to standard input token pricing."
     },
     {
       "id": "ccafc-deterministic-first",

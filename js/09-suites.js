@@ -233,7 +233,7 @@ function cramSheetCustomizer(){
     + '<div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; font-size:11px; line-height:1.4;">'
     + '<div style="border:1px solid #ddd; padding:10px; border-radius:6px; background:#fafafa;">'
     + '<b style="color:#d97757; font-size:12px; display:block; margin-bottom:4px;">1. Prompt Caching Economics</b>'
-    + '• 5-minute TTL refreshed on each read.<br>• 1,024 token minimum floor (Sonnet/Opus).<br>• Write: +25% cost, Read: -85% discount.<br>• Dynamic inputs MUST follow static prefixes.'
+    + '• 5-minute TTL refreshed on each read.<br>• 1,024 token minimum floor (Sonnet/Opus).<br>• Write: +25% cost, Read: -~90% discount.<br>• Dynamic inputs MUST follow static prefixes.'
     + '</div>'
     + '<div style="border:1px solid #ddd; padding:10px; border-radius:6px; background:#fafafa;">'
     + '<b style="color:#5a9e6f; font-size:12px; display:block; margin-bottom:4px;">2. MCP Architecture (JSON-RPC)</b>'
@@ -1117,7 +1117,7 @@ function lessonSequenceDiagrams(){
     + '<div style="display:flex; flex-direction:column; gap:10px; font-size:12px;">'
     + '<div style="background:var(--bg); border:1.5px solid var(--border); padding:10px; border-radius:8px;">1️⃣ <b>User Prompt</b> ➔ Sent with <code>anthropic-beta: prompt-caching-2024-07-25</code></div>'
     + '<div style="background:var(--bg); border:1.5px solid var(--border); padding:10px; border-radius:8px;">2️⃣ <b>Haiku Router</b> ➔ Evaluates query complexity and routes query</div>'
-    + '<div style="background:var(--bg); border:1.5px solid var(--border); padding:10px; border-radius:8px;">3️⃣ <b>Prompt Cache</b> ➔ Matches static system instructions (85% discount)</div>'
+    + '<div style="background:var(--bg); border:1.5px solid var(--border); padding:10px; border-radius:8px;">3️⃣ <b>Prompt Cache</b> ➔ Matches static system instructions (~90% discount)</div>'
     + '<div style="background:var(--bg); border:1.5px solid var(--border); padding:10px; border-radius:8px;">4️⃣ <b>Opus 5 + adaptive thinking</b> ➔ Generates <code>&lt;thinking&gt;</code> tokens under budget</div>'
     + '</div>'
     + '<button class="btn sm" onclick="toast(&quot;📊 Sequence pipeline step verified!&quot;)" style="width:100%; margin-top:14px;">📊 Step Through Sequence Flow</button>'
@@ -2404,7 +2404,7 @@ function lessonMarginNotes(){
         why:"Directly tested: questions ask WHERE to place cache_control and what the minimum token threshold is.",
         trap:"Common mistake: placing cache_control in the middle of dynamic content instead of at the END of the static prefix.",
         qtype:"Scenario: A developer wants to reduce costs on repeated API calls. Which approach is most effective?"},
-       {text:"The minimum cacheable prefix is 1,024 tokens for Sonnet and Opus, and 2,048 tokens for Haiku.",
+       {text:"The minimum cacheable prefix varies by model and is not ordered by recency: 512 tokens on Opus 5, 1,024 on Opus 4.8 and Sonnet 5, and 4,096 on Haiku 4.5.",
         why:"This threshold is a frequently tested specific number. Many candidates guess 512 or 2,048 for all models.",
         trap:"Haiku requires a HIGHER minimum (2,048), not lower. This counterintuitive fact trips many candidates up.",
         qtype:"Scenario: A 900-token system prompt on Haiku would NOT be cached because it is below the 2,048 token threshold."},

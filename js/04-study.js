@@ -559,7 +559,7 @@ function updateTreeModelResult(){
   let model = treeState.q1 === 'speed' ? 'Claude Haiku 4.5' : treeState.q1 === 'code' ? 'Claude Sonnet 5' : 'Claude Opus 5';
   let pricing = treeState.q1 === 'speed' ? '$1.00 / $5.00' : treeState.q1 === 'code' ? '$3.00 / $15.00' : '$5.00 / $25.00';
   let batchStr = treeState.q2 === 'batch' ? ' + Batches API (50% overall discount)' : '';
-  let cacheStr = treeState.q3 === 'caching' ? ' + Prompt Caching (85% input discount)' : '';
+  let cacheStr = treeState.q3 === 'caching' ? ' + Prompt Caching (~90% input discount)' : '';
   
   let rationale = treeState.q1 === 'speed'
     ? 'High-throughput intent routing and lightweight extraction should default to Haiku for sub-second response times.'
@@ -571,7 +571,7 @@ function updateTreeModelResult(){
     + '<span style="font-size:12.5px; line-height:1.5; color:var(--ink);">'
     + '• <b>Base Pricing:</b> ' + pricing + ' per MTok<br>'
     + (treeState.q2 === 'batch' ? '• <b>Batches API:</b> 50% discount across input and output tokens.<br>' : '')
-    + (treeState.q3 === 'caching' ? '• <b>Prompt Caching:</b> 85% discount on cached prefix reads ($0.08, $0.30, or $1.50/MTok).<br>' : '')
+    + (treeState.q3 === 'caching' ? '• <b>Prompt Caching:</b> ~90% discount on cached prefix reads ($0.08, $0.30, or $1.50/MTok).<br>' : '')
     + '• <b>Exam Rule:</b> ' + rationale
     + '</span>';
 }
@@ -764,7 +764,7 @@ const CRAM_DATA = {
           "<b>Vision Token Formula:</b> <code>Tokens = (Width × Height) / 750</code>. Max dimension scale: 1568px.",
           "<b>Context Window:</b> 1M tokens on current Opus and Sonnet models; 200,000 on Haiku 4.5.",
           "<b>Pricing Tiers:</b> Haiku ($1.00/$5.00) · Sonnet ($3.00/$15.00) · Opus ($5.00/$25.00) per million tokens.",
-          "<b>Prompt Caching Minimums:</b> 1,024 tokens for Sonnet/Opus; 2,048 tokens for Haiku. 5-minute TTL refreshed on cache hit. <b>85% discount</b> on cached input reads."
+          "<b>Prompt Caching Minimums:</b> 512 on Opus 5; 1,024 on Opus 4.8 and Sonnet 5; 4,096 on Haiku 4.5. 5-minute TTL refreshed on cache hit. <b>~90% discount</b> on cached input reads."
         ]
       },
       {
@@ -863,7 +863,7 @@ const CRAM_DATA = {
         title: "⚡ 3. Prompt Caching & Batches API Specifications",
         items: [
           "<b>Minimum Cache Breakpoint:</b> <b>1,024 tokens</b> (Sonnet/Opus); <b>2,048 tokens</b> (Haiku). Sub-minimum prefixes fail silently without caching.",
-          "<b>Cache Pricing & TTL:</b> 5-minute TTL (refreshes on hit). Cache write: 1.25x base input. Cache read: <b>0.15x base input (85% discount)</b>.",
+          "<b>Cache Pricing & TTL:</b> 5-minute TTL (refreshes on hit). Cache write: 1.25x base input. Cache read: <b>0.15x base input (~90% discount)</b>.",
           "<b>Cache Placement:</b> Attach <code>'cache_control': {'type': 'ephemeral'}</code> to system prompt, tool definitions, or large reference documents. Max 4 breakpoints.",
           "<b>Batches API:</b> <code>POST /v1/messages/batches</code>. Max 10,000 requests, 32MB payload, 24-hr SLA, <b>flat 50% discount</b> on input and output tokens."
         ]
@@ -910,7 +910,7 @@ const CRAM_DATA = {
           "1. Mandatory API request keys: <code>model</code>, <code>max_tokens</code>, <code>messages</code>.",
           "2. <code>tool_result</code> turn must match <code>tool_use.id</code> exactly.",
           "3. <code>max_tokens</code> caps thinking <b>and</b> response text together — adaptive thinking spends from the same budget.",
-          "4. Prompt caching gives 85% discount on reads with 5-minute TTL.",
+          "4. Prompt caching gives ~90% discount on reads with 5-minute TTL.",
           "5. Batches API gives 50% discount on input & output with 24-hr SLA.",
           "6. MCP tool failures must return <code>isError: true</code> inside the payload.",
           "7. Run headless Claude Code in CI/CD using <code>claude -p</code>.",

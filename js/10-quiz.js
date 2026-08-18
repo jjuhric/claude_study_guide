@@ -375,7 +375,7 @@ function openCustomCardModal(certId){
       <label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Card Front (Prompt / Question / Concept):</label>
       <textarea id="customCardFront" placeholder="e.g. What is the minimum token threshold for Haiku Prompt Caching?" style="width:100%; height:70px; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:13px; margin-bottom:12px; font-family:inherit;"></textarea>
       <label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Card Back (Explanation / Answer / Formula):</label>
-      <textarea id="customCardBack" placeholder="e.g. 2,048 tokens for Haiku (vs 1,024 tokens for Sonnet/Opus). 85% discount on cached reads with 5-min TTL." style="width:100%; height:80px; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:13px; margin-bottom:14px; font-family:inherit;"></textarea>
+      <textarea id="customCardBack" placeholder="e.g. 4,096 tokens on Haiku 4.5 vs 512 on Opus 5. ~90% discount on cached reads with 5-min TTL." style="width:100%; height:80px; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:13px; margin-bottom:14px; font-family:inherit;"></textarea>
       <div style="display:flex; justify-content:flex-end; gap:8px;">
         <button class="btn ghost sm" onclick="document.getElementById('customCardModal').remove()">Cancel</button>
         <button class="btn sm" onclick="saveCustomCard('${certId}')">Save Flashcard</button>
