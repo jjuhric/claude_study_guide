@@ -87,7 +87,7 @@ in task 3.5 and target ~22 average, rather than writing to a number.
       (min 12). See the floor note below.
 - [x] **3.2** CCDV-F — 100/100. exp avg **94w** (min 81), why avg **17w**.
 - [x] **3.3** CCAR-F — 100/100. exp avg **89w** (min 77), why avg **16w**.
-- [ ] **3.4** CCAR-P
+- [~] **3.4** CCAR-P — 51/100.
 - [ ] **3.5** Raise the suite's depth floors so it cannot slide back.
 
 ### Phase 4 — lesson expansion (thinnest first)
@@ -99,6 +99,26 @@ each; floors 400/250 → 900/600.
 - [ ] **4.3** CCDV-F (7,086w)
 - [ ] **4.4** CCAO-F (7,793w)
 - [ ] **4.5** Raise the lesson floors in the suite.
+
+### Phase 2b — near-duplicate questions (found during 3.4)
+The suite's duplicate check fires at 0.80 similarity. Measuring the whole bank
+at 0.60 found pairs that are the *same question in different words* sitting
+comfortably under that line — a learner meets them twice and the "100 questions"
+count overstates what is actually covered.
+
+Confirmed same-substance pairs: CCDV `resource vs tool` (0.73) and
+`stop_reason tool_use` (0.70); CCAR-F `tool returns N rows` (0.73) and
+`agent loop repeats a failing call` (0.67); CCAR-P `observability stack` (0.65)
+and `N% done then failed` (0.62); CCDV `prompt injection from a web page`
+(0.67). Others at 0.60–0.66 are genuinely distinct and must not be touched —
+e.g. CCAR-F `roots/list` vs `prompts/get`, CCAR-P tenant isolation vs user
+permissions.
+- [ ] **2b.1** Replace one of each confirmed pair with a question covering
+      something the domain does not yet test, rather than deleting and dropping
+      below 100.
+- [ ] **2b.2** Lower the suite's similarity threshold to ~0.65 and verify the
+      distinct pairs above still pass, so the check catches this class without
+      flagging legitimate neighbours.
 
 ### Phase 5 — flashcards
 - [ ] **5.1** Verify all 100 backs against `docs/FACTS.md` — including the

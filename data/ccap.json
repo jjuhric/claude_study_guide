@@ -12,12 +12,12 @@
         "Reduce to one worker"
       ],
       "a": 1,
-      "exp": "At scale, orchestrators must own decomposition: explicit disjoint scopes plus shared state prevent duplicated effort.",
+      "exp": "Duplication between workers is a coordination failure, not a capability one. Each worker is reasoning sensibly in isolation and arriving at the same obvious next search, because nothing tells it what the others are doing. The fix is to make the division explicit: the orchestrator assigns disjoint boundaries, and a shared ledger lets workers see what has already been claimed. Adding workers multiplies the duplication. Letting them negotiate re-couples the contexts that isolation was meant to separate, which costs the parallelism you paid for.",
       "why": [
-        "More workers multiplies the duplication.",
-        "Correct. Disjoint subtask boundaries plus a shared ledger stop workers repeating each other.",
-        "Free negotiation reintroduces the coordination overhead isolation avoids.",
-        "Collapsing to one worker discards the parallelism entirely."
+        "More workers multiplies the duplication rather than resolving it, since nothing has changed about how work is divided.",
+        "Correct. Explicit disjoint subtask boundaries plus a shared ledger, so each worker knows what is already claimed.",
+        "Free negotiation re-couples the contexts that isolation existed to separate, giving back the parallelism you paid for.",
+        "One worker eliminates duplication by eliminating parallelism, which discards the reason for the design."
       ],
       "id": "ccapq-3cfdf0d1"
     },
@@ -31,12 +31,12 @@
         "Raw tool logs"
       ],
       "a": 1,
-      "exp": "Contract-based handoffs with distilled artifacts keep orchestrator context lean and synthesis tractable.",
+      "exp": "Compact structured results against the subtask contract: findings, citations, and a confidence signal. The orchestrator needs enough to decide what happens next, not a replay of how the worker got there - and returning full transcripts is what makes fan-out architectures collapse under their own context, since the orchestrator pays for every intermediate step of every worker. Confidence matters as much as content, because it tells the orchestrator which findings need corroboration before they are acted on.",
       "why": [
-        "Full transcripts drown the orchestrator in detail.",
-        "Correct. Compact structured results against the assigned subtask contract.",
-        "Withholding results until the end removes the orchestrator's ability to steer.",
-        "Raw tool logs belong with the worker that produced them."
+        "A full transcript floods the orchestrator with every intermediate step, which is what makes fan-out designs collapse under their own context.",
+        "Correct. Compact structured results against the assigned contract - findings, citations and confidence - so the orchestrator can decide next steps.",
+        "Withholding everything until the end removes the orchestrator's ability to redirect a worker that has gone off track.",
+        "Raw logs are the least distilled form available and carry the same context problem as full transcripts."
       ],
       "id": "ccapq-5a050b57"
     },
@@ -50,12 +50,12 @@
         "Routers are free"
       ],
       "a": 1,
-      "exp": "Tool-selection accuracy degrades as toolsets balloon; specialization keeps each decision space small.",
+      "exp": "Specialists win because both the prompt and the tool set shrink to what one category actually needs. Tool selection degrades as the surface grows - forty tools means more near-miss options that all look plausible - and every one of them costs context on every request whether or not it is relevant. A specialist carries ten. The routing call is the overhead you accept in exchange, and it is usually trivial next to what it saves in both accuracy and tokens.",
       "why": [
-        "Total compute is not the differentiator.",
-        "Correct. Smaller focused tool sets reduce selection errors and context bloat.",
-        "Diagram aesthetics are not an engineering argument.",
-        "Routing costs a classification call; it is not free."
+        "Total compute is not the mechanism. The gain comes from a smaller decision space and less context per request.",
+        "Correct. Smaller focused tool sets and prompts reduce selection errors and context bloat on every query.",
+        "Architecture diagrams are not a design criterion, and the benefit here is measurable rather than presentational.",
+        "Routing costs a classification call. It is cheap relative to the saving, but it is not free."
       ],
       "id": "ccapq-344753aa"
     },
@@ -69,12 +69,12 @@
         "Rerun from scratch each time"
       ],
       "a": 1,
-      "exp": "Durable externalized state with checkpointing is how production agents achieve resumability.",
+      "exp": "State that only exists in the context window dies with the process. Externalising it - a durable task ledger with checkpoints - lets any run resume from the last known-good step, which is what makes a long-horizon agent operationally viable rather than merely impressive when nothing goes wrong. The design question worth asking early is what a restart costs: if the answer is everything, the system is one deployment or one crash away from losing hours of work, and restarts are not rare events.",
       "why": [
-        "Context-only state is lost on any restart.",
-        "Correct. Externalize state so a run can resume from the last known-good step.",
-        "Restarts cannot be prevented, only survived.",
-        "Rerunning from scratch wastes all completed work."
+        "Context-window state is lost the moment the process ends, which makes every restart a total loss.",
+        "Correct. Externalised state with checkpoints lets any run resume from the last known-good step.",
+        "Restarts are not optional. Deployments, crashes and scaling events all cause them.",
+        "Rerunning from scratch discards completed work and repeats its cost every time."
       ],
       "id": "ccapq-442aa11c"
     },
@@ -88,12 +88,12 @@
         "Single API lookup"
       ],
       "a": 1,
-      "exp": "Anthropic's multi-agent research findings: parallel breadth-first exploration is where the cost pays for itself.",
+      "exp": "Breadth-heavy research is the profile that earns the multiple: independent subtopics can be explored at once and synthesised at the end, so the wall-clock gain is real and the isolation keeps each worker's context focused. The token cost is genuinely large - each worker re-establishes its own context - which is exactly why the justification has to be specific rather than general. Simple lookups, formatting and single API calls have no independent branches to explore, so parallelism multiplies cost and buys nothing.",
       "why": [
-        "FAQ answering is a single lookup, not breadth-heavy exploration.",
-        "Correct. Independent subtopics explored in parallel and then synthesized.",
-        "Formatting is trivially sequential.",
-        "One lookup needs no parallel decomposition."
+        "A single FAQ answer has no independent branches to explore, so parallelism multiplies cost for no gain.",
+        "Correct. Breadth-heavy research with independent subtopics explored simultaneously and synthesised at the end.",
+        "Formatting is a single deterministic transformation with nothing to parallelise.",
+        "A single lookup is one call. Parallelising it produces the same answer several times over."
       ],
       "id": "ccapq-f485b73a"
     },
@@ -107,12 +107,12 @@
         "Retrying the same call"
       ],
       "a": 1,
-      "exp": "Silent data corruption needs programmatic validation — schema checks, invariants, sanity bounds — not model vigilance alone.",
+      "exp": "Wrong-but-valid data is the hardest failure to catch, because nothing signals it: no exception, no error code, just plausible values that are incorrect. The defence has to be in code - invariants and validation checks on tool outputs, with anomalies either surfaced to the agent or halting the pipeline. Hoping the model notices places the check inside the same reasoning that will consume the bad value, which is precisely where it is least likely to fire. Retrying returns the same wrong data reliably.",
       "why": [
-        "Silent corruption is exactly what the model is least able to notice.",
-        "Correct. Validate invariants on tool output in code and surface or halt on anomalies.",
-        "Prompt length cannot detect wrong data.",
-        "Retrying returns the same wrong data."
+        "The model has no independent reference to compare against, and the wrong value is exactly what it will reason from.",
+        "Correct. Invariants and validation on tool outputs in code, with anomalies surfaced or the pipeline halted.",
+        "More instruction text does not give the model a way to detect that a plausible value is wrong.",
+        "A deterministic tool returns the same wrong data on retry, so this confirms the failure rather than resolving it."
       ],
       "id": "ccapq-92368569"
     },
@@ -126,12 +126,12 @@
         "Switch to a random provider silently"
       ],
       "a": 1,
-      "exp": "Layered graceful degradation with observability is the professional reliability pattern.",
+      "exp": "Each rung handles a different failure and degrades a little further: backoff for transients, a fallback tier when the primary is unavailable, a cached or templated response when models are unreachable, and human handoff when nothing automated will do. Logging each step is what makes the chain debuggable afterwards, and it is the part most often left out. Note that silently switching providers is worse than an error - the user gets an answer of unknown provenance, and nobody knows which system produced it.",
       "why": [
-        "An error page is the outcome to avoid, not the plan.",
-        "Correct. Backoff, fallback tier, cached response, then human handoff, each logged.",
-        "Infinite retries amplify the outage.",
-        "Silent provider switching produces unpredictable behavior and unclear data handling."
+        "An error page discards every intermediate option, most of which would have produced a usable answer.",
+        "Correct. Backoff, then a fallback tier, then a cached or templated response, then human handoff - each step logged.",
+        "Unbounded retries hang the request and hammer a service already failing, with no path to a fallback.",
+        "Silent provider switching produces an answer of unknown provenance that nobody can trace or reason about."
       ],
       "id": "ccapq-0753d6c4"
     },
@@ -145,12 +145,12 @@
         "Run weekly instead"
       ],
       "a": 1,
-      "exp": "Idempotency + checkpoints = cheap recovery. Classic production-agent engineering.",
+      "exp": "Checkpoint each step's output and make the steps idempotent, so a rerun resumes at the failure rather than repeating the nine steps that already worked. Idempotency is the part that makes it safe: without it, resuming risks doing something twice, which for anything with side effects is worse than the original failure. The pattern generalises to any long pipeline - persisted intermediate artifacts convert a total rerun into a partial one, and the saving grows with pipeline length.",
       "why": [
-        "Accepting doubled nightly cost ignores an easy fix.",
-        "Correct. Idempotent steps with checkpoints let reruns resume at the failure point.",
-        "Removing a step changes the result silently.",
-        "Running less often does not make the failure cheaper."
+        "Accepting the cost pays for nine successful steps again every night, indefinitely.",
+        "Correct. Idempotent steps with checkpointed artifacts, so a rerun resumes at the failure point rather than the beginning.",
+        "Removing the failing step removes whatever it produced, which the remaining steps presumably depend on.",
+        "Running less often reduces how many times you pay the cost without addressing why the rerun is total."
       ],
       "id": "ccapq-7af06afe"
     },
@@ -164,12 +164,12 @@
         "Refuse everything"
       ],
       "a": 1,
-      "exp": "Professional systems encode 'when uncertain, clarify or escalate' — silent assumptions cause the worst incidents.",
+      "exp": "Detect the ambiguity and ask, or route to a human. In a high-stakes workflow a confident guess is the worst outcome available: it produces a decisive action on an interpretation nobody validated, and the error is invisible because the output looks like every other successful run. Note the counterweight - an agent that asks about everything is unusable, so the skill is calibrating when ambiguity actually changes the outcome. Defaulting to the cheaper reading is a decision rule that has nothing to do with which reading is correct.",
       "why": [
-        "Confident guessing in a high-stakes workflow is the failure mode.",
-        "Correct. Detect ambiguity and clarify or route to a human rather than assume.",
-        "Cost is the wrong tiebreaker for a high-stakes ambiguity.",
-        "Blanket refusal removes the capability rather than handling the edge case."
+        "A confident guess produces decisive action on an unvalidated interpretation, and nothing in the output reveals it.",
+        "Correct. Detect the ambiguity and ask, or route to a human, rather than acting on an assumption.",
+        "Cost is unrelated to correctness. This picks an interpretation by price rather than by evidence.",
+        "Refusing everything makes the agent useless. The skill is calibrating when ambiguity genuinely matters."
       ],
       "id": "ccapq-27fda815"
     },
@@ -183,12 +183,12 @@
         "Remove formatting steps"
       ],
       "a": 1,
-      "exp": "Per-step model routing backed by eval evidence is the canonical cost strategy.",
+      "exp": "Route each step to the cheapest model that clears its quality bar, and verify that bar with evals rather than intuition. Most pipelines are mostly simple steps, so tiering captures a large saving without touching the work that genuinely needed capability - and the eval is what turns this from a guess into a decision you can defend when someone asks why quality would hold. Consistency is a real value but a weak argument here, since it is consistency of cost rather than of output.",
       "why": [
-        "Uniformity is not worth paying top-tier rates for formatting.",
-        "Correct. Route each step to the cheapest model that meets its quality bar, verified by evals.",
-        "Removing quality checks trades correctness for cost.",
-        "Formatting steps are usually necessary; the tier is what is wrong."
+        "Consistency of model is not consistency of output, and it pays a premium on every trivial step.",
+        "Correct. Route each step to the cheapest model meeting its quality bar, with evals verifying the bar holds.",
+        "Removing quality checks trades a measurable saving for an unmeasurable risk.",
+        "Formatting steps exist because something needs formatting. Deleting them removes output the pipeline requires."
       ],
       "id": "ccapq-aefed9a1"
     },
@@ -202,12 +202,12 @@
         "Lower max_tokens by 10"
       ],
       "a": 1,
-      "exp": "At that volume the cached prefix dominates spend — caching stable content is the first lever to pull.",
+      "exp": "Cache the stable prefix. A large system prompt and tool set are byte-identical on every one of those calls and are billed in full each time without caching; cached reads cost roughly a tenth of the base input rate, which at that volume dwarfs every other lever available. The requirement is ordering, since caching is a prefix match: stable content first, anything volatile after the last breakpoint. Get that wrong and the cache silently never hits - no error, just full price forever.",
       "why": [
-        "Naming saves a negligible number of tokens.",
-        "Correct. At that volume the repeated prefix dominates spend, so cache it.",
-        "Parallelism changes throughput, not cost per call.",
-        "A ten-token output reduction is irrelevant against a large repeated input."
+        "Variable naming is invisible to the API. Only prompt content is billed.",
+        "Correct. Caching the stable prefix, which is billed in full on every call otherwise and dominates cost at this volume.",
+        "Parallelism affects throughput and rate limits rather than the cost of each call.",
+        "Ten tokens against a large prompt sent 100,000 times is a rounding error."
       ],
       "id": "ccapq-1b81ac8d"
     },
@@ -221,12 +221,12 @@
         "Fastest model for both"
       ],
       "a": 1,
-      "exp": "Match model and inference settings to each step's latency/quality profile.",
+      "exp": "Match the model to what each step is actually constrained by. The interactive step is bounded by perceived latency, so a fast model with streaming wins - the user sees progress immediately and total completion time matters less than time to first token. The back-office step has no one waiting, so capability and reasoning effort are worth their cost there. Using one model for both means one of the two constraints goes unserved: either the interactive step feels slow or the async step is weaker than it needed to be.",
       "why": [
-        "One model cannot be optimal for opposite constraints.",
-        "Correct. Optimize each step for its own latency or quality constraint.",
-        "Maximum capability everywhere wastes money on the latency-bound path.",
-        "Maximum speed everywhere sacrifices the quality-critical step."
+        "One model cannot be optimal for both, so whichever you choose leaves one constraint unserved.",
+        "Correct. A fast streaming model where latency is felt, a stronger model with more reasoning where accuracy matters and nobody waits.",
+        "The strongest model everywhere makes the interactive step feel slow and pays a premium where speed was the requirement.",
+        "The fastest model everywhere under-serves the quality-sensitive step, where there was no latency constraint to satisfy."
       ],
       "id": "ccapq-38106206"
     },
@@ -240,12 +240,12 @@
         "Turn reasoning off everywhere to save tokens"
       ],
       "a": 1,
-      "exp": "Reasoning depth is a paid dial, set per task class from evals. On current models the control is the effort level alongside adaptive thinking; the older fixed thinking-token budget has been removed.",
+      "exp": "Set reasoning effort per task class from evidence. Effort is a paid dial and only some workloads convert it into better outcomes - on well-specified extraction or classification it adds tokens and latency for no measurable gain, while on multi-step analysis it is where the accuracy comes from. Running everything at maximum is expensive and can produce overthinking on simple tasks; turning it off everywhere costs you the hard cases. Leaving the default untouched forever means never learning which of your task classes are which.",
       "why": [
-        "Maximum effort everywhere multiplies cost and latency for no measured gain.",
-        "Correct. Set effort per task class from evals showing where reasoning changes outcomes.",
-        "Never revisiting the setting guarantees it is wrong somewhere.",
-        "Disabling reasoning entirely degrades the tasks that need it."
+        "Maximum everywhere is expensive and can produce overthinking on simple tasks that never needed it.",
+        "Correct. Set effort per task class from evals showing where added reasoning actually improves the outcome.",
+        "The default is a reasonable starting point rather than a tuned answer, and never revisiting it leaves the saving unclaimed.",
+        "Turning reasoning off globally saves tokens on easy tasks by degrading the hard ones that justified the model."
       ],
       "id": "ccapq-94415d76"
     },
@@ -259,12 +259,12 @@
         "Test in production"
       ],
       "a": 1,
-      "exp": "Eval-gated prompt changes are the tested professional norm; vibes are not a regression strategy.",
+      "exp": "Run the candidate against a versioned eval suite of representative and edge cases and compare it against the incumbent. The comparison is what makes it evidence rather than an impression - and it catches the failure informal review always misses, where a change fixes one issue while introducing another. Shipping because it reads better substitutes aesthetics for measurement, and a prompt that reads well is not reliably one that performs well. Testing in production means your users are the regression suite.",
       "why": [
-        "Readability is not evidence of behavior.",
-        "Correct. Compare against the incumbent on a versioned eval suite before shipping.",
-        "A single opinion is not a measurement.",
-        "Production is where the cost of being wrong is highest."
+        "How a prompt reads to a person is weakly related to how it performs, and this substitutes aesthetics for measurement.",
+        "Correct. Run it against a versioned eval suite covering representative and edge cases, compared against the incumbent.",
+        "One colleague's reaction is a sample of one opinion rather than evidence about behaviour across cases.",
+        "Testing in production makes your users the regression suite, and you learn from failures they experienced."
       ],
       "id": "ccapq-43077848"
     },
@@ -278,12 +278,12 @@
         "Screenshots"
       ],
       "a": 1,
-      "exp": "Step-level tracing plus outcome metrics plus qualitative sampling — you can't fix what you can't see.",
+      "exp": "You need three layers, because each answers a different question. Step-level traces - tool calls, inputs and outputs, tokens, latency - tell you what happened inside a run. Outcome metrics tell you whether runs are succeeding, which traces alone do not. Sampled human review of transcripts catches the quality problems no automated metric is watching for, which is how silent degradation gets found. Error counts alone are the common gap: they detect crashes and are blind to a system that runs perfectly and answers badly.",
       "why": [
-        "Error counts miss silent quality failures entirely.",
-        "Correct. Step traces, outcome metrics, and sampled human review together.",
-        "Host metrics say nothing about agent behavior.",
-        "Screenshots do not explain multi-step reasoning."
+        "Error counts detect crashes and are blind to a system that runs without failing and answers badly.",
+        "Correct. Step-level traces, outcome metrics, and sampled human review - each catching failures the others miss.",
+        "Infrastructure telemetry is unrelated to whether the agent's reasoning and outputs are sound.",
+        "Screenshots capture appearance rather than the decisions, tool calls and outcomes that need observing."
       ],
       "id": "ccapq-d95801bd"
     },
@@ -297,12 +297,12 @@
         "Average the two"
       ],
       "a": 1,
-      "exp": "Judge models must be validated against human judgment before being trusted as gates.",
+      "exp": "Forty percent disagreement means the judge is not measuring what you care about, so calibrate it: refine the rubric against human-labelled examples until agreement is acceptable, or keep humans for that axis. A judge is only as good as its rubric, and vague criteria produce impressions that vary run to run. Trusting it because it is cheaper optimises confidently against the wrong target. Averaging a calibrated signal with an uncalibrated one produces a number nobody can interpret.",
       "why": [
-        "Cost does not make an unvalidated measurement usable.",
-        "Correct. Calibrate the rubric against human labels, or keep humans for that axis.",
-        "Deleting the eval leaves no signal at all.",
-        "Averaging a calibrated and an uncalibrated source obscures both."
+        "Cost is irrelevant if the measurement is wrong. Cheap disagreement with your actual quality bar is worse than no metric.",
+        "Correct. Calibrate the rubric against human-labelled examples until agreement is acceptable, or keep humans on that axis.",
+        "Deleting the eval removes the measurement rather than fixing it, leaving you with no signal at all.",
+        "Averaging a calibrated signal with an uncalibrated one yields a number that means nothing in particular."
       ],
       "id": "ccapq-bc564f06"
     },
@@ -316,12 +316,12 @@
         "Blame users"
       ],
       "a": 1,
-      "exp": "Evals localize the regression; then targeted fixes or version pinning — measured response over reflex.",
+      "exp": "Rerun the eval suite on the new version and find out which segments regressed. That converts a vague sense of drift into a specific list you can act on - patch the affected prompts, or pin and route those cases to the previous version while you fix them. The suite is what makes a targeted response possible; without it the only options are rolling everything back or waiting. Note that some drift is expected on any version change, which is exactly why prompts written for one model need re-tuning for the next.",
       "why": [
-        "A blanket rollback discards the improvements along with the regressions.",
-        "Correct. Rerun the evals, isolate failing segments, then patch or pin accordingly.",
-        "Ignoring a known regression compounds the damage.",
-        "Attribution is not remediation."
+        "A blanket rollback discards genuine improvements and does not tell you what actually regressed.",
+        "Correct. Rerun the eval suite, identify the failing segments, then patch prompts or pin and route accordingly.",
+        "Waiting leaves users with degraded output while the cause remains undiagnosed.",
+        "Attribution does not restore quality, and the regression is in the system rather than in how it is used."
       ],
       "id": "ccapq-d14e89dd"
     },
@@ -335,12 +335,12 @@
         "Disabling logging for privacy"
       ],
       "a": 1,
-      "exp": "High-impact tools demand scoped permissions, approvals, and auditability — the security triad for agents.",
+      "exp": "Three controls, each covering something the others do not. Least-privilege scoping bounds what the tools can reach at all. Approval gates on irreversible actions catch the individual operation that should not happen. Immutable audit logs answer what did happen afterwards, which matters for both incident response and accountability. Note that logging is a governance requirement rather than a privacy problem - the right answer to sensitive content in logs is redaction and access control, not turning the logs off.",
       "why": [
-        "Irreversible external actions always need governance.",
-        "Correct. Least privilege, approval gates for irreversible actions, immutable audit logs.",
-        "Speed is irrelevant to governance.",
-        "Removing logs destroys the audit trail that accountability depends on."
+        "Irreversible external actions are exactly the case that needs governance, and the absence of controls is the risk.",
+        "Correct. Least-privilege scoping, approval gates on irreversible actions, and immutable audit logs.",
+        "Model capability is not a control. A faster model performs the wrong action sooner.",
+        "Disabling logging removes accountability. Sensitive content in logs is handled by redaction and access control instead."
       ],
       "id": "ccapq-eab170c9"
     },
@@ -354,12 +354,12 @@
         "Cookie banners"
       ],
       "a": 1,
-      "exp": "Untrusted content + powerful tools is the classic injection kill-chain; break it architecturally.",
+      "exp": "The threat is prompt injection: fetched content carrying text designed to steer the agent's internal tool calls. The combination is what makes it serious - browsing alone is low-risk, internal tools alone are controlled, and joining them creates a path from attacker-controlled text to privileged action. Isolate and sanitise fetched content, and restrict which tools are reachable while browsing. The defence has to be structural, because the model cannot reliably distinguish instructions it should follow from instructions embedded in text it was asked to read.",
       "why": [
-        "Latency is an operational concern, not the security threat.",
-        "Correct. Injection from fetched content steering internal tools is the core threat.",
-        "Media weight is a performance detail.",
-        "Consent dialogs are a nuisance, not the risk to design against."
+        "Latency is an experience concern rather than a security one, and slow pages harm nobody's data.",
+        "Correct. Injection from fetched content steering internal tool calls - isolate the content and restrict tool access while browsing.",
+        "Image-heavy pages affect cost and processing time rather than creating a path to privileged action.",
+        "Consent banners are noise in the content. They are not a route to your internal systems."
       ],
       "id": "ccapq-ad675c2f"
     },
@@ -373,12 +373,12 @@
         "Avoiding documentation"
       ],
       "a": 1,
-      "exp": "Traces are data too: minimize, mask, control access, and set retention — governance covers observability artifacts.",
+      "exp": "Minimise what is collected, redact or mask before model calls where the task allows, set retention limits, and control access to traces. That last one is the piece most often missed: observability data contains everything the agent saw, so a trace store is a copy of your sensitive data with different access controls than the system it came from. Logging everything verbatim forever is the specific failure - it converts a transient processing step into a permanent record with a much larger exposure surface.",
       "why": [
-        "Verbatim indefinite logging of personal data is the opposite of good practice.",
-        "Correct. Minimize, redact where feasible, set retention, and control access to traces.",
-        "Emailing logs spreads personal data further with no controls.",
-        "Avoiding documentation makes governance impossible."
+        "Verbatim permanent logging turns a transient processing step into an indefinite record with a much larger exposure surface.",
+        "Correct. Minimisation, redaction before model calls where feasible, retention limits, and access controls on traces.",
+        "Emailing logs distributes sensitive data into an uncontrolled channel, which multiplies the exposure.",
+        "Documentation is what makes handling reviewable and defensible. Avoiding it hides the problem rather than reducing it."
       ],
       "id": "ccapq-9d0780b8"
     },
@@ -392,12 +392,12 @@
         "Nobody ever"
       ],
       "a": 1,
-      "exp": "Prompts are production configuration: access control, review, evals, versioned rollout.",
+      "exp": "The system prompt is production configuration that determines behaviour, so it belongs under the same change control as code: authorised roles, review, an eval gate, and a versioned deploy. Anything less means behaviour can change with no record and no way to attribute a regression. Note that both extremes fail - unrestricted editing pushes untested changes to every user at once, and freezing it entirely prevents the improvements that evals exist to validate. Letting the model edit its own instructions removes the boundary altogether.",
       "why": [
-        "Uncontrolled edits to behavior-defining configuration is a production risk.",
-        "Correct. Authorized roles, review, eval gate, and versioned deploy.",
-        "Self-modification removes human accountability.",
-        "Freezing prompts prevents necessary fixes."
+        "Unrestricted editing pushes untested behaviour changes to every user with no record and no way to attribute a regression.",
+        "Correct. Authorised roles via change control - review, eval gate, versioned deploy - exactly like production code.",
+        "An agent editing its own instructions removes the boundary that governs its behaviour.",
+        "Freezing it prevents the improvements that the eval process exists to validate."
       ],
       "id": "ccapq-777cef68"
     },
@@ -411,12 +411,12 @@
         "Retry the whole task"
       ],
       "a": 1,
-      "exp": "Persisting incremental artifacts converts failures into partial successes — a hallmark of production-grade design.",
+      "exp": "Design for partial delivery. Streaming or persisting intermediate results means a late failure still hands over the work already done, which converts a total loss into a partial success - and on long-running tasks that is the difference between a frustrating system and an unusable one. A larger model does not change what happens when a run fails at the end, and retrying the whole task repeats everything that already succeeded, paying for it twice while the same failure may well recur.",
       "why": [
-        "Capability does not address the loss of completed work.",
-        "Correct. Persist intermediate results so completed work survives a late failure.",
-        "Hardware is not the constraint.",
-        "Full retries discard the work already paid for."
+        "Capability does not change what happens when a run fails late. The completed work is still discarded.",
+        "Correct. Stream or persist intermediate results so completed work survives a late failure.",
+        "Infrastructure speed is unrelated to whether partial results are preserved when a run fails.",
+        "Retrying the whole task repeats everything that already succeeded and may hit the same failure again."
       ],
       "id": "ccapq-a074c728"
     },
@@ -430,12 +430,12 @@
         "Larger prompts"
       ],
       "a": 1,
-      "exp": "Shared-resource contention needs queuing, budgets, and backpressure — orchestration at the fleet level.",
+      "exp": "Shared limits mean sessions now compete, so the architecture needs something that arbitrates: queues, per-session budgets, and backpressure so load sheds fairly instead of one runaway session starving the rest. Without it the failure mode is unfair rather than merely slow - a single session in a retry loop can consume the shared quota and degrade forty-nine others. Extra API keys attempt to evade limits rather than manage demand, which is a terms problem as well as an ineffective one.",
       "why": [
-        "Contention behavior changes fundamentally at fifty concurrent sessions.",
-        "Correct. Queues, per-session budgets, and backpressure make degradation fair.",
-        "More keys does not create fair scheduling and may breach terms.",
-        "Prompt size is unrelated to shared-resource contention."
+        "Fifty sessions sharing one quota is a materially different system. A single runaway session can starve the rest.",
+        "Correct. Queues, per-session budgets and backpressure, so load sheds fairly rather than one session starving the others.",
+        "Multiple keys attempt to evade limits rather than manage demand, which is a terms problem as well as ineffective.",
+        "Prompt size affects cost per call rather than how contention between concurrent sessions is arbitrated."
       ],
       "id": "ccapq-ffc7f1a5"
     },
@@ -449,12 +449,12 @@
         "Marketing copy"
       ],
       "a": 1,
-      "exp": "Evals must mirror reality and stress boundaries; stale or easy-only suites give false confidence.",
+      "exp": "Real cases keep the set representative, curated hard and edge cases keep it discriminating, and known past failures stop old bugs coming back. Refreshing it matters as much as building it: production traffic drifts, and a set that no longer reflects what users ask will look healthy while quality falls. That is the failure mode worth naming - a stale eval suite does not report that it is stale, it just keeps passing. Synthetic easy questions measure the path that was never going to fail.",
       "why": [
-        "Easy synthetic questions measure nothing that matters.",
-        "Correct. Real representative cases plus curated hard ones and past failures, refreshed over time.",
-        "One transcript cannot characterize a distribution.",
-        "Marketing copy is not a workload."
+        "Easy synthetic questions measure the path that was never at risk, so the suite passes while real failures go unseen.",
+        "Correct. Representative real cases plus curated hard cases and known past failures, refreshed as traffic drifts.",
+        "One transcript is a single sample and cannot represent the distribution of real support conversations.",
+        "Marketing copy is neither a representative input nor a case with a checkable correct answer."
       ],
       "id": "ccapq-ad30b874"
     },
@@ -468,12 +468,12 @@
         "Drop the results that arrive last"
       ],
       "a": 1,
-      "exp": "Bounding what each worker returns is the scalable fix. Growing the window or truncating results only postpones or hides the problem.",
+      "exp": "Bound what workers return rather than expanding what the orchestrator can hold. Schema-constrained summaries cap each contribution at a known size, and staged synthesis handles the case where even bounded summaries exceed the window - combine in groups, then combine the combinations. Enlarging the orchestrator's window buys headroom without changing the growth, so the same problem returns one worker later. Reducing worker count trades away the parallelism you built the fleet for, and dropping late results silently loses work you already paid for.",
       "why": [
-        "A larger window raises the ceiling without changing the growth pattern.",
-        "Correct. Bound each worker's return and synthesize hierarchically.",
-        "Cutting workers sacrifices coverage to work around a format problem.",
-        "Discarding by arrival order loses information arbitrarily."
+        "A larger window delays the same problem rather than solving it, since output still grows with worker count.",
+        "Correct. Bounded, schema-constrained summaries from each worker, synthesised in stages when needed.",
+        "Cutting workers gives back the parallelism that justified the design, to avoid a problem bounding output would fix.",
+        "Discarding late results silently loses completed work and makes the output depend on arrival timing."
       ],
       "id": "ccapq-f6079985"
     },
@@ -487,12 +487,12 @@
         "The task is long"
       ],
       "a": 1,
-      "exp": "Multi-agent architectures buy parallel breadth at a large token multiple; the gain must be measured, not assumed.",
+      "exp": "The justification has to be measured. Multi-agent designs cost several times a single agent because every worker re-establishes its own context, so the question is whether parallel exploration improves outcomes enough to warrant that multiple on your workload. Team preference, vendor promotion and task duration are all reasons someone might reach for it, and none of them is evidence. Long tasks in particular are a trap: length suggests effort rather than parallelism, and a long sequential task gains nothing from fan-out.",
       "why": [
-        "Preference is not a justification for a cost multiple.",
-        "Correct. Measured outcome gains must exceed the added spend.",
-        "Marketing is not evidence for your workload.",
-        "Duration alone does not imply parallel decomposition helps."
+        "Preference is not evidence. Wanting the pattern says nothing about whether it improves outcomes here.",
+        "Correct. When parallel exploration measurably improves outcomes enough to justify the token multiple.",
+        "Vendor promotion describes what a pattern can do rather than whether your workload benefits from it.",
+        "Length suggests effort rather than parallelism. A long sequential task gains nothing from fan-out."
       ],
       "id": "ccapq-e7379757"
     },
@@ -506,12 +506,12 @@
         "The protocol forbids it"
       ],
       "a": 1,
-      "exp": "Isolation is the point: self-contained tasks, fresh context, and results returned to the orchestrator.",
+      "exp": "Direct coordination undoes the two properties that made the design worth its cost. Isolation goes first: once subagents exchange context, each one carries the others' material and the context saving disappears. Parallelism follows, because agents waiting on each other serialise. Route coordination through the orchestrator, which holds the shared state deliberately and in a bounded form. Note this is a default rather than an absolute - some designs do need agent-to-agent messaging, and the point is to pay for it knowingly.",
       "why": [
-        "It is possible, just usually undesirable.",
-        "Correct. Cross-talk reintroduces the coupling isolation was meant to remove.",
-        "Latency is a secondary concern next to the architectural cost.",
-        "Nothing forbids it; the argument is design, not permission."
+        "It is technically possible, which is exactly why the discipline matters. The constraint is architectural rather than mechanical.",
+        "Correct. Cross-talk destroys the context isolation and parallelism that justified the fleet in the first place.",
+        "Latency is a minor consideration next to losing isolation and serialising work that was meant to run in parallel.",
+        "Nothing prohibits it. This is a design judgement about preserving the benefits you paid for."
       ],
       "id": "ccapq-c2f73e7f"
     },
@@ -525,12 +525,12 @@
         "The full contents of every tool response"
       ],
       "a": 1,
-      "exp": "The orchestrator needs decisions, not raw transcripts. Aggregating everything recreates the overflow the fan-out avoided.",
+      "exp": "Compact structured results plus whatever state the next decision needs - no more. The orchestrator's job is routing and synthesis, and it needs conclusions rather than the reasoning that produced them. Carrying full transcripts is what makes a fleet collapse under its own context, since the orchestrator ends up holding every worker's intermediate step. The opposite failure is real too: keeping only the original request leaves it unable to decide anything, because it has no idea what has been established so far.",
       "why": [
-        "Full transcripts drown the orchestrator in detail.",
-        "Correct. Compact results plus decision state is what it actually needs.",
-        "Dropping subagent results leaves nothing to synthesize.",
-        "Raw tool payloads belong with the subagent that requested them."
+        "Full transcripts put every worker's intermediate reasoning into one context, which is what makes fleets collapse.",
+        "Correct. Compact structured results plus the state needed to decide next steps - conclusions rather than reasoning.",
+        "The original request alone leaves the orchestrator unable to decide anything, since it knows nothing of what workers found.",
+        "Full tool responses are the least distilled form available and carry the same problem as transcripts."
       ],
       "id": "ccapq-36cdb6fa"
     },
@@ -544,12 +544,12 @@
         "Whether logging is too verbose"
       ],
       "a": 1,
-      "exp": "Superlinear token growth usually indicates wasted work: retries, loops, and redundant context rather than genuine demand.",
+      "exp": "Superlinear growth against volume means something is being repeated rather than something being harder. Retries, loops, and agents re-reading context they already hold are the usual causes, and they are all invisible in an aggregate bill - which is why the first move is to look at per-run traces rather than at totals. Harder questions and a model change would raise cost roughly in proportion to volume; the disproportion is the clue that work is being done more than once.",
       "why": [
-        "Possible, but it would generally scale with volume rather than outpace it.",
-        "Correct. Retries, loops, and redundant context are the usual causes.",
-        "Model changes are deliberate and would be a known event.",
-        "Application logging does not consume model tokens."
+        "Harder questions raise cost roughly in proportion to volume. The disproportion points at repeated work instead.",
+        "Correct. Retries, loops and agents re-reading context they already hold - work being done more than once.",
+        "A model change shifts the per-token rate. It does not make usage grow faster than task volume.",
+        "Logging volume affects your logging costs rather than tokens consumed by the model."
       ],
       "id": "ccapq-34d2ef39"
     },
@@ -563,12 +563,12 @@
         "Retry the whole task automatically"
       ],
       "a": 1,
-      "exp": "Checkpointing converts all-or-nothing failure into partial delivery and gives retries a resume point.",
+      "exp": "Persist intermediate results so a late failure still delivers what was completed. That converts a total loss into a partial success, which on a long task is the difference between a frustrating system and an unusable one - and it also gives you a resume point rather than a restart. A larger model does not change what happens when a run fails at the end. Longer timeouts address one cause of failure among many, and retrying the whole task pays again for everything that already worked.",
       "why": [
-        "Capability does not address the loss of completed work.",
-        "Correct. Persist as you go so partial progress survives failure.",
-        "Longer timeouts postpone rather than prevent total loss.",
-        "Full retries discard the ninety percent already paid for."
+        "Capability does not change what happens to completed work when a run fails late.",
+        "Correct. Persist intermediate results so a late failure still delivers the work already done.",
+        "Longer timeouts address one failure cause among many and do nothing to preserve completed work.",
+        "Retrying everything repeats the successful ninety percent at full cost, and may hit the same failure again."
       ],
       "id": "ccapq-03cd4197"
     },
@@ -582,12 +582,12 @@
         "Run the pipeline twice nightly"
       ],
       "a": 1,
-      "exp": "Idempotent, checkpointed steps let you resume rather than repeat, which saves both time and spend.",
+      "exp": "Resume from the failure using the persisted outputs of the earlier steps. Six successful steps have already been paid for, and rerunning them costs the same again for a guaranteed identical result. This requires the earlier outputs to be durable and the steps to be safely re-enterable, which is a design decision worth making before you need it. Skipping the failing step removes whatever it produced, and running twice nightly doubles the cost of a pipeline that is already failing.",
       "why": [
-        "Rerunning completed work wastes time and money.",
-        "Correct. Resume from the failure point using stored outputs.",
-        "Skipping a step changes the result silently.",
-        "Duplicate runs multiply cost without addressing the failure."
+        "Rerunning all ten repeats six successful steps at full cost for a guaranteed identical result.",
+        "Correct. Resume from the failure point using the persisted outputs of the steps that already succeeded.",
+        "Skipping the step removes its output, which the later steps presumably depend on.",
+        "Running more often multiplies the cost of a pipeline that is already failing partway through."
       ],
       "id": "ccapq-dea95f96"
     },
@@ -601,12 +601,12 @@
         "Ignore the errors and continue"
       ],
       "a": 1,
-      "exp": "Bounded backoff with jitter avoids amplifying an outage, and an explicit fallback keeps behavior predictable.",
+      "exp": "Backoff with jitter, a retry ceiling, and a defined fallback when the ceiling is hit. Each part matters: backoff gives the dependency room to recover, jitter stops your clients retrying in lockstep and extending the overload, the ceiling bounds how long you spend trying, and the fallback decides what happens when trying has failed. Immediate continuous retry is the worst option because it adds load to something already struggling. Failing the run on the first error discards work over a condition that is transient by definition.",
       "why": [
-        "Aggressive retries worsen the degradation for everyone.",
-        "Correct. Bounded, jittered retries with a defined fallback.",
-        "Failing immediately on a transient error is needlessly brittle.",
-        "Ignoring errors yields confidently wrong output."
+        "Immediate continuous retry adds load to a dependency already failing, which extends the degradation.",
+        "Correct. Backoff with jitter, a retry ceiling, and a defined fallback when the ceiling is reached.",
+        "Failing the whole run on the first error discards work over a condition that is transient by definition.",
+        "Ignoring errors means continuing with missing or wrong data, which produces confidently incorrect output."
       ],
       "id": "ccapq-6f60cf3d"
     },
@@ -620,12 +620,12 @@
         "The API requires the distinction"
       ],
       "a": 1,
-      "exp": "Retry policy should follow failure class. Retrying a permanent error is pure waste and hides the real issue.",
+      "exp": "The two need opposite responses. Retrying a recoverable failure is how it resolves; retrying an unrecoverable one burns budget and, worse, delays surfacing a problem that needs a person - a malformed request or a revoked credential will fail identically forever. Treating everything as retryable makes an agent look busy while getting nowhere, which is harder to spot than an outright failure. The classification also gives you a place to hang the escalation path.",
       "why": [
-        "Any saving is a side effect of not wasting retries.",
-        "Correct. Class determines whether to retry or escalate.",
-        "Log volume is incidental.",
-        "This is application design, not an API requirement."
+        "Cost is a consequence rather than the reason. The point is that retrying an unrecoverable failure never succeeds.",
+        "Correct. Retrying an unrecoverable failure burns budget and delays surfacing a problem that needs human attention.",
+        "Log volume is incidental. The distinction is about which response is appropriate.",
+        "Nothing in the API requires it. It is a design decision about how to respond to different failures."
       ],
       "id": "ccapq-d0e605f9"
     },
@@ -639,12 +639,12 @@
         "Users did not complain loudly enough"
       ],
       "a": 1,
-      "exp": "Silent quality regressions require outcome-level monitoring; uptime and error rates will not surface them.",
+      "exp": "Crash-level alerting only sees failures. A schema change that leaves the system running while degrading its output produces no errors at all, so nothing fires - and that is the general shape of the most expensive production problems in agent systems: they succeed at doing the wrong thing. Outcome monitoring is what catches it, because it measures whether runs are producing good results rather than whether they completed. Waiting for complaints means the users are the monitoring, and most of them will not report it.",
       "why": [
-        "Models do not silently degrade on their own.",
-        "Correct. Without outcome metrics, quality regressions are invisible.",
-        "Prompt length is unrelated to detecting regressions.",
-        "Relying on complaints means detecting damage after it lands."
+        "The model is unchanged. The input changed shape, which the system handled without erroring.",
+        "Correct. Only crash-level alerting was in place, so a system that ran successfully while degrading raised nothing.",
+        "Prompt length is unrelated to a dependency changing the shape of what it returns.",
+        "Relying on complaints makes users the monitoring, and most degradation is never reported."
       ],
       "id": "ccapq-e3da06f5"
     },
@@ -658,12 +658,12 @@
         "The fastest model for both"
       ],
       "a": 1,
-      "exp": "Match model and inference settings to each step's latency and quality profile rather than standardizing on one.",
+      "exp": "Match each step to its binding constraint. The interactive step is bounded by perceived latency, so a fast model with streaming wins - the user sees progress immediately, and time to first token matters more than total duration. The overnight step has nobody waiting, so capability and reasoning effort convert directly into quality at no experienced cost. One model for both necessarily under-serves one of them, and which one depends only on which model you picked.",
       "why": [
-        "A single choice cannot be optimal for opposite constraints.",
-        "Correct. Optimize each step for its own constraint.",
-        "Uniform maximum capability wastes money on the latency-bound step.",
-        "Uniform speed sacrifices quality where quality is the requirement."
+        "A single model cannot satisfy both constraints, so whichever you pick leaves one of them unserved.",
+        "Correct. A fast streaming model where latency is felt, a stronger model with more reasoning effort where accuracy matters.",
+        "The strongest model everywhere makes the interactive step feel slow while paying a premium for it.",
+        "The fastest model everywhere under-serves the accuracy-sensitive step that had no latency constraint."
       ],
       "id": "ccapq-8d2a2ddc"
     },
@@ -677,12 +677,12 @@
         "Add more concurrency"
       ],
       "a": 1,
-      "exp": "When a large prefix repeats, caching removes the dominant repeated work.",
+      "exp": "Cache the stable prefix. A large fixed prompt is reprocessed on every call without caching, and that processing is the latency you are seeing - a cached prefix skips it, which improves time to first token as well as cost. The ordering requirement is what makes it work: caching is a prefix match, so the stable content must come first and anything volatile must follow the last breakpoint. Shortening the variable input addresses the small part, and lowering the output ceiling truncates responses rather than speeding up the prefix.",
       "why": [
-        "Variable input is the small part of the payload here.",
-        "Correct. Caching the stable prefix removes the repeated cost.",
-        "Output caps do not address input processing.",
-        "Concurrency raises throughput without reducing per-call latency."
+        "The variable input is the small part. The fixed prompt is what dominates both cost and processing time.",
+        "Correct. Caching the stable prefix skips reprocessing it on every call, improving both latency and cost.",
+        "Lowering the output ceiling truncates responses rather than reducing the time spent on the prompt.",
+        "Concurrency raises throughput without reducing the latency of any individual call."
       ],
       "id": "ccapq-46d93d7c"
     },
@@ -696,12 +696,12 @@
         "The newest model available"
       ],
       "a": 1,
-      "exp": "Substitutions must be validated on your own distribution; price is only meaningful once quality is shown to hold.",
+      "exp": "Run an eval on representative production cases and check that quality holds. That is the only evidence that answers the actual question - is this model good enough for this step, on this data - and it gives you something to point at when the change is questioned later. Price alone tells you what you would save and nothing about what you would lose. A colleague's experience on a different task is about a different distribution, and recency says nothing about fit for a specific step.",
       "why": [
-        "Price without quality evidence is an incomplete decision.",
-        "Correct. Validate on representative cases before switching.",
-        "A different task is not evidence for yours.",
-        "Recency is not a quality guarantee."
+        "Price tells you what you would save and nothing about what you would give up to save it.",
+        "Correct. An eval on representative production cases showing quality holds for this specific step.",
+        "Experience on a different task reflects a different distribution and may not transfer at all.",
+        "Release date is not a quality signal for a particular step in your pipeline."
       ],
       "id": "ccapq-0efaa22c"
     },
@@ -715,12 +715,12 @@
         "It guarantees lower cost"
       ],
       "a": 1,
-      "exp": "Reasoning depth costs tokens and latency; it should be spent where evals show it changes results.",
+      "exp": "Effort is a paid dial and its return varies sharply by task. Multi-step analysis converts it into accuracy; well-specified extraction or classification does not, so a global setting either overspends on the simple classes or underserves the hard ones. Per-class settings capture the benefit where it exists and the saving where it does not. It is more configuration rather than less, which is the honest trade - and it does not guarantee lower cost, since some classes will justify raising it.",
       "why": [
-        "Per-class configuration is more work, not less.",
-        "Correct. Spend reasoning where it demonstrably improves outcomes.",
-        "Global configuration is possible; it is just wasteful.",
-        "Per-class tuning can raise cost where high effort is warranted."
+        "Per-class configuration is more work than a single global value. The gain is fit rather than simplicity.",
+        "Correct. Effort is a paid dial and only some task classes convert it into better outcomes.",
+        "Global settings are supported and are the default. The argument is that they fit poorly across mixed workloads.",
+        "It does not guarantee lower cost, since some task classes will justify raising effort rather than lowering it."
       ],
       "id": "ccapq-84d1599f"
     },
@@ -734,12 +734,12 @@
         "No cap at all"
       ],
       "a": 1,
-      "exp": "Caps should be derived from observed successful-run cost so they catch pathology without killing legitimate work.",
+      "exp": "Derive the cap from the observed cost distribution of successful runs, with headroom. That way it catches runaway behaviour - the loop that never converges - without killing legitimate long runs, which is the failure a round number chosen in a meeting produces in one direction or the other. The cheapest run ever recorded is the worst possible basis, since it would abort the majority of normal work. No cap at all leaves you exposed to exactly the unbounded-loop failure the ceiling exists for.",
       "why": [
-        "An arbitrary number will either be ineffective or cut off valid runs.",
-        "Correct. Derive the cap from the real distribution, plus headroom.",
-        "The minimum would terminate most legitimate runs.",
-        "No cap means a loop can run until someone notices the bill."
+        "A number chosen without data either aborts legitimate runs or fails to catch runaway ones, and nobody can tell which.",
+        "Correct. The observed cost distribution of successful runs plus headroom, so caps catch runaway behaviour rather than normal work.",
+        "The cheapest run is an outlier at the wrong end. A cap there would abort most legitimate work.",
+        "No cap leaves the unbounded-loop failure entirely unguarded, which is the specific risk a ceiling addresses."
       ],
       "id": "ccapq-6903a914"
     },
@@ -753,12 +753,12 @@
         "The model changed silently"
       ],
       "a": 1,
-      "exp": "Evals measure the distribution you built them from. When production drifts and the set does not, healthy scores stop meaning healthy behaviour.",
+      "exp": "The eval set has drifted away from production. Real traffic changes - new use cases, new phrasing, new edge cases - and a fixed suite keeps measuring the distribution it was built for, so it passes confidently while quality falls on what users actually send. The failure is silent by construction: a stale suite does not report that it is stale. Refresh it from production samples periodically, and treat a healthy suite alongside unhappy users as evidence about the suite rather than about the users.",
       "why": [
-        "Difficulty would depress scores, not inflate them relative to reality.",
-        "Correct. A stale eval set measures a distribution that no longer exists.",
-        "Dismissing consistent user reports discards your best signal.",
-        "Version changes are deliberate events, not silent ones."
+        "Difficulty is not the issue. A hard suite that no longer matches production still measures the wrong thing.",
+        "Correct. The eval set no longer reflects the production distribution, so it passes while real traffic has moved on.",
+        "Consistent user reports are evidence. Dismissing them discards the most direct signal available.",
+        "Silent model changes are rare and would show as a broad shift rather than a gap between evals and reports."
       ],
       "id": "ccapq-78221971"
     },
@@ -772,12 +772,12 @@
         "Only the final answer"
       ],
       "a": 1,
-      "exp": "You cannot debug or improve what you cannot see. Step traces, outcomes, and qualitative sampling cover the three levels that matter.",
+      "exp": "Three layers, each catching what the others miss. Step-level traces show what happened inside a run - which tools ran, with what inputs, at what cost and latency. Outcome metrics show whether runs are succeeding, which traces alone do not tell you. Sampled human review of transcripts catches quality problems no metric was written to detect, and that is how silent degradation gets found. Error counts alone are the common gap: they see crashes and are blind to a system that runs cleanly and answers badly.",
       "why": [
-        "Error counts miss silent quality failures entirely.",
-        "Correct. Traces, outcome metrics, and sampled human review together.",
-        "UI captures do not explain agent behavior.",
-        "The final answer hides where a multi-step run went wrong."
+        "Error counts detect crashes and are blind to a system that completes every run while producing poor output.",
+        "Correct. Step-level traces, outcome metrics, and sampled human review - each catching what the others cannot.",
+        "Interface screenshots capture appearance rather than the tool calls, costs and outcomes that need observing.",
+        "The final answer alone hides where a run went wrong, which is what makes a failure diagnosable."
       ],
       "id": "ccapq-864c7a14"
     },
@@ -791,12 +791,12 @@
         "That it changes frequently"
       ],
       "a": 1,
-      "exp": "Representativeness beats size. A set the system already passes entirely provides no signal about the changes that matter.",
+      "exp": "Representativeness is what makes the gate meaningful. A suite built from real production cases, including the failure modes you have already seen, tells you whether a change is safe for the traffic you actually have. Size helps only if the cases are representative - a large unrepresentative suite passes confidently while missing everything. A suite the current system passes completely has no discriminating power left, and one that changes frequently cannot be compared across versions, which is the whole point of a regression set.",
       "why": [
-        "Size without representativeness measures the wrong distribution.",
-        "Correct. Mirror production, and deliberately include known failures.",
-        "A set you always pass cannot detect regressions.",
-        "A constantly changing set makes results incomparable over time."
+        "Size without representativeness produces confident passes on cases that do not reflect your traffic.",
+        "Correct. Representative of real production cases, including known failure modes, so the gate reflects real risk.",
+        "A suite the system already passes entirely has no discriminating power left to detect a regression.",
+        "Frequent changes break comparability across versions, which is what a regression set exists to provide."
       ],
       "id": "ccapq-ea426762"
     },
@@ -810,12 +810,12 @@
         "It replaces the need for evals"
       ],
       "a": 1,
-      "exp": "Qualitative review is how new failure modes are discovered and turned into future metrics.",
+      "exp": "Automated metrics measure what you thought to measure. Reading actual transcripts surfaces the failure modes nobody encoded - the agent that answers correctly but rudely, that solves a different problem than asked, that succeeds by a route you would not sanction. Those are invisible to any metric written before you knew they existed, which is precisely why sampling stays in the loop. It is expensive and does not scale, which is why it complements automated evaluation rather than replacing it.",
       "why": [
-        "Regulatory requirements vary and are not universal.",
-        "Correct. Reading real transcripts reveals unmodeled failure modes.",
-        "Human review is more expensive per item, not less.",
-        "It complements automated evaluation rather than replacing it."
+        "Regulatory requirements vary and are not the general reason. The argument is about discovering unknown failure modes.",
+        "Correct. Metrics measure only what you thought to measure, and transcripts surface failures nobody encoded.",
+        "Human review is considerably more expensive per case than automation. Its value is coverage of the unanticipated.",
+        "It complements evals rather than replacing them. Automated evaluation is what makes measurement scale."
       ],
       "id": "ccapq-2f014a29"
     },
@@ -829,12 +829,12 @@
         "After the prompt stops changing"
       ],
       "a": 1,
-      "exp": "Without a baseline you cannot tell improvement from regression, which makes every subsequent change a guess.",
+      "exp": "Before meaningful rollout, so every change afterwards can be measured against a baseline. Building it later means the period when you were learning fastest is the period with no measurement, and you cannot reconstruct whether an early change helped. Waiting for an incident means the first measurement follows the first failure. Waiting for the prompt to stabilise inverts the relationship - evaluation is what tells you a prompt has stabilised, so making it a precondition means it never gets built.",
       "why": [
-        "Waiting for an incident means learning the expensive way.",
-        "Correct. A baseline before rollout makes every later change measurable.",
-        "Evaluation is core engineering, not discretionary.",
-        "Prompts change constantly; that is precisely why evals are needed."
+        "Building it after an incident means the first measurement arrives after the first failure, having learned nothing beforehand.",
+        "Correct. Before meaningful rollout, so changes can be measured against a baseline from the start.",
+        "Treating it as optional means it is never built, since there is always something more urgent.",
+        "Evaluation is what tells you a prompt has stabilised, so making stability a precondition is circular."
       ],
       "id": "ccapq-3f40c29a"
     },
@@ -848,12 +848,12 @@
         "Running the agent twice"
       ],
       "a": 1,
-      "exp": "Multi-tenant isolation must hold at the resource boundary. Anything enforced only in the prompt can be defeated by injected content or a reasoning error.",
+      "exp": "Enforce tenant identity at the data and tool layer, so no request can reach another tenant's data regardless of what the model does. That phrasing is the point: the model is not a security boundary, and any control that depends on it behaving correctly fails the first time it is confused or manipulated. Separate prompts per tenant are a prompt-level convention that an injection can defeat. Server-side enforcement holds even when the model is compromised, which is the only property worth designing for.",
       "why": [
-        "Prompt separation is not an access control.",
-        "Correct. Enforce tenancy at the data and tool layer, below the model.",
-        "Context capacity has no bearing on isolation.",
-        "Repeating the run does not create a boundary."
+        "A prompt is a convention rather than a boundary, and an injection can override it.",
+        "Correct. Tenant identity enforced at the data and tool layer, so no request can cross tenants regardless of model behaviour.",
+        "Context size has no bearing on whether one tenant's request can reach another's data.",
+        "Running twice duplicates work without adding any enforcement of which data each run may access."
       ],
       "id": "ccapq-c13846bb"
     },
@@ -867,12 +867,12 @@
         "Duplicate documents"
       ],
       "a": 1,
-      "exp": "A shared, writable grounding source is a high-value injection target; write access needs review just as code does.",
+      "exp": "Unreviewed content in a shared store steers every agent that reads it, which makes it both a quality risk and an injection vector - text placed there is retrieved into context and can be crafted to read as instruction. The scale is what makes it serious: one bad document affects every agent, silently, and nothing in any output indicates the source was unreviewed. Governance here means write controls, review, and provenance tracking. Storage cost and duplicate documents are operational annoyances by comparison.",
       "why": [
-        "Storage is a cost concern, not a governance one.",
-        "Correct. Unreviewed writes propagate to every consuming agent.",
-        "Latency is an operational detail.",
-        "Duplication is untidy but not a security risk."
+        "Storage is cheap and is not the governance concern. The risk is what unreviewed content does to every reader.",
+        "Correct. Poisoned or unreviewed content silently steers every agent that reads it, at scale and without signal.",
+        "Retrieval speed is a performance property rather than a governance risk.",
+        "Duplicates cause redundancy. Unreviewed or malicious content causes wrong behaviour across the fleet."
       ],
       "id": "ccapq-8b1e2d36"
     },
@@ -886,12 +886,12 @@
         "Grant permissions per tool regardless of user"
       ],
       "a": 1,
-      "exp": "Authorization must be enforced at the resource, scoped to the actual user. A shared powerful credential turns any injection into privilege escalation.",
+      "exp": "The agent should act with the requesting user's effective permissions, enforced server-side. That is the only model where a confused or manipulated agent cannot exceed what the user could have done themselves - the boundary holds independently of the model's behaviour. Broad service credentials make every request as powerful as the most privileged user, which is the standard confused-deputy failure. Asking the agent to check permissions itself puts the control inside the thing being controlled.",
       "why": [
-        "Broad shared credentials make every prompt injection a privilege escalation.",
-        "Correct. Enforce the requesting user's permissions server-side.",
-        "Prompt-level checks can be overridden by injected content.",
-        "User-independent permissions ignore who is actually asking."
+        "Broad service credentials make every request as powerful as the most privileged user, which is a confused-deputy failure.",
+        "Correct. The agent acts with the requesting user's effective permissions, enforced server-side.",
+        "A prompt instruction places the control inside the component being controlled, which an injection can defeat.",
+        "Per-tool permissions ignoring the user mean any user reaches whatever that tool can reach."
       ],
       "id": "ccapq-76e98da1"
     },
@@ -905,12 +905,12 @@
         "Nothing, since actions are automated"
       ],
       "a": 1,
-      "exp": "Accountability requires reconstructing the decision: requester, actions, tool inputs, and approvals.",
+      "exp": "An audit trail has to answer who asked, what was done, with what inputs, and who approved it. Each part is needed for a different question - accountability, reconstruction, root cause, and authorisation - and a trail missing any one of them fails exactly when it is needed. Recording only the final output tells you what happened without telling you why or on whose authority. Token counts are cost data. The idea that automated actions need no audit inverts the requirement, since automation is what makes reconstruction impossible without records.",
       "why": [
-        "The output alone cannot reconstruct how it was reached.",
-        "Correct. Requester, actions, tool inputs, and approvals together.",
-        "Usage metrics are not an audit trail.",
-        "Automation increases rather than removes the need for auditability."
+        "The final output shows the result without showing who asked, what ran, or on whose authority.",
+        "Correct. Requester, actions taken, tools and inputs, and approvals - each answering a different audit question.",
+        "Token counts are cost data and say nothing about what was done or authorised.",
+        "Automation increases the need for audit, since without records there is no way to reconstruct what happened."
       ],
       "id": "ccapq-cd97990d"
     },
@@ -924,12 +924,12 @@
         "Yes, if the model is capable enough"
       ],
       "a": 1,
-      "exp": "Autonomy is a governance decision expressed through limits, thresholds, and gates, not a capability question.",
+      "exp": "The honest answer is conditional. Bounded autonomy works with defined limits, approval thresholds and audit - small refunds automatically, larger ones gated by a person - and that structure is what makes it defensible rather than the model's capability. Saying yes because the prompt asks for care mistakes an instruction for a control. Saying no on principle is wrong too, since agents take actions routinely and refusing all of it forgoes real value. Capability is the least relevant factor: a more capable model does not change who is accountable.",
       "why": [
-        "Prompt instructions are not an authorization control.",
-        "Correct. Define limits and thresholds, and gate high-value or irreversible actions.",
-        "Agents routinely take actions within appropriate controls.",
-        "Capability does not determine what authority should be delegated."
+        "An instruction to be careful is not a limit. Nothing enforces it and nothing bounds the outcome.",
+        "Correct. Defined limits, approval thresholds and audit, with irreversible or high-value actions gated by a human.",
+        "Agents take consequential actions routinely under appropriate controls. A blanket no forgoes real value.",
+        "Capability does not change accountability or the need for limits. A more capable model acts wrongly more effectively."
       ],
       "id": "ccapq-ecc8d1a9"
     },
@@ -943,12 +943,12 @@
         "Increase the reasoning effort"
       ],
       "a": 1,
-      "exp": "Latency-bound work is fixed by faster inference and earlier first tokens, then re-measured. Reasoning depth and retries push latency the wrong way.",
+      "exp": "Move it to a faster tier, stream, and re-measure before doing anything more elaborate. That is the change that addresses the actual constraint, and re-measuring is what stops you optimising past the point where latency stopped being the bottleneck. The other options all push the wrong way: a stronger model and higher reasoning effort both increase latency in exchange for capability the step may not need, and retries add latency by definition. Fix the binding constraint first, then look again.",
       "why": [
-        "Stronger models are generally slower, which worsens a latency problem.",
-        "Correct. Faster tier plus streaming, then measure again before optimizing further.",
-        "Retries add latency; they do not reduce it.",
-        "More reasoning increases time to answer."
+        "A stronger model generally increases latency, which is the constraint you are trying to relieve.",
+        "Correct. A faster tier with streaming, then re-measure before anything more elaborate.",
+        "Retries add latency by definition and address failure rather than speed.",
+        "More reasoning effort deepens thinking and lengthens responses, both of which increase latency."
       ],
       "id": "ccapq-b8d8eb14"
     },
@@ -962,12 +962,12 @@
         "Embed it in the tool description"
       ],
       "a": 1,
-      "exp": "Secrets should live in the execution layer, not in anything the model can emit. A credential in context can be echoed into output or exfiltrated by injection.",
+      "exp": "Keep the credential in the execution environment behind a tool, so the model never sees it. The model produces a tool call; your code holds the secret and makes the authenticated request. That way nothing the model outputs, and nothing an injection persuades it to output, can reveal the credential. Putting it in the system prompt is the worst option because prompts persist in conversation history and traces, which turns a transient secret into a stored one across every logging and observability system it touches.",
       "why": [
-        "Anything in the prompt can be reproduced in output or leaked via injection.",
-        "Correct. The tool holds the credential; the model only requests the action.",
-        "A readable document spreads the secret further and is equally exposed.",
-        "Tool descriptions are supplied to the model and are just as exposed."
+        "Prompts persist in conversation history and traces, so this turns a secret into a stored record across every system that logs.",
+        "Correct. The credential stays in the execution environment behind a tool, so the model never sees the secret itself.",
+        "A shared document is another place the secret is stored and readable, and the model still ends up handling it.",
+        "Tool descriptions are sent to the model like any other prompt content, so this exposes it just as directly."
       ],
       "id": "ccapq-c62867af"
     },
