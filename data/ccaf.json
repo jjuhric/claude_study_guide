@@ -1457,12 +1457,12 @@
         "Claude can only read text formatted in binary"
       ],
       "a": 0,
-      "exp": "Structured state enables reliable schema validation, typed assertions, and clean context isolation between analysis stages",
+      "exp": "Structured state can be validated; prose cannot. Keeping intermediate results as typed fields lets you assert that a figure is a number in a plausible range before the next stage consumes it, and it keeps each stage's inputs explicit rather than buried in a transcript. In financial analysis that matters twice over: an error in an early calculation propagates silently into every downstream conclusion, and a wrong number stated fluently in prose reads exactly like a right one. Structure is what makes the check possible at all.",
       "why": [
-        "Correct. Structured state enables reliable schema validation, typed assertions, and clean context isolation between analysis stages",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Typed state supports schema validation and assertions between stages, so an early error is caught rather than propagated.",
+        "Text is stored perfectly well. The issue is that prose cannot be validated, not that it cannot be held.",
+        "Structure improves reliability rather than cost. The same work is billed either way.",
+        "The model reads ordinary text. The argument is about verifiability, not encoding."
       ]
     },
     {
@@ -1476,12 +1476,12 @@
         "Disable all compiler warnings in the IDE"
       ],
       "a": 0,
-      "exp": "Add explicit security rules, forbidden library imports, and sanitization standards directly into CLAUDE.md",
+      "exp": "Put the rules where the tooling reads them on every session: forbidden imports, sanitisation requirements, and the specific standards your organisation applies. That makes the guidance apply consistently to everyone rather than depending on who remembers to mention it, and changes go through review like any other repository change. It is guidance rather than enforcement, which is worth being clear about - anything you genuinely require should also be enforced by linters, CI checks or hooks, because an instruction is followed most of the time and a check runs every time.",
       "why": [
-        "Correct. Add explicit security rules, forbidden library imports, and sanitization standards directly into CLAUDE.md",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Explicit rules in the project instructions apply to every session, with changes reviewed like any other repository change.",
+        "Manual notification per function does not scale and puts a person in the path of every routine change.",
+        "Disconnecting the machine prevents the work rather than guiding it, and the guidance is what was missing.",
+        "Suppressing warnings removes signals that catch real defects, which works against the security goal."
       ]
     },
     {
@@ -1495,12 +1495,12 @@
         "It removes all technical terms from the manual"
       ],
       "a": 0,
-      "exp": "Prepending manual titles and chapter names prevents isolated chunks from losing their parent subject context in vector space",
+      "exp": "A chunk lifted out of a long manual loses the context that made it meaningful. A paragraph about voltage limits reads identically whether it came from the safety chapter or the appendix, and its embedding lands in roughly the same place either way - so retrieval cannot distinguish them. Prepending the manual title and chapter name restores the parent subject, which sharpens both the embedding and what the model sees when it reads the chunk. The cost is a few tokens per chunk against a meaningful gain in retrieval precision.",
       "why": [
-        "Correct. Prepending manual titles and chapter names prevents isolated chunks from losing their parent subject context in vector space",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Prepending title and chapter restores the parent subject a lifted chunk loses, sharpening both the embedding and the read.",
+        "Headers add a small amount of text per chunk. Nothing is compressed.",
+        "Embeddings are still required. Headers improve what gets embedded rather than replacing the model.",
+        "Headers add context rather than removing content. The technical terms remain."
       ]
     },
     {
@@ -1514,12 +1514,12 @@
         "Execute file edits as the OS root superuser"
       ],
       "a": 0,
-      "exp": "Implement a dry-run preview capability and require explicit human confirmation before applying file system mutations",
+      "exp": "Show the change before making it, then require a person to approve. A dry-run preview turns an irreversible file mutation into a reviewable proposal, and the confirmation is where the accountability sits. Both matter for the same underlying reason: an agent's action sequence is decided at run time, so you cannot enumerate in advance everything it might attempt, and the control has to bound the outcome rather than anticipate the input. Version control underneath is the third layer, giving you a path back if something is applied that should not have been.",
       "why": [
-        "Correct. Implement a dry-run preview capability and require explicit human confirmation before applying file system mutations",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. A dry-run preview plus explicit confirmation turns an irreversible mutation into a reviewable proposal.",
+        "Unconfirmed recursive deletion is the worst possible failure mode for a file-modifying tool.",
+        "Version control is the recovery path when something is applied in error. Disabling it removes the last line of defence.",
+        "Running as superuser removes every filesystem boundary at exactly the point one is most needed."
       ]
     },
     {
@@ -1533,12 +1533,12 @@
         "The API charges double for the first 100 queries"
       ],
       "a": 0,
-      "exp": "Subsequent queries against that knowledge base read from cache at roughly a 90% discount and experience significantly reduced time-to-first-token",
+      "exp": "A large unchanging knowledge base is the ideal caching target: it is expensive to process, identical on every request, and sits at the front of the prompt where a prefix match can reuse it. After the first call writes the cache, subsequent queries read it at roughly a tenth of the base input rate and start generating sooner, since the prefix does not need reprocessing. Two conditions govern whether it works: the content must genuinely not change, and traffic must be frequent enough to stay inside the TTL or you pay the write premium repeatedly.",
       "why": [
-        "Correct. Subsequent queries against that knowledge base read from cache at roughly a 90% discount and experience significantly reduced time-to-first-token",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Subsequent queries read the prefix at roughly a tenth of the base input rate, with faster time-to-first-token.",
+        "Caching stores a processed prefix for reuse. The underlying content is untouched.",
+        "Caching affects billing and latency. It imposes no restriction on modifying the source.",
+        "There is a write premium on the first call, but nothing charges double for a hundred queries."
       ]
     },
     {
@@ -1552,12 +1552,12 @@
         "It forces all customer queries to be answered in 1 second"
       ],
       "a": 0,
-      "exp": "It keeps specialist prompts small and focused, reducing prompt clutter and allowing different model tiers for each task",
+      "exp": "Routing lets each specialist carry only what its task needs - a focused prompt, a small tool set, and a model tier matched to the difficulty. Identity verification is simple and can run cheaply; booking a repair may need more capability. A single handler covering all three carries every instruction and every tool on every request, which dilutes the prompt and pays top-tier cost for the simplest step. The classification call is the overhead you accept in exchange, and it is usually trivial next to what it saves.",
       "why": [
-        "Correct. It keeps specialist prompts small and focused, reducing prompt clutter and allowing different model tiers for each task",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Small, focused specialist prompts with tool sets and model tiers matched to each task's difficulty.",
+        "Routing is a software pattern with no particular infrastructure requirement.",
+        "Specialists still need tool schemas. Routing changes which tools are in scope, not whether they are defined.",
+        "Routing improves fit and cost. It makes no latency guarantee of that kind."
       ]
     },
     {
@@ -1571,12 +1571,12 @@
         "Send an SMS message to every registered user"
       ],
       "a": 0,
-      "exp": "Capture stdout/stderr streams, format error logs into the model context, and prompt for targeted remediation steps",
+      "exp": "Capture the output streams, put the actual error text into context, and ask for a targeted fix. The error message is the most valuable diagnostic available and the thing most likely to be dropped: without it the model is guessing at what went wrong, and with it the correction is usually straightforward. Targeted is the operative word - feeding back a specific failure produces a narrow fix, whereas asking to make it work invites a sweeping change. Ignoring exit codes is the failure that lets a broken migration report success.",
       "why": [
-        "Correct. Capture stdout/stderr streams, format error logs into the model context, and prompt for targeted remediation steps",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Capture the streams, put the real error text into context, and ask for a targeted remediation.",
+        "Ignoring exit codes lets a failed migration report success, which is how a broken state reaches production.",
+        "Destroying the runner and repository is catastrophic and unrelated to handling a script error.",
+        "Notifying users about an internal CI failure is inappropriate and does nothing to resolve it."
       ]
     },
     {
@@ -1590,12 +1590,12 @@
         "Hybrid search cuts cloud hosting costs by 99%"
       ],
       "a": 0,
-      "exp": "BM25 captures exact alphanumeric model matches while dense vectors capture natural language descriptive queries",
+      "exp": "The two retrieval methods fail in opposite directions, which is why combining them works. Dense vectors capture meaning and handle descriptive queries, but an exact model number carries little semantic signal and neighbouring codes look nearly identical in vector space. Sparse lexical matching handles those precisely and is useless for a paraphrased description. A catalogue gets both kinds of query, often in one search - a description plus a part number - so running both and merging covers the cases either alone would miss.",
       "why": [
-        "Correct. BM25 captures exact alphanumeric model matches while dense vectors capture natural language descriptive queries",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Lexical matching handles exact alphanumeric codes while dense vectors handle descriptive natural-language queries.",
+        "Both are used together. The point is that each covers what the other misses.",
+        "Dense vectors handle descriptive text well. Their weakness is exact identifier matching.",
+        "Hybrid search adds a second retrieval path and modest cost. The benefit is coverage, not savings."
       ]
     },
     {
@@ -1609,12 +1609,12 @@
         "To prevent the CRM from recording sales"
       ],
       "a": 0,
-      "exp": "To protect backend databases against injection attacks and malformed query errors caused by model hallucinations",
+      "exp": "Validate inputs because the caller is a model, not a person. Parameters are generated rather than typed, so they can be malformed, out of range, or shaped by content the model read somewhere - which makes them untrusted input in the ordinary security sense. Parameterised queries and range checks at the server boundary protect the backend from both injection and simple malformed-query failures. The framing to carry is that an MCP server is a public boundary in front of a trusted system, and it should be built like one.",
       "why": [
-        "Correct. To protect backend databases against injection attacks and malformed query errors caused by model hallucinations",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Generated parameters are untrusted input, so validation protects the backend from injection and malformed queries alike.",
+        "Validation is fast and adds negligible latency. It is not a throttling mechanism.",
+        "Obfuscating identifiers is unrelated to validating that a parameter is well-formed and in range.",
+        "Preventing legitimate business operations is not a goal. Validation permits correct queries and rejects malformed ones."
       ]
     },
     {
@@ -1628,12 +1628,12 @@
         "Store the document in browser cookies"
       ],
       "a": 0,
-      "exp": "Place a cache breakpoint on the daily document; after the first query creates the cache, all queries throughout the day hit the ~90% discount",
+      "exp": "A document that changes once a day is a natural cache boundary. Put a breakpoint after it: the first query of the day writes the cache, and every query afterwards reads it at roughly a tenth of the base input rate. The write premium is paid once against many reads, which is what makes the arithmetic work. Note the TTL - a five-minute default means a quiet period costs you a rewrite, so a longer TTL or a periodic warm request may be worth it for bursty traffic. Disabling caching because the document is not permanent misunderstands what a cache is for.",
       "why": [
-        "Correct. Place a cache breakpoint on the daily document; after the first query creates the cache, all queries throughout the day hit the ~90% discount",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. A breakpoint on the daily document means one write and many cheap reads across the day.",
+        "Re-uploading constantly rewrites the cache repeatedly, paying the write premium over and over for no benefit.",
+        "Caching does not require permanence. Stable for a day against many queries is exactly the profitable case.",
+        "Browser storage is unrelated to how the API processes and reuses a prompt prefix."
       ]
     },
     {
@@ -1647,12 +1647,12 @@
         "It converts the text into audio speech"
       ],
       "a": 0,
-      "exp": "It checks the translated text against source terminology glossaries and grammar standards, requesting revisions if scores fall below threshold",
+      "exp": "An evaluator checks the output against explicit criteria - terminology glossaries, grammar standards, a threshold - and sends it back for revision when it falls short. The criteria are what make this a gate rather than a second opinion: without them you get an impression, and impressions do not reliably catch anything. For translation specifically, terminology consistency is the failure a single pass misses most often, because a fluent translation that uses the wrong term for a regulated concept reads perfectly well and is wrong in the way that matters.",
       "why": [
-        "Correct. It checks the translated text against source terminology glossaries and grammar standards, requesting revisions if scores fall below threshold",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. It scores the translation against glossaries and standards, requesting revision when it falls below threshold.",
+        "Length is not a quality criterion, and discarding output on that basis loses correct work.",
+        "Publishing unreviewed output removes the check the evaluator exists to provide.",
+        "Format conversion is unrelated to evaluating whether a translation is accurate."
       ]
     },
     {
@@ -1666,12 +1666,12 @@
         "They delete the git commit history"
       ],
       "a": 0,
-      "exp": "They provide a deterministic verification mechanism: failing before the fix is applied and passing once the bug is resolved",
+      "exp": "A reproduction script converts a description of a bug into a test with a definite answer. It fails before the fix and passes after, which gives you an objective signal at both ends - and the first half matters as much as the second, because a script that never failed proves nothing about the change. It also guards against the most common false success in agentic debugging, where a plausible fix is applied to code that was not actually the cause and everything appears fine because nothing was measuring.",
       "why": [
-        "Correct. They provide a deterministic verification mechanism: failing before the fix is applied and passing once the bug is resolved",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. It fails before the fix and passes after, giving an objective signal at both ends of the change.",
+        "It is the verification that makes the fix trustworthy, and it becomes a regression test afterwards.",
+        "Cryptographic signing is unrelated to reproducing and verifying a defect.",
+        "A test script adds a file. It has no effect on version history."
       ]
     },
     {
@@ -1685,12 +1685,12 @@
         "Code blocks consume zero context tokens"
       ],
       "a": 0,
-      "exp": "Splitting code blocks midway destroys syntax structure, making code snippets unexecutable and confusing for Claude",
+      "exp": "A code block split across chunks produces fragments that are neither runnable nor interpretable - half a function with no signature, a loop body with no loop. Both retrieval and comprehension suffer: the fragment embeds poorly because it is incomplete, and the model reading it cannot tell what it belongs to. Keeping blocks whole is one instance of a general rule worth carrying: chunk on the structure the content already has, since documents and code both come with boundaries that mean something.",
       "why": [
-        "Correct. Splitting code blocks midway destroys syntax structure, making code snippets unexecutable and confusing for Claude",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Splitting a code block leaves fragments that are neither runnable nor interpretable, hurting retrieval and comprehension alike.",
+        "Code embeds like any other text. The problem is that a fragment carries incomplete meaning.",
+        "Databases store whatever vectors they receive. Markdown syntax causes no failure.",
+        "Code blocks consume tokens like all other content."
       ]
     },
     {
@@ -1704,12 +1704,12 @@
         "Downloading new AI model weights"
       ],
       "a": 0,
-      "exp": "Retrieving a specific parameterized prompt template with its required arguments and pre-configured message blocks",
+      "exp": "prompts/get retrieves a specific template along with its arguments and pre-configured messages, where prompts/list only enumerates what is available. The pattern holds across the protocol - each primitive has a discovery method and a retrieval or invocation method - which is what lets a client explore a server's capabilities without triggering anything. Worth remembering that a template arriving from a server is content from outside your system: it reaches the model's context, so it deserves the same scepticism as any other server-supplied text.",
       "why": [
-        "Correct. Retrieving a specific parameterized prompt template with its required arguments and pre-configured message blocks",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. It retrieves a specific parameterised template with its arguments and message blocks.",
+        "It retrieves a template. Script execution is a tool concern and a different primitive entirely.",
+        "It reads rather than modifies. Deletion is not part of what this method does.",
+        "The protocol carries capabilities and data. It does not distribute model weights."
       ]
     },
     {
@@ -1723,12 +1723,12 @@
         "To force the user to start a new chat session"
       ],
       "a": 0,
-      "exp": "To ensure sufficient token headroom remains in the context window to execute the summarization prompt and generate the compacted state",
+      "exp": "Compaction is itself a model call, and it needs room to run. Triggering at a threshold below saturation leaves headroom for the summarisation prompt and the summary it produces - wait until the window is full and there is no space left to compact your way out, so the first sign of the problem is a failed request with no recovery available. The specific threshold is a tuning decision rather than a rule; what matters is that it is proactive and leaves enough room for the operation that fixes it.",
       "why": [
-        "Correct. To ensure sufficient token headroom remains in the context window to execute the summarization prompt and generate the compacted state",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Compaction is itself a model call, so it needs headroom for the summarisation prompt and its output.",
+        "Context windows do not shrink over time. The window is a fixed property of the model.",
+        "There is no such refusal, and the threshold is a design choice rather than a limit imposed by the model.",
+        "The point is to continue the session without interruption, which is the opposite of forcing a restart."
       ]
     },
     {
@@ -1742,12 +1742,12 @@
         "It requires helpdesk agents to learn binary coding"
       ],
       "a": 0,
-      "exp": "It ensures high availability by falling back from primary frontier models to fast models, static templates, or human escalation during disruptions",
+      "exp": "Layered fallback keeps the service answering when something upstream fails: a cheaper model when the primary is unavailable, a static template when models are unreachable, and human escalation when nothing automated can help. Each layer is worse than the one above and better than nothing, which is the point - graceful degradation rather than an outage. For a helpdesk, availability is much of the value, and a system that stops entirely during a disruption fails exactly when the ticket volume is highest.",
       "why": [
-        "Correct. It ensures high availability by falling back from primary frontier models to fast models, static templates, or human escalation during disruptions",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Fall back through cheaper models, static templates and human escalation so the service degrades gracefully rather than stopping.",
+        "Fallback maintains service. The alternative is failing to resolve anything during a disruption.",
+        "Fallback tiers are generally cheaper than the primary. Cost is not doubled.",
+        "Fallback is an architectural pattern with no bearing on what staff need to know."
       ]
     },
     {
@@ -1761,12 +1761,12 @@
         "They hide the source code from developers"
       ],
       "a": 0,
-      "exp": "They give Claude Code high-level awareness of service boundaries, data flows, and module ownership across the repository",
+      "exp": "Architecture notes give the tooling the map a new engineer would be given: service boundaries, data flows, and who owns what. That context is not recoverable by reading files, because it lives in decisions rather than in code - which is exactly what makes it worth writing down. Without it, work on a distributed system proceeds from local file structure and misses cross-service implications. Keep it current: stale architecture notes are worse than none, since they are confidently wrong about how the system fits together.",
       "why": [
-        "Correct. They give Claude Code high-level awareness of service boundaries, data flows, and module ownership across the repository",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Service boundaries, data flows and ownership are decisions that cannot be recovered by reading files.",
+        "Referencing a diagram does not transform file formats.",
+        "Documentation has no effect on hardware performance.",
+        "It provides shared context to everyone. Nothing is concealed from developers."
       ]
     },
     {
@@ -1780,12 +1780,12 @@
         "Small chunks cause vector databases to delete files"
       ],
       "a": 0,
-      "exp": "Critical legal clauses and conditional qualifiers become fragmented across chunks, leading to incomplete context and inaccurate reasoning",
+      "exp": "Very small chunks fragment meaning. Legal language depends on qualifiers - unless, provided that, except where - and separating a clause from its condition produces a chunk that retrieves cleanly and states the opposite of what the contract says. That is a worse failure than missing the passage entirely, because the model reasons confidently over a fragment that looks complete. The general principle is to chunk on semantic boundaries rather than a token count, and legal text has particularly unforgiving ones.",
       "why": [
-        "Correct. Critical legal clauses and conditional qualifiers become fragmented across chunks, leading to incomplete context and inaccurate reasoning",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Clauses separated from their qualifiers produce fragments that read as complete and state the opposite of the contract.",
+        "Storage costs rise modestly with more chunks. The real cost is fragmented meaning.",
+        "Embedding models process short text without difficulty. The problem is what the short text omits.",
+        "Chunk size affects retrieval quality rather than database integrity."
       ]
     },
     {
@@ -1799,12 +1799,12 @@
         "To convert outgoing emails into SMS text messages"
       ],
       "a": 0,
-      "exp": "To prevent autonomous agent loops from accidentally spamming thousands of customer emails during unexpected execution paths",
+      "exp": "Sending email is irreversible and externally visible, so it needs both a rate limit and a confirmation gate. The rate limit bounds the damage from a loop that goes wrong - an agent retrying a send in a failure path can generate thousands of messages before anything else notices - and the confirmation catches the individual send that should not happen. Neither alone is sufficient: a gate without a limit still permits a runaway if approval is automated, and a limit without a gate still sends the wrong message, just fewer times.",
       "why": [
-        "Correct. To prevent autonomous agent loops from accidentally spamming thousands of customer emails during unexpected execution paths",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. A rate limit bounds a runaway loop while confirmation catches the individual send that should not happen.",
+        "Automated email is routine. The concern is volume and correctness rather than permission to send at all.",
+        "Printing is unrelated to controlling automated sending.",
+        "Changing channel does not address either the volume risk or the confirmation requirement."
       ]
     },
     {
@@ -1818,12 +1818,12 @@
         "It makes all API calls execute in less than 1 millisecond"
       ],
       "a": 0,
-      "exp": "It cuts token costs in half across both input and output tokens for asynchronous workloads completed within a 24-hour window",
+      "exp": "Batch processing halves token cost on both input and output in exchange for asynchronous delivery within 24 hours. For workloads with no user waiting - overnight classification, backfills, bulk enrichment - that is a straight saving for a constraint you do not have, which makes it the first thing to check when reviewing spend. Two operational details matter: most batches finish well inside the window but 24 hours is what you design against, and results return in arbitrary order, so key them by your own identifier rather than position.",
       "why": [
-        "Correct. It cuts token costs in half across both input and output tokens for asynchronous workloads completed within a 24-hour window",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Half price on input and output for asynchronous work delivered within 24 hours.",
+        "The discount reduces cost. Batch pricing is lower than synchronous, not higher.",
+        "It is an API mode rather than an infrastructure purchase. No hardware is involved.",
+        "Batch processing is explicitly asynchronous, which is the trade being made for the discount."
       ]
     },
     {
@@ -1837,12 +1837,12 @@
         "To delete the conversation history from memory"
       ],
       "a": 0,
-      "exp": "To ensure caller applications can deterministically distinguish between successful task completion, policy refusals, and timeout failures",
+      "exp": "An explicit terminal state with structured exit codes lets the caller tell outcomes apart programmatically: completed successfully, refused on policy grounds, timed out, hit an iteration cap. Those need different handling - one is a result, one needs escalation, one may be worth retrying - and without distinct codes the caller has to infer from output text, which is fragile and often wrong. It also makes monitoring meaningful, since a rising refusal rate and a rising timeout rate are different problems that a single failure counter would blur together.",
       "why": [
-        "Correct. To ensure caller applications can deterministically distinguish between successful task completion, policy refusals, and timeout failures",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Distinct exit codes let the caller separate completion, refusal and timeout, which need different handling.",
+        "Operating systems are unrelated to an agent's internal state machine.",
+        "Exit codes describe how a run ended. They have no bearing on client behaviour.",
+        "Termination signals completion rather than triggering deletion of history."
       ]
     },
     {
@@ -1856,12 +1856,12 @@
         "Ripgrep deletes duplicate files from the hard drive"
       ],
       "a": 0,
-      "exp": "Ripgrep quickly searches file contents using regex patterns without loading thousands of irrelevant files into LLM token context",
+      "exp": "Content search finds the relevant files without reading everything. On a large repository, loading directory trees into context is both slow and expensive, and it buries the few files that matter among thousands that do not - so a fast regex search over contents is the difference between a targeted change and an exhausted context window. This is the same principle as retrieval over a large corpus: select first, then read. The scarce resource is context, and search is how you spend it deliberately.",
       "why": [
-        "Correct. Ripgrep quickly searches file contents using regex patterns without loading thousands of irrelevant files into LLM token context",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Fast content search finds the relevant files without loading thousands of irrelevant ones into context.",
+        "Search reads files. It performs no encryption and provides no intellectual property protection.",
+        "It locates text. It does not modify or translate code.",
+        "It is a read-only search tool and deletes nothing."
       ]
     },
     {
@@ -1875,12 +1875,12 @@
         "It makes the financial reports legally binding"
       ],
       "a": 0,
-      "exp": "It allows Claude and retrieval filters to distinguish between current guidance and obsolete past quarterly metrics",
+      "exp": "Dates in chunk metadata let both the retrieval filter and the model tell current guidance from superseded figures. Financial reporting is the case where this matters most, because quarterly documents are structurally near-identical - last year's revenue discussion embeds almost identically to this year's, so similarity search alone cannot separate them. Without a date the system will confidently answer a question about current performance with a figure from three years ago, and nothing in the output will indicate that.",
       "why": [
-        "Correct. It allows Claude and retrieval filters to distinguish between current guidance and obsolete past quarterly metrics",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Dates let retrieval filters and the model separate current guidance from superseded quarterly figures.",
+        "Metadata records when a document was published. It performs no conversion of values.",
+        "Metadata adds a small amount of storage. It is not a capacity control.",
+        "Metadata is descriptive. It carries no legal effect."
       ]
     },
     {
@@ -1894,12 +1894,12 @@
         "Restarting the MCP server on a scheduled timer"
       ],
       "a": 0,
-      "exp": "Allowing clients to receive automated update notifications whenever the contents of a specific resource URI change",
+      "exp": "resources/subscribe registers interest so the client is notified when a resource changes, instead of polling to find out. That keeps the client working from current data without repeatedly re-reading content that has not moved, which matters when a resource is large or changes unpredictably. It is the push half of the read model: resources/list discovers what exists, reading fetches content, and subscribing keeps it fresh. Note the notification is a signal rather than the content - the client still fetches the updated resource.",
       "why": [
-        "Correct. Allowing clients to receive automated update notifications whenever the contents of a specific resource URI change",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. It registers for update notifications when a resource changes, avoiding repeated polling.",
+        "The protocol carries capability and data access. It has no billing function.",
+        "It concerns resource change notifications rather than any form of messaging to people.",
+        "Server lifecycle is unrelated to subscribing to changes in a resource."
       ]
     }
   ],
