@@ -623,6 +623,35 @@ vm.createContext(sandbox);
   check(cp.seen === 0, `progress ignores ids no longer in the bank (seen=${cp.seen})`);
   evalIn(`S.answered={}; S.domStats={}; S.cardBox={}`);
 
+  /* ---------- 17b. question explanation depth ----------
+     Explanations averaged 16.7 words before Phase 3 - they stated the answer
+     rather than teaching the reason. These floors stop that returning.
+
+     Note what is NOT enforced: a uniform word floor on every rationale. The
+     plan called for 25, then 18, and both are wrong. A rationale for a
+     plausible distractor has to name the misconception and runs 20-30 words;
+     one for an absurd distractor ("printing is unrelated to controlling
+     automated sending") is finished in seven, and padding it adds words
+     without information. So the floor sits where the teaching actually is -
+     the explanation, and the rationale for the answer the learner should have
+     picked - plus a per-question mean so a bank of one-liners still fails. */
+  const wc = str => str.trim().split(/\s+/).length;
+  const thinExp = [], thinCorrect = [], thinMean = [];
+  for (const [id, dd] of Object.entries(data)) {
+    dd.questions.forEach((qq, i) => {
+      if (wc(qq.exp) < 60) thinExp.push(`${id}[${i}] ${wc(qq.exp)}w`);
+      if (wc(qq.why[qq.a]) < 10) thinCorrect.push(`${id}[${i}] ${wc(qq.why[qq.a])}w`);
+      const mean = qq.why.reduce((n, y) => n + wc(y), 0) / qq.why.length;
+      if (mean < 10) thinMean.push(`${id}[${i}] ${mean.toFixed(0)}w`);
+    });
+  }
+  check(thinExp.length === 0,
+    `every explanation teaches the reason, not just the answer (${thinExp.slice(0, 3).join(", ") || "400 at 60+ words"})`);
+  check(thinCorrect.length === 0,
+    `the correct answer's rationale is substantive (${thinCorrect.slice(0, 3).join(", ") || "all 400"})`);
+  check(thinMean.length === 0,
+    `per-question rationales average above a one-liner (${thinMean.slice(0, 3).join(", ") || "all 400"})`);
+
   /* ---------- 17. lesson depth ---------- */
   // Lessons must keep pace with the bank they teach. Diagrams are excluded from
   // the word count — inline SVG is illustration, not reading material.

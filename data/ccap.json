@@ -982,12 +982,12 @@
         "It eliminates the need for database storage"
       ],
       "a": 0,
-      "exp": "It decouples agent communication through a structured shared state store, preventing exponential token bloat and context contamination",
+      "exp": "A shared state store decouples the agents from each other. With peer-to-peer messaging every agent accumulates every other agent's context, so token consumption grows with the square of the fleet and each agent's reasoning is contaminated by material it did not need. A blackboard means agents read and write structured state instead of talking, so the growth is linear and each one sees only what it looks up. The trade is a coordination point you must design carefully - the blackboard's schema becomes the contract every agent depends on.",
       "why": [
-        "Correct. It decouples agent communication through a structured shared state store, preventing exponential token bloat and context contamination",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. A structured shared state store decouples communication, keeping token growth linear and contexts uncontaminated.",
+        "The pattern concerns how agents share state in software. It has no physical component.",
+        "Compute requirements follow the work being done rather than the coordination pattern chosen.",
+        "A blackboard is typically backed by storage rather than replacing it."
       ]
     },
     {
@@ -1001,12 +1001,12 @@
         "Set model temperature to 1.0 to randomize payments"
       ],
       "a": 0,
-      "exp": "Treat invoice text as untrusted data, enforce strict payment authorization limits, and require out-of-band multi-factor human approval for disbursements",
+      "exp": "Invoice text arrives from outside your organisation, so it is untrusted input that happens to be shaped like a document - and an attacker who can send you an invoice can put text in it. Three controls stack here: treat the content as data rather than instruction, cap what any single authorisation can move, and require human approval out of band for disbursement. The out-of-band part matters, because an approval that flows through the same compromised channel as the request approves whatever the attacker asked for.",
       "why": [
-        "Correct. Treat invoice text as untrusted data, enforce strict payment authorization limits, and require out-of-band multi-factor human approval for disbursements",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Invoice text is untrusted data, with authorisation limits and out-of-band human approval bounding what any injection could achieve.",
+        "Urgency markers are trivially forged and are a standard social-engineering lever rather than a trust signal.",
+        "Shutting down the business function avoids the risk by abandoning the capability entirely.",
+        "Sampling parameters do not affect safety, and current models reject them regardless."
       ]
     },
     {
@@ -1020,12 +1020,12 @@
         "A generic text string saying 'success'"
       ],
       "a": 0,
-      "exp": "`gen_ai.system: 'anthropic'`, `gen_ai.request.model`, `gen_ai.usage.prompt_tokens`, and `gen_ai.usage.completion_tokens`",
+      "exp": "The conventions exist so traces from different systems can be queried the same way: which provider, which model, and how many tokens in and out. Recording those consistently is what lets you attribute cost, spot a regression after a model change, and compare across services without bespoke parsing per team. The discipline worth carrying is what does *not* belong in a span - traces are widely readable and long-lived, so credentials and personal data placed there become a durable exposure with weaker access controls than the system they came from.",
       "why": [
-        "Correct. `gen_ai.system: 'anthropic'`, `gen_ai.request.model`, `gen_ai.usage.prompt_tokens`, and `gen_ai.usage.completion_tokens`",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Provider, model, and token counts in and out - the standard attributes that make traces comparable and cost attributable.",
+        "Credentials and payment data must never enter traces, which are widely readable and long-lived.",
+        "A status code alone tells you the call succeeded and nothing about which model ran or what it cost.",
+        "An unstructured success string cannot be aggregated, filtered or compared across services."
       ]
     },
     {
@@ -1039,12 +1039,12 @@
         "Delete the customer CRM database"
       ],
       "a": 0,
-      "exp": "Trip the circuit breaker to OPEN after consecutive timeouts, immediately serving cached customer data without waiting for network timeouts",
+      "exp": "When a dependency slows down, the danger is not the failure itself but the queue behind it: every waiting request holds a thread, and a slow dependency exhausts the pool, taking down requests that had nothing to do with it. Tripping the breaker open after consecutive timeouts fails fast instead of waiting, and serving cached data keeps the system useful while the dependency recovers. The half-open probe afterwards is what lets it close again without a thundering wave of retries.",
       "why": [
-        "Correct. Trip the circuit breaker to OPEN after consecutive timeouts, immediately serving cached customer data without waiting for network timeouts",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Trip open after consecutive timeouts and fail fast on cached data, so waiting requests stop consuming threads.",
+        "A longer timeout makes exhaustion worse, since each request holds its thread for longer.",
+        "Aggressive retries add load to a dependency that is already saturated, extending the outage.",
+        "Removing the dependency destroys the data the system exists to serve."
       ]
     },
     {
@@ -1077,12 +1077,12 @@
         "Force all agents to share a single unencrypted global variable"
       ],
       "a": 0,
-      "exp": "Enforce a Directed Acyclic Graph (DAG) task dependency structure and apply strict wall-clock iteration timeouts on all agent loops",
+      "exp": "Two mechanisms, one structural and one temporal. A directed acyclic dependency graph makes circular waits impossible by construction - if the dependencies cannot form a cycle, agents cannot wait on each other indefinitely. Wall-clock timeouts then catch what the structure cannot: a stalled external dependency, or an agent that is simply not converging. Together they cover both the design-time and run-time cases. Disabling communication entirely avoids deadlock by removing coordination, which is a different system rather than a fix.",
       "why": [
-        "Correct. Enforce a Directed Acyclic Graph (DAG) task dependency structure and apply strict wall-clock iteration timeouts on all agent loops",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. A DAG dependency structure makes circular waits impossible, and wall-clock timeouts catch stalls the structure cannot.",
+        "Unbounded circular loops are the deadlock being described rather than a response to it.",
+        "Removing coordination avoids deadlock by removing the collaboration that justified a multi-agent design.",
+        "Shared mutable state without synchronisation adds race conditions on top of the deadlock risk."
       ]
     },
     {
@@ -1096,12 +1096,12 @@
         "Saving Python files directly to the Windows Desktop folder"
       ],
       "a": 0,
-      "exp": "gVisor or Firecracker microVMs with dedicated guest kernels and restricted syscall interception",
+      "exp": "Model-generated code is untrusted code, and it needs a boundary that holds even when the code is actively hostile. A microVM or a kernel-isolating sandbox gives each execution its own kernel surface and intercepts syscalls, so an escape has to defeat virtualisation rather than a language-level guard. That distinction is the point - process-level sandboxes inside a shared runtime have a much larger attack surface. Pair it with egress restriction, because code that cannot reach the network cannot exfiltrate whatever it does read.",
       "why": [
-        "Correct. gVisor or Firecracker microVMs with dedicated guest kernels and restricted syscall interception",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. MicroVMs or kernel-isolating sandboxes give each execution its own kernel surface and intercept syscalls.",
+        "Running untrusted code as root on a production host removes every boundary at once.",
+        "Unsandboxed evaluation inside a public server is remote code execution by design.",
+        "Writing files to a desktop folder is not isolation and provides no containment of any kind."
       ]
     },
     {
@@ -1115,12 +1115,12 @@
         "Ask customers to self-report their token counts on honor system"
       ],
       "a": 0,
-      "exp": "Attach `metadata: { 'tenant_id': orgId, 'user_id': userId }` to every API request for automated usage aggregation in logs and dashboards",
+      "exp": "Attach tenant and user identifiers as request metadata so usage aggregates automatically. That gives you per-customer attribution without threading accounting through your application logic, and it is what makes both billing and anomaly detection possible - a single tenant's runaway job is visible immediately rather than buried in a total. The alternative approaches all fail differently: separate accounts per query is unmanageable at 500 customers, self-reporting is not measurement, and credentials in prompt text is a data-handling failure.",
       "why": [
-        "Correct. Attach `metadata: { 'tenant_id': orgId, 'user_id': userId }` to every API request for automated usage aggregation in logs and dashboards",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Identifiers attached as request metadata give automatic per-tenant attribution for both billing and anomaly detection.",
+        "Payment details must never appear in prompt text, which is stored in conversation history and traces.",
+        "An account per query is unmanageable at this scale and fragments usage data beyond use.",
+        "Self-reporting is not measurement, and it cannot detect a runaway job in anyone's account."
       ]
     },
     {
@@ -1134,12 +1134,12 @@
         "Reboot the cloud data center hardware"
       ],
       "a": 0,
-      "exp": "Retry with exponential backoff -> Fallback to Claude Haiku 4.5 -> Fallback to static rule-based templates -> Graceful human escalation",
+      "exp": "Each rung degrades a little further and covers a failure the one above cannot. Backoff handles transients. A faster, cheaper tier keeps the service intelligent when the primary is unavailable. Static templates keep it responding when no model is reachable. Human escalation covers what templates cannot answer. In a banking context that ordering matters more than elsewhere, because silently degrading to a weaker answer without acknowledging it is worse than a clear handoff - the user needs to know what kind of answer they are getting.",
       "why": [
-        "Correct. Retry with exponential backoff -> Fallback to Claude Haiku 4.5 -> Fallback to static rule-based templates -> Graceful human escalation",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Backoff, then a faster tier, then static templates, then human escalation - each rung covering what the one above cannot.",
+        "Crashing a banking application converts a dependency outage into a total service failure.",
+        "Serving unrelated content is worse than an error, since users cannot tell it is not an answer.",
+        "Infrastructure restarts are not an application-level response to an upstream outage."
       ]
     },
     {
@@ -1153,12 +1153,12 @@
         "To comply with website cookie banner regulations"
       ],
       "a": 0,
-      "exp": "To run automated regression tests before deploying any prompt, tool schema, or model version update to production",
+      "exp": "A version-controlled evaluation set is what makes any change to a production agent measurable: prompt edits, tool schema changes, and model version updates all alter behaviour, and without a fixed baseline you cannot tell an improvement from a regression. Version control matters as much as the content, because a set that drifts silently cannot be compared across releases. Challenging scenarios are the point too - a suite of easy cases passes everything and discriminates nothing.",
       "why": [
-        "Correct. To run automated regression tests before deploying any prompt, tool schema, or model version update to production",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Automated regression testing before any prompt, tool schema, or model version change reaches production.",
+        "Storage is incidental. The value is a fixed baseline that makes behaviour changes measurable.",
+        "Evaluation sets exist to measure your own system rather than to serve anyone else.",
+        "Cookie regulation is unrelated to evaluating agent behaviour."
       ]
     },
     {
@@ -1172,12 +1172,12 @@
         "Because loops increase computer monitor brightness"
       ],
       "a": 0,
-      "exp": "To prevent runaway loops from consuming infinite tokens and budget during unexpected edge-case failures",
+      "exp": "An autonomous loop decides how long to continue, so without an external bound the failure mode is unbounded rather than merely bad. An edge case that prevents convergence will keep the loop running and spending, and nothing inside the loop is positioned to notice. Caps convert an open-ended risk into a known worst case, which is what makes autonomy operationally acceptable. Pair them with an escalation path, because a cap that simply stops leaves the work in an undefined state rather than a recoverable one.",
       "why": [
-        "Correct. To prevent runaway loops from consuming infinite tokens and budget during unexpected edge-case failures",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. They convert an unbounded failure into a known worst case when an edge case prevents convergence.",
+        "No such platform limit exists. The bound has to come from your own design.",
+        "There is no fixed tool-call cap of that kind. Limits are yours to set.",
+        "Hardware has no relationship to loop control."
       ]
     },
     {
@@ -1191,12 +1191,12 @@
         "The API key expiring after 5 minutes"
       ],
       "a": 0,
-      "exp": "Indirect prompt injection from public web pages instructing the agent to exfiltrate confidential internal context to an attacker's server",
+      "exp": "The combination is the vulnerability. Browsing alone is low-risk and file access alone is controlled; joining them creates a path from attacker-controlled text to your confidential data, because a web page can carry instructions telling the agent to read internal context and send it somewhere. This is why capability combinations deserve their own review - each tool passed its individual assessment. The mitigations are structural: isolate fetched content, restrict which tools are reachable while browsing, and filter egress.",
       "why": [
-        "Correct. Indirect prompt injection from public web pages instructing the agent to exfiltrate confidential internal context to an attacker's server",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Injection from public pages instructing the agent to exfiltrate internal context - a risk created by combining the two capabilities.",
+        "Language drift is not a security concern and is not what injection produces.",
+        "Display behaviour has nothing to do with an agent's data access.",
+        "Credential lifetime is unrelated to content-driven instruction hijacking."
       ]
     },
     {
@@ -1210,12 +1210,12 @@
         "Pairwise evaluation is required by US patent law"
       ],
       "a": 0,
-      "exp": "Pairwise comparison eliminates absolute numerical scoring bias and achieves significantly higher inter-rater reliability",
+      "exp": "Absolute scales require the judge to hold a consistent internal standard across every item, which it does not - the same output scores differently depending on what preceded it. Comparison only requires deciding which of two is better, a much easier and more stable judgement, which is why agreement with human raters improves. Position swapping is the necessary companion: judges favour whichever candidate they see first, so running each pair both ways and averaging cancels that bias out. Without the swap, pairwise inherits its own systematic error.",
       "why": [
-        "Correct. Pairwise comparison eliminates absolute numerical scoring bias and achieves significantly higher inter-rater reliability",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Relative judgement is more stable than absolute scoring, and position swapping cancels the order bias it would otherwise inherit.",
+        "Pairwise runs two comparisons per pair, so it is more expensive rather than faster.",
+        "It uses a model as the judge. The comparison is what changes, not the mechanism.",
+        "Evaluation methodology is a technical choice with no legal requirement attached."
       ]
     },
     {
@@ -1229,12 +1229,12 @@
         "To convert currency into cryptocurrency"
       ],
       "a": 0,
-      "exp": "To ensure that network retries after timeouts do not execute duplicate payments or transfer funds multiple times",
+      "exp": "A timeout tells you nothing about whether the operation completed. Without an idempotency key the options after one are both bad - retry and risk a duplicate payment, or leave it unresolved - and an agent that retries on error will choose the first. An idempotency key makes the retry safe by letting the server recognise the repeat and return the original result. This is why irreversible tools need the property built in rather than added later: the retry logic that makes systems robust is exactly what makes duplicates likely.",
       "why": [
-        "Correct. To ensure that network retries after timeouts do not execute duplicate payments or transfer funds multiple times",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. A retry after a timeout returns the original result instead of executing a second payment.",
+        "Idempotency governs repeat safety rather than execution speed.",
+        "Authentication is unaffected. Idempotency concerns what happens when the same request arrives twice.",
+        "Currency handling is unrelated to whether a repeated request executes twice."
       ]
     },
     {
@@ -1248,12 +1248,12 @@
         "A policy that prohibits employees from using computers"
       ],
       "a": 0,
-      "exp": "A contractual commitment that prompt inputs and generated completions are never retained on persistent disk or used for model training",
+      "exp": "ZDR is a contractual commitment that inputs and completions are not retained on persistent storage or used for training. The important property is that it is contractual: it is negotiated rather than configured, so no parameter, header or prompt instruction achieves it. That distinction is what customers with regulatory obligations are actually asking about, and it is worth stating precisely - pointing them at the agreement for their deployment rather than describing retention behaviour from memory.",
       "why": [
-        "Correct. A contractual commitment that prompt inputs and generated completions are never retained on persistent disk or used for model training",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. A contractual commitment that inputs and completions are not retained on disk or used for training.",
+        "It concerns data handling on the service side and has no effect on a customer's own systems.",
+        "It is a data-handling agreement rather than a pricing arrangement.",
+        "It governs how data is retained rather than who may use the service."
       ]
     },
     {
@@ -1267,12 +1267,12 @@
         "Having agents communicate exclusively via voice synthesis"
       ],
       "a": 0,
-      "exp": "Using typed JSON contracts that pass only necessary artifact references and acceptance criteria rather than full conversational history",
+      "exp": "Typed contracts carrying artifact references and acceptance criteria. Each agent needs what it must produce and how completion will be judged, not a replay of the conversation that led there - and passing full transcripts is what makes multi-agent systems collapse, since every agent then carries every other agent's context. Acceptance criteria are the part that makes the handoff verifiable: the reviewer can check against a stated standard rather than inferring what good would have looked like.",
       "why": [
-        "Correct. Using typed JSON contracts that pass only necessary artifact references and acceptance criteria rather than full conversational history",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Typed contracts with artifact references and acceptance criteria, so each agent gets the task rather than the history.",
+        "Passing full transcripts between every agent on every turn is precisely what makes these systems collapse under context.",
+        "Handoffs are structured data between processes rather than anything physical.",
+        "Voice synthesis adds a lossy encoding step to a structured data exchange."
       ]
     },
     {
@@ -1286,12 +1286,12 @@
         "Encrypting local disk files with passwords"
       ],
       "a": 0,
-      "exp": "Restricting outbound network traffic strictly to allowlisted API endpoints, preventing unauthorized data exfiltration from prompt injections",
+      "exp": "Restricting outbound traffic to allowlisted endpoints bounds what a compromised agent can reach. This is the control that specifically limits exfiltration: an injection may persuade an agent to read confidential data, but if the sandbox cannot reach an attacker-controlled host there is nowhere to send it. It works precisely because it does not depend on detecting the attack - the boundary holds whether or not anyone noticed. Blocking all network access is the degenerate case that also removes the legitimate calls the agent exists to make.",
       "why": [
-        "Correct. Restricting outbound network traffic strictly to allowlisted API endpoints, preventing unauthorized data exfiltration from prompt injections",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Outbound traffic restricted to allowlisted endpoints, so a compromised agent has nowhere to send what it read.",
+        "Unrestricted egress is the condition this control exists to prevent.",
+        "Blocking all networking removes the legitimate API calls the agent needs to function.",
+        "Disk encryption protects data at rest and does nothing about outbound network traffic."
       ]
     },
     {
@@ -1305,12 +1305,12 @@
         "That the database has run out of disk space"
       ],
       "a": 0,
-      "exp": "Upstream API capacity saturation, excessively large prompt context payloads, or slow prompt caching generation steps",
+      "exp": "TTFT measures the wait before generation begins, so a spike points at something happening before the first token: upstream capacity pressure, a larger prompt to process, or a cache that stopped being hit. That last cause is the one worth checking first, because it is both common and silent - a volatile value creeping into the cached prefix invalidates it with no error, and the symptom is exactly this. Diagnosing from the metric's definition is the skill: TTFT isolates prompt-side problems from generation-side ones.",
       "why": [
-        "Correct. Upstream API capacity saturation, excessively large prompt context payloads, or slow prompt caching generation steps",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Upstream saturation, a larger prompt payload, or a cache that stopped being hit - all pre-generation causes.",
+        "Client display properties have no bearing on when the first token arrives from the API.",
+        "Prompt content affects token count rather than processing time in any character-specific way.",
+        "Application storage is unrelated to time-to-first-token from the model."
       ]
     },
     {
@@ -1324,12 +1324,12 @@
         "Terminate the server process without saving state"
       ],
       "a": 0,
-      "exp": "Implement transactional rollback logic or compensating actions to restore clean state before alerting human supervisors",
+      "exp": "A migration that fails halfway leaves the system in a state that is neither the old one nor the new one, which is worse than either. Rollback or compensating actions restore a clean, known state before a person is asked to intervene, so the operator starts from something coherent rather than reconstructing what happened. Alerting matters too - a partial migration that is silently repaired and never reported hides a recurring problem. Continuing past the failure is the worst option, since later steps assume the earlier ones succeeded.",
       "why": [
-        "Correct. Implement transactional rollback logic or compensating actions to restore clean state before alerting human supervisors",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Rollback or compensating actions restore a clean state before alerting a human, so intervention starts from something coherent.",
+        "Later steps assume the earlier ones succeeded, so continuing compounds an inconsistent state.",
+        "Destroying the data is catastrophic and is not a failure-handling strategy.",
+        "Terminating without saving state leaves the inconsistency in place with no record of what happened."
       ]
     },
     {
@@ -1343,12 +1343,12 @@
         "To replace human legal counsel"
       ],
       "a": 0,
-      "exp": "Using specialized adversary models to generate thousands of diverse prompt injection and jailbreak permutations to probe system defense boundaries",
+      "exp": "Adversary models generate injection and jailbreak variations at a scale and diversity no manual exercise reaches, which is what makes coverage of the attack surface practical rather than aspirational. The value is finding the phrasings nobody on the team would have thought to try - attackers are not limited to your imagination, and neither should your testing be. It complements human red-teaming rather than replacing it, since novel attack classes still tend to come from people reasoning about the system rather than from permuting known ones.",
       "why": [
-        "Correct. Using specialized adversary models to generate thousands of diverse prompt injection and jailbreak permutations to probe system defense boundaries",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Adversary models produce thousands of injection and jailbreak variations, covering phrasings no manual exercise would reach.",
+        "The purpose is defensive testing of your own system rather than developing offensive capability.",
+        "This is a security evaluation practice with no relationship to hardware.",
+        "Automated testing informs governance rather than substituting for legal judgement."
       ]
     },
     {
@@ -1362,12 +1362,12 @@
         "Parent agents are not allowed to view child outputs"
       ],
       "a": 0,
-      "exp": "Context isolation prevents the subagent from being distracted by irrelevant parent conversation history and reduces total token consumption",
+      "exp": "Isolation keeps the subagent focused on its own task rather than reasoning over the parent's entire history, which improves the quality of its work and keeps the tokens it processes proportionate to what it was asked to do. Be precise about the economics though: isolation reduces what each subagent carries, and delegation still generally increases total spend across the system, because every subagent establishes its own context before starting. The saving is per-agent context, not overall cost.",
       "why": [
-        "Correct. Context isolation prevents the subagent from being distracted by irrelevant parent conversation history and reduces total token consumption",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. The subagent is not distracted by irrelevant parent history, and processes only what its own task requires.",
+        "Parent history is simply not passed. Nothing needs deleting for a subagent to run.",
+        "Nothing is free. Each subagent establishes its own context, so delegation generally raises total spend.",
+        "Parents receive subagent results. That is the entire point of delegating."
       ]
     },
     {
@@ -1381,12 +1381,12 @@
         "Running the agent with full root permissions"
       ],
       "a": 0,
-      "exp": "Read-only file permissions and kernel-level MAC (Mandatory Access Control) policies protecting configuration files outside the agent's workspace",
+      "exp": "The controls have to sit outside what the agent can write. Read-only permissions and mandatory access control enforce that at the operating-system level, so the boundary holds regardless of what the agent decides to do - which is the only property worth relying on, since an agent capable of editing its own constraints has no constraints. This is the general shape of agent security: enforce at a layer the agent cannot reach, rather than instructing the agent to respect a limit.",
       "why": [
-        "Correct. Read-only file permissions and kernel-level MAC (Mandatory Access Control) policies protecting configuration files outside the agent's workspace",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Read-only permissions and mandatory access control enforce the boundary at a layer the agent cannot modify.",
+        "An instruction is not a boundary. An agent able to edit its own constraints effectively has none.",
+        "Deleting the configuration removes the controls rather than protecting them.",
+        "Root permissions give the agent authority over every file including its own guardrails."
       ]
     },
     {
@@ -1400,12 +1400,12 @@
         "That all test cases were answered in less than 1 second"
       ],
       "a": 0,
-      "exp": "High consistency and agreement between LLM-as-a-judge evaluations and human expert ground-truth annotations",
+      "exp": "High agreement between the automated judge and human expert labels means the judge is measuring what the humans measure, which is the only thing that makes its scores usable as a proxy. Kappa specifically corrects for agreement that would occur by chance, so it is a stricter measure than raw percentage agreement - and that correction matters most when one label dominates, where naive agreement looks high for trivial reasons. Without this calibration you are optimising confidently against a standard nobody has checked.",
       "why": [
-        "Correct. High consistency and agreement between LLM-as-a-judge evaluations and human expert ground-truth annotations",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. High agreement between the automated judge and human ground truth, corrected for chance agreement.",
+        "Infrastructure utilisation is unrelated to whether the judge agrees with human raters.",
+        "The metric describes agreement between raters rather than any property of the model.",
+        "Evaluation speed is unrelated to whether the judgements are correct."
       ]
     },
     {
@@ -1419,12 +1419,12 @@
         "To convert REST requests into SOAP XML"
       ],
       "a": 0,
-      "exp": "To proactively smooth internal traffic bursts and stay within Anthropic API rate limit tiers without triggering HTTP 429 errors",
+      "exp": "Shaping traffic on your side keeps bursts inside the provider's limits rather than discovering them through 429s. A token bucket allows short bursts while bounding the sustained rate, which matches how real traffic actually arrives. The reason to do it proactively is that a 429 is not free: you pay in latency while backing off, and under concurrency the retries can synchronise and make the next window worse. Client-side shaping also lets you prioritise - interactive requests ahead of batch work when capacity is scarce.",
       "why": [
-        "Correct. To proactively smooth internal traffic bursts and stay within Anthropic API rate limit tiers without triggering HTTP 429 errors",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Proactive shaping keeps bursts within the provider's limits instead of discovering them as 429s and paying in retry latency.",
+        "User input speed is unrelated to how your service paces its own API calls.",
+        "Rate limiting controls request timing and has no effect on pricing.",
+        "Protocol translation is unrelated to traffic shaping."
       ]
     },
     {
@@ -1438,12 +1438,12 @@
         "Translating audit logs into ancient Greek"
       ],
       "a": 0,
-      "exp": "Providing tamper-evident records of every prompt, tool parameter, execution timestamp, and model completion for regulatory compliance",
+      "exp": "Tamper-evident records of prompts, tool parameters, timestamps and completions are what make an agent's actions reconstructable after the fact. Immutability is the load-bearing property: a log that can be edited proves nothing in a dispute, which is exactly the situation the record exists for. For regulated deployments this is often a requirement rather than a nicety. Retention has to be balanced against data minimisation, which is a design tension worth resolving deliberately through redaction and access controls rather than by shortening retention until the audit trail stops being useful.",
       "why": [
-        "Correct. Providing tamper-evident records of every prompt, tool parameter, execution timestamp, and model completion for regulatory compliance",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Tamper-evident records of prompts, parameters, timestamps and completions, which is what makes actions reconstructable in a dispute.",
+        "Audit logs exist to be examined. Concealing them from regulators inverts the purpose.",
+        "Aggressive deletion destroys the trail precisely when an investigation would need it.",
+        "Log format is irrelevant if the records are complete and tamper-evident."
       ]
     },
     {
@@ -1457,12 +1457,12 @@
         "Because Anthropic forbids long-running tasks"
       ],
       "a": 0,
-      "exp": "To detect and terminate non-converging loops or stalled external dependencies before they exhaust API token budgets",
+      "exp": "Timeouts catch two distinct failures that look identical from outside: a loop that is not converging, and a stalled external dependency. Neither resolves on its own, and without a bound both consume budget indefinitely while appearing busy. Wall-clock limits are the right instrument because they make no assumption about the cause - you do not need to diagnose why an agent stopped progressing to stop it. Pair the timeout with an escalation path so a timed-out subagent surfaces rather than silently returning nothing.",
       "why": [
-        "Correct. To detect and terminate non-converging loops or stalled external dependencies before they exhaust API token budgets",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. They terminate non-converging loops and stalled dependencies before either exhausts the budget.",
+        "No such platform limit exists. The bound is yours to impose.",
+        "The point is an upper bound on pathological cases rather than a uniform deadline for all work.",
+        "Long-running tasks are supported. The concern is loops that never finish."
       ]
     },
     {
@@ -1476,12 +1476,12 @@
         "Printed to the console log on every turn"
       ],
       "a": 0,
-      "exp": "Injected securely via environment variables or secret vaults directly to the tool backend, keeping secrets completely out of LLM prompt text",
+      "exp": "Inject secrets into the tool backend through environment variables or a secret manager, so they never enter prompt text. The model produces a tool call; your code holds the credential and makes the authenticated request. Nothing the model emits - and nothing an injection persuades it to emit - can reveal a secret it never saw. Prompt text is the worst place precisely because it persists: conversation history, traces and logs all retain it, turning one transient credential into a stored one across every system that observes the agent.",
       "why": [
-        "Correct. Injected securely via environment variables or secret vaults directly to the tool backend, keeping secrets completely out of LLM prompt text",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Injected into the tool backend so the model never sees the secret, and nothing it emits can reveal one.",
+        "Prompt text persists in conversation history, traces and logs, turning a transient secret into a stored one.",
+        "Public repositories are found by automated scanners within minutes of a push.",
+        "Console logging writes the secret into every log aggregation system that collects it."
       ]
     },
     {
@@ -1495,12 +1495,12 @@
         "The API key changing its name"
       ],
       "a": 0,
-      "exp": "A statistically significant drop in evaluation benchmark accuracy or safety compliance scores over time as user query distributions change",
+      "exp": "Drift shows up as a measured decline: benchmark accuracy or safety compliance falling over time while nothing about the prompt changed. The cause is usually on the input side - the distribution of what users send moves away from what the prompt was tuned for - which is why it is invisible without ongoing measurement. That is the operational point: drift has no symptom in any single response, so a system with only crash alerting will never see it. Detecting it requires evals that run continuously against a set refreshed from real traffic.",
       "why": [
-        "Correct. A statistically significant drop in evaluation benchmark accuracy or safety compliance scores over time as user query distributions change",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. A measured decline in benchmark accuracy or safety scores over time as the query distribution moves.",
+        "Client-side rendering has no relationship to model output quality.",
+        "Clock accuracy is an infrastructure concern unrelated to prompt performance.",
+        "Credential naming has nothing to do with how well a prompt performs."
       ]
     },
     {
@@ -1514,12 +1514,12 @@
         "Shutting down the cloud server on error"
       ],
       "a": 0,
-      "exp": "Isolating failed or unprocessable batch items for manual inspection and retry without stalling the main processing pipeline",
+      "exp": "A DLQ isolates the items that cannot be processed so the pipeline keeps moving. Without it a single malformed record blocks everything behind it, which converts one bad item into a total stall - and the failure often looks like a performance problem rather than a data problem. Sending failures to a separate queue preserves them for inspection and retry while the main flow continues. Preservation is the key property: discarding failures loses both the customer's request and the evidence you would need to fix the cause.",
       "why": [
-        "Correct. Isolating failed or unprocessable batch items for manual inspection and retry without stalling the main processing pipeline",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Failed items are isolated for inspection and retry so one unprocessable record cannot stall the pipeline.",
+        "Discarding failures loses the customer's request and the evidence needed to diagnose the cause.",
+        "Customer messaging is unrelated to handling unprocessable items in a pipeline.",
+        "Shutting down on error converts a single bad item into a full outage."
       ]
     },
     {
@@ -1533,12 +1533,12 @@
         "To use up all available storage space"
       ],
       "a": 0,
-      "exp": "To accurately measure both functional capability (true positive rate) and guardrail resistance against attacks (false positive rate)",
+      "exp": "The two halves measure different things and neither substitutes for the other. Positive cases tell you the system does what it should; adversarial cases tell you it refuses what it should not, which is the property that fails silently in production because nobody notices a guardrail holding. A suite weighted entirely toward capability passes confidently while the safety behaviour is unmeasured. Balance also keeps the metrics interpretable - a single aggregate score over a skewed set hides whichever half is smaller.",
       "why": [
-        "Correct. To accurately measure both functional capability (true positive rate) and guardrail resistance against attacks (false positive rate)",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Positive cases measure capability, adversarial cases measure guardrail resistance, and neither substitutes for the other.",
+        "Suite duration is not a design goal. Slow suites get run less often, which is a cost rather than a benefit.",
+        "Test cases measure behaviour rather than changing it. Nothing about evaluation alters the model.",
+        "Storage consumption is not a purpose of an evaluation set."
       ]
     },
     {
@@ -1552,12 +1552,12 @@
         "Legal compliance requires exactly three model instances by law"
       ],
       "a": 0,
-      "exp": "Independent instances prevent confirmation bias and self-justification loops, ensuring rigorous critique against compliance standards",
+      "exp": "An instance reviewing its own work carries the reasoning that produced it, so it tends to justify rather than critique - the same assumptions that caused an error are still in place when it looks again. A separate instance approaches the draft as text to evaluate against the standard, without the path that led there. That is why writer-verifier patterns are worth their cost on high-stakes output like contracts. Note it is a mitigation rather than a guarantee: an independent instance can share the same blind spot, so it complements human review rather than replacing it.",
       "why": [
-        "Correct. Independent instances prevent confirmation bias and self-justification loops, ensuring rigorous critique against compliance standards",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. An independent instance avoids the confirmation bias and self-justification of reviewing your own reasoning.",
+        "It can read and review its own output. The problem is that it does so with the assumptions that produced it.",
+        "Additional instances add cost. The benefit is independence rather than economy.",
+        "No regulation prescribes a number of model instances. This is an engineering judgement."
       ]
     },
     {
@@ -1571,12 +1571,12 @@
         "Compressing HTML files by 50%"
       ],
       "a": 0,
-      "exp": "Restricting script execution, iframe nesting, and network egress to prevent Cross-Site Scripting (XSS) and data exfiltration from generated code",
+      "exp": "Generated code is untrusted code, and rendering it in a browser gives it whatever the page can reach. A restrictive policy limits script execution, framing and network egress, so a generated page cannot reach an attacker's server or read data from the surrounding application. The egress restriction is the part that specifically blocks exfiltration - a script that runs but cannot phone home is far less dangerous. Treat this the same way you would any user-supplied HTML, because the trust properties are identical.",
       "why": [
-        "Correct. Restricting script execution, iframe nesting, and network egress to prevent Cross-Site Scripting (XSS) and data exfiltration from generated code",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Restricting script execution, framing and network egress prevents XSS and exfiltration from generated code.",
+        "Appearance settings are unrelated to the security boundary around executed code.",
+        "The policy governs what may execute rather than transforming any language.",
+        "Compression is a transport concern with no security effect."
       ]
     },
     {
@@ -1590,12 +1590,12 @@
         "It eliminates the need for financial budgeting"
       ],
       "a": 0,
-      "exp": "It quantifies the cost-benefit tradeoff between model intelligence tiers (Haiku vs Sonnet vs Opus) across specific business task complexities",
+      "exp": "The metric turns tier selection into a per-task-class decision rather than a global preference. Some workloads convert extra capability into measurably better outcomes and some do not, so the useful question is what each tier delivers per unit of spend on *this* task - which is where the answer usually turns out to be a mix rather than one model everywhere. The caution worth attaching is that efficiency is only meaningful alongside a quality bar: the cheapest tokens are worthless if the output fails the task.",
       "why": [
-        "Correct. It quantifies the cost-benefit tradeoff between model intelligence tiers (Haiku vs Sonnet vs Opus) across specific business task complexities",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. It quantifies the cost-benefit tradeoff between tiers for specific task complexities, which usually argues for a mix.",
+        "Currency conversion is an accounting operation unrelated to model selection.",
+        "The analysis frequently shows the opposite - that cheaper tiers suffice for many task classes.",
+        "It informs budgeting rather than replacing it."
       ]
     },
     {
@@ -1609,12 +1609,12 @@
         "To convert Java applications into Python"
       ],
       "a": 0,
-      "exp": "To isolate slow or failing AI tool calls into dedicated thread pools, preventing them from exhausting shared application server resources",
+      "exp": "Bulkheading gives slow dependencies their own thread pool so they cannot exhaust the shared one. Without it, a single degraded AI tool call ties up threads that unrelated requests need, and the whole service becomes unavailable because of one dependency - the failure spreads far beyond its cause. Isolation contains it: the affected pool saturates, calls through it fail fast, and everything else keeps serving. It pairs naturally with a circuit breaker, which stops sending work to the failing dependency at all.",
       "why": [
-        "Correct. To isolate slow or failing AI tool calls into dedicated thread pools, preventing them from exhausting shared application server resources",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Dedicated pools stop a slow dependency exhausting shared threads and taking down unrelated requests.",
+        "Thread performance is a property of the runtime. Bulkheading isolates rather than accelerates.",
+        "It partitions concurrency rather than removing it.",
+        "It is a resilience pattern with no relationship to language or platform."
       ]
     },
     {
@@ -1628,12 +1628,12 @@
         "Converting all text into uppercase letters"
       ],
       "a": 0,
-      "exp": "Stripping out unnecessary PII, confidential internal IDs, and irrelevant text before passing prompts to LLMs, reducing privacy and leakage risks",
+      "exp": "Send only what the task needs. Stripping unnecessary personal data, internal identifiers and irrelevant text reduces the exposure surface at every point the prompt touches - the request, the logs, the traces, and any retained history. Most tasks genuinely do not need the identity behind a record, only its structure and content, which is what makes this practical rather than merely principled. It also reduces cost as a side effect, though that is not the reason to do it.",
       "why": [
-        "Correct. Stripping out unnecessary PII, confidential internal IDs, and irrelevant text before passing prompts to LLMs, reducing privacy and leakage risks",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Strip unnecessary personal data and internal identifiers before the prompt is sent, reducing exposure everywhere it lands.",
+        "The goal is removing unnecessary sensitive content rather than hitting an arbitrary length.",
+        "Minimisation governs what is sent to the model. It has nothing to do with deleting your own data.",
+        "Text casing has no bearing on sensitivity or exposure."
       ]
     },
     {
@@ -1647,12 +1647,12 @@
         "It eliminates the need for network connections"
       ],
       "a": 0,
-      "exp": "Each agent actor maintains private state and communicates solely through asynchronous message passing, eliminating shared-memory locking contention",
+      "exp": "Private state plus asynchronous message passing removes shared mutable state, which is where race conditions and lock contention come from. Each actor owns its own data and communicates only through messages, so correctness does not depend on coordinating access - and the model scales because actors can be distributed without changing how they interact. The trade is that debugging becomes harder: asynchronous message flows are less inspectable than a call stack, which is why event logging matters more in this architecture rather than less.",
       "why": [
-        "Correct. Each agent actor maintains private state and communicates solely through asynchronous message passing, eliminating shared-memory locking contention",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Private state and asynchronous messaging remove shared mutable state, eliminating races and lock contention.",
+        "The name refers to an established concurrency model rather than anything theatrical.",
+        "The model is designed for concurrent and distributed execution rather than single-threaded operation.",
+        "Distributed actors communicate over a network. The model organises that rather than removing it."
       ]
     },
     {
@@ -1666,12 +1666,12 @@
         "To convert SQL databases into NoSQL databases"
       ],
       "a": 0,
-      "exp": "To eliminate SQL injection vulnerabilities by separating SQL query code from user-supplied data parameters",
+      "exp": "Parameterisation separates query structure from data, so a value can never be interpreted as SQL. That matters more with an agent than with conventional software, because the parameters are generated - shaped by a model that may have read attacker-controlled content, so they are untrusted input in the strictest sense. String interpolation puts model output directly into executable query text, which is injection by construction. Combine it with a read-only connection where the tool only needs to read, so the permission and the parameterisation both have to fail.",
       "why": [
-        "Correct. To eliminate SQL injection vulnerabilities by separating SQL query code from user-supplied data parameters",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Separating query structure from data means a value can never be interpreted as SQL, which matters most when parameters are model-generated.",
+        "Prepared statements often improve performance slightly but never make execution instantaneous.",
+        "Databases parse text queries routinely. The issue is where the boundary between code and data falls.",
+        "Query construction technique is unrelated to the database technology in use."
       ]
     },
     {
@@ -1685,12 +1685,12 @@
         "Increasing internet bandwidth speeds"
       ],
       "a": 0,
-      "exp": "Visualizing the complete request lifecycle across orchestrators, subagents, and external tool calls to pinpoint latency bottlenecks and failures",
+      "exp": "In a multi-hop workflow a slow or failing request has many possible causes - the orchestrator, a subagent, an external tool - and aggregate metrics cannot tell them apart. Traces reconstruct the whole lifecycle with timing at each hop, so a latency spike or an error resolves to a specific step rather than a suspicion. That attribution is what makes an agent system operable at all, and it becomes more valuable the more autonomous the system is, because the execution path differs between runs and cannot be reasoned about from the code alone.",
       "why": [
-        "Correct. Visualizing the complete request lifecycle across orchestrators, subagents, and external tool calls to pinpoint latency bottlenecks and failures",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. The full request lifecycle across orchestrator, subagents and tools, so latency and errors attribute to a specific hop.",
+        "Physical monitoring is unrelated to observing software request flows.",
+        "Tracing records execution rather than securing data at rest.",
+        "Network capacity is unrelated to instrumenting request paths."
       ]
     },
     {
@@ -1704,12 +1704,12 @@
         "It switches all requests to an offline database"
       ],
       "a": 0,
-      "exp": "It distributes request load proportionally across multiple API keys, accounts, or cloud provider regions to avoid localized rate limits",
+      "exp": "Distributing load proportionally across keys, accounts or regions keeps any single quota from becoming the bottleneck, and the weighting is what makes it useful - capacity is rarely equal, so proportional distribution reflects what each destination can actually absorb. It also provides a failover path: if one destination degrades, its weight can drop to zero without changing anything else. Note this is about legitimately provisioned capacity; splitting traffic across keys to evade a single account's limits is a terms problem rather than an architecture one.",
       "why": [
-        "Correct. It distributes request load proportionally across multiple API keys, accounts, or cloud provider regions to avoid localized rate limits",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Proportional distribution across keys, accounts or regions prevents a single quota becoming the bottleneck, with weights reflecting real capacity.",
+        "Fixed queuing delay is the opposite of what load distribution is for.",
+        "Discarding requests loses work rather than distributing it.",
+        "Falling back to a non-model data source is a different pattern entirely."
       ]
     },
     {
@@ -1723,12 +1723,12 @@
         "To eliminate the need for test datasets"
       ],
       "a": 0,
-      "exp": "To establish ground-truth alignment and verify that the automated judge's scoring criteria match human domain expert standards",
+      "exp": "A judge is only useful if its scores track what domain experts would say, and that alignment has to be established rather than assumed. Calibrating against human-labelled examples tells you whether the rubric captures the quality you care about, and where it does not. Skipping it means optimising confidently against a standard nobody has checked - the metric improves while the product does not, and the divergence is invisible because the number is going the right way. Recalibrate periodically, since both the system and the traffic move.",
       "why": [
-        "Correct. To establish ground-truth alignment and verify that the automated judge's scoring criteria match human domain expert standards",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. It establishes that the judge's criteria actually match human expert judgement, rather than assuming alignment.",
+        "No such legal requirement exists generally. The reason is methodological.",
+        "Calibration is an upfront cost that makes the fast automated evaluation trustworthy.",
+        "Test datasets are still required. Calibration validates the judge that scores them."
       ]
     },
     {
@@ -1742,12 +1742,12 @@
         "To convert text notes into PDF documents"
       ],
       "a": 0,
-      "exp": "To ensure partial work survives transient network failures or process restarts without requiring full multi-step re-execution",
+      "exp": "Persisting after each step means a transient failure or a restart costs one step rather than the whole run. On a long research task that is the difference between resuming and starting over, and the arithmetic gets worse the longer the task runs - a failure at step forty of fifty discards forty steps of paid work. It also gives you an inspectable record of what the agent found and when, which is what makes a long autonomous run debuggable after the fact rather than a black box that either worked or did not.",
       "why": [
-        "Correct. To ensure partial work survives transient network failures or process restarts without requiring full multi-step re-execution",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. A transient failure or restart costs one step rather than the entire multi-step run.",
+        "Process memory persists for the life of the process. The risk is the process ending, not routine expiry.",
+        "Persistence protects completed work. Tokens already spent are already billed.",
+        "Format conversion is unrelated to durability of intermediate state."
       ]
     },
     {
@@ -1761,12 +1761,12 @@
         "The operating system will switch to French"
       ],
       "a": 0,
-      "exp": "An adversarial prompt injection could instruct the agent to overwrite critical system files or delete proprietary project code",
+      "exp": "Broad filesystem access means an injection that reaches the agent can direct it to destroy or exfiltrate anything the process can touch. The risk is the combination of capability and untrusted input: the agent is doing exactly what it was asked, by text it should not have treated as an instruction. Scope the access to the directories the task needs, make everything outside them read-only, and require confirmation for deletion. The boundary has to be enforced by the operating system rather than by the agent's judgement.",
       "why": [
-        "Correct. An adversarial prompt injection could instruct the agent to overwrite critical system files or delete proprietary project code",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. An injection could direct the agent to overwrite or delete anything the process can reach.",
+        "Power delivery is unrelated to software permissions.",
+        "Display behaviour has nothing to do with filesystem access scope.",
+        "System language settings are unrelated to what an agent can write."
       ]
     },
     {
@@ -1780,12 +1780,12 @@
         "The price of the developer's laptop"
       ],
       "a": 0,
-      "exp": "Exact Match (EM) and F1-score against verified ground-truth key-value reference datasets",
+      "exp": "Extraction has verifiable answers, which is what makes it measurable at all: compare what was extracted against a verified reference and score exact matches plus partial overlap. That gives you a rate you can track over time and across model versions. The scope limit is worth stating - this measures fidelity on tasks with a known correct answer, and generalises poorly to open-ended generation where no reference exists. For those, judged evaluation or human review is the available instrument.",
       "why": [
-        "Correct. Exact Match (EM) and F1-score against verified ground-truth key-value reference datasets",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Exact match and F1 against verified reference data, which works precisely because extraction has a checkable right answer.",
+        "Codebase size measures how much software you wrote, not whether the model's extractions match the source. A large application can hallucinate freely.",
+        "Clock frequency describes the machine the request ran on. Nothing about hardware speed indicates whether the extracted values were correct.",
+        "Equipment cost is unrelated to output quality, and no property of the development environment tells you how often the model invents a value."
       ]
     },
     {
@@ -1799,12 +1799,12 @@
         "To disable error logging"
       ],
       "a": 0,
-      "exp": "To send a small percentage of canary requests to test if an upstream service has recovered before fully reopening traffic",
+      "exp": "Half-open is how a breaker finds out whether the dependency recovered without betting the whole service on it. A small number of trial requests go through; if they succeed the breaker closes, and if they fail it opens again. The alternative failure modes are both bad: a breaker that never retries stays open after the dependency recovers, and one that reopens fully sends the entire load at a service that may still be fragile, which re-triggers the outage it was recovering from.",
       "why": [
-        "Correct. To send a small percentage of canary requests to test if an upstream service has recovered before fully reopening traffic",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. A small number of canary requests test recovery before the breaker fully reopens.",
+        "The breaker is a failure-handling state machine rather than a throttle on normal operation.",
+        "Circuit breaking governs request routing during failures and has no pricing effect.",
+        "Logging is more important during failures, not less."
       ]
     },
     {
@@ -1818,12 +1818,12 @@
         "Translating data into binary numbers"
       ],
       "a": 0,
-      "exp": "Adding mathematical noise to aggregate query outputs to prevent the reconstruction of individual user records from statistical data",
+      "exp": "Adding calibrated noise to aggregate outputs bounds how much any individual record can influence the result, which is what prevents reconstruction of individuals from a series of queries. That last part is the threat it addresses - aggregates that each look harmless can, combined, identify a person. It is a statistical guarantee rather than an access control, so it complements encryption and retention policy rather than replacing them, and it costs accuracy: the privacy guarantee and the precision of the answer trade directly against each other.",
       "why": [
-        "Correct. Adding mathematical noise to aggregate query outputs to prevent the reconstruction of individual user records from statistical data",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Calibrated noise on aggregate outputs bounds any individual's influence, preventing reconstruction from repeated queries.",
+        "Disk encryption protects data at rest and does nothing about what aggregate queries reveal.",
+        "Retention limits reduce exposure over time but do not prevent inference from a live dataset.",
+        "Encoding changes representation without providing any privacy property."
       ]
     },
     {
@@ -1837,12 +1837,12 @@
         "To force agents to run at 10% speed"
       ],
       "a": 0,
-      "exp": "To enable post-incident debugging, deterministic replay of agent decisions, and complete compliance auditing of autonomous actions",
+      "exp": "A complete event log is what makes an agent's behaviour reconstructable: which decisions it made, in what order, with what inputs. That supports three separate needs - debugging after an incident, deterministic replay to understand a decision path, and compliance auditing of consequential actions. The reason it matters more for agents than for conventional software is that the execution path is chosen at run time, so you cannot reason about what happened from the code. Without the log, a one-off failure is often not reproducible at all.",
       "why": [
-        "Correct. To enable post-incident debugging, deterministic replay of agent decisions, and complete compliance auditing of autonomous actions",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. Post-incident debugging, deterministic replay of decisions, and compliance auditing of what the system actually did.",
+        "Servers run without application event logs. The value is reconstruction rather than stability.",
+        "Logs exist to give developers visibility rather than to withhold it.",
+        "Logging adds modest overhead and does not meaningfully slow execution."
       ]
     },
     {
@@ -1856,12 +1856,12 @@
         "Because AI models cannot count above 1,000"
       ],
       "a": 0,
-      "exp": "To prevent single-agent compromise or prompt injection from autonomously executing high-value unauthorized financial transfers",
+      "exp": "Above a value threshold, no single point of compromise should be able to move money. Multi-party authorisation means an injection that captures the agent, or a single compromised credential, is not sufficient by itself - a second independent party must also approve. The threshold is the design decision worth thinking about: too low and the control is bypassed by habit as approvers rubber-stamp volume, too high and it does not cover the transactions that matter. Below it, limits and audit carry the risk instead.",
       "why": [
-        "Correct. To prevent single-agent compromise or prompt injection from autonomously executing high-value unauthorized financial transfers",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. No single compromise or injection can execute a high-value transaction alone, since a second independent party must approve.",
+        "This is an internal authorisation control rather than a banking requirement about signatures.",
+        "Authorisation controls add a step deliberately. Speed is not the objective.",
+        "The threshold is a risk decision rather than anything to do with model capability."
       ]
     },
     {
@@ -1875,12 +1875,12 @@
         "That the model is running on a quantum computer"
       ],
       "a": 0,
-      "exp": "The worst 1% of user requests experience severe delay, often pointing to cache misses, deep reasoning loops, or network bottlenecks",
+      "exp": "P99 describes the tail: the slowest one percent of requests. It matters because averages hide it - a healthy mean can coexist with a tail slow enough that a meaningful number of users have a bad experience every day. The usual causes are cache misses, unusually deep reasoning on hard inputs, and upstream contention, all of which affect a minority of requests. Watching the tail rather than the average is what surfaces the problems users actually complain about, since nobody experiences your median.",
       "why": [
-        "Correct. The worst 1% of user requests experience severe delay, often pointing to cache misses, deep reasoning loops, or network bottlenecks",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. The slowest one percent of requests, usually from cache misses, deeper reasoning, or upstream contention.",
+        "It is a latency percentile rather than a failure rate. These requests succeed, slowly.",
+        "A high tail latency indicates a problem rather than efficiency.",
+        "The metric describes response time distribution and implies nothing about the hardware."
       ]
     },
     {
@@ -1894,12 +1894,12 @@
         "To convert SQL databases into text files"
       ],
       "a": 0,
-      "exp": "To absorb traffic spikes, prevent database write connection bottlenecks, and ensure durable retries for failed database transactions",
+      "exp": "A queue between generation and persistence absorbs bursts, so a spike in model output does not become a spike in database writes that exhausts the connection pool. It also makes retries durable: a write that fails is retried from the queue rather than losing the result of an expensive generation. That second property is what justifies the complexity - model calls cost real money, and discarding a completed response because a database was briefly unavailable is the most avoidable kind of waste.",
       "why": [
-        "Correct. To absorb traffic spikes, prevent database write connection bottlenecks, and ensure durable retries for failed database transactions",
-        "Incorrect. This does not align with enterprise architectural best practices.",
-        "Incorrect. This represents an anti-pattern or invalid technical claim.",
-        "Incorrect. This violates core system design principles."
+        "Correct. The queue absorbs bursts and makes failed writes durably retryable, so an expensive generation is not lost to a transient database problem.",
+        "Queuing decouples timing rather than making writes instantaneous.",
+        "Authentication still applies. Decoupling changes when writes happen, not whether they are authorised.",
+        "The storage technology is unchanged. A queue sits in front of it."
       ]
     }
   ],

@@ -87,8 +87,14 @@ in task 3.5 and target ~22 average, rather than writing to a number.
       (min 12). See the floor note below.
 - [x] **3.2** CCDV-F — 100/100. exp avg **94w** (min 81), why avg **17w**.
 - [x] **3.3** CCAR-F — 100/100. exp avg **89w** (min 77), why avg **16w**.
-- [~] **3.4** CCAR-P — 51/100.
-- [ ] **3.5** Raise the suite's depth floors so it cannot slide back.
+- [x] **3.4** CCAR-P — 100/100. exp avg **84w** (min 74).
+- [x] **3.5** Depth floors added — but not the ones the plan specified. A
+      uniform per-rationale floor is the wrong instrument: a rationale for a
+      plausible distractor needs 20–30 words to name the misconception, while
+      one for an absurd distractor is finished in seven, and padding it adds
+      words without information. Enforced instead: `exp` ≥ 60, the **correct
+      answer's** rationale ≥ 10 (that is where the teaching lands), and a
+      per-question mean ≥ 10 so a bank of one-liners still fails.
 
 ### Phase 4 — lesson expansion (thinnest first)
 Worked examples with real code, the decision criteria actually applied, failure
