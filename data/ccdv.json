@@ -981,12 +981,12 @@
         "It is required by the API"
       ],
       "a": 1,
-      "exp": "Caching keys on the leading prefix. Stable-first ordering is what makes the cache usable across calls.",
+      "exp": "Caching is a prefix match, so the cache boundary can only fall after content that is byte-identical across calls. Putting the large unchanging block first maximises how much of the request sits inside that boundary; everything after the last breakpoint is billed normally. The failure this prevents is silent: a timestamp, a session id or a per-user greeting placed early invalidates everything after it, and you get no error - just a cache read of zero and full price on every call. Order by stability, not by what reads naturally.",
       "why": [
-        "Readability is a side benefit, not the reason.",
-        "Correct. Stable content first maximizes what can be cached.",
-        "Prompt ordering does not control output length.",
-        "There is no ordering requirement in the API itself."
+        "Readability is a side effect. The rule exists because a prefix match can only reuse content identical from the start.",
+        "Correct. It maximises the cacheable prefix, since caching can only reuse content that is byte-identical from the beginning of the request.",
+        "Response length is set by the request and the ceiling. Prompt ordering has no effect on it.",
+        "The API accepts any ordering. This is an optimisation you choose rather than a constraint imposed on you."
       ],
       "id": "ccdvq-47ee75d3"
     },
@@ -1000,12 +1000,12 @@
         "Make the prompt shorter"
       ],
       "a": 1,
-      "exp": "Targeted examples of the failing case teach the boundary behavior directly, which general instructions rarely do.",
+      "exp": "A recurring edge case is a specification gap, so close it directly: show the case as a worked example and state the rule that governs it. Examples are the strongest signal in a prompt, and one that demonstrates the awkward case teaches far more than a paragraph describing it, because the model matches what it sees. Pair the example with an explicit rule so the behaviour generalises rather than being pattern-matched to that one input. Raising effort makes the model reason harder about a case it was never told how to handle, and shortening the prompt removes information rather than adding it.",
       "why": [
-        "More reasoning does not supply missing task-specific guidance.",
-        "Correct. Show the hard case and state the rule for it.",
-        "Provider choice does not address an under-specified prompt.",
-        "Removing content is unlikely to add the missing guidance."
+        "More reasoning does not supply a rule the prompt never stated. The model reasons harder toward the same wrong handling.",
+        "Correct. Show the edge case as an example and state its rule, so the behaviour is both demonstrated and generalised.",
+        "The gap is in the specification rather than the model. The same unstated edge case will fail anywhere.",
+        "Shortening removes information. An underspecified edge case needs more specification, not less."
       ],
       "id": "ccdvq-ca44d118"
     },
@@ -1019,12 +1019,12 @@
         "The team agrees it reads well"
       ],
       "a": 1,
-      "exp": "Prompt engineering is empirical. Without a fixed evaluation set you cannot distinguish improvement from variance.",
+      "exp": "A regression set scored before and after is the only method that distinguishes a real improvement from a lucky sample. It also catches the case informal comparison always misses: a change that fixes one failure mode while introducing another, which looks like progress on whichever example you happened to check. Keep the set representative and fixed so scores stay comparable across versions. A single good example, a longer prompt, and team consensus that it reads well are all impressions, and the prompt that reads best is not reliably the one that performs best.",
       "why": [
-        "A single example cannot separate improvement from noise.",
-        "Correct. Fixed cases scored before and after is the only trustworthy signal.",
-        "Length is not correlated with quality.",
-        "Readability to humans is not the same as task performance."
+        "One example is a sample of one. It cannot distinguish a real improvement from a favourable draw.",
+        "Correct. A fixed representative set scored before and after, which catches a change that fixes one failure and introduces another.",
+        "Length is not quality. Longer prompts can dilute the instructions that were already working.",
+        "How a prompt reads to a person is weakly related to how it performs. Consensus about style is not measurement."
       ],
       "id": "ccdvq-07dbef8a"
     },
@@ -1038,12 +1038,12 @@
         "The API rejects large inputs entirely"
       ],
       "a": 1,
-      "exp": "Retrieval narrows what the model must attend to. It improves relevance and cost; it does not guarantee correctness.",
+      "exp": "Retrieval supplies only the passages that bear on the question, which improves focus and cuts cost at the same time: the relevant text is not competing with a corpus of irrelevant material, and you pay per query rather than per corpus. That combination is unusual enough to notice, since the cheaper option is normally the worse one. What retrieval does not do is guarantee accuracy. It changes which material the model sees, and a wrong passage retrieved confidently still produces a wrong answer. Confidentiality is a separate concern, and large inputs are accepted.",
       "why": [
-        "Confidentiality is a separate concern from retrieval mechanics.",
-        "Correct. Supplying only relevant passages improves focus and reduces spend.",
-        "Grounding reduces error but guarantees nothing.",
-        "Large inputs are supported; the issue is that they are wasteful and diluting."
+        "Confidentiality is a real consideration but a separate one. Retrieval is chosen for focus and cost, and both approaches send your data.",
+        "Correct. Only the relevant portion is supplied, which improves focus and cuts cost at the same time.",
+        "Retrieval changes what the model sees rather than whether it reasons correctly over it. A wrongly retrieved passage still yields a wrong answer.",
+        "Large inputs are accepted up to the context window. The issue is cost and dilution rather than rejection."
       ],
       "id": "ccdvq-e3a7862c"
     },
@@ -1057,12 +1057,12 @@
         "Secrets that must never be read by the team"
       ],
       "a": 1,
-      "exp": "Prompts materially determine behavior, so they need the same change control as any other production configuration.",
+      "exp": "A production system prompt is configuration that determines application behaviour, so it belongs under version control with review and an eval gate before rollout, the same treatment as any other code path that can change what users receive. Editing it live is how an untested change reaches every user at once with no record of what altered and no clean rollback. Treating it as documentation understates its effect, and treating it as a secret the team cannot read prevents exactly the review that catches problems before deployment.",
       "why": [
-        "Unreviewed live edits to behavior-defining text is a production risk.",
-        "Correct. Version, review, gate on evals, and roll out deliberately.",
-        "Prompts are executable configuration, not commentary.",
-        "The team needs to read and review them; they are not secrets."
+        "Live editing pushes an untested change to every user simultaneously, with no record of what changed and no clean rollback.",
+        "Correct. Versioned configuration under review with an eval gate before rollout, since it determines what users actually receive.",
+        "It is executable configuration rather than description. Calling it documentation understates the effect a change has.",
+        "Restricting the team from reading it prevents the review that catches problems, and the prompt is not a credential."
       ],
       "id": "ccdvq-a3f23ffa"
     },
@@ -1076,12 +1076,12 @@
         "Harmless because models ignore such text"
       ],
       "a": 1,
-      "exp": "Anything arriving through tools or retrieval is untrusted data. Treating it as instruction is the core injection vulnerability.",
+      "exp": "This is prompt injection. Retrieved content is data, and the moment it is allowed to function as instruction the boundary that keeps an agent safe is gone. The model is not defective - it processed text it was given, which is what it does - so the defence has to be architectural rather than a matter of the model being more careful. A user opening a page is not authorisation for that page to act on their behalf; they asked for a summary, not for whatever the page author wanted. Assume such text will sometimes be followed, and constrain what following it could accomplish.",
       "why": [
-        "Injection is an application design issue, not a model defect.",
-        "Correct. Observed content is data; only the user issues instructions.",
-        "Opening a page does not authorize what the page's text demands.",
-        "Models can and do follow injected instructions without safeguards."
+        "The model processed text it was given, which is expected behaviour. Reporting it as a defect misdirects the fix away from architecture.",
+        "Correct. Retrieved content is data, never instruction, and the defence has to be structural rather than a hope the model notices.",
+        "Opening a page is not authorisation for its author to act on the user's behalf. They asked for a summary, nothing more.",
+        "Assuming such text is always ignored is exactly the assumption these attacks exploit. Plan for it sometimes working."
       ],
       "id": "ccdvq-3da5959f"
     },
@@ -1095,12 +1095,12 @@
         "Trusting the model's judgment"
       ],
       "a": 1,
-      "exp": "Prompt-level warnings can be overridden by clever input. Capability limits and approval gates hold regardless of what the model is persuaded to attempt.",
+      "exp": "The durable defence is on the tool rather than in the prompt: scope it to the narrowest permission that still does the job, and gate irreversible actions behind human approval. That bounds the damage regardless of what the model was persuaded to attempt, which is the property you want, because an injection you did not anticipate still cannot exceed the permission you granted. A longer warning in the system prompt is more text competing with the injected text and offers no guarantee. Obscuring a tool name is not control, and trusting judgement is the assumption the attack is built to defeat.",
       "why": [
-        "Instructions are the layer injection attacks target.",
-        "Correct. Constrain what the tool can do and gate irreversible actions.",
-        "Obscurity is not a control.",
-        "Relying on judgment alone leaves no defense when judgment is manipulated."
+        "More instruction text competes with the injected text and provides no guarantee. Injection defeats prompts by being a prompt.",
+        "Correct. Narrow permissions plus approval on irreversible actions bound the damage regardless of what the model was persuaded to attempt.",
+        "The model needs the name to call the tool, so obscuring it degrades legitimate use without preventing misuse.",
+        "Trusting the model's judgement is precisely the assumption prompt injection is designed to exploit."
       ],
       "id": "ccdvq-f76f6b27"
     },
@@ -1114,12 +1114,12 @@
         "Committed to the repository in a config file"
       ],
       "a": 1,
-      "exp": "A key in client code is a published key. Route calls through a backend that holds the credential and enforces your own authorization.",
+      "exp": "The key belongs on a server you control, with the browser calling your backend and your backend calling the API. Anything in front-end code is readable by anyone using the site regardless of build tooling, and a leaked key is spent against your account. The server tier is also the only place you can enforce per-user rate limits, authorisation and logging, so this is not purely a secrecy measure but where the controls live. Team chat and repositories are both places secrets leak permanently and get found by automated scanners.",
       "why": [
-        "Anything in the browser is readable by users and extractable at scale.",
-        "Correct. Keep credentials server-side behind your own authorization.",
-        "Chat history is neither access-controlled nor rotatable.",
-        "Committed secrets persist in history even after removal."
+        "Front-end code is readable by every visitor. A key there is published, whatever the bundler does to it.",
+        "Correct. Server-side, with the browser calling your backend, which is also the only place you can enforce limits and authorisation.",
+        "Chat histories are searchable, exportable and long-lived. A key shared there stays exposed indefinitely.",
+        "Committed keys persist in history even after removal, and automated scanners find them within minutes of a push."
       ],
       "id": "ccdvq-ef875acc"
     },
@@ -1133,12 +1133,12 @@
         "Whether the user is a paying customer"
       ],
       "a": 1,
-      "exp": "Data classification governs whether processing is permitted at all, ahead of any technical consideration.",
+      "exp": "Whether you are permitted to process the content is the check that can stop the task outright, so it comes first. User-supplied documents may contain personal data, third-party confidential material or regulated content, and your policy and contractual commitments decide whether it may be sent at all. Getting an excellent result from a document you were not allowed to process is still an incident. Formatting and length are engineering considerations that matter afterwards, and a customer's plan has no bearing on data-protection obligations, which attach to the data rather than the account.",
       "why": [
-        "Formatting is irrelevant to whether processing is lawful.",
-        "Correct. Permitted-use and data classification come first.",
-        "Length is an engineering concern, not a governance one.",
-        "Payment status does not determine data-handling permissions."
+        "Formatting affects how well the document is processed. It has no bearing on whether processing it is permitted.",
+        "Correct. Whether your policy and agreements permit processing that content, since that answer can stop the task entirely.",
+        "Length affects cost and chunking. It says nothing about whether the content may be sent at all.",
+        "Data-protection obligations attach to the data rather than to the account. A paying customer's personal data is still personal data."
       ],
       "id": "ccdvq-317637fe"
     },
@@ -1152,12 +1152,12 @@
         "Rename the tool so the model is less likely to pick it"
       ],
       "a": 1,
-      "exp": "Irreversible actions need a gate before the fact. Detection after the fact does not undo a deletion.",
+      "exp": "Two controls together: confirmation before destructive actions, and a tool scoped to the narrowest permission that still works. The scoping limits damage when confirmation is bypassed or granted carelessly, and the confirmation catches the case the scope permits but the user did not intend. Testing establishes behaviour on the cases you thought of, which is exactly not the situation that produces an unintended deletion. Monthly log review detects rather than prevents, and by then the records are gone. Renaming the tool is obscurity that degrades legitimate use without preventing anything.",
       "why": [
-        "Testing cannot enumerate every input an agent will encounter.",
-        "Correct. Confirm before irreversible actions, and minimize permissions.",
-        "Monthly review detects damage long after it is done.",
-        "Naming is not an access control."
+        "Testing covers the cases you anticipated. Unintended deletions come from the situations you did not.",
+        "Correct. Confirmation on destructive actions plus the narrowest workable permission - one catches intent, the other bounds damage.",
+        "Monthly review detects after the fact. The records are already deleted by the time anyone looks.",
+        "A confusing name degrades legitimate use without preventing misuse, and the model still needs to be able to call it."
       ],
       "id": "ccdvq-061b61a6"
     },
@@ -1171,12 +1171,12 @@
         "Follow it if the domain looks familiar"
       ],
       "a": 1,
-      "exp": "Endpoints suggested by untrusted content are an exfiltration path. They should not be fetched or posted to automatically.",
+      "exp": "A link that arrived inside retrieved content is untrusted, so do not fetch it or submit anything to it automatically. Auto-following turns your agent into a channel an attacker controls: the destination decides what comes back, and a request carrying parameters can exfiltrate whatever is in scope. HTTPS authenticates the server and encrypts transport; it says nothing about whether the destination is trustworthy, which is the confusion worth clearing up here. A familiar-looking domain is weaker still, since lookalike domains are the entire point of that technique. Show it to the user and let them decide.",
       "why": [
-        "Auto-following is precisely the exfiltration vector.",
-        "Correct. Untrusted content must not steer where data goes.",
-        "Transport encryption says nothing about the destination's trustworthiness.",
-        "Lookalike domains are a standard attack technique."
+        "Auto-following lets content the attacker controls choose your agent's next request, and any parameters go with it.",
+        "Correct. Treat it as untrusted - do not fetch it or send data to it without a person deciding.",
+        "HTTPS authenticates the server and encrypts transport. It says nothing about whether the destination should be trusted.",
+        "Lookalike domains exist precisely to appear familiar, which makes visual similarity the weakest possible check."
       ],
       "id": "ccdvq-d092ce82"
     },
@@ -1190,12 +1190,12 @@
         "It is unnecessary with structured outputs"
       ],
       "a": 1,
-      "exp": "Model output crossing into a database query, a shell command, or an API call is untrusted input at that boundary, regardless of how it was generated.",
+      "exp": "Model output is untrusted input to whatever consumes it next. A generated identifier that reaches a query, a path that reaches a filesystem call, a URL that reaches a fetch - each is a value from outside your trust boundary, and the ordinary rules for untrusted input apply. That framing puts the check in the right place: validate at the boundary where the value is used, not wherever it happened to be produced. Structured outputs guarantee shape rather than meaning, so a schema-valid value can still be wrong or hostile, and validation remains necessary alongside it.",
       "why": [
-        "Validation rejects bad values; it does not make generation better.",
-        "Correct. Treat generated values as untrusted at every boundary they cross.",
-        "Validation has no bearing on token cost.",
-        "Schema conformance is not the same as being safe to execute."
+        "Validation rejects bad values rather than improving generation. Quality is a separate concern from safety at the boundary.",
+        "Correct. Generated values are untrusted input to whatever consumes them, so the ordinary rules for untrusted input apply.",
+        "Validation runs in your code and consumes no tokens. Cost is unrelated to whether you check the output.",
+        "Structured outputs guarantee shape, not meaning. A schema-valid identifier can still be wrong or hostile."
       ],
       "id": "ccdvq-58102ef9"
     },
@@ -1209,12 +1209,12 @@
         "Retry until it works"
       ],
       "a": 1,
-      "exp": "A connected server is a dependency with an interface. Pinning and deliberate upgrades apply to it exactly as they do to any library.",
+      "exp": "Treat tool contracts as a versioned dependency: pin the server version, and upgrade deliberately after checking what changed. That is the same discipline you would apply to any library whose API your code calls, for the same reason - an unpinned dependency can change the interface underneath a working system at a time you did not choose. Hardcoding the old name in the prompt describes a tool that no longer exists. Asking the model to guess turns a deterministic contract into a probabilistic one, and retrying repeats a call that will keep failing for the same reason.",
       "why": [
-        "Hardcoding a stale name in the prompt does not restore the missing tool.",
-        "Correct. Pin the version and upgrade deliberately, as with any dependency.",
-        "Guessing an interface is not a recovery strategy.",
-        "Retrying a call to a tool that no longer exists cannot succeed."
+        "Naming a tool that no longer exists does not make it exist. The contract changed, not the wording.",
+        "Correct. Pin the version and treat tool contracts as a versioned dependency, upgrading deliberately after reviewing what changed.",
+        "Guessing turns a deterministic contract into a probabilistic one, which is the opposite of what a dependency should be.",
+        "The call fails for a stable reason. Retrying repeats it without changing anything."
       ],
       "id": "ccdvq-2256a72f"
     },
@@ -1228,12 +1228,12 @@
         "Replacing HTTP"
       ],
       "a": 1,
-      "exp": "MCP is an interoperability standard: build a server once and any compatible client can use it, instead of pairwise integrations.",
+      "exp": "MCP addresses the N-by-M problem: without a standard, every client needs a bespoke connector for every data source, so the integration count multiplies rather than adds. A shared protocol turns that into N plus M - write a server once and any MCP-aware client can use it. That is the whole argument, and it is an ecosystem argument rather than a capability one. The model is unchanged, tokens are unchanged, and HTTP is still the transport underneath. Being precise about this matters because MCP gets loosely used to mean any kind of tool integration.",
       "why": [
-        "The protocol does not change model capability.",
-        "Correct. One standard interface replaces bespoke pairwise connectors.",
-        "Integration standardization is not primarily a cost mechanism.",
-        "MCP is a protocol layered over existing transports, not a replacement for them."
+        "Reasoning is a property of the model. A connection protocol does not change how well it thinks.",
+        "Correct. The N-by-M integration problem - a shared protocol turns per-client-per-source connectors into write-once servers.",
+        "Cost is driven by tokens. A protocol for connecting tools does not change what a request costs.",
+        "MCP runs over existing transports including HTTP. It standardises tool and data access rather than replacing the web."
       ],
       "id": "ccdvq-e0364a06"
     },
@@ -1247,12 +1247,12 @@
         "Requires no schema"
       ],
       "a": 1,
-      "exp": "Resources are readable context; tools are invocable actions. The distinction matters for permissions and for reasoning about side effects.",
+      "exp": "A resource exposes data for the model to read; a tool performs an action. The distinction is about side effects, and honouring it makes a server predictable: reads that look like actions invite unnecessary approval prompts, and actions exposed as inert data hide the fact that something changes when they run. That second case is the dangerous one. Speed is an implementation property rather than a protocol distinction, and resources are described too - a client needs to know what it is reading - so it is not a matter of one having a schema and the other not.",
       "why": [
-        "Side-effecting operations belong in tools.",
-        "Correct. Resources supply data; tools perform actions.",
-        "Performance is an implementation property, not a distinction of kind.",
-        "Both are described so the client knows how to use them."
+        "That describes a tool. The read-versus-act distinction is precisely what separates the two primitives.",
+        "Correct. A resource exposes data to read, where a tool performs an action - the distinction is side effects.",
+        "Speed depends on the implementation. A resource backed by a slow query is slower than a fast tool.",
+        "Resources are described too. A client needs to know what it is reading, so both carry definitions."
       ],
       "id": "ccdvq-f07e8567"
     },
@@ -1266,12 +1266,12 @@
         "Confirm it is fast"
       ],
       "a": 1,
-      "exp": "A connected server extends the agent's capability surface. What it can do, and with what permissions, is the security question.",
+      "exp": "Review what the server exposes and what permissions those tools require, then grant the narrowest access that works. Connecting a third-party server with write access hands an external party the ability to define actions your agent can take, so the tool list and its permission requirements are the security surface. Tool descriptions themselves arrive from the server, which makes them untrusted content too. Popularity, licence and speed are all reasonable selection criteria, and none of them tells you what the server can do once connected.",
       "why": [
-        "Popularity is not a security review.",
-        "Correct. Audit exposed capability and grant the minimum required.",
-        "Source availability helps review but is not itself an assessment.",
-        "Latency is unrelated to safety."
+        "Popularity indicates adoption rather than safety, and a widely used server can still request more access than your agent should grant.",
+        "Correct. Review the exposed tools and their required permissions, then scope access to the narrowest that works.",
+        "Open source allows inspection but does not perform it. The audit is the value, and it still has to be done.",
+        "Latency is a performance property. It says nothing about what the server is able to do with write access."
       ],
       "id": "ccdvq-66ac9a06"
     },
@@ -1285,12 +1285,12 @@
         "A cached response"
       ],
       "a": 1,
-      "exp": "Prompts let a server ship curated, parameterized templates so clients need not reinvent effective phrasing for that domain.",
+      "exp": "An MCP prompt is a reusable, parameterised template the server offers - a way to package a common task so clients do not each reinvent the wording. It is offered rather than imposed: the client decides whether to use it, which keeps control with the application. That framing also makes the trust boundary clear, since a template arriving from a server is content from outside your system and deserves the same scepticism as any other server-supplied text. It is neither the user's message nor a cache of past responses.",
       "why": [
-        "Servers offer prompts; they do not override client behavior.",
-        "Correct. A reusable parameterized template exposed by the server.",
-        "User input is not a protocol primitive.",
-        "Caching is unrelated to the prompt primitive."
+        "The server offers templates; it does not impose a system prompt. The client decides whether to use one.",
+        "Correct. A reusable, parameterised template the server offers for common tasks, which the client may choose to use.",
+        "The user's message is conversational input. A prompt primitive is a template the server publishes.",
+        "Caching stores prior results. A prompt primitive is a template for constructing new requests."
       ],
       "id": "ccdvq-72192c6b"
     },
@@ -1304,12 +1304,12 @@
         "Authentication becomes unnecessary"
       ],
       "a": 1,
-      "exp": "Decoupling servers from clients is the architectural win: independent development, versioning, and reuse across compatible clients.",
+      "exp": "Standardisation lets servers be built, versioned and reused independently of any single client, which turns integrations into shared infrastructure instead of per-application work. A server written once serves every MCP-aware client, and it can evolve on its own release cycle - which is also why pinning versions matters. What does not change is everything below the protocol: tools still cost whatever they cost to run, the model still needs good descriptions to choose well, and authentication is still required and arguably more important once a third party is involved.",
       "why": [
-        "Execution costs are unchanged by the protocol.",
-        "Correct. Servers become independently developed, reusable components.",
-        "Descriptions still drive correct tool selection.",
-        "Authentication remains essential and is part of a careful deployment."
+        "Execution cost is unchanged by how a tool is reached. A protocol does not make the work behind it free.",
+        "Correct. Servers can be developed, versioned and reused independently of any one client, which makes integrations shared infrastructure.",
+        "Descriptions are how the model decides what to call. MCP standardises delivery rather than removing the need for them.",
+        "Authentication is still required, and matters more once a third-party server is in the path."
       ],
       "id": "ccdvq-aed75766"
     },
@@ -1323,12 +1323,12 @@
         "This cannot happen over MCP"
       ],
       "a": 1,
-      "exp": "Anything a server supplies — including tool descriptions — is data from outside your trust boundary. Permissions must be enforced by your application, not by what a description claims.",
+      "exp": "Tool descriptions arriving from a server are untrusted content. They are text from outside your system that reaches the model's context, which makes them an injection vector, so the design assumption has to be that they may be hostile and must not be able to escalate what the agent is permitted to do. The defence is the same as for any injection: bound the permissions rather than rely on recognition. Treating server-supplied descriptions as trusted configuration is the mistake, and expecting the model to always notice is the assumption these attacks exist to defeat.",
       "why": [
-        "Treating remote descriptions as trusted config is exactly the vulnerability.",
-        "Correct. Enforce permissions in your application; never let described intent grant capability.",
-        "Models can be steered by injected instructions; detection is not a control.",
-        "A compromised or malicious server is a realistic threat over any integration protocol."
+        "Configuration you control is trusted. Text arriving from a third-party server at run time is not, even though it functions as configuration.",
+        "Correct. Server-supplied descriptions are untrusted content and must not be able to escalate the agent's permissions.",
+        "Relying on the model to notice is the assumption injection attacks are built to defeat. Bound the permissions instead.",
+        "Nothing in the protocol prevents a server sending whatever description it chooses. This is exactly the threat to design against."
       ],
       "id": "ccdvq-f7d81deb"
     },
@@ -1363,12 +1363,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. The thinking block carries a cryptographic signature from Anthropic and must be passed back intact to preserve reasoning continuity.",
-        "Stripping thinking blocks breaks conversation reasoning continuity on subsequent turns.",
-        "Thinking blocks belong exclusively in assistant turns.",
-        "Signatures are verified by Anthropic's servers and cannot be re-signed locally."
+        "Correct. Both blocks unchanged, signature included, since the signature is what verifies the block was not altered.",
+        "Dropping thinking blocks to save tokens can trigger ordering and signature errors rather than degrading quietly.",
+        "Thinking is assistant-side reasoning. Recasting it as a user message misrepresents the turn structure entirely.",
+        "The signature is verified by the API, not by you. Re-encrypting it locally guarantees rejection."
       ],
-      "exp": "Correct. The thinking block carries a cryptographic signature from Anthropic and must be passed back intact to preserve reasoning continuity."
+      "exp": "Pass previous thinking blocks back unchanged, signature included, alongside the text block. The signature is what lets the API verify the block was not altered, so editing or reconstructing it breaks the turn, and dropping thinking blocks to save tokens can trigger ordering and signature errors rather than quietly working. The rule is unchanged rather than untouched: reading or displaying a summarised block is fine, modifying it is not. On current models the raw chain of thought is never returned, so what you echo back may carry an empty thinking field."
     },
     {
       "id": "ccdvq-73",
@@ -1401,12 +1401,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. `resources/list` queries the server for its catalog of read-only resources (files, schemas, logs).",
-        "`tools/list` returns callable functions that perform actions.",
-        "`prompts/list` returns reusable prompt templates.",
-        "`roots/list` is sent by the server to query client workspace roots."
+        "Correct. resources/list discovers read-only data assets, matching the resource primitive.",
+        "tools/list returns invocable actions with side effects rather than data to read.",
+        "prompts/list returns reusable templates, a third primitive distinct from both data and actions.",
+        "roots/list concerns the workspace boundaries the client exposes to the server, not assets the server offers."
       ],
-      "exp": "Correct. `resources/list` queries the server for its catalog of read-only resources (files, schemas, logs)."
+      "exp": "The list methods map one-to-one onto the primitives, so choosing between them is really a question of which primitive you want. Resources are data the model can read, which makes resources/list the discovery call for read-only assets; tools/list returns invocable actions and prompts/list returns templates. roots/list is different in kind: it concerns the filesystem or workspace boundaries the client exposes to the server rather than assets the server offers. Keeping the primitives distinct is what makes the protocol predictable to implement against."
     },
     {
       "id": "ccdvq-75",
@@ -1420,12 +1420,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. `isError: true` signals tool-level execution failure within the protocol, prompting the model to explain the error or retry with different parameters.",
-        "Protocol connections remain active after tool errors.",
-        "It does not crash the host HTTP server.",
-        "Tool definitions remain registered and available."
+        "Correct. It tells the model the execution failed, so the failure becomes something it can reason about and adapt to.",
+        "The connection stays open. This is a normal protocol response that happens to carry a failure result.",
+        "It is a field within a successful response rather than a transport-level error on the host.",
+        "Nothing is removed. The tool remains available and can be called again."
       ],
-      "exp": "Correct. `isError: true` signals tool-level execution failure within the protocol, prompting the model to explain the error or retry with different parameters."
+      "exp": "isError reports that the tool execution failed, and it reports it to the model, which is the point. The failure becomes information the model can reason about and adapt to rather than an exception that terminates the run. That distinction matters for agent design: a tool error the model can see leads to a retry or a different approach, whereas a dropped connection leads to an abandoned run and a silent empty result leads to a confidently wrong conclusion. It is a normal, successful protocol response that happens to carry a failure result."
     },
     {
       "id": "ccdvq-76",
@@ -1439,12 +1439,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Native PDFs must be structured as a `document` content block with `type: 'base64'` and `media_type: 'application/pdf'`.",
-        "Local filesystem paths cannot be directly read across HTTP API boundaries.",
-        "`pdf_raw` is not a valid API content block type.",
-        "Raw binary bytes cannot be embedded directly in UTF-8 text blocks."
+        "Correct. A document block with a base64 source and the application/pdf media type, sent in the request body.",
+        "The API cannot reach your filesystem. A local path is meaningless to a service running elsewhere.",
+        "There is no such block type, and raw binary is not a valid content payload.",
+        "Splicing raw bytes into a text block corrupts them. PDFs need the document block type rather than text."
       ],
-      "exp": "Correct. Native PDFs must be structured as a `document` content block with `type: 'base64'` and `media_type: 'application/pdf'`."
+      "exp": "PDFs go in as a document content block with a base64 source and the application/pdf media type, placed before the text block that asks about them. Everything travels in the request body, which is the general principle worth carrying: the API has no access to your filesystem, so a local path means nothing to it. Two limits are worth remembering - the base64 string must have no newlines, and there are request-size and page ceilings. For documents reused across calls, upload once via the Files API and reference the file id instead of re-sending the bytes each time."
     },
     {
       "id": "ccdvq-77",
@@ -1458,12 +1458,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Anthropic allows setting up to 4 explicit cache breakpoints per request (e.g. system prompt, tool definitions, reference document, and conversation turn).",
-        "The limit is 4, not 1.",
-        "Breakpoints are strictly capped at 4 per request.",
-        "100 exceeds the architectural limit."
+        "Correct. Four per request, which is enough to mark several stability tiers independently.",
+        "One would force a single boundary, which is too coarse when tools, system prompt and history change at different rates.",
+        "There is a hard limit. Unlimited breakpoints would make the cache key space unmanageable.",
+        "The limit is far lower than this, and a prompt needing dozens of boundaries has a structural problem."
       ],
-      "exp": "Correct. Anthropic allows setting up to 4 explicit cache breakpoints per request (e.g. system prompt, tool definitions, reference document, and conversation turn)."
+      "exp": "Up to four breakpoints per request. The limit matters when you have several stability tiers - tools, then a fixed system prompt, then a document set, then conversation history - because each breakpoint marks a point that can be reused independently. Four is usually plenty; if you find yourself wanting more, the prompt structure is probably the thing to simplify. Two related limits are worth holding alongside it: the minimum cacheable prefix varies by model and is not ordered by recency, and a breakpoint looks back at most twenty content blocks to find a prior entry."
     },
     {
       "id": "ccdvq-78",
@@ -1496,12 +1496,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. `tool_choice: {type: 'any'}` guarantees the model will respond with a `tool_use` block from the available tool list.",
-        "Model tiers are specified via the `model` request key.",
-        "Programming languages are governed by tool definitions, not tool_choice.",
-        "`any` is a valid, documented `tool_choice` parameter value."
+        "Correct. The model must call one of the supplied tools rather than producing plain text.",
+        "Model selection is set by the model parameter. tool_choice governs tool behaviour within a request.",
+        "It does not enumerate specific tools. any means one of the tools you supplied, whichever the model judges best.",
+        "It is a valid parameter and a documented mode rather than an error condition."
       ],
-      "exp": "Correct. `tool_choice: {type: 'any'}` guarantees the model will respond with a `tool_use` block from the available tool list."
+      "exp": "tool_choice of any forces the model to call one of the provided tools rather than replying with plain text. It is useful when a tool call is the only sensible outcome - a routing step, or an extraction that must land in a schema - and it removes the possibility of a conversational answer where you expected structured action. Use it deliberately, because forcing a call when none applies pushes the model to pick the least-bad tool rather than saying it cannot help. Note it is a valid parameter, and some platforms have additional constraints on combining it with other settings."
     },
     {
       "id": "ccdvq-80",
@@ -1515,12 +1515,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. `tool_use` is standard control flow indicating the model requires external tool execution; the application must execute the tool and provide the result.",
-        "It is normal tool execution flow, not an application error.",
-        "Raw tool call arguments are internal execution requests, not user-facing replies.",
-        "Retrying without returning the tool result causes infinite tool loops."
+        "Correct. Run the tool, append a tool_result with the matching id, and call again so the model can continue.",
+        "It is normal control flow rather than an error. The model is asking your code to run something on its behalf.",
+        "Tool arguments are an internal protocol detail. A user has no way to act on them and should never see them.",
+        "This discards the tool request, and the sampling parameter it names is rejected on current models."
       ],
-      "exp": "Correct. `tool_use` is standard control flow indicating the model requires external tool execution; the application must execute the tool and provide the result."
+      "exp": "Execute the tool locally, append the result as a tool_result block referencing the matching tool_use_id, and call again so the model can continue. This is expected control flow, not an error - treating it as a failure is the classic first-integration bug and produces an agent that appears to abandon every task needing a tool. Showing raw tool arguments to a user exposes an internal protocol detail they cannot act on. Retrying with a sampling parameter is doubly wrong: it discards the tool request, and current models reject those parameters outright."
     },
     {
       "id": "ccdvq-81",
@@ -1534,12 +1534,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. `anthropic-ratelimit-tokens-reset` and `retry-after` convey the precise reset window for rate limit replenishment.",
-        "Server uptime does not indicate rate limit reset schedules.",
-        "Content-length indicates payload byte size.",
-        "Cookies do not manage rate limit windows."
+        "Correct. retry-after or the rate-limit reset headers give the exact wait, turning backoff from a guess into a measurement.",
+        "Server uptime is diagnostic metadata unrelated to your quota or when it resets.",
+        "Content length describes the response body size and says nothing about rate limits.",
+        "Cookies are session metadata. They carry no rate-limit information."
       ],
-      "exp": "Correct. `anthropic-ratelimit-tokens-reset` and `retry-after` convey the precise reset window for rate limit replenishment."
+      "exp": "Parse retry-after, or the rate-limit reset headers, to learn exactly how long to wait. That turns backoff from a guess into a measurement: you sleep until the window actually replenishes rather than doubling blindly and either hammering too early or idling too long. The headers also report your limit and what remains, which lets a client pace itself before it hits 429 at all. The other headers listed are ordinary HTTP metadata with no relationship to throttling - reaching for them is a sign of guessing rather than reading the documented contract."
     },
     {
       "id": "ccdvq-82",
@@ -1553,12 +1553,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Jitter breaks synchronization across distributed clients, smoothing load spikes during recovery.",
-        "Jitter alters timing delays, not payload encryption.",
-        "Jitter has no impact on model inference speed.",
-        "Region switching is handled by DNS / routing, not client jitter."
+        "Correct. Randomised intervals prevent synchronised retry waves, which is how a brief overload becomes a sustained one.",
+        "Jitter varies timing rather than payload content. Nothing about the request is encrypted differently.",
+        "Retry timing has no effect on generation speed. The model performs identically whenever the request arrives.",
+        "Jitter affects when a retry is sent, not where. Routing is unrelated."
       ],
-      "exp": "Correct. Jitter breaks synchronization across distributed clients, smoothing load spikes during recovery."
+      "exp": "Jitter randomises the retry interval so clients that failed at the same moment do not all retry at the same moment. Without it, exponential backoff synchronises a fleet: everyone waits one second, then two, then four, and each wave arrives together - which is how a brief overload becomes a sustained one. Full jitter picks uniformly from zero to the current backoff window, spreading the load across the interval. It is a coordination fix rather than anything to do with encryption, speed or routing, and it matters most exactly when the most clients are failing."
     },
     {
       "id": "ccdvq-83",
@@ -1572,12 +1572,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Anthropic's Messages API specifies system prompts in the top-level `system` parameter, keeping the `messages` array strictly for `user` and `assistant` turns.",
-        "Passing `role: 'system'` inside `messages` returns an HTTP 400 validation error.",
-        "Embedding in user text is weaker than dedicated top-level parameterization.",
-        "System prompts belong in the JSON request body, not HTTP headers."
+        "Correct. A top-level system parameter on the request object, separate from the messages array.",
+        "That is the convention in some other APIs and a common porting mistake. The top-level field is the standard mechanism here.",
+        "Tags in the user prompt make it ordinary user content rather than a system instruction with its own standing.",
+        "Headers carry authentication and beta flags. Prompt content belongs in the request body."
       ],
-      "exp": "Correct. Anthropic's Messages API specifies system prompts in the top-level `system` parameter, keeping the `messages` array strictly for `user` and `assistant` turns."
+      "exp": "The system prompt is a top-level parameter on the request, alongside model, max_tokens and messages - not a message inside the array. That is a common porting mistake from APIs that use a system role in the conversation, and it matters for caching too: system renders after tools and before messages, so its position in the prefix determines what can be cached. Note that some current models additionally support system-role messages inside the array for mid-conversation instructions, which is a different mechanism from the top-level field and does not replace it."
     },
     {
       "id": "ccdvq-84",
@@ -1591,12 +1591,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Two-stage RAG uses fast vector embeddings for retrieval and Claude for high-reasoning synthesis over retrieved context.",
-        "Embeddings produce numerical vectors, not natural language answers.",
-        "Embeddings are widely used for text semantic retrieval.",
-        "Loading 50,000 pages at once exceeds standard context windows and is cost-inefficient."
+        "Correct. Embeddings retrieve the likely-relevant chunks; the model reasons over what comes back and produces the answer.",
+        "Embeddings produce vectors for similarity search. They cannot generate an answer, and token counting is unrelated.",
+        "Embeddings apply to text as readily as images. Restricting them to classification misdescribes the technique.",
+        "No conversion of that kind happens. The corpus stays where it is and relevant portions are retrieved per query."
       ],
-      "exp": "Correct. Two-stage RAG uses fast vector embeddings for retrieval and Claude for high-reasoning synthesis over retrieved context."
+      "exp": "The division of labour is retrieval versus reasoning. Embeddings turn text into vectors so similarity search can find the passages likely to be relevant, and the model then reads those passages and reasons over them to produce an answer. Neither half substitutes for the other: embeddings cannot synthesise or explain, and sending fifty thousand pages to the model is neither affordable nor effective. The quality ceiling is usually set by retrieval rather than by the model - if the right passage is not retrieved, no amount of reasoning capability recovers it, which is why retrieval evaluation matters."
     },
     {
       "id": "ccdvq-85",
@@ -1610,12 +1610,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Tools represent executable actions with potential side-effects, while Resources provide read-only context attachments.",
-        "MCP protocol pricing is independent of tool/resource designations.",
-        "MCP is language-agnostic across JSON-RPC.",
-        "Tools and Resources have distinct protocol methods (`tools/call` vs `resources/read`)."
+        "Correct. Tools perform side-effecting operations; resources are passive, read-only data references.",
+        "Pricing is a property of your implementation and infrastructure rather than of the protocol primitive.",
+        "Both are language-agnostic. Servers can be written in any language that speaks the protocol.",
+        "The distinction is load-bearing. Conflating them is how a side-effecting operation gets treated as a harmless read."
       ],
-      "exp": "Correct. Tools represent executable actions with potential side-effects, while Resources provide read-only context attachments."
+      "exp": "Tools act and resources are read. The distinction is side effects, and honouring it is what makes a server predictable to integrate against: a read exposed as a tool invites approval prompts it does not need, and an action exposed as a resource hides the fact that calling it changes something. That second case is the one that causes incidents. The framing also guides your own server design - if you cannot decide which a capability is, ask whether calling it twice is equivalent to calling it once. Cost and language are implementation details, not protocol distinctions."
     },
     {
       "id": "ccdvq-86",
@@ -1648,12 +1648,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Defining standard JSON Schema in `input_schema` ensures the tool engine enforces field names, data types, and required properties.",
-        "Vague descriptions do not enforce schema adherence.",
-        "Temperature 1.0 increases variance, making schema violations more likely.",
-        "Base64 filtering does not structure JSON schemas."
+        "Correct. Explicit types and required properties in the input_schema define the contract, with strict mode available to enforce it.",
+        "Encouragement in a description is not a constraint. The model may still produce something that does not fit.",
+        "Sampling parameters do not govern output structure, and current models reject them outright.",
+        "Encoding changes representation rather than structure. It does nothing to enforce a schema."
       ],
-      "exp": "Correct. Defining standard JSON Schema in `input_schema` ensures the tool engine enforces field names, data types, and required properties."
+      "exp": "A well-defined input_schema with explicit types and a required list is the foundation - it tells the model exactly what shape the arguments must take. For an actual guarantee rather than strong guidance, add strict: true on the tool definition, which requires additionalProperties: false and enforces conformance. Note the boundary: this guarantees structure, not meaning. A date range with the end before the start satisfies any reasonable schema and is still impossible, so semantic validation belongs in your tool implementation regardless of how tight the schema is."
     },
     {
       "id": "ccdvq-88",
@@ -1667,12 +1667,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Extended Thinking provides dedicated reasoning tokens for exploratory search, hypothesis verification, and error correction.",
-        "Thinking mode is internal autoregressive reasoning, not external compilation.",
-        "It does not perform Assembly translation unless requested.",
-        "Safety filters remain fully active during thinking generation."
+        "Correct. It lets the model verify logic, test edge cases and backtrack before committing to output tokens.",
+        "No code is executed. The reasoning happens in the model rather than on external hardware.",
+        "No translation occurs. Reasoning is about working through the problem, not converting between languages.",
+        "Reasoning depth and safety behaviour are unrelated. Nothing about thinking changes what the model will decline."
       ],
-      "exp": "Correct. Extended Thinking provides dedicated reasoning tokens for exploratory search, hypothesis verification, and error correction."
+      "exp": "Reasoning before generating lets the model work through the problem, test cases against it, and abandon an approach that does not hold - all before committing to output tokens. That is exactly what competitive programming and proofs need, because the cost of a wrong first move is high and backtracking mid-answer is expensive. On current models this is adaptive thinking with an effort level rather than a fixed budget: Claude decides how much reasoning each problem warrants. The trade-off is real, so sweep effort on your own problems rather than assuming the highest setting is always best."
     },
     {
       "id": "ccdvq-89",
@@ -1686,12 +1686,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Streaming sends SSE chunks incrementally, giving users immediate visual feedback as words generate.",
-        "Streaming tokens are billed at the exact same rate as non-streaming calls.",
-        "Client code must handle connection retries for broken streams.",
-        "Output limits are identical for streaming and buffered calls."
+        "Correct. Tokens appear as they are generated, so the user sees progress rather than a blank wait.",
+        "There is no pricing difference. Streaming changes delivery rather than what the tokens cost.",
+        "Reconnection is your client's responsibility. Streaming does not add automatic recovery.",
+        "The output ceiling is set by the model and your parameter. Streaming does not raise it, though it makes large outputs practical."
       ],
-      "exp": "Correct. Streaming sends SSE chunks incrementally, giving users immediate visual feedback as words generate."
+      "exp": "Streaming reduces perceived latency by rendering tokens as they are generated, so the user sees progress instead of a blank pause. It does not make generation faster - total completion time is essentially unchanged - which is worth being precise about, since the fix is to the experience rather than the throughput. It is also the practical requirement for large outputs: non-streaming requests with a high ceiling risk client timeouts, which is why streaming is recommended above roughly 16K max_tokens regardless of any user-experience consideration."
     },
     {
       "id": "ccdvq-90",
@@ -1705,12 +1705,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Anthropic's Batches API processes async requests within 24 hours at a 50% discount across all token classes.",
-        "Batches are asynchronous bulk queues, not real-time 5-second calls.",
-        "The SLA is 24 hours, not 30 days.",
-        "Batch queues process continuously 24/7."
+        "Correct. Within 24 hours at a 50% discount on input and output tokens, which is why latency-tolerant work belongs there.",
+        "Batch processing is explicitly asynchronous. Anything needing a response in seconds should use the standard endpoint.",
+        "The commitment is 24 hours, and most batches finish well within it.",
+        "Processing is continuous rather than scheduled. There is no weekly window."
       ],
-      "exp": "Correct. Anthropic's Batches API processes async requests within 24 hours at a 50% discount across all token classes."
+      "exp": "Batches process asynchronously and return within 24 hours, at half the token price on both input and output. In practice most complete far sooner, but 24 hours is the commitment to design against - so the fit is work with no user waiting: nightly pipelines, bulk classification, backfills. The discount is the reason to route eligible work there deliberately rather than running everything synchronously. Results also arrive in arbitrary order, so key them by your own custom identifier rather than by position, which is the mistake that produces mismatched records."
     },
     {
       "id": "ccdvq-91",
@@ -1724,12 +1724,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. `prompts/get` retrieves the rendered messages and arguments for a specific prompt template.",
-        "`prompts/list` lists available prompt names and parameter schemas.",
-        "`tools/call` executes function actions.",
-        "`resources/subscribe` monitors resource URI changes."
+        "Correct. prompts/get retrieves and fills a specific template, where list only enumerates what is available.",
+        "prompts/list enumerates available templates. It is the discovery half rather than the invocation.",
+        "tools/call invokes an action with side effects, which is a different primitive from a prompt template.",
+        "resources/subscribe registers interest in changes to a resource and is unrelated to prompt templates."
       ],
-      "exp": "Correct. `prompts/get` retrieves the rendered messages and arguments for a specific prompt template."
+      "exp": "prompts/get retrieves and fills a specific template, where prompts/list enumerates what is available. The pattern holds across the protocol: each primitive has a list method for discovery and a corresponding call for use, which is what makes it predictable to implement against. tools/call invokes an action and resources/subscribe registers interest in changes to a resource - different primitives entirely. Keeping the discovery and invocation halves distinct in your own server design is what lets clients explore capabilities without triggering side effects."
     },
     {
       "id": "ccdvq-92",
@@ -1743,12 +1743,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. In the Anthropic API, tool results are returned in a `user` turn containing a `tool_result` block matching the corresponding `tool_use_id`.",
-        "Anthropic Messages API does not use `role: 'tool'`.",
-        "System turns cannot contain tool results.",
-        "Assistant turns represent model outputs, not application tool responses."
+        "Correct. A user-role message whose content array holds tool_result blocks, each referencing its tool_use_id.",
+        "There is no tool role in this API, and the result needs the structured block rather than a plain string.",
+        "The system prompt sets behaviour. Tool output belongs in the message history in its own block type.",
+        "The assistant role is the model's own turns. Your application's results are supplied as user content."
       ],
-      "exp": "Correct. In the Anthropic API, tool results are returned in a `user` turn containing a `tool_result` block matching the corresponding `tool_use_id`."
+      "exp": "Tool results go back as a user-role message whose content array holds tool_result blocks, each carrying the tool_use_id it answers. The user role is the part that surprises people - it is the channel for anything your application supplies back to the model, and there is no separate tool role in this API. Return every result for a turn in a single user message: splitting parallel tool results across several messages trains the model away from making parallel calls. Failures go back the same way with is_error set, rather than being dropped."
     },
     {
       "id": "ccdvq-93",
@@ -1781,12 +1781,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Prompt caching matches exact token prefix hashes from the start of the prompt; changing token 1 invalidates the hash for all downstream tokens.",
-        "Cache invalidation is a deterministic hash lookup, not a server restart.",
-        "The cache TTL is 5 minutes, refreshed on hit.",
-        "Caches are content-hash addressed, not IP bound."
+        "Correct. It is an exact prefix match, so any early change alters every downstream cache key at once.",
+        "Nothing restarts. This is a property of how cache keys are computed rather than of server lifecycle.",
+        "Entries live for minutes or an hour depending on the TTL you choose, not milliseconds.",
+        "Caches are scoped to content and model rather than to a network address."
       ],
-      "exp": "Correct. Prompt caching matches exact token prefix hashes from the start of the prompt; changing token 1 invalidates the hash for all downstream tokens."
+      "exp": "Caching matches on an exact prefix, so the cache key for any point depends on every token before it. Change something early and every downstream key changes with it, which invalidates all of them at once. That is why ordering by stability is the whole discipline: unchanging content first, volatile content after the last breakpoint. The failure is silent, which is what makes it expensive - there is no error, just a cache read of zero and full price on every call. Watch the cache-read usage field to confirm it is actually working."
     },
     {
       "id": "ccdvq-95",
@@ -1800,12 +1800,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. AST chunking respects programming language syntax, preventing functions from being sliced in half across chunk boundaries.",
-        "AST chunking is for code structural splitting, not encryption.",
-        "Chunking organizes text; it does not compress source code.",
-        "It preserves source code structure without language translation."
+        "Correct. Splitting on function and class boundaries keeps each chunk a complete, self-contained syntactic unit.",
+        "Chunking is a segmentation strategy for retrieval. It has no relationship to encryption or access control.",
+        "Chunking divides content rather than compressing it. Total size is essentially unchanged.",
+        "No language translation occurs. Chunking decides where to split, not what the code is."
       ],
-      "exp": "Correct. AST chunking respects programming language syntax, preventing functions from being sliced in half across chunk boundaries."
+      "exp": "AST chunking splits along function and class boundaries, so each chunk is a complete syntactic unit that makes sense on its own. Fixed-character chunking cuts wherever the counter runs out, which routinely splits a function from its signature or a class from its methods - and a retrieved fragment missing its declaration is close to useless for answering a question about it. The general principle extends beyond code: chunk on the structure the content already has rather than on a character count, which is why heading-aware chunking works better for documents."
     },
     {
       "id": "ccdvq-96",
@@ -1819,12 +1819,12 @@
       ],
       "a": 3,
       "why": [
-        "200,000 tokens is Haiku 4.5's window, and was the standard on the retired Claude 3.x generation.",
-        "4,096 tokens is an output cap on much older models, not a context window.",
-        "8,192 tokens is likewise an output limit, not the input context window.",
-        "Correct. Current Opus and Sonnet models accept up to 1M tokens of context."
+        "That is Haiku 4.5's window and was the previous generation's norm. It no longer describes current Opus and Sonnet models.",
+        "This is far below any current model and describes a much older generation entirely.",
+        "That figure is closer to an output ceiling on older models than to any current context window.",
+        "Correct. 1M tokens on current Opus and Sonnet models, with Haiku 4.5 the 200K exception."
       ],
-      "exp": "Current Opus and Sonnet models provide a 1M-token context window. Haiku 4.5 is the exception at 200,000 tokens."
+      "exp": "Current Opus and Sonnet models offer a 1M-token context window. Haiku 4.5 is the exception at 200K, which is worth remembering because the 200K figure was the norm for an earlier generation and is still widely repeated as if it applied to everything. A large window changes what is architecturally possible - whole codebases and document sets in a single request - but it does not make doing so wise: cost scales with what you send, and relevant material still competes with everything else present. Retrieval remains the better default for narrow questions over large corpora."
     },
     {
       "id": "ccdvq-97",
@@ -1838,12 +1838,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Loops must terminate when the model finishes naturally (`end_turn`) or when hitting an explicit loop iteration safeguard to prevent runaway spend.",
-        "Server loops continue running unless tied to client disconnect signals.",
-        "Hardware battery state is irrelevant to API loop control flow.",
-        "OS maintenance tasks do not govern agent control flow."
+        "Correct. end_turn signals natural completion, with your own iteration or spend ceiling as the safety bound.",
+        "Client-side events do not govern a server-side loop, and a run may continue regardless of what a browser does.",
+        "Hardware state is unrelated to the agent's control flow.",
+        "Disk maintenance has no relationship to whether a model has finished requesting tools."
       ],
-      "exp": "Correct. Loops must terminate when the model finishes naturally (`end_turn`) or when hitting an explicit loop iteration safeguard to prevent runaway spend."
+      "exp": "The loop ends when the model stops asking for tools - stop_reason of end_turn - or when your own safety ceiling on iterations or spend is reached. Both halves matter: the first is the natural completion, and the second is what stops an ambiguous task looping indefinitely at unbounded cost. The ceiling should also define what happens when it is hit, because a loop that simply stops leaves the work in an undefined state, whereas one that hands off with its partial results is recoverable. The termination condition is a property of your harness, not of the environment around it."
     },
     {
       "id": "ccdvq-98",
@@ -1857,12 +1857,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. `stdio` is the standard, high-performance transport for local child processes managed by desktop clients (e.g. Claude Desktop / Antigravity).",
-        "SSE over HTTPS is for remote, network-hosted MCP servers.",
-        "Bluetooth is not an MCP transport protocol.",
-        "FTP is a legacy file transfer protocol, not a JSON-RPC transport."
+        "Correct. stdio suits a local subprocess - no port, no listener, and nothing else can reach it.",
+        "HTTP-based transport suits remote servers. For a local subprocess it adds a network surface you do not need.",
+        "Bluetooth is not an MCP transport and is unsuited to local process communication.",
+        "FTP is a file transfer protocol and is not used for JSON-RPC messaging."
       ],
-      "exp": "Correct. `stdio` is the standard, high-performance transport for local child processes managed by desktop clients (e.g. Claude Desktop / Antigravity)."
+      "exp": "For a server running as a local subprocess, stdio is the natural transport: the parent process spawns the server and they exchange JSON-RPC messages over standard input and output, with no network listener, no port and no authentication surface. That last point is the real benefit - a local server that never opens a socket cannot be reached by anything other than its parent. HTTP-based transports are the right choice for remote servers, where the network is the point. The other options are not transports the protocol uses at all."
     },
     {
       "id": "ccdvq-99",
@@ -1876,12 +1876,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. HTTP 529 indicates temporary capacity saturation; backoff with jitter gives the cluster time to recover while gracefully managing retries.",
-        "Crashing the application creates poor resilience.",
-        "Spamming retries exacerbates server congestion.",
-        "API keys have no relation to cluster load capacity."
+        "Correct. Exponential backoff with jitter for a bounded number of attempts, then fall back rather than retrying indefinitely.",
+        "This turns a transient, retryable condition into a user-visible outage.",
+        "Parallel retries add load to a system that just reported being overloaded, extending the condition.",
+        "The key is not the problem, and rotating credentials to evade capacity limits addresses nothing."
       ],
-      "exp": "Correct. HTTP 529 indicates temporary capacity saturation; backoff with jitter gives the cluster time to recover while gracefully managing retries."
+      "exp": "A 529 means the service is temporarily overloaded, which is a retryable condition. Back off exponentially with jitter for a bounded number of attempts, then fall back - to a different model, a queue, or a degraded response - rather than retrying forever. Jitter is what stops every client retrying in the same instant and extending the overload. The SDKs implement this by default, so much of it is handled if you are not hand-rolling HTTP. Crashing turns a transient condition into an outage, and parallel retries add load to a system already reporting too much."
     },
     {
       "id": "ccdvq-100",
@@ -1895,12 +1895,12 @@
       ],
       "a": 0,
       "why": [
-        "Correct. Using XML tags with attribute metadata (`<file name='...'>`) provides clear structural separation for multi-file prompt contexts.",
-        "Unstructured continuous text creates token bleeding and destroys file boundaries.",
-        "Emojis destroy code and text semantics.",
-        "File byte sizes contain zero document content."
+        "Correct. Tagged, path-labelled files give clear boundaries and let the model cite which file an answer came from.",
+        "Concatenating without structure removes every boundary, so the model cannot tell where one file ends and the next begins.",
+        "Substituting icons for content discards the content itself, which is what the model needs to read.",
+        "File size carries none of the content. There would be nothing for the model to work with."
       ],
-      "exp": "Correct. Using XML tags with attribute metadata (`<file name='...'>`) provides clear structural separation for multi-file prompt contexts."
+      "exp": "Wrapping each file in tags with its path gives the model an unambiguous boundary and a name to refer to, so it can cite which file a claim came from and you can trace the answer back. An index header helps further on large sets by giving an overview before the contents. This is the same delimiting principle that matters for security: clearly bounded, labelled content is far less likely to be read as instruction than an undifferentiated wall of text, which is one of the ways prompt injection gets a foothold."
     }
   ],
   "cards": [
