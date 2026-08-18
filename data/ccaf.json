@@ -12,12 +12,12 @@
         "One giant prompt with all data inline"
       ],
       "a": 1,
-      "exp": "Predictable sequence → workflow, not autonomy. The exam repeatedly rewards choosing the simplest sufficient pattern.",
+      "exp": "When the sequence is known, encode it. A fixed workflow with tool calls at defined steps is cheaper, faster, and far easier to test and debug, because the path is the same every run and a failure happens somewhere you can point at. Autonomy earns its cost only when the path genuinely cannot be specified ahead of time. The architectural discipline here is to reach for the simplest control flow that covers the requirement and escalate on evidence - reaching for an agent because the domain feels sophisticated is how teams pay loop cost and unpredictability for a pipeline they could have written.",
       "why": [
-        "Thirty tools and full autonomy is far more machinery than a predictable sequence needs.",
-        "Correct. A predictable sequence is best served by a fixed workflow with tool calls at defined steps.",
-        "Voting multiplies cost for a task with a known path.",
-        "Inlining all data ignores the tool calls the task actually requires."
+        "Thirty tools and full autonomy buys open-endedness this task does not need, and pays for it in cost, latency and unpredictability.",
+        "Correct. A predictable sequence belongs in a fixed workflow with tool calls at defined steps - cheaper, faster and testable.",
+        "Voting is for problems with genuine uncertainty about the answer. Here the steps are known, so parallel agents multiply cost for nothing.",
+        "Inlining all the data abandons the tools that make the lookups accurate and current, and scales badly as the data grows."
       ],
       "id": "ccafq-27dabfb9"
     },
@@ -31,12 +31,12 @@
         "When you want to save tokens"
       ],
       "a": 1,
-      "exp": "Multi-agent adds cost and coordination overhead; it pays off for parallelizable, context-heavy, separable work.",
+      "exp": "Orchestrator-workers earns its overhead when subtasks are genuinely separable: each worker gets an isolated context so the main thread does not fill with intermediate reading, and independent branches can run in parallel. Broad research is the archetype. What it costs is coordination, and each worker re-establishes its own context before it can start - so it increases token spend rather than saving it, and adds latency on any task that was really sequential. Use it where the work genuinely fans out, not because a task feels large.",
       "why": [
-        "More agents means more cost, latency, and failure surface, not automatically more capability.",
-        "Correct. Separable subtasks that benefit from isolated contexts or parallelism justify the pattern.",
-        "Multi-agent designs generally increase latency.",
-        "They typically multiply token usage rather than saving it."
+        "More agents means more coordination, more tokens and more failure modes. It is a trade to make deliberately rather than a default.",
+        "Correct. Separable subtasks that benefit from isolated contexts or can run in parallel, which is exactly the shape of broad research.",
+        "Coordination adds latency. A single agent is generally faster when the work is sequential anyway.",
+        "Each worker re-establishes its own context, so this pattern usually costs more tokens rather than fewer."
       ],
       "id": "ccafq-3d2af472"
     },
@@ -50,12 +50,12 @@
         "Retry forever silently"
       ],
       "a": 1,
-      "exp": "Reliability requires bounded loops with detection of no-progress states and graceful escalation — a core orchestration topic.",
+      "exp": "A spiralling loop needs bounds, not capability. Cap iterations, detect repeated identical failures, and define an escalation path so the run ends in a recoverable state rather than simply stopping. The detection matters as much as the cap: a loop that retries the same failing call twenty times burns the whole budget before the ceiling fires, whereas noticing the repetition ends it in three. A more capable model can spiral just as thoroughly. Removing the tool discards a capability over a control problem, and silent retries turn a visible failure into a hang.",
       "why": [
-        "Capability does not create a termination condition.",
-        "Correct. Iteration caps, repeated-failure detection, and an escalation path bound the loop.",
-        "Removing capability is disproportionate to a retry bug.",
-        "Silent infinite retries are the failure being described."
+        "Capability does not bound iteration. A stronger model can repeat the same failing call just as persistently.",
+        "Correct. Iteration caps, repeated-failure detection and a defined escalation path, so the loop is bounded and ends recoverably.",
+        "Removing the tool loses a capability to solve a control-flow problem that guards would fix directly.",
+        "Silent unbounded retries turn a visible failure into a hang and consume the entire budget on one broken call."
       ],
       "id": "ccafq-ab0a4f65"
     },
@@ -69,12 +69,12 @@
         "Users see more options"
       ],
       "a": 1,
-      "exp": "Routing = separation of concerns: cheap triage, then specialized focused handling.",
+      "exp": "Routing lets each handler carry a focused prompt and a minimal tool set for its category, which improves quality and lets you match cost to difficulty - simple categories run on a cheaper tier while hard ones get capability. A single handler covering everything has to carry every instruction and every tool on every request, which dilutes the prompt and inflates cost. What routing does not do is remove hallucination or reduce API usage; it adds a classification step, so the gain is specialisation rather than fewer calls.",
       "why": [
-        "Routing directs work; it does not make any handler more factual.",
-        "Correct. Focused prompts and tools per category improve both quality and cost.",
-        "Routing still uses the API for every handler.",
-        "Routing is internal; users do not see the branches."
+        "Routing directs a query to a better-suited handler. It does nothing about whether that handler's answer is factually right.",
+        "Correct. Each handler gets a focused prompt and tool set for its category, which improves quality and lets cost match difficulty.",
+        "Routing adds a classification call. It increases API usage rather than avoiding it.",
+        "Routing is internal architecture and is normally invisible to the user."
       ],
       "id": "ccafq-74ca1fd0"
     },
@@ -88,12 +88,12 @@
         "Be disabled entirely always"
       ],
       "a": 1,
-      "exp": "Checkpoint irreversible or high-blast-radius actions with human-in-the-loop approval.",
+      "exp": "Irreversible actions need a human in the loop, because the cost of being wrong is not recoverable and an agent's action sequence is decided at run time - you cannot enumerate in advance everything it might attempt. Approval gates are also what limit the damage from prompt injection: the injected text only becomes an incident if the agent can act on it unsupervised. Note the answer is a gate rather than a ban: disabling these capabilities entirely removes real value, and the point is to require confirmation rather than to prevent the action.",
       "why": [
-        "Autonomy on irreversible actions is precisely the risk.",
-        "Correct. Irreversible actions need human confirmation before they happen.",
-        "Logging detects after the fact; it does not prevent.",
-        "A blanket ban removes legitimate capability rather than governing it."
+        "Speed is the wrong optimisation on an action that cannot be undone, and unsupervised irreversible actions are what turn an injection into an incident.",
+        "Correct. Human confirmation before irreversible actions, which bounds both mistakes and successful manipulation.",
+        "Logging records what happened after the fact. The data is already deleted or the email already sent.",
+        "A blanket ban removes genuine value. The control is a gate on the action rather than removal of the capability."
       ],
       "id": "ccafq-cf5c44cd"
     },
@@ -107,12 +107,12 @@
         "Longer chat sessions"
       ],
       "a": 1,
-      "exp": "CLAUDE.md in the repo gives every session the same project context — the canonical Claude Code workflow answer.",
+      "exp": "A checked-in CLAUDE.md puts the conventions where the tooling reads them and where review applies, so every engineer's session starts from the same instructions and a change goes through the same process as any other repository change. That is what makes it consistent rather than merely documented. Verbal norms and private notes both live outside the repository, so they drift, and neither is loaded into anyone's session automatically. Longer chat sessions address none of this and tend to degrade as context accumulates.",
       "why": [
-        "Verbal norms are neither discoverable nor enforceable.",
-        "Correct. A checked-in instructions file applies the same conventions to everyone.",
-        "Private notes guarantee divergence between engineers.",
-        "Session length has nothing to do with shared conventions."
+        "Verbal norms are not loaded into anyone's session and drift as the team changes. Nothing enforces them.",
+        "Correct. A checked-in file puts conventions where the tooling reads them and where code review applies to changes.",
+        "Private notes are per-person by definition, which is the inconsistency you are trying to remove.",
+        "Session length has no bearing on shared conventions, and long sessions tend to lose earlier context anyway."
       ],
       "id": "ccafq-58fae554"
     },
@@ -126,12 +126,12 @@
         "Let it run unattended overnight"
       ],
       "a": 1,
-      "exp": "Explore → plan → execute → verify. Plan-then-act with test checkpoints is the tested best practice.",
+      "exp": "Plan, review, then execute in verified steps. The review is the load-bearing part: a plan is cheap to correct and a completed wrong refactor is expensive, so the moment to catch a misunderstanding is before any code changes. Verification between steps then keeps errors local rather than letting them compound across a large change. One giant prompt gives you no checkpoint and no way to localise a failure. Disabling tests removes the signal that makes stepwise execution safe, and running unattended on a large refactor removes the review entirely.",
       "why": [
-        "A single sweeping instruction produces an unreviewable change.",
-        "Correct. Plan, review the plan, then execute in verified steps.",
-        "Tests are the verification that makes agentic changes safe.",
-        "Unattended overnight runs remove the review the workflow depends on."
+        "A single sweeping prompt offers no checkpoint, so a misunderstanding surfaces only after everything has changed.",
+        "Correct. Plan, review the plan, then execute in steps with verification between - so errors stay local and cheap to fix.",
+        "Tests are the signal that makes stepwise execution safe. Disabling them removes the check that catches a wrong step.",
+        "Unattended execution on a large refactor removes the review at exactly the point where it is most valuable."
       ],
       "id": "ccafq-67bc295a"
     },
@@ -145,12 +145,12 @@
         "Skip permissions"
       ],
       "a": 1,
-      "exp": "Subagents isolate context per task — the main thread stays clean and work can fan out.",
+      "exp": "Subagents run in separate context windows, which keeps the main session focused and lets independent work proceed in parallel. Only the result returns, so the main thread does not fill with the subagent's intermediate reading and tool output. That is a real architectural gain on work that fans out. It is not a cost saving - each subagent re-establishes its own context first - and it is not a capability or permission change, since a subagent runs the same models under the same rules as the session that spawned it.",
       "why": [
-        "Token pricing does not differ by subagent.",
-        "Correct. Separate context windows keep the main session focused and enable parallel work.",
-        "Subagents share the same underlying models.",
-        "Permissions still apply to subagents."
+        "Each subagent re-establishes its own context, so delegation generally increases token spend rather than reducing it.",
+        "Correct. Separate context windows keep the main session focused and let independent work run in parallel.",
+        "Subagents run the same models. Isolation changes what they see, not what they know.",
+        "Permissions apply to subagents as they do to the main session. Delegation is not an escalation path."
       ],
       "id": "ccafq-b04c15ec"
     },
@@ -164,12 +164,12 @@
         "Avoid tests in agentic workflows"
       ],
       "a": 1,
-      "exp": "Instructions in CLAUDE.md plus hooks make verification systematic instead of hopeful.",
+      "exp": "Encode the requirement where the tooling enforces it: state it in CLAUDE.md so it applies to every session, and use hooks where you want it to run automatically rather than depending on the model choosing to. The distinction matters - an instruction is followed most of the time, while a hook runs every time - so anything you genuinely require belongs in the mechanism rather than the prompt. Trusting recall gives you neither. Deferring tests to a later manual pass discards the fast feedback that makes agentic work safe, and skipping them removes the check entirely.",
       "why": [
-        "Relying on recall is not a mechanism.",
-        "Correct. Encode the requirement in project instructions, or enforce it with hooks.",
-        "Delayed manual testing defeats the point of an automatic gate.",
-        "Tests matter more in agentic workflows, not less."
+        "Nothing persists between sessions unless it is written down where the tooling reads it.",
+        "Correct. State it in CLAUDE.md so it applies every session, and use hooks where it must run rather than merely be requested.",
+        "A week-late manual run discards the fast feedback that keeps agentic changes correctable while they are still fresh.",
+        "Tests matter more in agentic workflows, not less, because more change is being made with less line-by-line attention."
       ],
       "id": "ccafq-bc1963f7"
     },
@@ -183,12 +183,12 @@
         "Markdown tables"
       ],
       "a": 1,
-      "exp": "Contract-first: define the schema, constrain generation to it, validate anyway. Prompt Engineering & Structured Output is a CCAR-F domain.",
+      "exp": "Constrain the output shape at the request level and validate downstream. A schema makes the model generate against your structure rather than being asked for it, and validation in your code is where the guarantee actually lives. Free-form text with a regex parser is the failure profile to avoid: it works until the formatting drifts, and it fails by producing a subtly wrong value rather than an obvious error. Asking for mostly JSON invites exactly that drift, and Markdown tables are a presentation format that still needs parsing.",
       "why": [
-        "Regex over free text is the fragile pattern this replaces.",
-        "Correct. Constrain generation to a schema, and validate downstream regardless.",
-        "'Mostly JSON' is not a contract anything can rely on.",
-        "Markdown tables are for humans, not machine parsing."
+        "Regex over free text breaks on formatting drift, and it fails by extracting a subtly wrong value rather than erroring clearly.",
+        "Correct. Constrain the shape with a schema, then validate downstream so the guarantee lives in your code.",
+        "Mostly JSON is the worst target available - close enough to pass testing, loose enough to break in production.",
+        "Markdown tables are for presentation. They still need parsing and carry no structural guarantee."
       ],
       "id": "ccafq-8b319fa2"
     },
@@ -202,12 +202,12 @@
         "Switch providers"
       ],
       "a": 0,
-      "exp": "Targeted examples of hard cases are the highest-leverage prompt fix — they teach the boundary behavior.",
+      "exp": "A failing edge case is a specification gap. Show the case as a worked example and state the rule that governs it, so the behaviour is both demonstrated and generalised - examples are the strongest signal in a prompt, and one that covers the awkward case teaches far more than a paragraph describing it. Shortening the prompt removes information when the problem is missing information. Sampling parameters are rejected on current models and never governed correctness anyway. Switching providers carries the same unstated edge case somewhere else.",
       "why": [
-        "Correct. Show the failing cases as examples and state the rule for them.",
-        "Removing content is unlikely to add the missing guidance.",
-        "Sampling parameters are rejected on current models and never fixed edge cases.",
-        "Provider choice does not address an under-specified prompt."
+        "Correct. Few-shot examples covering the failing cases plus explicit rules, so the behaviour is demonstrated and generalised.",
+        "Shortening removes information. An underspecified edge case needs more specification, not less.",
+        "Sampling parameters are rejected on current models, and they never governed correctness on edge cases in any case.",
+        "The gap is in the prompt rather than the provider. The same unstated case will fail elsewhere too."
       ],
       "id": "ccafq-d9592137"
     },
@@ -221,12 +221,12 @@
         "Faster responses"
       ],
       "a": 1,
-      "exp": "Evaluator/reviser loops trade tokens for quality — appropriate when output quality justifies the cost.",
+      "exp": "A critique pass catches errors the drafting pass missed, because reviewing and generating are different tasks and a fresh look at finished text surfaces problems that were invisible while producing it. That is the whole benefit, and it is a real one on work where quality matters more than latency. Everything else moves the wrong way: multiple passes cost more tokens and take longer. Note self-review is weaker than independent verification, so it complements tests and human review rather than substituting for them.",
       "why": [
-        "Multi-pass review costs more tokens, not fewer.",
-        "Correct. A critique pass catches errors that a single generation misses.",
-        "Self-review is not a substitute for tests.",
-        "Extra passes increase latency."
+        "Multiple passes cost more tokens, not fewer. The gain is quality, paid for in spend.",
+        "Correct. Self-review catches errors a single pass misses, because reviewing and generating are different tasks.",
+        "Self-review is weaker than independent verification and does not replace tests or human review.",
+        "Additional passes add latency. This trades speed for quality rather than improving both."
       ],
       "id": "ccafq-83e0b43c"
     },
@@ -240,12 +240,12 @@
         "Setting a stop sequence at \"}\" and retrying on parse failures"
       ],
       "a": 1,
-      "exp": "Structured outputs constrain generation to your schema, so the response is valid by construction. Prefilling the assistant turn is the older trick and now returns a 400 error on current Claude models.",
+      "exp": "Structured outputs are the supported mechanism on current models: a schema via output_config.format, or a tool with a strict input schema. Prefilling the assistant turn was the older technique and is now rejected with a 400, so code carrying it forward fails outright rather than degrading quietly - which is worth knowing when migrating. Asking in the system prompt and repairing with a regex produces valid JSON most of the time, the worst possible failure rate. A stop sequence on a closing brace truncates any nested object at its first inner brace.",
       "why": [
-        "Assistant-turn prefill returns an error on current Claude models.",
-        "Correct. Structured outputs constrain generation to the schema.",
-        "Prompt-and-repair is the failure-prone pattern this replaces.",
-        "Stop sequences end generation; they do not enforce a shape."
+        "Prefill is rejected with a 400 on current models, so this fails validation rather than producing constrained output.",
+        "Correct. A schema via output_config.format, or a tool with a strict input schema, so conformance comes from the request.",
+        "This is correct often enough to pass review and wrong often enough to break in production, which is the worst failure profile available.",
+        "A stop sequence on a closing brace cuts at the first one, truncating any nested object partway through."
       ],
       "id": "ccafq-6ef2e548"
     },
@@ -259,12 +259,12 @@
         "Descriptions waste tokens"
       ],
       "a": 1,
-      "exp": "Overlapping or vague tools cause wrong selections. Distinct, well-documented tools are an exam staple.",
+      "exp": "Few, well-named tools with distinct purposes and strict schemas. The description is what the model reasons over when choosing, so clarity there matters more than coverage - and overlapping micro-tools create near-miss selections between options that all look plausible. Every tool also costs context on every request, so a large surface degrades the decision it was meant to enable. A single generic endpoint pushes the dispatch problem into free-text arguments where no schema can constrain it, which is the worst of both worlds.",
       "why": [
-        "Overlapping micro-tools multiply selection errors.",
-        "Correct. Few, distinct, well-documented tools with strict schemas.",
-        "A generic catch-all endpoint destroys the model's ability to choose correctly.",
-        "Descriptions are what drive correct selection; they earn their tokens."
+        "Overlapping tools create near-miss selections between plausible options, and each one costs context on every request.",
+        "Correct. Few, clearly documented tools with distinct purposes and strict schemas, since the description drives selection.",
+        "A generic endpoint moves dispatch into free-text arguments where no schema can constrain it.",
+        "Descriptions are the primary input to tool selection. Cutting them degrades exactly the decision you need to be right."
       ],
       "id": "ccafq-2c58d518"
     },
@@ -278,12 +278,12 @@
         "Fail if results exceed 100"
       ],
       "a": 1,
-      "exp": "Token-efficient tool responses are an architectural responsibility — context is a scarce resource.",
+      "exp": "Design the tool to filter and paginate, and return concise results. Context is the scarce resource in an agentic system: ten thousand rows crowd out the reasoning the agent needs to do, cost tokens on every subsequent turn of the loop, and bury the handful of rows that mattered. Push the selection into the tool where code can do it precisely and cheaply. Returning only a file path defers the problem without solving it, and a hard failure above a threshold turns a manageable case into a broken one.",
       "why": [
-        "Returning everything wastes context and buries the relevant rows.",
-        "Correct. Filtering and pagination let the agent request only what it needs.",
-        "A bare path forces another step to read the data.",
-        "Hard failure on large results makes the tool unusable for legitimate queries."
+        "Completeness at the cost of the context window is a bad trade - the relevant rows get buried and every later turn pays for the rest.",
+        "Correct. Filtering and pagination keep results concise, which protects the context the agent needs for reasoning.",
+        "A path defers the problem to another step rather than solving it, and the agent still has to read the contents somehow.",
+        "Failing above a threshold converts a manageable large result into a broken call, when pagination would have handled it."
       ],
       "id": "ccafq-f1010723"
     },
@@ -297,12 +297,12 @@
         "When you need lower latency than function calls"
       ],
       "a": 1,
-      "exp": "MCP shines for reuse and interoperability across clients; bespoke tools are fine for single-app needs.",
+      "exp": "Wrap it as an MCP server when several clients or agents should reuse the same capability through a standard interface. That is the reuse-and-versioning argument: the server evolves on its own release cycle and any MCP-aware client can consume it, which turns an integration into shared infrastructure. For a capability only one application will ever use, an in-app tool is simpler and has fewer moving parts. Note the trade-off - a server adds a process boundary and therefore latency, so it is not the faster option.",
       "why": [
-        "MCP is an open standard, not product-specific.",
-        "Correct. Reuse across multiple clients or agents is what justifies the interface.",
-        "It is not limited to databases.",
-        "A protocol hop does not beat an in-process call on latency."
+        "MCP is an open standard with implementations well beyond Anthropic's own products.",
+        "Correct. When several clients or agents should reuse the capability through a standard interface, which makes it shared infrastructure.",
+        "Servers can expose any capability - filesystems, APIs, internal services - not only databases.",
+        "A server adds a process boundary and therefore latency. It is chosen for reuse, not for speed."
       ],
       "id": "ccafq-9ab486af"
     },
@@ -316,12 +316,12 @@
         "No limits — the model is careful"
       ],
       "a": 1,
-      "exp": "Least privilege + read-only replicas + auditability: tool design is security design.",
+      "exp": "Read-only access to a replica, with query allowlists or limits and audit logging. Each control covers a different failure: the replica protects production from load and from writes, allowlists and limits bound what any single query can do, and logging tells you afterwards what was actually run. Together they mean a manipulated or mistaken query cannot damage live data. The reasoning matters more than the checklist - an agent's queries are generated at run time, so you cannot enumerate them in advance, which is why the boundary has to be structural rather than a matter of care.",
       "why": [
-        "Production read-write through a model-callable tool is the widest possible blast radius.",
-        "Correct. Read-only replica, allowlists and limits, and audit logging.",
-        "Root credentials remove every meaningful control.",
-        "Relying on model carefulness is not a security control."
+        "Write access to production means one manipulated or mistaken query damages live data with nothing to stop it.",
+        "Correct. A read-only replica, query allowlists and limits, and audit logging - each covering a different failure mode.",
+        "Root credentials remove every boundary at once, which is the opposite of what an agent-facing tool needs.",
+        "Care is not a control. Queries are generated at run time, so the boundary has to be structural rather than behavioural."
       ],
       "id": "ccafq-1ced14ed"
     },
@@ -335,12 +335,12 @@
         "Raise temperature"
       ],
       "a": 1,
-      "exp": "Context compaction / structured note-taking preserves critical state past window limits — core Context Management material.",
+      "exp": "Compaction is the architectural answer: periodically distil the decisions, constraints and state that still matter into a durable note and re-inject that, rather than carrying the whole transcript. It keeps what is load-bearing prominent while dropping superseded drafts and resolved tangents, which is exactly what a growing agent context buries. Do it proactively at a utilisation threshold with headroom left for the summarisation call itself - waiting for a failure means discovering the problem when there is no room left to fix it.",
       "why": [
-        "Hope is not a mitigation.",
-        "Correct. Compact state and decisions into a durable note that is re-injected.",
-        "Restarting discards everything learned.",
-        "Sampling parameters are rejected on current models and are unrelated to context loss."
+        "Drift is predictable rather than exceptional. Every long-running agent hits it without a deliberate mechanism.",
+        "Correct. Periodically summarise state and decisions into a durable note that is re-injected, keeping what matters prominent.",
+        "Restarting without carrying state forward discards the work, which is the failure compaction exists to prevent.",
+        "Sampling parameters do not affect context retention, and current models reject them regardless."
       ],
       "id": "ccafq-17f02166"
     },
@@ -354,12 +354,12 @@
         "You enjoy large bills"
       ],
       "a": 0,
-      "exp": "Just-in-time retrieval (search/RAG, agentic file exploration) beats exhaustive preloading for large corpora.",
+      "exp": "Retrieve just in time when the corpus far exceeds the window and most of it is irrelevant per query. Both halves matter: if everything fits, preloading is simpler and avoids a retrieval step that can itself fail; if most content were relevant to every query, selection would buy little. When both hold, retrieval cuts cost and improves focus at once. The trade-off to watch is retrieval quality, since a question whose answer spans distant sections can be under-served - the ceiling on a retrieval system is usually set by what it fetches rather than by the model reading it.",
       "why": [
-        "Correct. A corpus far larger than the window, mostly irrelevant per query, is the retrieval case.",
-        "A two-page corpus fits trivially and needs no retrieval.",
-        "Latency tolerance does not argue for or against retrieval.",
-        "Cost indifference is not an engineering signal."
+        "Correct. A corpus far exceeding the window with most content irrelevant per query is exactly the case selection pays off.",
+        "Two pages fit comfortably. Adding retrieval there is complexity and a failure mode for no benefit.",
+        "Latency tolerance is unrelated to whether the corpus fits or how much of it is relevant.",
+        "Cost is a reason to retrieve rather than preload, so this states the situation backwards."
       ],
       "id": "ccafq-3ef2f822"
     },
@@ -373,12 +373,12 @@
         "Blaming the vendor"
       ],
       "a": 1,
-      "exp": "Reliability domain: design for failure with retries, fallbacks, and degradation modes.",
+      "exp": "Resilience is a set of layered controls rather than one mechanism: retries with backoff for transient failures, fallback tiers when a model is unavailable, circuit breakers so a failing dependency stops being called, and a defined degraded path so the system does something sensible when none of it works. That last one is the piece people leave out, and it is what separates a graceful degradation from an outage. Rarity is not an argument - outages are rare and consequential, which is the standard case for designing around them.",
       "why": [
-        "Outages are routine at scale and must be designed for.",
-        "Correct. Retries with backoff, fallback tiers, circuit breakers, and graceful degradation.",
-        "A status page reports failure; it does not survive it.",
-        "Attribution is not a resilience strategy."
+        "Rare and consequential is the standard case for designing around something rather than for ignoring it.",
+        "Correct. Retries with backoff, fallback tiers, circuit breakers and a defined degraded path - layered controls covering different failures.",
+        "A status page communicates an outage. It does nothing to keep the pipeline working through one.",
+        "Attribution does not restore service, and the user experience is the same either way."
       ],
       "id": "ccafq-6cbb61c5"
     },
@@ -392,12 +392,12 @@
         "Nowhere"
       ],
       "a": 1,
-      "exp": "Models orchestrate and interpret; deterministic computation belongs in code for correctness — a recurring architecture principle.",
+      "exp": "Deterministic work belongs in code. Date arithmetic, exact totals and identifier validation have correct answers that a function computes reliably every time, whereas a model produces them plausibly - and plausibly wrong arithmetic is the kind of error that survives review because it looks reasonable. Let the model orchestrate and let code compute. This is the clearest division of labour in agentic design: use the model for judgement, ambiguity and language, and give it tools for anything with a definite answer.",
       "why": [
-        "Instructions cannot make arithmetic deterministic.",
-        "Correct. Let code compute exact values and let the model orchestrate.",
-        "There is no durable memory that performs computation.",
-        "The logic still has to exist somewhere."
+        "Instructions ask the model to compute rather than giving it a reliable way to. Plausibly wrong arithmetic survives review because it looks reasonable.",
+        "Correct. Deterministic work belongs in code and tools - the model orchestrates, code computes.",
+        "There is no persistent memory that performs computation. This misplaces both the mechanism and the responsibility.",
+        "The logic is required. The question is where it lives, and code is the only place it can be reliable."
       ],
       "id": "ccafq-1a8c7744"
     },
@@ -411,12 +411,12 @@
         "Merge into one agent with double context"
       ],
       "a": 0,
-      "exp": "Inter-agent handoffs should exchange minimal structured state, not full transcripts.",
+      "exp": "Pass distilled artifacts rather than raw transcripts. A structured summary carries the conclusions and the state the next agent actually needs, while a full history carries every intermediate step it does not - and at each hop the cost compounds, because the receiving agent pays for all of it and then adds its own. Designing the interface between agents is a real architectural decision, and treating the transcript as the interface is the default that causes this. Larger windows and compression both make the symptom affordable for slightly longer without addressing it.",
       "why": [
-        "Correct. Pass distilled structured artifacts rather than raw transcripts.",
-        "A larger window raises the ceiling without addressing the waste.",
-        "Compression does not help content that must be read as tokens.",
-        "Merging discards the isolation that motivated the split."
+        "Correct. Pass distilled summaries and artifacts, so each agent receives the conclusions it needs rather than every intermediate step.",
+        "A larger window raises the ceiling without reducing what you send. The cost per hop is unchanged.",
+        "Compression is invisible to the model - the content is tokenised as text either way, so nothing is saved.",
+        "Merging discards the isolation that made separate agents worthwhile, and doubles the context every turn carries."
       ],
       "id": "ccafq-ec406edf"
     },
@@ -430,12 +430,12 @@
         "Fine-tune per prompt"
       ],
       "a": 1,
-      "exp": "Treat prompts like code: shared components, versioning, and review keep 40 prompts coherent.",
+      "exp": "A shared, versioned system-prompt component included by all forty prompts. One definition means a policy change propagates everywhere at once and review applies to a single place, which is exactly the property copy-paste destroys: forty copies drift, and the drift is invisible until someone compares them. Trusting each author is the same problem stated as a hope. Fine-tuning per prompt is wildly disproportionate for shared tone and policy, and would need redoing for every future policy update.",
       "why": [
-        "Copy-paste guarantees the 40 copies drift apart.",
-        "Correct. One shared, versioned component included everywhere.",
-        "Author discretion is what produces inconsistency.",
-        "Fine-tuning per prompt is disproportionate and unmaintainable."
+        "Forty copies drift, and the drift is invisible until someone compares them. A single policy change means forty edits.",
+        "Correct. One shared, versioned component included everywhere, so a policy change propagates at once and review applies in one place.",
+        "Consistency by good intentions is the situation you are trying to fix, and new authors have nothing to follow.",
+        "Fine-tuning is disproportionate for shared tone and policy, and would need redoing on every future update."
       ],
       "id": "ccafq-d89a9302"
     },
@@ -449,12 +449,12 @@
         "Run as repo admin"
       ],
       "a": 1,
-      "exp": "Headless agent + CI = least privilege and human review of diffs. Claude Code for CI is one of the six exam scenarios.",
+      "exp": "Scope the permissions and land changes as reviewable diffs. Headless automation removes the human from the loop during execution, so the review has to move to the boundary - a pull request a person approves - and the permissions have to assume the automation may do something unintended. That reasoning holds regardless of how reliable the tool has been, because CI runs on untrusted input: a pull request's contents are attacker-controllable in an open repository, which makes injection a live concern rather than a theoretical one.",
       "why": [
-        "Unsupervised changes with no gate is the risk itself.",
-        "Correct. Scoped permissions, no direct push, and human-reviewed PR diffs.",
-        "Auto-merge removes the review that makes this safe.",
-        "Admin rights give the widest possible blast radius."
+        "Speed without safeguards on an automated agent with repository write access is how a single bad run rewrites a codebase.",
+        "Correct. Scoped permissions, no direct push to main, and changes landing as diffs a human reviews.",
+        "Auto-merging on green removes the human review entirely, and passing lint is not evidence the change is correct.",
+        "Admin rights give the automation the broadest possible blast radius for any mistake or manipulation."
       ],
       "id": "ccafq-549737c1"
     },
@@ -468,12 +468,12 @@
         "Add a third tool"
       ],
       "a": 1,
-      "exp": "Tool-selection errors usually trace to ambiguous descriptions — clarify boundaries and add usage notes.",
+      "exp": "Sharpen both descriptions. Tool selection is driven by what the descriptions say, so a wrong choice is usually a description problem - and stating when each tool should *not* be used is often what resolves it, because the confusion is at the boundary between them rather than within either one. Fix both sides, since the model is choosing between them. Deleting the search tool removes a capability to work around a wording issue. Fine-tuning is disproportionate, and a third tool adds another option to a decision that is already going wrong.",
       "why": [
-        "Deleting a needed tool to fix a selection problem loses capability.",
-        "Correct. Selection errors are usually description problems — state when each applies and when it does not.",
-        "Fine-tuning is a heavyweight answer to an ambiguous description.",
-        "A third tool adds another option to confuse."
+        "Deleting a capability to work around a description problem loses functionality the agent legitimately needs.",
+        "Correct. Sharpen both descriptions, including when each should not be used, since the confusion is at the boundary between them.",
+        "Fine-tuning is disproportionate for a tool-selection issue that clearer descriptions resolve directly.",
+        "Another tool adds a further option to a decision that is already being made badly."
       ],
       "id": "ccafq-5750136a"
     },
@@ -487,12 +487,12 @@
         "A human performing each step"
       ],
       "a": 1,
-      "exp": "Independent subtasks that recombine is the orchestrator-workers shape; parallelism is the whole benefit.",
+      "exp": "Four independent questions combined at the end is the canonical fan-out shape: workers run in parallel with isolated contexts, and a synthesis step reconciles their findings. Independence is what makes it work - if the questions depended on each other, parallelism would buy nothing and the coordination would be pure overhead. The synthesis step is not optional either; without it you have four answers rather than one, and reconciling contradictions between workers is real work that someone has to do.",
       "why": [
-        "Sequential execution wastes the independence between the questions.",
-        "Correct. Fan out independent work, then synthesize the results.",
-        "Routing picks one path; here all four answers are needed.",
-        "Manual execution discards the automation entirely."
+        "A sequential chain serialises work that could run at once, so total latency is the sum rather than the maximum.",
+        "Correct. Parallel workers on independent questions, then a synthesis step to reconcile and combine the findings.",
+        "Routing picks one path. All four questions need answering, so discarding three loses most of the task.",
+        "Manual execution abandons the automation entirely, and these are exactly the researchable subtasks worth delegating."
       ],
       "id": "ccafq-8f4f3360"
     },
@@ -506,12 +506,12 @@
         "A multi-agent debate"
       ],
       "a": 1,
-      "exp": "Routing classifies once and dispatches, which keeps each handler focused and avoids paying for work you discard.",
+      "exp": "Classify then dispatch. A routing step costs one cheap call and lets each specialist carry a focused prompt, a minimal tool set, and a model matched to its difficulty - so quality goes up and cost tracks the category rather than the worst case. Running all three handlers triples the cost and then needs a judge to pick a winner, which is a harder problem than the original classification. One general prompt has to carry every instruction on every request, diluting all three. Debate is for genuine uncertainty about an answer, not for categorisation.",
       "why": [
-        "Running everything triples cost to use one result.",
-        "Correct. Classify, then dispatch to the specialist path.",
-        "A single generic prompt underperforms specialists on all three.",
-        "Debate adds cost and latency without addressing categorization."
+        "Running every handler triples cost and then needs a judge to choose, which is harder than the classification you avoided.",
+        "Correct. Classify once, then dispatch to a specialist with a focused prompt and a model matched to that category.",
+        "One prompt covering three categories carries every instruction on every request, which dilutes all three.",
+        "Debate suits genuine uncertainty about an answer. Category assignment is a classification problem with a cheap solution."
       ],
       "id": "ccafq-8229387b"
     },
@@ -525,12 +525,12 @@
         "Simple systems use newer models"
       ],
       "a": 1,
-      "exp": "Published guidance is explicit: use the simplest pattern that works and escalate only when the task demands it.",
+      "exp": "Every layer costs something on every run - tokens, latency, and a new way to fail - so it has to earn its place against a simpler alternative. That framing is what keeps architecture honest, because the pull is always toward more structure: an extra agent or validation pass feels like diligence, and each one is paid for continuously. Simplicity is not automatically more accurate, which is worth being precise about; the argument is about cost, debuggability and failure surface, and a complex system that genuinely earns its complexity is the right answer sometimes.",
       "why": [
-        "Simplicity is not automatically more accurate; it is cheaper to operate and reason about.",
-        "Correct. Complexity has real operational cost and must be justified.",
-        "Explicability matters but is not the core engineering argument.",
-        "Model choice is independent of orchestration complexity."
+        "Simplicity does not guarantee accuracy. Some problems genuinely need more structure, and the argument is about cost rather than correctness.",
+        "Correct. Each layer adds cost, latency and failure surface on every run, so it has to earn its place against a simpler alternative.",
+        "Explainability is a real benefit but a secondary one. The operational costs are what make this the default posture.",
+        "Model choice is independent of orchestration complexity. Any architecture can use any model."
       ],
       "id": "ccafq-f3f05271"
     },
@@ -544,12 +544,12 @@
         "Ask the user to check it"
       ],
       "a": 1,
-      "exp": "Evaluator-optimizer inserts a quality gate exactly where variance is costly, with a defined remedy.",
+      "exp": "Add an evaluator that checks the output against explicit criteria and triggers a retry or escalation. The criteria are what make it a check rather than another opinion - without them you get an impression, and impressions do not gate reliably. Placing it at the variable step keeps failures local instead of letting them propagate into everything downstream, which is exactly the problem described. Keeping the longer of two outputs uses length as a quality proxy, which it is not. Skipping the step when slow removes it precisely when the system is under pressure.",
       "why": [
-        "Length is not a quality criterion.",
-        "Correct. Gate the variable step with explicit criteria and a defined remedy.",
-        "Skipping a load-bearing step trades quality for speed silently.",
-        "Pushing verification onto users does not scale."
+        "Length is not a quality signal, and running twice measures consistency rather than correctness - two wrong outputs can agree.",
+        "Correct. An evaluator checking against explicit criteria, triggering a retry or escalation so failures stay local.",
+        "Skipping a materially important step under load degrades output exactly when the system is already struggling.",
+        "Manual checking does not scale and puts a person in the path of every run, which is what the pipeline exists to avoid."
       ],
       "id": "ccafq-2cf55920"
     },
@@ -563,12 +563,12 @@
         "It costs more than last month"
       ],
       "a": 1,
-      "exp": "Diagnosability is the practical limit. When you cannot localize a failure, you can no longer safely change the system.",
+      "exp": "The signal is diagnostic: when a failure cannot be attributed to a step and a change has effects you did not predict, the system has more coupling than anyone is holding in their head. That is what makes complexity costly - not the component count, but the loss of the ability to reason about the whole. Model count, prompt count and monthly cost are all scale measures rather than complexity ones. A five-prompt pipeline where every failure is traceable is healthier than a three-prompt one where nobody can explain last week's regression.",
       "why": [
-        "Multiple models is normal right-sizing.",
-        "Correct. Loss of attribution and predictability is the real complexity ceiling.",
-        "Prompt count alone is not a meaningful threshold.",
-        "Cost growth may be legitimate; it is not itself a complexity signal."
+        "Using several models is a normal cost-and-capability decision that says nothing about whether the system is understandable.",
+        "Correct. Unattributable failures and unpredictable change effects mean the coupling exceeds what anyone can reason about.",
+        "Prompt count measures size rather than complexity. A larger pipeline where failures are traceable is in better shape.",
+        "Cost tracks usage and scale. A system can get more expensive while remaining perfectly comprehensible."
       ],
       "id": "ccafq-69f3bca1"
     },
@@ -582,12 +582,12 @@
         "It stores API keys conveniently"
       ],
       "a": 1,
-      "exp": "Checked-in project instructions make agent behavior a reviewable, shared property of the repository rather than per-developer folklore.",
+      "exp": "A committed instructions file makes conventions, commands and constraints apply to everyone working in the repository, automatically and identically. That is the whole benefit: it moves shared context out of individual habits and into the repository, where review applies to changes and new contributors get it for free. It does not make anything faster, it does not replace code review - a reviewer still checks the change rather than the instructions - and it must never hold credentials, since it is checked in and visible to everyone with repository access.",
       "why": [
-        "Instructions do not affect inference speed.",
-        "Correct. Shared, versioned conventions apply to every contributor.",
-        "Automated assistance does not remove human review.",
-        "Secrets must never be committed."
+        "Instructions shape behaviour rather than performance. Response speed is unaffected.",
+        "Correct. Conventions, commands and constraints apply consistently for everyone, with changes reviewed like any other repository change.",
+        "It informs how work is done. A reviewer still has to check the resulting change on its own merits.",
+        "It is checked in and visible to everyone with repository access, which makes it the wrong place for any credential."
       ],
       "id": "ccafq-64a7fce7"
     },
@@ -601,12 +601,12 @@
         "Disabling tests to avoid false failures"
       ],
       "a": 1,
-      "exp": "In CI the agent operates unattended, so blast radius and merge gates are what keep it safe.",
+      "exp": "Scope what may change and require review before anything merges. Headless CI removes the human from the loop during execution, so the review moves to the boundary and the permissions have to assume something unintended may happen. That reasoning is independent of how reliable the agent has been, because CI often runs against untrusted input - pull request contents are attacker-influenced in an open repository, which makes a scoped blast radius a security control rather than tidiness. A larger model is not a guardrail, and removing time limits or tests removes the two signals that catch a run going wrong.",
       "why": [
-        "Capability does not bound what the agent may alter.",
-        "Correct. Constrain scope and keep a human merge gate.",
-        "Unbounded runs are a cost and reliability hazard.",
-        "Disabling tests removes the signal you most need."
+        "Capability is not a safety control. A more capable model executes a mistaken plan more effectively.",
+        "Correct. Scope what it may change and require review before merge, so the blast radius is bounded and a human still approves.",
+        "No time limit means a stuck or looping run consumes budget indefinitely with nothing to stop it.",
+        "Tests are the signal that catches an incorrect change. Disabling them removes the check that matters most here."
       ],
       "id": "ccafq-1b50adde"
     },
@@ -620,12 +620,12 @@
         "Accept the refactor"
       ],
       "a": 1,
-      "exp": "Scope is an instruction. Unstated boundaries are the usual cause of over-broad changes.",
+      "exp": "State the scope explicitly - which files may change, what must not, and that you want the minimal diff. Sweeping refactors usually come from an underspecified request rather than an overeager model: absent a boundary, improving the surrounding code looks like doing the job well. Being explicit about the boundary is both the fix and the thing worth building into your standing instructions. A smaller model produces a less capable version of the same unscoped change, rerunning resamples the same ambiguity, and accepting the refactor takes on review burden you did not ask for.",
       "why": [
-        "Capability is not the issue; specification is.",
-        "Correct. Name the allowed scope and ask for the smallest change that works.",
-        "Repetition without new constraints reproduces the behavior.",
-        "Accepting an unrequested refactor inherits unreviewed risk."
+        "A smaller model makes the same unscoped change less capably. The missing constraint is in the request.",
+        "Correct. Name the files that may change, what must not, and ask for the minimal diff - the boundary is what was missing.",
+        "Rerunning resamples the same ambiguous request, so a different sweeping change is the likely outcome.",
+        "Accepting it takes on unrequested review burden and normalises scope creep in future runs."
       ],
       "id": "ccafq-ddf11539"
     },
@@ -639,12 +639,12 @@
         "Give it write access to production"
       ],
       "a": 1,
-      "exp": "Verifiability is what makes agentic changes safe. Start where tests can tell you immediately whether the change was right.",
+      "exp": "Start where correctness is quickly verifiable: well-tested, well-bounded areas. That gives you a fast feedback loop while you are still learning where the tool is reliable, and it keeps early mistakes cheap and visible. On a legacy codebase that property is scarce, which is exactly why you spend it deliberately. Modernising everything at once maximises blast radius at the moment of least understanding. Disabling tests removes the verification that makes the approach safe, and production write access is the opposite of a bounded first step.",
       "why": [
-        "Wholesale modernization is unreviewable and high risk.",
-        "Correct. Begin where verification is fast and the blast radius is small.",
-        "Tests are the verification mechanism; removing them removes safety.",
-        "Production write access is never an appropriate starting point."
+        "A sweeping change is the largest possible blast radius at the point when you understand the tool least.",
+        "Correct. Well-tested, well-bounded areas give fast verification while you are still learning where it is reliable.",
+        "Tests are the fast feedback that makes this approach safe. Removing them removes the reason it works.",
+        "Production write access is the opposite of a bounded first step, and nothing about early adoption justifies it."
       ],
       "id": "ccafq-9cba9550"
     },
@@ -658,12 +658,12 @@
         "It makes onboarding slower"
       ],
       "a": 1,
-      "exp": "Prompts are executable configuration. Treating them as code gives you review, history, and rollback.",
+      "exp": "Prompts that drive a workflow are behaviour, so versioning makes changes reviewable and revertible like any other change - you can see what altered, discuss it before it ships, and roll back cleanly when a regression appears. Without that, behaviour changes silently and nobody can reconstruct what was different last Tuesday. It does not reduce token usage, it is not a tool requirement, and it speeds onboarding rather than slowing it, since the current instructions are discoverable in the repository rather than in someone's memory.",
       "why": [
-        "Version control does not change token consumption.",
-        "Correct. Review, history, and rollback apply to behavior-defining text.",
-        "It is a practice, not a product requirement.",
-        "Shared, versioned conventions speed onboarding up."
+        "Version control tracks changes without altering what is sent. Token usage is unaffected.",
+        "Correct. Behaviour changes become reviewable and revertible, so a regression can be identified and rolled back cleanly.",
+        "Nothing in the tooling requires it. It is an engineering practice adopted because prompts are behaviour.",
+        "It speeds onboarding. The current instructions are discoverable in the repository rather than held in individual memory."
       ],
       "id": "ccafq-8dcc3867"
     },
@@ -677,12 +677,12 @@
         "Let each consumer parse differently"
       ],
       "a": 1,
-      "exp": "Contract-first design removes parse failures by construction, and validation still guards semantics.",
+      "exp": "Define the schema first, constrain generation to it, then validate anyway. Schema-first makes the contract explicit before either side is built, so producer and consumer agree on the shape rather than discovering it. Constraining generation makes conformance a property of the request. Validating downstream covers what schemas cannot: structure is guaranteed, meaning is not, and a semantically wrong value passes every structural check. Writing the prompt first and fitting a parser to whatever emerges inverts the dependency - the contract ends up defined by one sample of the output.",
       "why": [
-        "Reverse-engineering a contract from observed output is fragile.",
-        "Correct. Schema first, constrained generation, and validation regardless.",
-        "Prose formats are not machine contracts.",
-        "Divergent parsers multiply failure modes."
+        "This lets one sample of the output define the contract, and the parser then breaks the first time generation drifts.",
+        "Correct. Schema first so the contract is explicit, constrained generation so conformance comes from the request, and validation because shape is not meaning.",
+        "Markdown is a presentation format. Parsing headings reintroduces exactly the fragility a schema removes.",
+        "Per-consumer parsing means every consumer breaks differently on the same change, with no single contract to fix."
       ],
       "id": "ccafq-06893c5a"
     },
@@ -696,12 +696,12 @@
         "The model needs replacing"
       ],
       "a": 1,
-      "exp": "Shape and meaning are different guarantees. Constrained decoding delivers the first; your validation must cover the second.",
+      "exp": "A schema constrains shape, not meaning. A date range with the end before the start, a negative quantity, an identifier for a record that does not exist - all satisfy a well-formed schema and are still wrong. That is why semantic validation belongs in your code alongside structural constraint, and it is the boundary worth internalising: structured outputs remove parse failures, which is a real and valuable guarantee, and they do not remove the need to check that the values make sense. The output behaved exactly as specified; the specification simply could not express meaning.",
       "why": [
-        "The mechanism worked exactly as specified.",
-        "Correct. Shape conformance is not semantic correctness.",
-        "Strictness produced valid structure; it was never a meaning check.",
-        "Every model can emit schema-valid nonsense."
+        "This is expected behaviour rather than unreliability. Structured outputs delivered precisely what they guarantee.",
+        "Correct. Schemas guarantee shape rather than meaning, so semantic validation remains your responsibility.",
+        "A stricter schema catches more structural violations but still cannot express whether a value makes sense in context.",
+        "The model produced schema-conforming output as instructed. The gap is in what a schema can express."
       ],
       "id": "ccafq-5a28de82"
     },
@@ -715,12 +715,12 @@
         "Randomizing the prompt to avoid overfitting"
       ],
       "a": 1,
-      "exp": "Examples communicate expectations that a schema cannot express, particularly around edge cases and conventions.",
+      "exp": "Worked examples showing the structure filled in, especially for edge cases. A schema fixes which fields exist; an example fixes how they are populated - level of detail, phrasing conventions, and what to do when something is absent or ambiguous. Those are precisely the decisions that drift across many documents, and they are far easier to demonstrate than to describe. Choose the examples deliberately: they are the strongest signal in a prompt, so an edge case you include defines the handling you get, and one that only shows the easy path teaches the easy path.",
       "why": [
-        "Length without specificity does not improve consistency.",
-        "Correct. Worked examples pin down conventions the schema cannot encode.",
-        "More reasoning does not supply missing conventions.",
-        "Deliberate variation undermines consistency."
+        "More prose adds interpretive room. Examples remove it by demonstrating the decisions rather than describing them.",
+        "Correct. Worked examples for edge cases fix how fields get populated, which is where drift across many documents comes from.",
+        "Raising effort adds reasoning about a convention that was never specified. It does not supply the missing decision.",
+        "Deliberate variation works against consistency, which is the property you are trying to achieve."
       ],
       "id": "ccafq-5da2035f"
     },
@@ -734,12 +734,12 @@
         "Let each team keep a copy"
       ],
       "a": 1,
-      "exp": "Shared prompts are shared infrastructure. Versioning plus evals plus staged rollout is the safe change path.",
+      "exp": "Version it, test the change against a regression set, and roll out behind a gate. Each part covers a different risk: versioning gives you something to revert to, the regression set tells you whether the change actually helps rather than trading one failure for another, and the gate limits exposure if something was missed. That combination matters more the more systems depend on the prompt, since a silent behaviour change propagates everywhere at once. Editing in place and watching for complaints uses your users as the regression suite, and per-team copies guarantee divergence.",
       "why": [
-        "Complaint-driven detection is slow and damaging.",
-        "Correct. Version, evaluate against fixed cases, and gate the rollout.",
-        "Timing does not reduce the risk of an unmeasured change.",
-        "Forked copies guarantee divergence."
+        "This uses your users as the test suite, and complaints arrive slowly, unevenly, and only for failures someone notices.",
+        "Correct. Version, test against a regression set, and roll out behind a gate - covering revertibility, evidence and exposure.",
+        "Timing a risky change for a quiet period reduces witnesses rather than risk. The change is equally untested.",
+        "Per-team copies guarantee divergence, and a shared fix then has to be applied everywhere separately."
       ],
       "id": "ccafq-6121c04c"
     },
@@ -753,12 +753,12 @@
         "Ask for prose and let each consumer interpret it"
       ],
       "a": 1,
-      "exp": "A single schema covering both consumers keeps them in sync and avoids a second, divergent generation.",
+      "exp": "One schema containing both the structured fields and a prose field. The system reads the fields it needs and the human reads the prose, from a single generation that is internally consistent - which is the property two separate runs cannot guarantee, since the narrative and the data can disagree. Extracting fields from prose with a regex reintroduces the parse failures the schema exists to remove, and letting each consumer interpret free text means every consumer breaks differently on the same wording change.",
       "why": [
-        "Regex over prose is the fragility structured outputs exist to remove.",
-        "Correct. One schema, both consumers, generated once and consistent.",
-        "Two runs can disagree with each other.",
-        "Unstructured interpretation produces inconsistent downstream behavior."
+        "Regex over prose reintroduces exactly the parse fragility a schema removes, and it breaks on ordinary rephrasing.",
+        "Correct. One schema carrying both the structured fields and a prose field, so the narrative and the data come from a single consistent generation.",
+        "Two runs can disagree with each other, so the prose may describe something the fields do not say.",
+        "Per-consumer interpretation means each one breaks differently on the same change, with no shared contract."
       ],
       "id": "ccafq-afefe8c1"
     },
@@ -772,12 +772,12 @@
         "Accepting free-form text arguments"
       ],
       "a": 1,
-      "exp": "Unsupervised tools should be narrow and legible: easy to select correctly, hard to misuse, and clear when they fail.",
+      "exp": "Narrow scope with clearly described preconditions and failure modes. An unsupervised tool is called on the model's judgement alone, so the description has to say when it applies and when it does not, and the scope has to bound what a wrong call can do. Those two properties are what make autonomy safe. Returning as much data as possible works against it by flooding the context. Free-form text arguments remove the schema that constrains what can be passed, which is the last structural check before the tool runs.",
       "why": [
-        "Names matter less than described behavior.",
-        "Correct. Narrow scope and explicit contracts make selection and recovery reliable.",
-        "Oversized responses waste context and bury the relevant part.",
-        "Free-form arguments invite malformed calls."
+        "Name length is cosmetic. What matters is whether the description says when the tool applies and what it can do.",
+        "Correct. Narrow scope with described preconditions and failure modes, since an unsupervised call rests entirely on the description.",
+        "Large responses flood the context window and bury the relevant result, which degrades every subsequent turn.",
+        "Free-form arguments remove the schema, which is the last structural check before an unsupervised tool executes."
       ],
       "id": "ccafq-eadd0578"
     },
@@ -791,12 +791,12 @@
         "Rename them to be similar"
       ],
       "a": 1,
-      "exp": "Selection errors are usually description problems. State the boundary explicitly, or remove the ambiguity by merging.",
+      "exp": "Clarify or merge. If two tools genuinely do different things, the descriptions must say when each applies and when it does not - the confusion lives at the boundary between them, so stating the boundary is the fix. If they overlap enough that the distinction is hard to articulate, that is evidence they should be one tool with a parameter. Deleting one arbitrarily loses a capability without diagnosing the problem. A third tool adds another option to a decision already going wrong, and similar names make the confusion worse.",
       "why": [
-        "Arbitrary removal may drop needed capability.",
-        "Correct. Make the boundary explicit, or eliminate it by merging.",
-        "A meta-tool adds a layer without resolving the ambiguity.",
-        "Similar names make confusion more likely."
+        "Arbitrary deletion loses a capability without addressing why selection is going wrong.",
+        "Correct. State when each applies and when it does not, or merge them if the distinction cannot be articulated clearly.",
+        "Another tool adds a further option to a decision that is already being made badly.",
+        "Similar names increase confusion. Distinguishing them is the goal."
       ],
       "id": "ccafq-28c1de46"
     },
@@ -810,12 +810,12 @@
         "Accept it as the cost of completeness"
       ],
       "a": 1,
-      "exp": "Tool design should let the caller narrow the result. Filtering at the source beats paying to carry and then discard data.",
+      "exp": "Add pagination and filtering so the agent requests only what it needs. Selection belongs in the tool, where code can do it precisely and cheaply, rather than in the context window where five thousand rows crowd out reasoning and get re-paid for on every subsequent turn. A larger window raises the ceiling without addressing the waste. Summarising with another model call pays a second time to discard data you should not have fetched. Accepting it as the cost of completeness misidentifies context as free.",
       "why": [
-        "Larger windows postpone the problem at higher cost.",
-        "Correct. Give the agent parameters to narrow the request at the source.",
-        "An extra call to fix an oversized payload adds cost and latency.",
-        "Uncontrolled payloads degrade both cost and reasoning quality."
+        "A larger window makes the waste affordable for longer without reducing it, and every later turn still carries the rows.",
+        "Correct. Pagination and filtering push selection into the tool, where code can do it precisely and cheaply.",
+        "A second model call pays again to discard data that should not have been retrieved in the first place.",
+        "Context is the scarce resource in an agent loop. Treating it as free is what causes this problem."
       ],
       "id": "ccafq-a5d7a5b2"
     },
@@ -829,12 +829,12 @@
         "The capabilities are trivial"
       ],
       "a": 1,
-      "exp": "MCP's value is reuse across clients. With a single permanent consumer, the abstraction may not pay for itself.",
+      "exp": "Justified when multiple clients or agents need the same capability, now or plausibly later. That is the reuse argument: a server is written once, versioned independently, and consumed by any MCP-aware client, which turns an integration into shared infrastructure. For a single consumer the protocol is overhead - a process boundary, a version to pin, latency you did not need - and an in-app tool is simpler. Wanting to try a protocol is not an architectural reason, and triviality argues against the extra machinery rather than for it.",
       "why": [
-        "A single consumer rarely justifies the extra indirection.",
-        "Correct. Reuse across clients is what the standard buys you.",
-        "Novelty is not an architectural reason.",
-        "Triviality argues against added protocol machinery."
+        "A single consumer does not need a standard interface. The protocol adds a boundary and latency for no reuse benefit.",
+        "Correct. Multiple clients or agents needing the same capability, now or plausibly later, which makes it shared infrastructure.",
+        "Curiosity is a reason to prototype rather than an architectural justification for production structure.",
+        "Trivial capabilities argue against the extra machinery. The overhead is easier to justify for substantial ones."
       ],
       "id": "ccafq-762f4874"
     },
@@ -848,12 +848,12 @@
         "Log the action and move on"
       ],
       "a": 1,
-      "exp": "Irreversible actions need a gate before, and idempotency so that retries after ambiguity do not double-apply.",
+      "exp": "Require explicit confirmation, and make the operation idempotent or safely retryable where you can. The two work together: confirmation catches the action that should not happen, and idempotency means an uncertain outcome can be retried without doing it twice. That second property matters more than it looks, because a timeout leaves you unable to tell whether the action succeeded - and without idempotency the only options are to risk a duplicate or to leave it unresolved. Automatic retry on any error is precisely how a single irreversible action happens twice.",
       "why": [
-        "Judgment is not a control for irreversible effects.",
-        "Correct. Confirm before acting, and design for safe retries.",
-        "Blind retries on an irreversible action can duplicate it.",
-        "Logging is detection after the fact, not prevention."
+        "Judgement is not a control, and an agent's action sequence is decided at run time, so it cannot be enumerated in advance.",
+        "Correct. Explicit confirmation plus idempotency, so an uncertain outcome can be retried without performing the action twice.",
+        "Blind retry on an irreversible action is how it happens twice, and a timeout gives no indication of which.",
+        "Logging records what happened afterwards. The irreversible action has already occurred."
       ],
       "id": "ccafq-b93fc678"
     },
@@ -867,12 +867,12 @@
         "Move to a model with a larger window and change nothing else"
       ],
       "a": 1,
-      "exp": "Compaction preserves meaning rather than position. Blind truncation drops whatever happens to be oldest, including load-bearing constraints.",
+      "exp": "Compact: summarise the decisions and state that still matter into a durable note, and re-inject that as the working record. What distinguishes it from truncation is that compaction is selective - it keeps what is load-bearing and drops what is superseded, whereas dropping the oldest messages removes exactly the early constraints that usually still apply. Starting over loses everything. Moving to a larger window and changing nothing else buys time rather than fixing the problem: the context still fills, just later, and the same drift arrives with it.",
       "why": [
-        "Truncation discards by position, not importance.",
-        "Correct. Summarize the decisions and state that must survive.",
-        "Restarting loses everything learned.",
-        "A larger window delays the same failure without addressing it."
+        "Oldest-first truncation removes the early constraints that usually still apply, which is the least selective possible choice.",
+        "Correct. Summarise decisions and state into a durable note re-injected as the working record, keeping what is load-bearing.",
+        "A fresh session discards the work. Compaction exists precisely to carry the important parts forward.",
+        "A larger window delays the problem without addressing it. The context still fills and the same drift follows."
       ],
       "id": "ccafq-5d3a9bb3"
     },
@@ -886,12 +886,12 @@
         "Rely on the model remembering"
       ],
       "a": 1,
-      "exp": "Constraints that must hold throughout belong in state that is deliberately re-supplied, not in a single early message.",
+      "exp": "Carry constraints in a durable structure re-injected each cycle. Anything stated once competes with everything that accumulates afterwards, and in a long run it eventually loses - not dramatically, but by becoming less prominent than more recent material. Re-injection keeps it in force by construction rather than by hope. Manual repetition achieves the same thing while depending on a person doing it every time, which fails the moment attention lapses. Relying on the model to remember is the assumption the question is describing as broken.",
       "why": [
-        "Early statements get crowded out as the run grows.",
-        "Correct. Re-inject the constraints as part of the working record.",
-        "Manual repetition does not scale and is easily forgotten.",
-        "There is no persistence across context loss."
+        "Stated once, a constraint competes with everything that accumulates after it and gradually stops being prominent.",
+        "Correct. A durable structure re-injected each cycle keeps constraints in force by construction rather than by hope.",
+        "Manual repetition works while someone remembers to do it, which is not a property you can rely on across a long run.",
+        "This is the assumption that fails. Constraints do not persist on their own across a long context."
       ],
       "id": "ccafq-48bd8a24"
     },
@@ -905,12 +905,12 @@
         "Removing the tool"
       ],
       "a": 1,
-      "exp": "Loop detection with a defined escalation converts an infinite retry into a bounded, reportable outcome.",
+      "exp": "Detect the repetition, cap it, and escalate. The detection is what makes this efficient - an iteration ceiling alone lets the same failing call burn the entire budget before it fires, whereas noticing three identical failures ends it immediately. Escalation is what makes it recoverable: a different strategy or a human, rather than simply stopping in an undefined state. A longer prompt does not impose a bound, a larger window just holds more of the same failure, and removing the tool discards a capability to solve a control problem.",
       "why": [
-        "Instructions do not enforce termination.",
-        "Correct. Detect repetition, cap it, and escalate deliberately.",
-        "More context does not stop a behavioral loop.",
-        "Removing capability is disproportionate to a retry bug."
+        "Instructions do not impose a hard bound. The loop can ignore guidance and continue.",
+        "Correct. Detect the repetition, cap it, and escalate to a different strategy or a human so the run ends recoverably.",
+        "More context holds more of the same repeated failure. It does not stop the repetition.",
+        "Removing the tool loses a capability to solve a control-flow problem that guards would fix directly."
       ],
       "id": "ccafq-c0ab68e8"
     },
@@ -924,12 +924,12 @@
         "The API requires it"
       ],
       "a": 1,
-      "exp": "Traceability depends on knowing what came from a source and what the system concluded. Blurring them destroys auditability.",
+      "exp": "Keeping sourced facts separate from generated inferences is what makes an error traceable. When they are conflated, a wrong conclusion looks exactly like a retrieved fact, and you cannot tell whether retrieval fetched the wrong passage or reasoning went astray over the right one - which are different bugs with different fixes. That distinction is also what lets you cite sources honestly and show a user which parts of an answer are grounded. It is an architectural property rather than a formatting preference, and it costs no tokens to maintain.",
       "why": [
-        "This is an auditability concern, not presentation.",
-        "Correct. Separating sourced from inferred keeps errors traceable.",
-        "Labeling provenance does not reduce tokens.",
-        "This is a design practice, not an API requirement."
+        "This is about traceability rather than presentation. The formatting benefit is incidental.",
+        "Correct. Conflating sourced facts with generated inferences makes it impossible to tell a retrieval failure from a reasoning failure.",
+        "Labelling provenance costs a trivial number of tokens. The benefit is diagnostic rather than economic.",
+        "Nothing in the API requires it. It is a design decision that makes the system debuggable."
       ],
       "id": "ccafq-d0d931f5"
     },
@@ -943,12 +943,12 @@
         "Total wall-clock time"
       ],
       "a": 1,
-      "exp": "Outcome correctness is the metric that matters; token and step counts are diagnostics, not goals.",
+      "exp": "The rate of runs reaching a correct, verifiable end state is the metric that matters, with partial progress tracked separately so a run that got halfway is not counted as a success or as a total loss. The word verifiable is doing the work: a run that claims completion is not the same as one whose output was checked. The alternatives all measure activity rather than outcome - tokens, tool calls and elapsed time can each move in either direction for good or bad reasons, which makes them useful for cost analysis and useless as a reliability signal.",
       "why": [
-        "Token usage is a cost signal, not a reliability one.",
-        "Correct. Verified end-state success, with partial progress tracked separately.",
-        "Tool-call volume says nothing about whether the task succeeded.",
-        "Duration matters operationally but does not measure correctness."
+        "Token consumption is a cost measure. A cheap run that failed and an expensive one that succeeded look similar by this metric.",
+        "Correct. The rate of runs reaching a correct, verifiable end state, with partial progress measured separately.",
+        "Tool call count measures activity. More calls can mean thorough work or aimless flailing.",
+        "Elapsed time reflects task size and latency. A fast failure and a slow success are not distinguished by it."
       ],
       "id": "ccafq-9359a2bf"
     },
