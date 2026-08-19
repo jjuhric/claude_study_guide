@@ -105,7 +105,7 @@ each; floors 400/250 → 900/600.
 - [x] **4.2** CCAR-F — 5,084w → **7,543w**. Domain lessons 872–1,126w.
       The Context/Retrieval lesson gained real retrieval teaching, which it
       lacked despite owning 10 retrieval questions after the 2.3 re-tag.
-- [ ] **4.3** CCDV-F (7,086w)
+- [x] **4.3** CCDV-F — 7,086w → **9,570w**. Domain lessons 868–1,185w.
 - [ ] **4.4** CCAO-F (7,793w)
 - [ ] **4.5** Raise the lesson floors in the suite.
 
