@@ -13,12 +13,12 @@ function lessonLabel(c,i){
 }
 function learnList(id){
   const c=CERTS.find(x=>x.id===id);
-  const read=S.lessonsRead[c.id]||[];
+  const read=S.lessonsRead[c.id]||{};
   const lp=lessonProgress(c);
   renderHeader();
   let rows='';
   c.lessons.forEach((les,i)=>{
-    const done=!!read[i];
+    const done=!!read[lessonKey(c,i)];
     const isMasterclass=i>c.domains.length;
     const badgeText=done?"✓":(les.foundation?"🌱":isMasterclass?"🚀":i);
     rows+='<div class="lesson-row'+(done?" done":"")+(les.foundation?" found":"")+(isMasterclass?" masterclass-row":"")+'" onclick="lessonView(\''+id+'\','+i+')">'

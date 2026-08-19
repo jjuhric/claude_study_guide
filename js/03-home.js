@@ -307,8 +307,8 @@ function weakDomainLinks(c,stats,heading){
   return h+'</div>';
 }
 function lessonProgress(c){
-  const read=S.lessonsRead[c.id]||[];
-  const done=read.filter(Boolean).length;
+  const read=S.lessonsRead[c.id]||{};
+  const done=Object.values(read).filter(Boolean).length;
   const total=totalLessons(c);
   return {done, total, pct: total?Math.round(done/total*100):0};
 }

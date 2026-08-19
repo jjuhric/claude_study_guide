@@ -279,7 +279,7 @@ function executiveDossierView(){
       + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; font-size:11.5px;">'
       + '<div>• Questions Seen: <b>' + (S.answered[c.id] ? Object.keys(S.answered[c.id]).length : 0) + '/' + c.questions.length + '</b></div>'
       + '<div>• Best Mock Score: <b>' + (best ? best + '/1000' : 'None') + '</b></div>'
-      + '<div>• Lessons Completed: <b>' + ((S.lessonsRead[c.id]||[]).filter(Boolean).length) + '/' + c.lessons.length + '</b></div>'
+      + '<div>• Lessons Completed: <b>' + (Object.values(S.lessonsRead[c.id]||{}).filter(Boolean).length) + '/' + c.lessons.length + '</b></div>'
       + '<div>• Weakest Area: <b>' + rp.weakest.label + '</b></div>'
       + '</div>'
       + '</div>';

@@ -643,6 +643,36 @@ vm.createContext(sandbox);
   check(evalIn(`!("0" in S.answered.ccao)`), "legacy positional keys are removed after migration");
   check(evalIn(`S.cardBox.ccao[${JSON.stringify(c0)}].b === 3`), "legacy flashcard schedule migrates onto ids");
 
+  /* Lessons carried the same bug: markRead(id,i) wrote true at array index i,
+     so inserting or reordering a lesson silently reattached a learner's
+     "read" mark to whatever lesson now sits at that position. Lessons already
+     carry stable ids (unlike questions/cards, no data change was needed here)
+     -- only the storage and every read site had to switch from index to id. */
+  const lNoId = [];
+  const lAllIds = new Set();
+  let lDupId = 0;
+  for (const [id, d] of Object.entries(data)) {
+    d.lessons.forEach((ll, i) => { if (!ll.id) lNoId.push(`${id} lesson[${i}]`); else { if (lAllIds.has(ll.id)) lDupId++; lAllIds.add(ll.id); } });
+  }
+  check(lNoId.length === 0, `every lesson has a stable id (${lNoId.slice(0, 3).join(", ") || "all present"})`);
+  check(lDupId === 0, `lesson ids are unique across all content (${lAllIds.size} ids, ${lDupId} collisions)`);
+
+  // markRead must record against the lesson's id, so reordering cannot remap history.
+  evalIn(`S.lessonsRead={}`);
+  const lesson0Id = evalIn(`CERTS.find(x=>x.id==="ccao").lessons[0].id`);
+  evalIn(`markRead("ccao", 0, false)`);
+  check(evalIn(`S.lessonsRead.ccao[${JSON.stringify(lesson0Id)}] === true`), "a read lesson is recorded against its id");
+  check(evalIn(`Object.keys(S.lessonsRead.ccao).every(k=>!/^\d+$/.test(k))`), "no positional lesson keys are written");
+  check(evalIn(`lessonProgress(CERTS.find(x=>x.id==="ccao")).done === 1`), "lessonProgress counts a read lesson recorded by id");
+
+  // A legacy save with lessonsRead as an array-by-position is remapped on load.
+  evalIn(`S.lessonsRead={ccao:[false,true,true]}; S.v=1`);
+  const lesson1Id = evalIn(`CERTS.find(x=>x.id==="ccao").lessons[1].id`);
+  evalIn(`migrateCertKeys(CERTS.find(x=>x.id==="ccao"))`);
+  check(evalIn(`S.lessonsRead.ccao[${JSON.stringify(lesson1Id)}] === true`), "a legacy array-by-position read mark migrates onto the lesson's id");
+  check(evalIn(`!Array.isArray(S.lessonsRead.ccao)`), "lessonsRead is an object keyed by id after migration, not an array");
+  evalIn(`S.lessonsRead={}`);
+
   // Stale ids from retired questions must not inflate the "seen" count.
   evalIn(`S.answered={ccao:{"gone-1":true,"gone-2":false}}`);
   const cp = JSON.parse(evalIn(`JSON.stringify(certProgress(CERTS.find(x=>x.id==="ccao")))`));

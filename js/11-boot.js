@@ -74,6 +74,7 @@ function shuffleOptions(c){
    question. Falls back to the index only for content without an id. */
 function qKey(c,qi){ const q=c.questions[qi]; return (q&&q.id)||String(qi); }
 function cardKey(c,ci){ const x=c.cards[ci]; return (x&&x.id)||String(ci); }
+function lessonKey(c,li){ const l=c.lessons[li]; return (l&&l.id)||String(li); }
 /* Saves written before ids existed keyed everything by position. Remap them
    once, when the bank is available, using the order as it stands now. */
 function migrateCertKeys(c){
@@ -96,6 +97,26 @@ function migrateCertKeys(c){
       const x=c.cards[+k];
       if(x&&x.id&&!(x.id in box)) box[x.id]=box[k];
       delete box[k]; changed=true;
+    }
+    if(changed) save();
+  }
+  /* lessonsRead used to be an array of booleans by position. A stable object
+     keyed by lesson id is the same fix Phase 2b applied to answered/cardBox —
+     without it, inserting or reordering a lesson silently reattaches a
+     learner's "read" mark to the wrong lesson. */
+  const read=S.lessonsRead[c.id];
+  if(Array.isArray(read)){
+    const obj={};
+    read.forEach((v,i)=>{ if(v) obj[lessonKey(c,i)]=true; });
+    S.lessonsRead[c.id]=obj;
+    save();
+  } else if(read){
+    let changed=false;
+    for(const k of Object.keys(read)){
+      if(!/^\d+$/.test(k)) continue;
+      const l=c.lessons[+k];
+      if(l&&l.id&&!(l.id in read)) read[l.id]=read[k];
+      delete read[k]; changed=true;
     }
     if(changed) save();
   }

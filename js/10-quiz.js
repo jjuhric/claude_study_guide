@@ -341,9 +341,10 @@ function simStopReason(){
 }
 function markRead(id,i,goNext){
   const c=CERTS.find(x=>x.id===id);
-  S.lessonsRead[c.id]=S.lessonsRead[c.id]||[];
-  const already=!!S.lessonsRead[c.id][i];
-  S.lessonsRead[c.id][i]=true;
+  S.lessonsRead[c.id]=S.lessonsRead[c.id]||{};
+  const key=lessonKey(c,i);
+  const already=!!S.lessonsRead[c.id][key];
+  S.lessonsRead[c.id][key]=true;
   save();
   if(!already) addXP(8,"lesson read");
   const lp=lessonProgress(c);
