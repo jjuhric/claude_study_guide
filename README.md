@@ -1,8 +1,8 @@
 # Claude Cert Quest 🧭
 
 [![Anthropic Certifications](https://img.shields.io/badge/Anthropic-Certifications%20Prep-d97757.svg)](https://www.pearsonvue.com/us/en/anthropic.html)
-[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v34)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
-[![Tests](https://img.shields.io/badge/Tests-410%20Passing-5b7fa6.svg)](test/smoke.js)
+[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v35)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
+[![Tests](https://img.shields.io/badge/Tests-413%20Passing-5b7fa6.svg)](test/smoke.js)
 [![License](https://img.shields.io/badge/License-MIT-8a6fae.svg)](LICENSE)
 
 A gamified study platform for the **Anthropic Claude Certification Program**:
@@ -12,7 +12,7 @@ reachable from the dashboard.
 
 Content depth is measured, not asserted: answer explanations average **92 words**
 (none below 74), flashcard backs average **56** (none below 46), and the lessons
-total roughly **37,000 words**. Every Claude fact in the app traces to
+total roughly **39,000 words**. Every Claude fact in the app traces to
 [`docs/FACTS.md`](docs/FACTS.md), and the test suite fails when app content
 disagrees with it.
 
@@ -183,6 +183,14 @@ node test/links.js
   migrates onto ids the first time it loads
 - Answer explanations clear 60 words, per-option rationales 10, flashcard backs
   40 — the floors that stop depth regressing once it has been added
+- The Batches API's real limit (100,000 requests / 256MB) is enforced app-wide
+  — a stale 10,000/32MB figure turned up five separate times despite an
+  earlier phase's changelog claiming it was already fixed everywhere
+- No context-window figure states 200K as if it applied to every current
+  model — Haiku 4.5 is the exception, not the rule, and this was wrong in
+  three lessons and two tools under wording specific enough to dodge the
+  first version of this check
+- No retired Claude 3-generation model is described as current
 - Every modal opener puts a *visible* overlay on the page, with a way to close it
 - Font modes name the face they will really render in, not the one they are called
 
