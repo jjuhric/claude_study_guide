@@ -1466,6 +1466,48 @@ vm.createContext(sandbox);
   check(/stop_details[\s\S]{0,200}?(null|only)/.test(corpus),
     "stop_details is taught as populated only on refusal, so learners guard before reading it");
 
+  /* ---------- 14. figures derived from the rate card ----------
+     Phase 1 corrected the prices but not the multiples computed from them, so
+     the recommender still said Opus was "20x more expensive than Haiku" and
+     that Haiku "saves 75%" against Sonnet -- both true when Opus was $15/$75,
+     both wrong now. Derived numbers rot separately from the numbers they came
+     from, and nothing about the rate-card check can see them.
+     The whole current lineup spans $1-$10 input and $5-$50 output, so no
+     honest cost multiple between two Claude models exceeds 10x. */
+  const multiples = [...corpus.matchAll(/(\d+(?:\.\d+)?)\s*x\s*(?:more expensive|the (?:price|cost)|cheaper)/gi)]
+    .map(m => parseFloat(m[1])).filter(n => n > 10);
+  check(multiples.length === 0,
+    `no cost multiple exceeds the 10x spread of the current lineup (${multiples.join(", ") || "none"})`);
+
+  /* FACTS.md carries no latency data, because Anthropic publishes none to cite.
+     A specific millisecond or percentile figure is therefore invented, and it
+     is the kind of invention a learner will repeat in a capacity plan. */
+  const latencyClaims = (corpus.match(/\bP\d{2}\b[^.<]{0,60}?\d+\s?ms|\d+\s?ms\b[^.<]{0,40}?\bP\d{2}\b/gi) || []);
+  check(latencyClaims.length === 0,
+    `no invented latency percentiles (${latencyClaims.slice(0, 2).join(" | ") || "none"})`);
+
+  /* ---------- 15. rate literals, not just rate strings ----------
+     The rate-card check matches "$5.00 / $25.00" prose. A second pricing table
+     lived in the ROI calculator as bare numeric fields -- inRate: 15.00,
+     outRate: 75.00 -- and sailed through Phase 1 untouched, still charging Opus
+     at its retired price. Any field that holds a per-1M rate is checked here
+     whether or not a dollar sign is anywhere near it.
+     Sonnet 5's introductory $2/$10 is allowed alongside its list $3/$15. */
+  const RATE_SETS = {
+    input:  new Set(["1", "2", "3", "5", "10"]),
+    output: new Set(["5", "10", "15", "25", "50"]),
+    read:   new Set(["0.1", "0.2", "0.3", "0.5", "1"]),
+  };
+  const FIELD_KIND = { inRate: "input", inM: "input", outRate: "output", outM: "output", cacheRate: "read", cacheReadRate: "read" };
+  const staleRateLiterals = [];
+  for (const m of corpus.matchAll(/\b(inRate|outRate|inM|outM|cacheRate|cacheReadRate)\s*:\s*([0-9]+(?:\.[0-9]+)?)/g)) {
+    const kind = FIELD_KIND[m[1]];
+    const value = String(parseFloat(m[2]));
+    if (!RATE_SETS[kind].has(value)) staleRateLiterals.push(`${m[1]}: ${m[2]}`);
+  }
+  check(staleRateLiterals.length === 0,
+    `every bare per-1M rate literal matches the rate card (${[...new Set(staleRateLiterals)].join(", ") || "none stale"})`);
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();

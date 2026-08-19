@@ -194,6 +194,7 @@ function submitDefenseAnswer(optIdx){
 }
 
 /* ================= 2. MODEL COST & LATENCY ROI CALCULATOR ================= */
+let roiLastSummary = "";
 let roiState = {
   mau: 5000,
   queriesPerDay: 5,
@@ -255,14 +256,19 @@ function renderRoiCalculations(){
   
   const batchMult = roiState.batchApi ? 0.5 : 1.0;
   
-  // Pricing: [Base In, Cached In, Base Out, P99 Latency]
+  // Rates per 1M tokens, from docs/FACTS.md 1. cacheRate is the read rate,
+  // which is 0.1x input on every current model. The old "P99 latency" column
+  // was removed rather than updated: Anthropic publishes no such figure, so
+  // every number in it was invented, and a learner would have carried it into
+  // a capacity plan. Relative speed is the honest version of what it conveyed.
   const models = [
-    { name: "Claude Haiku 4.5", inRate: 0.80, cacheRate: 0.08, outRate: 4.00, p99: "420ms", color: "var(--blue)" },
-    { name: "Claude Sonnet 5", inRate: 3.00, cacheRate: 0.30, outRate: 15.00, p99: "880ms", color: "var(--coral)" },
-    { name: "Claude Opus 5", inRate: 15.00, cacheRate: 1.50, outRate: 75.00, p99: "2,400ms", color: "var(--purple)" }
+    { name: "Claude Haiku 4.5", inRate: 1.00, cacheRate: 0.10, outRate: 5.00,  speed: "Fastest",      color: "var(--blue)" },
+    { name: "Claude Sonnet 5",  inRate: 3.00, cacheRate: 0.30, outRate: 15.00, speed: "Balanced",     color: "var(--coral)" },
+    { name: "Claude Opus 5",    inRate: 5.00, cacheRate: 0.50, outRate: 25.00, speed: "Most capable", color: "var(--purple)" }
   ];
   
   let rowsHtml = '';
+  const summaryLines = [];
   models.forEach(m => {
     const costIn = (effectiveUncachedInMTok * m.inRate + effectiveCachedInMTok * m.cacheRate) * batchMult;
     const costOut = (rawOutputMTok * m.outRate) * batchMult;
@@ -274,22 +280,38 @@ function renderRoiCalculations(){
       + '<span style="font-size:18px; font-weight:900; color:var(--ink);">' + ('$' + Math.round(totalCost).toLocaleString()) + '<small style="font-size:11px; color:var(--muted); font-weight:normal;">/mo</small></span>'
       + '</div>'
       + '<div style="font-size:11.5px; color:var(--muted); margin-top:2px;">'
-      + '• Est. P99 Latency: <b>' + m.p99 + '</b> · Input: ' + ('$' + Math.round(costIn).toLocaleString()) + ' · Output: ' + ('$' + Math.round(costOut).toLocaleString())
+      + '• ' + m.speed + ' · Input: ' + ('$' + Math.round(costIn).toLocaleString()) + ' · Output: ' + ('$' + Math.round(costOut).toLocaleString())
       + '</div>'
       + '</div>';
+    summaryLines.push(m.name + ': $' + Math.round(totalCost).toLocaleString() + '/mo ('
+      + 'input $' + Math.round(costIn).toLocaleString() + ', output $' + Math.round(costOut).toLocaleString() + ')');
   });
+  roiLastSummary = 'Claude FinOps estimate — ' + Math.round(totalMonthlyQueries).toLocaleString() + ' calls/month\n'
+    + roiState.inputTokens + ' input / ' + roiState.outputTokens + ' output tokens per call, '
+    + roiState.cachingHitRate + '% cache hit rate' + (roiState.batchApi ? ', Batch API applied' : '') + '\n\n'
+    + summaryLines.join('\n')
+    + '\n\nRates per 1M tokens: Haiku 4.5 $1/$5, Sonnet 5 $3/$15, Opus 5 $5/$25. Cache reads bill at 0.1x input.';
   
   tbl.innerHTML = '<h4 style="font-size:13.5px; margin-bottom:10px;">💵 Monthly Spend Comparison (' + Math.round(totalMonthlyQueries).toLocaleString() + ' calls)</h4>'
     + rowsHtml
     + '<div style="font-size:11.5px; color:var(--green); margin-top:12px; line-height:1.4;">'
-    + '💡 <b>Architect FinOps Takeaway:</b> Enabling Prompt Caching with a ' + roiState.cachingHitRate + '% hit rate saves <b>' + ('$' + Math.round(rawInputMTok * 3.00 * cacheHit * 0.85).toLocaleString()) + '/mo</b> on Sonnet 5 alone!'
+    + '💡 <b>Architect FinOps Takeaway:</b> On Sonnet 5, a ' + roiState.cachingHitRate + '% cache hit rate saves <b>' + ('$' + Math.round(rawInputMTok * cacheHit * 3.00 * 0.90 * batchMult).toLocaleString()) + '/mo</b> on input alone — a cache read bills at 0.1x input, so a hit saves 90% of that token rather than all of it. The first write of a prefix costs 25% more than input, which this figure ignores: if your prefix changes every call you pay the write and never collect the read.'
     + '</div>';
   
   award("roi_architect");
 }
 
 function copyRoiSummary(){
-  toast("📋 FinOps Summary copied to clipboard!");
+  /* This used to toast "copied" without copying anything. The summary is
+     captured by the render, so the text and the table cannot disagree. */
+  if(!roiLastSummary){ toast("⚠️ Nothing to copy yet — adjust an input first."); return; }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(roiLastSummary)
+      .then(() => toast("📋 FinOps summary copied to clipboard!"))
+      .catch(() => toast("⚠️ Clipboard blocked by the browser — select the table and copy manually."));
+  } else {
+    toast("⚠️ This browser exposes no clipboard API — select the table and copy manually.");
+  }
 }
 
 /* ================= 3. LIVE CONTEXT WINDOW & 80% COMPACTION VISUALIZER ================= */

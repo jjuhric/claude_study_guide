@@ -1437,7 +1437,7 @@ function conceptDecisionTree(){
     thinking:{
       label:'Should I use Extended Thinking?',
       root:{q:'Do you need multi-step logical reasoning or complex analysis?',
-        yes:{q:'Is latency acceptable (thinking adds 2–30 s)?',
+        yes:{q:'Can the caller tolerate the extra latency? Thinking time scales with how hard the model finds the problem, so budget from measurement on your own traffic, not from a published figure.',
           yes:{q:'Is your task verifiable — math, code, architecture?',
             yes:{result:'✅ Use adaptive thinking. Set thinking type to adaptive, then raise output_config.effort to high or xhigh.',color:'#5a9e6f'},
             no:{result:'⚠️ Thinking still helps, but keep it cheap — effort low or medium. Never reach for budget_tokens; it is a 400.',color:'#d97757'}
@@ -1457,13 +1457,13 @@ function conceptDecisionTree(){
           },
           no:{result:'❌ Not cacheable. Dynamic content in the prefix breaks cache reuse. Move dynamic parts AFTER the cache_control breakpoint.',color:'#c94f4f'}
         },
-        no:{result:'❌ Below threshold. Prompt caching only activates at 1,024 tokens. Pad the system prompt with stable context to reach the floor.',color:'#c94f4f'}
+        no:{result:'❌ Below the floor for your model, so nothing is cached and cache_control is silently ignored — no error, just no savings. Do not pad with filler to reach the threshold; you would pay full input rate for tokens that teach the model nothing. Move real stable material into the prefix instead — tool definitions, few-shot examples, the style guide — or accept that this prompt is too small for caching to matter.',color:'#c94f4f'}
       }
     },
     agent:{
       label:'Should I use a multi-agent architecture?',
       root:{q:'Does your task exceed a single model\'s context window or require parallelism?',
-        yes:{result:'✅ Multi-agent is appropriate. Use an orchestrator with subagents. Implement circuit breakers and exponential backoff with jitter.',color:'#5a9e6f'},
+        yes:{result:'⚠️ Possibly — but exhausting a 1M context window is a reason to try compaction or retrieval first, not a reason to add agents. Multi-agent pays off when subtasks are genuinely independent; it costs you a token bill multiplied by agent count, plus every orchestration failure mode. If you have tried compaction and the task still does not fit, use an orchestrator with subagents, circuit breakers, and backoff with jitter.',color:'#d97757'},
         no:{q:'Does your task have multiple independent subtasks that can run concurrently?',
           yes:{result:'✅ Parallel subagent pattern. Fan-out to N specialized workers, fan-in via orchestrator. Reduces wall-clock latency significantly.',color:'#5a9e6f'},
           no:{q:'Do you require human-in-the-loop approval for irreversible actions?',
@@ -2322,27 +2322,27 @@ function modelCapabilityNavigator(){
     {task:"Simple Q&A / Classification",winner:"Haiku",
      rankings:[
        {model:"Haiku 4.5",score:5,note:"Best choice. Ultra-fast, cheapest. Perfect for classification, routing, and simple lookups."},
-       {model:"Sonnet 5",score:3,note:"Overkill for simple tasks. Use Haiku to save 75% on cost."},
-       {model:"Opus 5",score:1,note:"Significant overkill. 20x more expensive than Haiku for no quality gain on simple tasks."}
+       {model:"Sonnet 5",score:3,note:"Overkill for simple tasks. Haiku costs exactly one third as much on both input and output — a 67% saving for work where the extra capability changes nothing."},
+       {model:"Opus 5",score:1,note:"Significant overkill. 5x the price of Haiku ($5/$25 against $1/$5) for no quality gain on a task this shallow."}
      ],rationale:"Simple classification tasks do not benefit from stronger models. Haiku handles these reliably at a fraction of Sonnet cost."},
     {task:"Code Generation",winner:"Sonnet",
      rankings:[
        {model:"Haiku 4.5",score:2,note:"Adequate for boilerplate. Struggles with complex logic, edge cases, and multi-file refactors."},
        {model:"Sonnet 5",score:5,note:"Best balance of speed, cost, and quality for the vast majority of code generation tasks."},
-       {model:"Opus 5",score:4,note:"Marginally better on complex algorithmic tasks but 5x more expensive. Rarely justified for code."}
+       {model:"Opus 5",score:4,note:"Stronger on genuinely hard algorithmic work, at 1.7x Sonnet's price ($5/$25 against $3/$15) — a much narrower gap than the old Opus pricing implied, so the choice now turns on quality, not cost."}
      ],rationale:"Sonnet 5 is the standard choice for code generation. Use Sonnet + Extended Thinking for complex algorithmic challenges."},
     {task:"Long Document Analysis",winner:"Sonnet",
      rankings:[
        {model:"Haiku 4.5",score:3,note:"Can process long documents but may miss nuanced connections. Good for simple extraction."},
        {model:"Sonnet 5",score:5,note:"Excellent at long-form analysis, cross-referencing, and synthesizing insights from 100k+ token documents."},
        {model:"Opus 5",score:4,note:"Slightly stronger on nuanced judgment calls but cost rarely justified vs Sonnet for analysis."}
-     ],rationale:"Sonnet handles 200k token contexts well. Use with Prompt Caching to reduce re-read costs on repeated analysis of the same document."},
+     ],rationale:"Sonnet 5 carries a 1M context window, so the constraint on long-document work is usually cost and recall quality rather than whether the text fits. Cache the document as a static prefix so repeated questions against it bill reads at ~0.1x input instead of re-paying for the whole thing each turn."},
     {task:"Complex Multi-Step Reasoning",winner:"Sonnet+Thinking",
      rankings:[
        {model:"Haiku 4.5",score:1,note:"Not recommended. Struggles significantly with multi-hop reasoning chains and logical deduction."},
-       {model:"Sonnet 5",score:4,note:"Strong baseline. Add Extended Thinking (budget 8k-16k) to surpass Opus on complex reasoning."},
+       {model:"Sonnet 5",score:4,note:"Strong baseline. Add thinking:{type:\"adaptive\"} and raise output_config.effort rather than naming a token budget — budget_tokens is a 400 here."},
        {model:"Opus 5",score:4,note:"Strong without thinking. Consider Sonnet + Thinking as often cheaper with equal or better results."}
-     ],rationale:"Extended Thinking on Sonnet 5 matches or exceeds Opus 5 on complex reasoning benchmarks at lower cost. Benchmark your specific task."},
+     ],rationale:"A cheaper model given room to think often closes much of the gap to a stronger one, so Sonnet 5 with adaptive thinking is worth measuring before you default to Opus. Treat that as a hypothesis to test on your own task, not a benchmark result — published rankings rarely survive contact with a specific workload."},
     {task:"Computer Use (GUI Automation)",winner:"Sonnet",
      rankings:[
        {model:"Haiku 4.5",score:2,note:"Check current tool support before designing around it. Haiku's 200K window and 64K output are also tighter than the 1M/128K of Opus 5 and Sonnet 5."},
@@ -2357,7 +2357,7 @@ function modelCapabilityNavigator(){
      ],rationale:"Batch eval pipelines: use Haiku as default evaluator, Sonnet as quality judge, Opus only for highest-stakes decisions."},
     {task:"Real-Time Customer Chat",winner:"Haiku",
      rankings:[
-       {model:"Haiku 4.5",score:5,note:"Best latency for real-time chat. P50 first-token under 500ms. Combine with streaming for instant feel."},
+       {model:"Haiku 4.5",score:5,note:"Fastest of the three, which is what real-time chat is bought on. Stream the response: perceived latency is time-to-first-token, and streaming cuts that far more than any model swap does. Measure your own p50 and p99 rather than trusting a published number — it moves with prompt size, region and load."},
        {model:"Sonnet 5",score:3,note:"Acceptable latency for chat but noticeably slower. Use for complex product or technical support queries."},
        {model:"Opus 5",score:1,note:"Too slow and expensive for real-time chat unless the use case demands it."}
      ],rationale:"For latency-critical chat: Haiku + streaming. Escalate to Sonnet for complex queries requiring deeper understanding."},
