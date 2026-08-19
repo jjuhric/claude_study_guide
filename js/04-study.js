@@ -855,8 +855,10 @@ const CRAM_DATA = {
           "<code>end_turn</code>: Natural model completion. Response in <code>content</code> is complete and safe to deliver.",
           "<code>max_tokens</code>: Truncated generation. Response hit token cap. Increase <code>max_tokens</code> or pass back to continue; do not present as complete.",
           "<code>tool_use</code>: Model requested tool execution. Execute function locally and return <code>tool_result</code> turn with matching <code>tool_use_id</code>.",
-          "<code>refusal</code>: Safety refusal. Terminal state — do <b>not</b> retry the identical request.",
-          "<code>pause_turn</code>: Server-side long-running tool paused. Resend to resume."
+          "<code>stop_sequence</code>: A string from your <code>stop_sequences</code> was generated. The matched sequence is reported in <code>stop_sequence</code> and is not included in <code>content</code>.",
+          "<code>refusal</code>: Safety refusal. Terminal state — do <b>not</b> retry the identical request, and do not rephrase it to slip past the refusal. This is the only stop reason that populates <code>stop_details</code>; it is <code>null</code> for every other value, so guard before reading it.",
+          "<code>pause_turn</code>: A server-side tool loop hit its iteration limit. Re-send the assistant turn verbatim to resume — appending a &quot;Continue.&quot; user message instead corrupts the loop state.",
+          "<code>model_context_window_exceeded</code>: The context window was exhausted, which is a different failure from <code>max_tokens</code> and a different fix: compact the history rather than raising the output cap."
         ]
       },
       {

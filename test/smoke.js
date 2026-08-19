@@ -1444,6 +1444,28 @@ vm.createContext(sandbox);
   check(/\+25%/.test(els.foInsight.innerHTML) && /24h/.test(els.foInsight.innerHTML),
     "FinOps calculator: names what the model omits (cache write premium) and what Batch costs (latency)");
 
+  /* ---------- 13. error tables list only codes the API returns ----------
+     FACTS.md 10 is the whole documented set. The simulator used to list 422
+     and 503; neither is an Anthropic status. A learner who writes a branch for
+     a status that never arrives has written dead code that quietly shadows the
+     status that does arrive, and the invented entries came with invented
+     causes to match. */
+  const ALLOWED_STATUS = new Set(["400", "401", "403", "404", "413", "429", "500", "529"]);
+  const badStatus = [...new Set((corpus.match(/\bcode:\s*(\d{3})/g) || [])
+    .map(m => m.replace(/\D/g, "")).filter(c => !ALLOWED_STATUS.has(c)))];
+  check(badStatus.length === 0,
+    `error tables list only documented Anthropic status codes (${badStatus.join(", ") || "none invented"})`);
+
+  /* Every stop_reason, not the four everyone remembers. pause_turn and refusal
+     are the two that change control flow, and both were missing from all four
+     places the app enumerated the field. */
+  const STOP_REASONS = ["end_turn", "max_tokens", "stop_sequence", "tool_use",
+                        "pause_turn", "refusal", "model_context_window_exceeded"];
+  const missingStops = STOP_REASONS.filter(r => !corpus.includes(r));
+  check(missingStops.length === 0, `all seven stop_reason values are taught (${missingStops.join(", ") || "none missing"})`);
+  check(/stop_details[\s\S]{0,200}?(null|only)/.test(corpus),
+    "stop_details is taught as populated only on refusal, so learners guard before reading it");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();

@@ -1322,7 +1322,7 @@ function animatedConceptCards(){
     {icon:'🧠',color:'#8a6fae',title:'4. Model Inference',
      desc:'Claude processes the (fresh or cached) tokens through transformer layers. Extended thinking generates a <thinking> block before the final <text> response—visible in content[].'},
     {icon:'🌊',color:'#d97757',title:'5. Streaming Response',
-     desc:'Server-Sent Events emit content_block_delta events token-by-token. stop_reason: end_turn | max_tokens | tool_use | stop_sequence. The usage block reports cache token counts.'}
+     desc:'Server-Sent Events emit content_block_delta events token-by-token. stop_reason: end_turn | max_tokens | stop_sequence | tool_use | pause_turn | refusal | model_context_window_exceeded. The usage block reports cache token counts.'}
   ];
   const cardsHtml=steps.map((s,i)=>'<div id="novaCard'+i+'" style="display:'+(i===0?'block':'none')+';background:var(--card);border:2px solid '+s.color+';border-radius:16px;padding:22px 24px;text-align:center;max-width:540px;margin:0 auto;">'
     +'<div style="font-size:48px;margin-bottom:8px;">'+s.icon+'</div>'
@@ -1386,13 +1386,15 @@ function apiPayloadInspector(){
     }
   };
   const annotations={
-    model:'The Claude model version to call. Determines capability tier and per-token price.',
-    max_tokens:'Hard cap on output tokens. Prevents runaway billing. Set to your expected P99 response length.',
-    messages:'Ordered conversation array. Each turn has role: user | assistant and content string or array.',
+    model:'The Claude model version to call. Determines capability tier and per-token price. Pin an exact id in production — aliases move under you when a new snapshot ships.',
+    max_tokens:'Required. Hard cap on output tokens, and a billing guardrail rather than a target. It caps thinking and response text together, so a low cap on a hard question can truncate the answer while the reasoning consumed the budget.',
+    messages:'Ordered conversation array. Each turn has role: user | assistant and content string or array. The final turn cannot be an assistant turn — prefill is removed on current models and returns a 400.',
+    system:'Top-level field, not a message with role: system. Put durable instructions here so they sit at the front of the prefix where cache_control can cover them.',
+    output_config:'Carries format (structured outputs, superseding the deprecated output_format) and effort, which steers how much reasoning the model spends without naming a token budget.',
     cache_control:'Marks a caching breakpoint. Must be at the end of a stable static prefix block.',
     tools:'Array of tool definitions. Each has name, description, and JSON Schema input_schema.',
     thinking:'{type:"adaptive"} lets Claude set its own depth. Pair with output_config.effort. budget_tokens is a 400 on current models.',
-    stop_reason:'Why Claude stopped: end_turn | max_tokens | tool_use | stop_sequence.',
+    stop_reason:'Why Claude stopped: end_turn | max_tokens | stop_sequence | tool_use | pause_turn | refusal | model_context_window_exceeded. Branch on this rather than inspecting the text — pause_turn and refusal need different handling and neither looks unusual in the prose.',
     usage:'Token accounting block. Shows input, output, cache_creation, and cache_read token counts.'
   };
   function renderPayload(key){
@@ -1511,7 +1513,7 @@ function glossaryTermCallouts(){
     {term:'BFS Orchestrator',domain:'Architecture',def:'Breadth-First Search orchestration: an orchestrator that spawns all subagents at the same depth level in parallel before collecting results.',lesson:'Multi-Agent Orchestration',exam:'Fan-out/fan-in is BFS. Fan-out reduces wall-clock latency for independent subtasks.'},
     {term:'FIFO Truncation',domain:'Context Management',def:'First-In, First-Out: oldest conversation turns are dropped when the context window approaches capacity. Causes amnesia for early instructions.',lesson:'Context Window & Compaction',exam:'FIFO truncation is the WRONG strategy. Use semantic compaction into <key_facts> tags instead.'},
     {term:'cache_control',domain:'Prompt Caching',def:'API field placed at the END of a stable prefix block. Signals Anthropic to cache that prefix for 5 minutes. Min 1,024 tokens (Haiku: 2,048).',lesson:'Prompt Caching Deep Dive',exam:'Must be at END of static block. Dynamic content after breakpoint is NOT cached.'},
-    {term:'stop_reason',domain:'Messages API',def:'Field in API response indicating why generation ended: end_turn (natural), max_tokens (capped), tool_use (tool called), stop_sequence (trigger hit).',lesson:'Messages API Reference',exam:'tool_use stop_reason means the model wants to call a tool — you must send the tool_result back.'},
+    {term:'stop_reason',domain:'Messages API',def:'Field in API response indicating why generation ended: end_turn (natural), max_tokens (output cap hit), stop_sequence (trigger hit), tool_use (tool called), pause_turn (a server-side tool loop hit its iteration limit — re-send the assistant turn to resume, do not append a Continue message), refusal (terminal; stop_details is populated only in this case, and is null otherwise, so guard before reading it) and model_context_window_exceeded (the window was exhausted, which is a different fix from max_tokens).',lesson:'Messages API Reference',exam:'tool_use stop_reason means the model wants to call a tool — you must send the tool_result back.'},
     {term:'MicroVM',domain:'Security',def:'Lightweight VM (e.g., Firecracker) providing hardware-level isolation for tool execution. Kernel-per-VM prevents sandbox escape attacks.',lesson:'Zero-Trust Agentic Security',exam:'Claude runs tools in MicroVMs to enforce zero-trust execution boundaries per tool call.'},
     {term:'Brier Score',domain:'Evaluation',def:'Mathematical calibration metric: mean squared difference between predicted probability and actual outcome (0=perfect, 1=worst). Lower = better calibration.',lesson:'Evaluation & Calibration',exam:'Used to measure prediction calibration quality. A well-calibrated model has Brier score approaching 0.'},
     {term:'circuit breaker',domain:'Reliability',def:'Pattern that monitors failure rates and "opens" (blocks) calls to a failing downstream service after a threshold, preventing cascade failures.',lesson:'Resilience Patterns',exam:'Circuit breakers prevent cascading failures in multi-agent pipelines. Use with exponential backoff + jitter.'},
@@ -1865,51 +1867,55 @@ function apiErrorSimulator(){
   if(typeof window!=='undefined'&&window.scrollTo)window.scrollTo(0,0);
   renderHeader();
   award("error_debugger");
+  /* Codes here are only the ones the API actually returns (FACTS.md 10).
+     422 and 503 used to be listed; neither is in Anthropic's documented set,
+     and a learner who writes a handler for a status that never arrives has
+     written dead code that hides the status that does. */
   const ERRORS=[
-    {code:400,name:"Bad Request — invalid_request_error",color:"#c94f4f",
-     cause:"Missing required field (model or messages), wrong content type, or malformed JSON body.",
+    {code:400,name:"Bad Request — invalid_request_error",color:"#c94f4f",retry:"No — the request is wrong; retrying sends the same wrong request.",
+     cause:"Missing required field (model, max_tokens or messages), wrong content type, or malformed JSON body.",
      body:JSON.stringify({type:"error",error:{type:"invalid_request_error",message:"messages: field required"}},null,2),
-     fix:"Check that model and messages[] are present. Verify Content-Type: application/json header."},
-    {code:400,name:"Bad Request — max_tokens too large",color:"#c94f4f",
+     fix:"Check that model, max_tokens and messages[] are all present — all three are required. Verify Content-Type: application/json."},
+    {code:400,name:"Bad Request — max_tokens too large",color:"#c94f4f",retry:"No — lower the cap first.",
      cause:"max_tokens exceeds the model output limit or the remaining context window space.",
-     body:JSON.stringify({type:"error",error:{type:"invalid_request_error",message:"max_tokens: 32001 > 32000 maximum"}},null,2),
-     fix:"Lower max_tokens below the model's output cap: 128,000 on Opus 5 and Sonnet 5, 64,000 on Haiku 4.5. Remember max_tokens caps thinking AND response text together, so adaptive thinking eats into the same budget."},
-    {code:401,name:"Unauthorized — authentication_error",color:"#c94f4f",
+     body:JSON.stringify({type:"error",error:{type:"invalid_request_error",message:"max_tokens: 200000 > 128000 maximum"}},null,2),
+     fix:"Lower max_tokens below the model's output cap: 128,000 on Opus 5 and Sonnet 5, 64,000 on Haiku 4.5. Remember max_tokens caps thinking AND response text together, so adaptive thinking spends from the same budget."},
+    {code:400,name:"Bad Request — budget_tokens rejected",color:"#c94f4f",retry:"No — the parameter shape changed; the request must change with it.",
+     cause:"thinking.budget_tokens was sent to a model that no longer accepts it. It is deprecated on Opus 4.6 and Sonnet 4.6 and rejected outright on Fable 5, Opus 5, Sonnet 5, Opus 4.8 and Opus 4.7.",
+     body:JSON.stringify({type:"error",error:{type:"invalid_request_error",message:"thinking.budget_tokens: not supported for this model"}},null,2),
+     fix:"Send thinking:{type:\"adaptive\"} and let the model size its own reasoning, steering with output_config.effort instead. This is the single most common failure when lifting code written for an earlier generation — the call worked yesterday and 400s today because the model id moved, not because your logic changed."},
+    {code:400,name:"Bad Request — assistant prefill removed",color:"#c94f4f",retry:"No — remove the trailing assistant turn.",
+     cause:"The request ends on an assistant turn. Prefill is removed on Fable 5, Opus 5, Sonnet 5 and the 4.6/4.7/4.8 family.",
+     body:JSON.stringify({type:"error",error:{type:"invalid_request_error",message:"final message must not be from the assistant"}},null,2),
+     fix:"Use output_config.format for structured outputs, or put the constraint in the system prompt. Prefill was the old way to force a response shape; structured outputs do it with a schema the API enforces."},
+    {code:401,name:"Unauthorized — authentication_error",color:"#c94f4f",retry:"No — no key becomes valid by being sent twice.",
      cause:"API key is missing, malformed, or has been revoked.",
      body:JSON.stringify({type:"error",error:{type:"authentication_error",message:"invalid x-api-key"}},null,2),
-     fix:"Check x-api-key header. Key must start with sk-ant-. Regenerate at console.anthropic.com if revoked."},
-    {code:403,name:"Permission Denied — permission_error",color:"#d97757",
-     cause:"Your API key does not have access to this model or feature (e.g. Extended Thinking on Tier 1).",
+     fix:"Check the x-api-key header. Regenerate the key in the Console if it was revoked, and confirm the environment your process actually read it from."},
+    {code:403,name:"Permission Denied — permission_error",color:"#d97757",retry:"No — access does not change between attempts.",
+     cause:"The key's organisation does not have access to the model or feature requested — commonly a model not enabled for the workspace, or a beta feature without its header.",
      body:JSON.stringify({type:"error",error:{type:"permission_error",message:"Your API key does not have access to this model"}},null,2),
-     fix:"Upgrade your API Tier or use a model available to your current tier. Check Tier requirements in Anthropic docs."},
-    {code:404,name:"Not Found — not_found_error",color:"#d97757",
-     cause:"The API endpoint URL is incorrect or the resource (e.g. batch ID) does not exist.",
-     body:JSON.stringify({type:"error",error:{type:"not_found_error",message:"Not found"}},null,2),
-     fix:"Verify the endpoint URL is https://api.anthropic.com/v1/messages. Check batch IDs match your account."},
-    {code:413,name:"Request Too Large — request_too_large",color:"#d97757",
-     cause:"The total token count of your request (prompt + images) exceeds the model context window.",
+     fix:"Confirm the model id is enabled for the workspace, and that any beta feature carries its anthropic-beta header. Distinguish this from 404: 403 means the resource exists and you cannot reach it."},
+    {code:404,name:"Not Found — not_found_error",color:"#d97757",retry:"No.",
+     cause:"The endpoint URL is wrong, the model id does not exist, or the resource (batch, file) was deleted or belongs to another workspace.",
+     body:JSON.stringify({type:"error",error:{type:"not_found_error",message:"model: claude-3-opus-20240229"}},null,2),
+     fix:"A 404 on a model id usually means retirement, not a typo — retired ids stop resolving. Check the model id against GET /v1/models, which lists exactly what your key can call."},
+    {code:413,name:"Request Too Large — request_too_large",color:"#d97757",retry:"No — shrink the request.",
+     cause:"The request payload exceeds the maximum allowed size. Large image or document batches hit this before the context window does.",
      body:JSON.stringify({type:"error",error:{type:"request_too_large",message:"Request exceeds maximum allowed number of bytes"}},null,2),
-     fix:"Apply semantic compaction to reduce context. Use cache_control to cache static prefixes. Trim old turns."},
-    {code:422,name:"Unprocessable — invalid_request_error",color:"#d97757",
-     cause:"Request structure is syntactically valid JSON but semantically wrong (e.g. alternating role violation).",
-     body:JSON.stringify({type:"error",error:{type:"invalid_request_error",message:"messages: roles must alternate between user and assistant"}},null,2),
-     fix:"Ensure messages alternate user/assistant. Inject a filler assistant turn if you need two user turns in a row."},
-    {code:429,name:"Rate Limited — rate_limit_error",color:"#8a6fae",
-     cause:"You have exceeded your Tier TPM (tokens per minute) or RPM (requests per minute) limit.",
+     fix:"Upload large documents through the Files API and reference them, rather than inlining base64 in the request. Compact conversation history semantically instead of resending every turn verbatim."},
+    {code:429,name:"Rate Limited — rate_limit_error",color:"#8a6fae",retry:"Yes — the SDK already retries this twice by default.",
+     cause:"You exceeded your organisation's requests-per-minute or tokens-per-minute limit.",
      body:JSON.stringify({type:"error",error:{type:"rate_limit_error",message:"Rate limit exceeded: requests per minute"}},null,2),
-     fix:"Implement exponential backoff with jitter: wait = min(base*2^attempt + rand(0,1), max_wait). Upgrade Tier for higher limits."},
-    {code:529,name:"Overloaded — overloaded_error",color:"#8a6fae",
-     cause:"Anthropic servers are temporarily overloaded. Occurs during peak traffic periods.",
-     body:JSON.stringify({type:"error",error:{type:"overloaded_error",message:"Overloaded"}},null,2),
-     fix:"Retry with exponential backoff. Unlike 429, this is not your quota — it is Anthropic capacity. 529 is a transient error."},
-    {code:500,name:"Internal Server Error — api_error",color:"#c94f4f",
-     cause:"Unexpected error on Anthropic side. Very rare — typically resolves within minutes.",
+     fix:"Back off exponentially with full jitter: wait = random(0, min(cap, base * 2^attempt)). Jitter is the part people skip, and skipping it re-synchronises every client into the same retry spike that caused the limit. Read the retry-after header when present rather than guessing."},
+    {code:500,name:"Internal Server Error — api_error",color:"#c94f4f",retry:"Yes — transient by definition.",
+     cause:"An unexpected error on Anthropic's side.",
      body:JSON.stringify({type:"error",error:{type:"api_error",message:"Internal server error"}},null,2),
-     fix:"Retry once after 5 seconds. If persistent, check status.anthropic.com and open a support ticket."},
-    {code:503,name:"Service Unavailable",color:"#c94f4f",
-     cause:"Anthropic API is temporarily down for maintenance or a major incident.",
-     body:JSON.stringify({type:"error",error:{type:"api_error",message:"Service Unavailable"}},null,2),
-     fix:"Monitor status.anthropic.com. Implement a circuit breaker that trips after 3 consecutive 5xx errors."}
+     fix:"Retry with backoff, then trip a circuit breaker if it persists so you fail fast instead of queueing. Check the status page before assuming your code changed something."},
+    {code:529,name:"Overloaded — overloaded_error",color:"#8a6fae",retry:"Yes — and this one especially rewards jitter.",
+     cause:"Anthropic's capacity is temporarily saturated. This is not your quota.",
+     body:JSON.stringify({type:"error",error:{type:"overloaded_error",message:"Overloaded"}},null,2),
+     fix:"Retry with backoff and jitter. Because a 529 hits many callers at once, un-jittered retries from every client arrive together and prolong the overload. If the workload tolerates delay, the Batch API sidesteps the contention entirely."}
   ];
   window._aeSel=function(i){
     const e=ERRORS[i];
@@ -1919,6 +1925,7 @@ function apiErrorSimulator(){
       +"<div style=\"font-size:28px;font-weight:800;color:"+e.color+";\">"+e.code+"</div>"
       +"<h3 style=\"margin:0;font-size:14px;color:var(--text);\">"+e.name+"</h3></div>"
       +"<p style=\"font-size:12.5px;color:var(--text);line-height:1.6;margin-bottom:10px;\"><strong>Root Cause:</strong> "+e.cause+"</p>"
+      +"<p style=\"font-size:12.5px;color:var(--muted);line-height:1.6;margin-bottom:10px;\"><strong>Retryable?</strong> "+e.retry+"</p>"
       +"<pre style=\"background:var(--bg);border:1px solid "+e.color+"44;border-radius:8px;padding:12px;font-size:10.5px;line-height:1.6;white-space:pre-wrap;margin-bottom:12px;\">"+e.body+"</pre>"
       +"<div style=\"background:#5a9e6f11;border-left:3px solid #5a9e6f;padding:10px 14px;border-radius:0 8px 8px 0;\">"
       +"<div style=\"font-size:11px;font-weight:700;color:#5a9e6f;margin-bottom:4px;\">✅ Recovery</div>"
