@@ -2,7 +2,7 @@
 
 [![Anthropic Certifications](https://img.shields.io/badge/Anthropic-Certifications%20Prep-d97757.svg)](https://www.pearsonvue.com/us/en/anthropic.html)
 [![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v34)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
-[![Tests](https://img.shields.io/badge/Tests-398%20Passing-5b7fa6.svg)](test/smoke.js)
+[![Tests](https://img.shields.io/badge/Tests-410%20Passing-5b7fa6.svg)](test/smoke.js)
 [![License](https://img.shields.io/badge/License-MIT-8a6fae.svg)](LICENSE)
 
 A gamified study platform for the **Anthropic Claude Certification Program**:
@@ -174,8 +174,13 @@ node test/links.js
 - No near-duplicate questions; every domain has at least 10
 - Per-option rationales stay aligned with their options through the shuffle
 - Lessons clear a word floor (850, or 600 for a foundation lesson and 400 for a
-  masterclass), carry ≥35 words of teaching per question they cover, and have a
-  video block and takeaways
+  masterclass), keep pace with the domain they teach at ≥40 words per question
+  it covers (not just an overall floor — a lesson can clear that and still be
+  thin if its domain outgrew it), and have a video block and takeaways
+- Every question, card and **lesson** is keyed by a stable id, not array
+  position — reordering or inserting content cannot silently reattach a
+  learner's saved progress to the wrong item; a legacy position-keyed save
+  migrates onto ids the first time it loads
 - Answer explanations clear 60 words, per-option rationales 10, flashcard backs
   40 — the floors that stop depth regressing once it has been added
 - Every modal opener puts a *visible* overlay on the page, with a way to close it
@@ -290,11 +295,6 @@ audiences, and the retake policy.
   `certquest`. There are no accounts and no sync, so clearing site data wipes
   it — **Export Backup** is the only safety net. Multi-user support needs an
   auth and storage tier (Supabase is the intended shape) that does not exist yet.
-- **Lesson depth is uneven.** The lessons were written when the bank was 99
-  questions; at 400, some are thin relative to what is tested against them.
-- **Lessons are still keyed by array index** (`lessonsRead`), the weakness that
-  was fixed for questions and cards. Low risk while lessons rarely change, but
-  the same fix applies.
 
 ---
 
