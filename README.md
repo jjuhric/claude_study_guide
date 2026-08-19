@@ -1,14 +1,20 @@
 # Claude Cert Quest 🧭
 
 [![Anthropic Certifications](https://img.shields.io/badge/Anthropic-Certifications%20Prep-d97757.svg)](https://www.pearsonvue.com/us/en/anthropic.html)
-[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v33)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
-[![Tests](https://img.shields.io/badge/Tests-372%20Passing-5b7fa6.svg)](test/smoke.js)
+[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v34)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
+[![Tests](https://img.shields.io/badge/Tests-398%20Passing-5b7fa6.svg)](test/smoke.js)
 [![License](https://img.shields.io/badge/License-MIT-8a6fae.svg)](LICENSE)
 
 A gamified study platform for the **Anthropic Claude Certification Program**:
 **400 practice questions** with per-option rationales, **100 spaced-repetition
 flashcards**, **44 lessons**, and **76 interactive labs and simulators** — all
 reachable from the dashboard.
+
+Content depth is measured, not asserted: answer explanations average **92 words**
+(none below 74), flashcard backs average **56** (none below 46), and the lessons
+total roughly **37,000 words**. Every Claude fact in the app traces to
+[`docs/FACTS.md`](docs/FACTS.md), and the test suite fails when app content
+disagrees with it.
 
 **Live:** https://jjuhric.github.io/claude_study_guide/
 
@@ -98,6 +104,7 @@ js/08-tools.js           arcade, community, voice, calibration
 js/09-suites.js          teaching suites and widgets
 js/10-quiz.js            quiz, flashcards, mock exam
 js/11-boot.js            relocated init + content loader (loads last)
+docs/FACTS.md            verified Claude API facts; the source every fact cites
 data/manifest.json       per-cert counts, loaded at boot for the home screen
 data/<cert>.json         questions, flashcards, and lessons, one file per cert
 tools/build-manifest.js  regenerates the manifest from the content files
@@ -150,12 +157,27 @@ node test/links.js
 - Every registered tool resolves to a real function and renders a dashboard card
 - **Every zero-argument tool view is reachable from the dashboard** — the check
   that caught 64 tools with no UI entry point
-- No retired or non-existent Claude models are referenced anywhere
+- **Every Claude fact matches [`docs/FACTS.md`](docs/FACTS.md)** — an
+  allow-list, not a denylist, so a model id, display name, per-1M rate, or
+  server-tool version string that is not current fails the build rather than
+  ageing quietly. Bare numeric rate fields are checked too; a second pricing
+  table hid stale Opus rates from the dollar-prefixed check for a full phase
+- `budget_tokens` never appears beside a model that rejects it without saying
+  so, and the shift to adaptive thinking is taught rather than silently erased
+- Error tables list only status codes Anthropic actually returns, and all seven
+  `stop_reason` values are covered
+- No invented metrics: latency percentiles (Anthropic publishes none) and cost
+  multiples wider than the lineup's own 10x spread both fail
+- The FinOps calculator is pinned to figures computed by hand from the rate
+  card, so its arithmetic breaks the build rather than misleading a reader
 - Unverified exam figures may appear only alongside an explicit hedge
 - No near-duplicate questions; every domain has at least 10
 - Per-option rationales stay aligned with their options through the shuffle
-- Lessons clear a word floor (400, or 250 for a foundation lesson), carry ≥35
-  words of teaching per question they cover, and have a video block and takeaways
+- Lessons clear a word floor (850, or 600 for a foundation lesson and 400 for a
+  masterclass), carry ≥35 words of teaching per question they cover, and have a
+  video block and takeaways
+- Answer explanations clear 60 words, per-option rationales 10, flashcard backs
+  40 — the floors that stop depth regressing once it has been added
 - Every modal opener puts a *visible* overlay on the page, with a way to close it
 - Font modes name the face they will really render in, not the one they are called
 
@@ -197,6 +219,15 @@ node tools/build-manifest.js
 
 Lesson depth is checked separately — `node tools/check-lesson-lengths.js` prints
 every lesson's word count, so a thin lesson is visible before the suite fails it.
+
+**Never write a Claude fact from memory.** Model ids, prices, context windows,
+parameter shapes, cache minimums, tool version strings and status codes all
+drift, and the plausible-sounding version is usually last year's. Look it up,
+record it in [`docs/FACTS.md`](docs/FACTS.md) with its source, and cite that.
+The suite checks app content against the fact sheet, so an uncited fact that
+happens to be wrong fails the build — but only for facts the sheet covers, and
+it cannot catch a figure derived from one. Anthropic publishes no latency
+figures at all: if you cannot cite it, do not state it.
 
 ### Adding a tool
 
