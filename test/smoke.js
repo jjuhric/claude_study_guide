@@ -1410,6 +1410,40 @@ vm.createContext(sandbox);
   check(!/max(imum)? (output )?(is |of )?8,?192/i.test(corpus) || /Haiku/.test(corpus),
     "no stale per-model output cap stated without naming the model it applies to");
 
+  /* ---------- 12. the FinOps calculator does arithmetic, not decoration ----------
+     A pricing tool that shows a wrong number misleads more directly than a wrong
+     quiz question, because the learner reads it as computed rather than claimed.
+     The Savings column used to derive its "baseline" from the same cost()
+     closure, which read the cache and batch settings from scope — so the
+     baseline carried the very discounts it was measuring, and the column read 0%
+     no matter what the learner did with the controls.
+     Expected figures are computed by hand from FACTS.md 1:
+       Sonnet 5, 2,000 in / 500 out = 2000/1e6*$3 + 500/1e6*$15 = $0.0135/call
+                                    = $405.00/month at 1,000 calls/day x 30
+       at 90% cache hit: fresh 200 + cached 1,800 at 0.1x
+                                    = $0.00864/call = $259.20/month  (-36%)
+       and with Batch, half again    = $0.00432/call = $129.60/month  (-68%) */
+  call("finopsCostCalculator");
+  const setCalc = (hit, batch) => {
+    els.foCalls.value = "1000"; els.foInput.value = "2000"; els.foOutput.value = "500";
+    els.foCacheHit.value = String(hit); els.foBatch.checked = batch;
+    evalIn("window._foCalc()");
+    return els.foTable.innerHTML;
+  };
+  const listPrice = setCalc(0, false);
+  check(/\$405\.00/.test(listPrice), "FinOps calculator: Sonnet 5 list price is $405.00/month for the default workload");
+  check(/\$135\.00/.test(listPrice), "FinOps calculator: Haiku 4.5 list price is $135.00/month for the same workload");
+  check(/list price/.test(listPrice) && !/-\d+%/.test(listPrice),
+    "FinOps calculator: no discount claimed when neither caching nor Batch is on");
+  const cachedRun = setCalc(90, false);
+  check(/\$259\.20/.test(cachedRun), "FinOps calculator: 90% cache hit prices reads at 0.1x input ($259.20/month)");
+  check(/-36%/.test(cachedRun), "FinOps calculator: the Savings column measures against an undiscounted baseline");
+  const bothRun = setCalc(90, true);
+  check(/\$129\.60/.test(bothRun) && /-68%/.test(bothRun),
+    "FinOps calculator: Batch API compounds with caching (50% off the cached price)");
+  check(/\+25%/.test(els.foInsight.innerHTML) && /24h/.test(els.foInsight.innerHTML),
+    "FinOps calculator: names what the model omits (cache write premium) and what Batch costs (latency)");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();

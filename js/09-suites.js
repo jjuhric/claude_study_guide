@@ -233,7 +233,7 @@ function cramSheetCustomizer(){
     + '<div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; font-size:11px; line-height:1.4;">'
     + '<div style="border:1px solid #ddd; padding:10px; border-radius:6px; background:#fafafa;">'
     + '<b style="color:#d97757; font-size:12px; display:block; margin-bottom:4px;">1. Prompt Caching Economics</b>'
-    + '• 5-minute TTL refreshed on each read.<br>• 1,024 token minimum floor (Sonnet/Opus).<br>• Write: +25% cost, Read: -~90% discount.<br>• Dynamic inputs MUST follow static prefixes.'
+    + '• 5-minute TTL refreshed on each read.<br>• Minimum cacheable prefix: 512 (Opus 5) · 1,024 (Sonnet 5, Opus 4.8) · 4,096 (Haiku 4.5).<br>• Write: +25% cost, Read: ~0.1× input.<br>• Dynamic inputs MUST follow static prefixes.'
     + '</div>'
     + '<div style="border:1px solid #ddd; padding:10px; border-radius:6px; background:#fafafa;">'
     + '<b style="color:#5a9e6f; font-size:12px; display:block; margin-bottom:4px;">2. MCP Architecture (JSON-RPC)</b>'
@@ -434,7 +434,7 @@ function oralDefenseBoardView(){
       title: "Cost Management & Prompt Caching",
       question: "Our monthly Messages API bill jumped 3x. How do you optimize repetitive 50k-token system prompts?",
       opts: [
-        "Enable Prompt Caching with cache_control breakpoints to get 85% read discounts.",
+        "Enable Prompt Caching with cache_control breakpoints; cache reads bill at ~0.1× input.",
         "Truncate system prompt down to 10 tokens regardless of accuracy.",
         "Switch all requests to Claude Opus 5 without prompt caching."
       ],
@@ -937,7 +937,7 @@ function customDeckStudio(){
     + '</div>'
     + '<div style="margin-bottom:14px;">'
     + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Card Back (Answer / Definition):</label>'
-    + '<input id="customCardBack" type="text" placeholder="e.g. 1,024 tokens for Sonnet/Opus" style="width:100%; padding:8px; font-size:12px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink);">'
+    + '<input id="customCardBack" type="text" placeholder="e.g. 1,024 tokens (Sonnet 5)" style="width:100%; padding:8px; font-size:12px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink);">'
     + '</div>'
     + '<div style="display:flex; gap:8px;">'
     + '<button class="btn sm" onclick="saveCustomCardItem()">➕ Save Card to Deck</button>'
@@ -1447,10 +1447,10 @@ function conceptDecisionTree(){
     },
     caching:{
       label:'Is my prompt a good caching candidate?',
-      root:{q:'Is your system prompt or context block ≥ 1,024 tokens (≥ 2,048 for Haiku)?',
+      root:{q:'Is your system prompt or context block above its model minimum (512 Opus 5 · 1,024 Sonnet 5 and Opus 4.8 · 4,096 Haiku 4.5)?',
         yes:{q:'Is the prefix STATIC — no timestamps, session IDs, or dynamic user data injected?',
           yes:{q:'Will you send this same prefix again within 5 minutes?',
-            yes:{result:'✅ Great caching candidate. Place cache_control at the END of the static block. Expect 85% read discount on re-sends.',color:'#5a9e6f'},
+            yes:{result:'✅ Great caching candidate. Place cache_control at the END of the static block. Cache reads bill at ~0.1× input on re-sends.',color:'#5a9e6f'},
             no:{result:'⚠️ Cache will expire (5-min TTL). Still useful for bursty traffic. Consider warming the cache on startup.',color:'#d97757'}
           },
           no:{result:'❌ Not cacheable. Dynamic content in the prefix breaks cache reuse. Move dynamic parts AFTER the cache_control breakpoint.',color:'#c94f4f'}
@@ -2045,8 +2045,8 @@ function conversationFlowDiagram(){
         {role:"user",color:"#5b7fa6",icon:"👤",label:"User Turn 1",body:"What is prompt caching?"},
         {role:"assistant",color:"#d97757",icon:"🤖",label:"Assistant Turn 1 (stop_reason: end_turn)",body:"Prompt caching stores static prefix tokens server-side for 5 minutes..."},
         {role:"user",color:"#5b7fa6",icon:"👤",label:"User Turn 2",body:"What is the minimum token threshold?"},
-        {role:"assistant",color:"#d97757",icon:"🤖",label:"Assistant Turn 2 (stop_reason: end_turn)",body:"The minimum is 1,024 tokens for Sonnet/Opus and 2,048 for Haiku..."},
-        {role:"system",color:"#5a9e6f",icon:"📋",label:"Context State",body:"messages[] grows with each turn. Monitor total tokens to avoid hitting the 200k limit."}
+        {role:"assistant",color:"#d97757",icon:"🤖",label:"Assistant Turn 2 (stop_reason: end_turn)",body:"The minimum is 512 tokens on Opus 5, 1,024 on Sonnet 5 and Opus 4.8, and 4,096 on Haiku 4.5..."},
+        {role:"system",color:"#5a9e6f",icon:"📋",label:"Context State",body:"messages[] grows with each turn. Monitor total tokens against the model context window — 1M on Opus 5 and Sonnet 5, 200K on Haiku 4.5."}
       ]
     },
     tool:{
@@ -2118,7 +2118,7 @@ function finopsCostCalculator(){
     {name:"claude-sonnet-5",label:"Sonnet 5",inM:3.00,outM:15.00,speed:"Balanced"},
     {name:"claude-opus-5",label:"Opus 5",inM:5.00,outM:25.00,speed:"Most Capable"}
   ];
-  const CACHE_READ_DISC=0.10; /* cache read = 10% of input price */
+  const CACHE_READ_DISC=0.10; /* cache read = 0.1x the input rate */
   const BATCH_DISC=0.50;      /* Batch API = 50% off */
   window._foCalc=function(){
     const calls=parseInt(document.getElementById("foCalls").value)||0;
@@ -2128,34 +2128,40 @@ function finopsCostCalculator(){
     const batch=document.getElementById("foBatch").checked;
     const daily=calls;
     const monthly=daily*30;
-    const eff=batch?BATCH_DISC:1.0;
-    function cost(m){
-      const cachedIn=Math.round(inp*cacheHit/100);
+    /* hitPct and batchOn are parameters, not closure reads, so the undiscounted
+       baseline below is genuinely undiscounted. */
+    function cost(m,hitPct,batchOn){
+      const cachedIn=Math.round(inp*hitPct/100);
       const freshIn=inp-cachedIn;
       const inputCost=(freshIn/1e6*m.inM)+(cachedIn/1e6*m.inM*CACHE_READ_DISC);
       const outputCost=out/1e6*m.outM;
-      const perCall=(inputCost+outputCost)*eff;
-      return {daily:(perCall*daily).toFixed(2),monthly:(perCall*monthly).toFixed(2),perCall:perCall.toFixed(5)};
+      const perCall=(inputCost+outputCost)*(batchOn?BATCH_DISC:1.0);
+      return {perCall:perCall, daily:perCall*daily, monthly:perCall*monthly};
     }
+    const hitLabel=document.getElementById("foCacheHitVal");
+    if(hitLabel) hitLabel.textContent=cacheHit+"%";
     const rows=MODELS.map(function(m){
-      const c=cost(m);
-      const savings=batch||cacheHit>0?Math.round((1-(c.monthly/cost({inM:m.inM,outM:m.outM}).monthly))*100):0;
+      const c=cost(m,cacheHit,batch);
+      const base=cost(m,0,false);
+      const savings=base.monthly>0?Math.round((1-c.monthly/base.monthly)*100):0;
       return "<tr style=\"border-bottom:1px solid var(--border);\">"
         +"<td style=\"padding:10px 8px;font-weight:600;color:var(--text);\">"+m.label+"</td>"
         +"<td style=\"padding:10px 8px;font-size:11px;color:var(--muted);\">"+m.speed+"</td>"
-        +"<td style=\"padding:10px 8px;font-family:monospace;color:var(--text);\">$"+c.perCall+"</td>"
-        +"<td style=\"padding:10px 8px;font-family:monospace;color:var(--text);\">$"+c.daily+"</td>"
-        +"<td style=\"padding:10px 8px;font-family:monospace;font-weight:700;color:var(--coral);\">$"+c.monthly+"</td>"
-        +(savings>0?"<td style=\"padding:10px 8px;color:#5a9e6f;font-weight:700;\">-"+savings+"%</td>":"<td style=\"padding:10px 8px;color:var(--muted);\">baseline</td>")
+        +"<td style=\"padding:10px 8px;font-family:monospace;color:var(--text);\">$"+c.perCall.toFixed(5)+"</td>"
+        +"<td style=\"padding:10px 8px;font-family:monospace;color:var(--text);\">$"+c.daily.toFixed(2)+"</td>"
+        +"<td style=\"padding:10px 8px;font-family:monospace;font-weight:700;color:var(--coral);\">$"+c.monthly.toFixed(2)+"</td>"
+        +(savings>0?"<td style=\"padding:10px 8px;color:#5a9e6f;font-weight:700;\">-"+savings+"%</td>":"<td style=\"padding:10px 8px;color:var(--muted);\">list price</td>")
         +"</tr>";
     }).join("");
     document.getElementById("foTable").innerHTML=rows;
-    const haikuCost=cost(MODELS[0]);
-    const sonnetCost=cost(MODELS[1]);
-    const saving=((sonnetCost.monthly-haikuCost.monthly)).toFixed(2);
-    document.getElementById("foInsight").textContent=saving>0
-      ?"💡 Switching from Sonnet to Haiku saves ~$"+saving+"/month for this workload if quality requirements permit."
-      :"💡 Sonnet is cost-effective for this workload. Consider Batch API or increased caching for further savings.";
+    const haikuCost=cost(MODELS[0],cacheHit,batch);
+    const sonnetCost=cost(MODELS[1],cacheHit,batch);
+    const saving=sonnetCost.monthly-haikuCost.monthly;
+    document.getElementById("foInsight").innerHTML=
+      (saving>0.005
+        ?"💡 Routing this workload to Haiku 4.5 instead of Sonnet 5 saves ~$"+saving.toFixed(2)+"/month — worth it only if Haiku holds your accuracy bar. Measure on a golden set before you switch; a 2% quality drop on a support queue costs more than the $"+saving.toFixed(2)+" it saves."
+        :"💡 At this volume the model choice barely moves the bill. Optimise for quality, and revisit cost when call volume grows.")
+      +"<br><br><span style=\"color:var(--muted);\">Assumes steady state: cache writes cost +25% over the input rate the first time a prefix is stored, which this model omits because a warm cache amortises it across many reads. If your prefix changes every call, you pay the write premium and save nothing — that is the failure mode to watch for. Batch API returns within 24h, so it applies only to work no user is waiting on.</span>";
   };
   $("app").innerHTML="<button class=\"back\" onclick=\"home()\">← Back</button>"
     +"<div class=\"panel\">"
@@ -2177,7 +2183,7 @@ function finopsCostCalculator(){
     +"<input id=\"foOutput\" type=\"number\" value=\"500\" min=\"1\" oninput=\"_foCalc()\" style=\"width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;box-sizing:border-box;\">"
     +"</div>"
     +"<div style=\"margin-bottom:14px;\">"
-    +"<label style=\"font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:5px;\">💾 Cache Hit Rate (% of input tokens cached)</label>"
+    +"<label style=\"font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:5px;\">💾 Cache Hit Rate (% of input tokens cached) — <span id=\"foCacheHitVal\">0%</span></label>"
     +"<input id=\"foCacheHit\" type=\"range\" min=\"0\" max=\"90\" value=\"0\" oninput=\"_foCalc()\" style=\"width:100%;\">"
     +"</div>"
     +"<div style=\"margin-bottom:14px;display:flex;align-items:center;gap:10px;\">"

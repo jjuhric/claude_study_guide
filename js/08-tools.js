@@ -170,9 +170,9 @@ const SOCRATIC_TOPICS = [
     scenario: "Candidate asks: 'Why didn't my 300-token system prompt trigger a cache hit on Claude Sonnet 5?'",
     socraticSteps: [
       { speaker: "Candidate", text: "I added cache_control to my 300-token prompt, but cache_read_input_tokens was 0." },
-      { speaker: "Claude Socratic Tutor", text: "Let's inspect the Prompt Caching specifications. What is the minimum prefix token threshold for Claude Sonnet 5 and Opus?" },
+      { speaker: "Claude Socratic Tutor", text: "Let's inspect the Prompt Caching specifications. What is the minimum cacheable prefix length on Claude Sonnet 5?" },
       { speaker: "Candidate", text: "It requires at least 1,024 tokens." },
-      { speaker: "Claude Socratic Tutor", text: "Spot on! Prompts under 1,024 tokens for Sonnet/Opus (or 2,048 for Haiku) cannot be cached. Static guidelines and tool definitions must exceed that floor to trigger the ~90% discount." }
+      { speaker: "Claude Socratic Tutor", text: "Right for Sonnet 5 — but the floor is per-model, and it is not ordered by tier: 512 on Opus 5, 1,024 on Sonnet 5 and Opus 4.8, and 4,096 on Haiku 4.5. Your 300-token prompt is below every one of them, so nothing was cached. Static guidelines and tool definitions must clear the floor for the model you are calling before cache reads bill at ~0.1× input." }
     ]
   }
 ];

@@ -148,8 +148,8 @@ permissions.
 
 ### Phase 6 — tool reference content
 The tools present themselves as authoritative references, so same bar.
-- [ ] **6.1** Model matrices and capability navigators
-- [ ] **6.2** Pricing and ROI calculators — arithmetic, not just the rates
+- [x] **6.1** Model matrices and capability navigators — verified against FACTS.md; the allow-list checks from Phase 0 already enforce ids, names, rates and tool versions here, so this was a re-read rather than a rewrite. Fixed six surviving cache figures the allow-list could not see: the Haiku 4.5 minimum was stated as 2,048 (it is 4,096), the Opus 5 512 floor was missing everywhere, two places still claimed an "85% read discount", and the context-window line in the multi-turn walkthrough still said 200k.
+- [x] **6.2** Pricing and ROI calculators — arithmetic, not just the rates. Found a dead Savings column in the FinOps calculator: its "baseline" called the same cost() closure, which read the cache and batch settings from scope, so the baseline carried the discounts it was measuring and the column read 0% for every input. Rewrote cost() to take hit rate and batch as parameters, added a cache-hit readout (the slider had no value display), and stated the two things the model omits — the +25% cache write premium and Batch's 24h latency. Locked with 8 arithmetic checks computed by hand from the rate card.
 - [ ] **6.3** API parameter references and error-mode tables
 - [ ] **6.4** Decision trees and recommendation engines
 
