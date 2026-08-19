@@ -686,7 +686,15 @@ vm.createContext(sandbox);
   for (const [id, d] of Object.entries(data)) {
     d.lessons.forEach((l, i) => {
       const w = prose(l.b).split(" ").filter(Boolean).length;
-      const floor = l.foundation ? 250 : 400;
+      /* Three floors, because the lesson types do different jobs. A domain
+         lesson is what Weakest Domain sends a learner to, so it carries the
+         teaching and gets the high bar. The foundation lesson orients rather
+         than teaches. Masterclasses are optional deep-dives on a single topic
+         and are deliberately short - holding them to the domain floor would
+         mean padding, which is how the one-line explanations happened in the
+         first place. Set from what Phase 4 actually achieved: domains average
+         1,050 with a 868 minimum, masterclasses average 443. */
+      const floor = l.foundation ? 600 : /^Masterclass/.test(l.h) ? 400 : 850;
       if (w < floor) thinLessons.push(`${id}[${i}] "${l.h}" ${w}w < ${floor}`);
       if (!/class='vbox'/.test(l.b)) noVideo.push(`${id} "${l.h}"`);
       if (!l.foundation && !/class='kbox'/.test(l.b)) noTakeaways.push(`${id} "${l.h}"`);

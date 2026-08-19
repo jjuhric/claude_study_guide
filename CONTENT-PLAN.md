@@ -106,8 +106,12 @@ each; floors 400/250 → 900/600.
       The Context/Retrieval lesson gained real retrieval teaching, which it
       lacked despite owning 10 retrieval questions after the 2.3 re-tag.
 - [x] **4.3** CCDV-F — 7,086w → **9,570w**. Domain lessons 868–1,185w.
-- [ ] **4.4** CCAO-F (7,793w)
-- [ ] **4.5** Raise the lesson floors in the suite.
+- [x] **4.4** CCAO-F — 7,793w → **10,252w**. Domain lessons 1,018–1,189w.
+- [x] **4.5** Floors set from measured results, and **split by lesson type**:
+      850 for domain lessons, 600 for foundation, 400 for masterclasses. One
+      number would have been wrong — masterclasses are deliberately short
+      single-topic deep-dives, and holding them to the domain floor would mean
+      padding, which is the failure this whole phase was correcting.
 
 ### Phase 2b — near-duplicate questions (found during 3.4)
 The suite's duplicate check fires at 0.80 similarity. Measuring the whole bank
