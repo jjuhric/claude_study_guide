@@ -178,6 +178,10 @@ Minimum cacheable prefix, which is **not monotonic across generations**:
 - **Assistant prefill is removed** on Fable 5, Opus 5, Sonnet 5, and the
   4.6/4.7/4.8 family — a trailing assistant turn returns a 400. Use
   `output_config.format` (structured outputs) or a system-prompt instruction.
+- **Batches API**: up to 100,000 requests or 256MB per batch file, whichever
+  is reached first. Results within 24h at 50% off standard input/output
+  pricing. Results return in arbitrary order — key them by your own custom
+  `custom_id`, not by position.
 - **`output_format` is deprecated API-wide.** Use `output_config.format`.
 - Required Messages API fields: `model`, `max_tokens`, `messages`.
 - Strict tool use: `strict: true` is a **top-level field on the tool

@@ -1684,7 +1684,7 @@ function architecturePatternLibrary(){
     {name:"Batch API Pipeline",icon:"📦",cat:"FinOps",
      diag:"[1000 requests] → [Message Batches API]\n  50% cost reduction vs sync\n  Results via polling (up to 24h)",
      def:"Asynchronous batch processing for high-volume, non-time-sensitive workloads at 50% reduced cost.",
-     exam:"Max 10,000 requests per batch. Use for evals, bulk classification, nightly summarization. Not real-time."},
+     exam:"Up to 100,000 requests or 256MB per batch, whichever comes first. Use for evals, bulk classification, nightly summarization. Not real-time."},
     {name:"Model Selection Matrix",icon:"📊",cat:"Architecture",
      diag:"Speed + low cost → Haiku\nReasoning accuracy → Sonnet\nComplex multi-step → Sonnet+Thinking\nComputer use → claude-sonnet-5",
      def:"Model selection depends on task complexity, latency budget, and cost — not a single default.",
@@ -1849,7 +1849,7 @@ function knowledgeGraphView(){
     security:"Zero-Trust security treats every tool call, agent action, and retrieved document as potentially adversarial. Verify, isolate, and audit everything.",
     microvm:"Firecracker MicroVMs provide kernel-level isolation for each tool execution. Prevents sandbox escape, lateral movement, and cross-call data persistence.",
     circuit:"Circuit Breakers monitor failure rates to downstream tools and block calls after a threshold, preventing cascading failures across the agent graph.",
-    batch:"The Message Batches API processes up to 10,000 requests asynchronously at 50% cost reduction for evals, classification, and nightly pipelines.",
+    batch:"The Message Batches API processes up to 100,000 requests (or 256MB, whichever comes first) asynchronously at 50% cost reduction for evals, classification, and nightly pipelines.",
     streaming:"Server-Sent Events deliver content_block_delta events token-by-token. Reduces perceived latency. Supports thinking block streaming.",
     context:"The 200,000-token context window is a hard limit. At 80% capacity, trigger semantic compaction using structured tags instead of FIFO truncation."
   };

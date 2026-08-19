@@ -867,7 +867,7 @@ const CRAM_DATA = {
           "<b>Minimum Cache Breakpoint:</b> 512 tokens (Opus 5), 1,024 (Sonnet 5 and Opus 4.8) and 4,096 (Haiku 4.5). The floors are not ordered by tier — the cheapest model has the highest one. A sub-minimum prefix fails silently: cache_control is ignored, no error is raised, and the only symptom is cache_read_input_tokens staying at 0.",
           "<b>Cache Pricing & TTL:</b> 5-minute TTL (refreshes on hit). Cache write: 1.25x base input. Cache read: <b>0.15x base input (~90% discount)</b>.",
           "<b>Cache Placement:</b> Attach <code>'cache_control': {'type': 'ephemeral'}</code> to system prompt, tool definitions, or large reference documents. Max 4 breakpoints.",
-          "<b>Batches API:</b> <code>POST /v1/messages/batches</code>. Max 10,000 requests, 32MB payload, 24-hr SLA, <b>flat 50% discount</b> on input and output tokens."
+          "<b>Batches API:</b> <code>POST /v1/messages/batches</code>. Up to 100,000 requests or 256MB, whichever is reached first. 24-hr SLA, <b>flat 50% discount</b> on input and output tokens."
         ]
       },
       {

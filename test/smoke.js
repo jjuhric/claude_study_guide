@@ -1616,6 +1616,15 @@ vm.createContext(sandbox);
   check(retiredAsCurrent.length === 0,
     `no retired Claude 3-generation model described as current (${retiredAsCurrent.slice(0, 2).join(" | ") || "none"})`);
 
+  /* ---------- 18. Batches API limit ----------
+     "10,000 requests / 32MB per batch" appeared five times across the app --
+     two reference tools, a cram sheet, and two masterclasses -- despite an
+     earlier phase's changelog claiming this exact figure was already swept.
+     The real limit is 100,000 requests or 256MB, whichever is reached first. */
+  const staleBatchLimit = (corpus.match(/10,?000\s*requests|32\s*MB/gi) || []);
+  check(staleBatchLimit.length === 0,
+    `no stale Batches API limit -- 100,000 requests / 256MB, not 10,000 / 32MB (${staleBatchLimit.slice(0, 3).join(", ") || "none"})`);
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();
