@@ -1906,128 +1906,128 @@
   "cards": [
     {
       "f": "CCAR-P vs CCAR-F",
-      "b": "Professional assumes Foundations knowledge and tests production-scale judgment: fleets of agents, reliability engineering, cost strategy, evals, governance. $175.",
+      "b": "Professional assumes the Foundations material and tests production-scale judgement: fleets of agents, failure recovery, cost and latency as architectural properties, evaluation at scale, and governance of what an agent may do. The recurring theme is that the model is not a security boundary — a control depending on it behaving correctly is guidance rather than a boundary.",
       "id": "ccapc-eb110cf2"
     },
     {
       "f": "Orchestrator-workers at scale",
-      "b": "Orchestrator owns decomposition into disjoint subtasks; workers return compact structured artifacts; shared ledger prevents duplication.",
+      "b": "The orchestrator owns decomposition into disjoint subtasks and holds a shared ledger so workers know what is claimed; workers return compact structured artifacts rather than transcripts. Both halves are load-bearing: without disjoint boundaries workers duplicate each other's searching, and without lean handoffs the orchestrator drowns in the fleet's intermediate reasoning.",
       "id": "ccapc-376ebcc2"
     },
     {
       "f": "Resumability",
-      "b": "Externalized durable state + idempotent checkpointed steps → any crash resumes from last known-good point.",
+      "b": "Externalised durable state plus idempotent checkpointed steps, so any crash resumes from the last known-good point. State held only in the context window dies with the process, which makes every restart a total loss — and restarts are not rare events, since deployments, crashes and scaling all cause them. Idempotency is what makes resuming safe rather than merely possible.",
       "id": "ccapc-05efecd4"
     },
     {
       "f": "Graceful degradation chain",
-      "b": "Retry w/ backoff → fallback model tier → cached/template response → human handoff. Log every step.",
+      "b": "Retry with backoff → fallback model tier → cached or templated response → human handoff, with every step logged. Each rung covers a failure the one above cannot. Surface which rung answered: consumers cannot tell a degraded answer from a normal one, so an unlabelled fallback trades a visible outage for an invisible quality problem.",
       "id": "ccapc-7ca2a33d"
     },
     {
       "f": "Model tiering",
-      "b": "Route each pipeline step to the cheapest model meeting its eval-verified quality bar; reserve top tiers for hard steps.",
+      "b": "Route each step to the cheapest model meeting its eval-verified quality bar, reserving frontier capability for the steps where reasoning is genuinely the bottleneck. The eval is what makes it defensible rather than a guess. Most pipelines are mostly simple steps, which is why tiering usually captures a large saving without touching quality where it matters.",
       "id": "ccapc-6d35ee8a"
     },
     {
       "f": "The 3 big cost levers",
-      "b": "Prompt caching (stable prefixes) · Batches API (50% off async) · right-sized models per step",
+      "b": "Prompt caching on stable prefixes · the Batches API at half price for asynchronous work · right-sized models per step. Roughly that order of effect at volume. Before reaching for any of them, check whether cost is growing faster than task volume — that pattern points at retries, loops or re-read context rather than at pricing, and no lever fixes repeated work.",
       "id": "ccapc-66759e4a"
     },
     {
       "f": "LLM-as-judge",
-      "b": "Using a model to grade outputs at scale — must be calibrated against human ratings before trusting it as a gate.",
+      "b": "Using a model to grade outputs at scale, which is what makes systematic comparison practical. It is only as good as its rubric and its calibration: vague criteria produce impressions that vary run to run, and without checking against human labels you optimise confidently against a standard nobody verified. Judges also favour whichever answer they see first, so swap positions.",
       "id": "ccapc-c96903e1"
     },
     {
       "f": "Agent observability",
-      "b": "Per-step traces (tools, tokens, latency) + outcome metrics + sampled human transcript review.",
+      "b": "Per-step traces (tools, inputs, tokens, latency) + outcome metrics + sampled human transcript review. Each layer is blind to what the others catch, which is why error counts alone are the common and expensive gap — they see crashes and are entirely blind to a system that runs cleanly and answers badly.",
       "id": "ccapc-543dddc5"
     },
     {
       "f": "Injection kill-chain",
-      "b": "Untrusted content → model → powerful tools. Break it: sanitize/isolate content, restrict tools in exposed contexts, gate sensitive actions.",
+      "b": "Untrusted content → model → powerful tools. Break it at every link: isolate and delimit the content, restrict which tools are reachable while handling it, and gate irreversible actions. Notice the dangerous configurations are usually *combinations* — browsing is low-risk, internal file access is controlled, and joining them creates the path.",
       "id": "ccapc-898a6811"
     },
     {
       "f": "PII in agent pipelines",
-      "b": "Minimize, mask before model calls where possible, control access to traces, enforce retention limits.",
+      "b": "Minimise what is sent, mask before model calls where the task allows, control access to traces, and set retention limits. Trace access is the piece most often missed: observability data contains everything the agent saw, so a trace store is a copy of your sensitive data under different access controls than the system it came from.",
       "id": "ccapc-c3446a00"
     },
     {
       "f": "Prompts are production config",
-      "b": "Change control: authorized roles, review, eval gates, versioned deploys, rollback plans.",
+      "b": "Change control: authorised roles, review, eval gates, versioned deploys and a rollback plan. A production system prompt determines behaviour, so it deserves the same treatment as code. Both extremes fail — unrestricted editing pushes untested changes to every user at once, and freezing it entirely prevents the improvements evals exist to validate.",
       "id": "ccapc-c5adc98d"
     },
     {
       "f": "Partial delivery principle",
-      "b": "Persist intermediate results as you go — a 95%-done failure should still deliver 95% of the value.",
+      "b": "Persist intermediate results as you go, so a failure at ninety-five percent still delivers ninety-five percent of the work. That converts a total loss into a partial success and gives you a resume point rather than a restart. It also produces the record that makes an autonomous run debuggable, since the execution path was chosen at run time and nothing else captured it.",
       "id": "ccapc-6f7ecdd0"
     },
     {
       "id": "ccapc-blackboard-pattern",
       "f": "What is the Blackboard Pattern in multi-agent systems?",
-      "b": "A centralized, structured state store where independent specialized subagents read and write findings rather than passing full conversational chat history between each other."
+      "b": "A centralised structured state store that independent subagents read and write, instead of messaging each other. It keeps token growth linear rather than quadratic in fleet size and stops each agent's context being contaminated by material it never needed. The trade is a coordination point you must design carefully — the blackboard's schema becomes the contract every agent depends on."
     },
     {
       "id": "ccapc-otel-genai-spans",
       "f": "What are the standard OpenTelemetry span attributes for GenAI calls?",
-      "b": "gen_ai.system ('anthropic'), gen_ai.request.model, gen_ai.usage.prompt_tokens, and gen_ai.usage.completion_tokens."
+      "b": "gen_ai.system ('anthropic'), gen_ai.request.model, and the prompt and completion token counts. Recording them consistently is what lets traces from different services be queried the same way and cost attributed without bespoke parsing. What must never enter a span is credentials or personal data — traces are widely readable and long-lived."
     },
     {
       "id": "ccapc-microvm-sandboxing",
       "f": "Why should untrusted agent code execution use gVisor or Firecracker microVMs?",
-      "b": "They provide lightweight virtualization with kernel-level isolation, preventing container escapes and unauthorized host filesystem access."
+      "b": "They provide kernel-level isolation with their own guest kernel and syscall interception, so an escape has to defeat virtualisation rather than a language-level guard. Model-generated code is untrusted code and needs a boundary that holds when it is actively hostile. Pair it with egress restriction — code that cannot reach the network cannot exfiltrate what it read."
     },
     {
       "id": "ccapc-indirect-injection",
       "f": "What is Indirect Prompt Injection in multi-agent architectures?",
-      "b": "Malicious instructions hidden inside external data (web pages, customer emails, tool outputs) designed to hijack downstream agent tool execution."
+      "b": "Malicious instructions hidden inside external data — web pages, customer emails, tool outputs, invoices — that the agent reads and acts on. It is indirect because the attacker never talks to the agent. The defence is architectural: treat all such content as data, and bound what acting on it could achieve, rather than relying on the model to notice."
     },
     {
       "id": "ccapc-tenant-attribution",
       "f": "How are multi-tenant API costs tracked in enterprise deployments?",
-      "b": "By attaching metadata: {'tenant_id': '...', 'user_id': '...'} on every request for automated billing allocation."
+      "b": "By attaching tenant and user identifiers as request metadata, so usage aggregates automatically per customer. That gives billing attribution without threading accounting through application logic, and it makes anomaly detection possible — one tenant's runaway job becomes a visible spike against a name rather than an unexplained rise in the monthly total."
     },
     {
       "id": "ccapc-circuit-breaker-cascade",
       "f": "What is the role of a Circuit Breaker on downstream agent tools?",
-      "b": "It trips after N consecutive failures, immediately failing fast to prevent latency cascades and token spend on broken dependencies."
+      "b": "It trips after consecutive failures and fails fast, which stops waiting requests holding threads and taking down work unrelated to the failing dependency. The half-open state is what lets it recover: a few canary requests test whether the dependency is back before full load returns, so recovery does not immediately re-trigger the outage."
     },
     {
       "id": "ccapc-least-privilege-egress",
       "f": "What is Least-Privilege Egress filtering for agent environments?",
-      "b": "Restricting network traffic to explicitly allowlisted external APIs, blocking unauthorized data exfiltration."
+      "b": "Restricting outbound traffic to explicitly allowlisted endpoints. It is the control that specifically limits exfiltration: an injection may persuade an agent to read confidential data, but if the sandbox cannot reach an attacker-controlled host there is nowhere to send it. It works precisely because it does not depend on anyone detecting the attack."
     },
     {
       "id": "ccapc-dag-deadlock-prevention",
       "f": "How do Architects prevent deadlocks in multi-agent workflows?",
-      "b": "By enforcing Directed Acyclic Graph (DAG) task structures and strict wall-clock iteration timeouts on all agent loops."
+      "b": "By enforcing a directed acyclic task dependency structure, so circular waits are impossible by construction, and adding wall-clock iteration timeouts to catch what structure cannot — a stalled external dependency, or an agent that is simply not converging. Design-time and run-time controls covering different halves of the same problem."
     },
     {
       "id": "ccapc-pairwise-eval",
       "f": "Why use Pairwise Evaluation in LLM-as-a-Judge benchmarking?",
-      "b": "Comparing Model A vs Model B side-by-side (and swapping positions) produces higher inter-rater reliability than absolute numeric scoring."
+      "b": "Because relative judgement is more stable than absolute scoring: deciding which of two outputs is better is far easier than holding a consistent internal standard across hundreds of items. Position swapping is the necessary companion, since judges favour whichever candidate they see first — without the swap, pairwise inherits a systematic bias of its own."
     },
     {
       "id": "ccapc-budget-caps",
       "f": "How should per-run agent budget caps be determined?",
-      "b": "From the P99 token consumption distribution of successful benchmark runs plus a defined safety margin."
+      "b": "From the observed cost distribution of successful runs, plus headroom. That way the cap catches runaway behaviour without aborting legitimate long work — which is exactly what a round number chosen in a meeting fails to do in one direction or the other. Pair it with an escalation path so hitting the ceiling leaves the run recoverable."
     },
     {
       "id": "ccapc-confirmation-gates",
       "f": "What architectural control protects high-impact operations (e.g. database DROP/DELETE)?",
-      "b": "Human-in-the-loop (HITL) cryptographic confirmation gates that require out-of-band user approval before tool execution."
+      "b": "Human confirmation before the action, with approval arriving out of band. The out-of-band part matters: an approval flowing through the same channel as a compromised request approves whatever the attacker asked for. Above a value threshold, multi-party authorisation means no single compromise or injection can execute the operation alone."
     },
     {
       "id": "ccapc-zero-trust-boundary",
       "f": "Where is the Zero-Trust boundary drawn in LLM applications?",
-      "b": "Between developer system prompts (trusted) and all external inputs, RAG documents, and tool return values (untrusted data)."
+      "b": "Between the developer's system prompt and everything else — user input, retrieved documents, tool results, and tool descriptions from third-party servers. Everything on the far side is untrusted content that reaches the model's context. Drawing it there is what makes the design questions concrete: what can this agent do if the text it just read was hostile?"
     },
     {
       "id": "ccapc-synthetic-redteaming",
       "f": "What is Automated Synthetic Red-Teaming?",
-      "b": "Using specialized adversary models to generate thousands of diverse prompt injection and jailbreak permutations to probe system defense boundaries."
+      "b": "Using adversary models to generate thousands of injection and jailbreak variations, probing defences at a scale and diversity no manual exercise reaches. The value is finding phrasings nobody on the team would have thought to try — attackers are not limited to your imagination. It complements human red-teaming rather than replacing it, since novel attack classes still come from people."
     }
   ],
   "lessons": [

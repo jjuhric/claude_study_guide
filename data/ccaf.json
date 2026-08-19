@@ -1906,128 +1906,128 @@
   "cards": [
     {
       "f": "What CCAR-F study domains does this app use?",
-      "b": "Agentic Architecture & Orchestration · Claude Code Workflows · Prompt Eng & Structured Output · Tool Design & MCP · Context Mgmt & Reliability. These are this app's study groupings — official weightings are in the Partner Academy exam guide.",
+      "b": "Agentic Architecture & Orchestration · Claude Code Workflows · Prompt Engineering & Structured Output · Tool Design & MCP Integration · Context, Retrieval & Reliability. These are **this app's** groupings rather than published exam weightings; the official blueprint lives in Anthropic Partner Academy. The retrieval half of the last domain is where most of the RAG material sits.",
       "id": "ccafc-ad9c628f"
     },
     {
       "f": "What does CCAR-F cost?",
-      "b": "$125 USD (confirmed on Anthropic's Pearson VUE page). Independent study sites widely report 120 minutes, scenario-based and a scaled pass mark of 720 on a 100–1000 range, but Anthropic publishes the authoritative format only in the Partner Academy exam guide — treat those figures as unconfirmed.",
+      "b": "$125 USD, confirmed on Anthropic's public Pearson VUE listing. Question count, time limit and pass mark are reported only by third-party study sites, so treat them as indicative and verify against the official exam guide. Domain weightings have no public corroboration at all and are deliberately not stated anywhere in this app.",
       "id": "ccafc-0fdf8a1b"
     },
     {
       "f": "Solution scenarios worth practising",
-      "b": "Customer Support Agent · Code Gen with Claude Code · Multi-Agent Research · Developer Productivity · Claude Code for CI · Structured Data Extraction. Useful practice contexts for architect-level thinking — not a verified list of exam scenarios.",
+      "b": "Customer support agent · code generation with Claude Code · multi-agent research · developer productivity tooling · document processing pipelines. Practise reasoning about each as an architect would: which topology fits, what it costs, where a human stays in the loop, and what happens when a step fails halfway through.",
       "id": "ccafc-a0b48494"
     },
     {
       "f": "Golden rule of agent design",
-      "b": "Use the simplest pattern that works: prompt → workflow → single agent → multi-agent. Escalate complexity only when the task demands it.",
+      "b": "Use the simplest pattern that works — prompt, then workflow, then single agent, then multi-agent — and escalate only on measured evidence. Every added layer costs tokens, latency and a new failure mode on every run, whether or not it helped. The discipline is being able to say what each layer bought, not avoiding complexity on principle.",
       "id": "ccafc-bf0eec56"
     },
     {
       "f": "Common workflow patterns",
-      "b": "Prompt chaining · Routing · Parallelization (sectioning/voting) · Orchestrator-workers · Evaluator-optimizer",
+      "b": "Prompt chaining · routing · parallelisation (sectioning or voting) · orchestrator-workers · evaluator-optimiser. Read the list in that order and stop at the first pattern that fits the work. The common design error is starting at the bottom because the domain feels sophisticated, then paying coordination cost for something a chain would have handled.",
       "id": "ccafc-a5df9744"
     },
     {
       "f": "Loop guards",
-      "b": "Max iterations, repeated-failure detection, budget caps, and escalation paths — how agents avoid spiraling.",
+      "b": "Max iterations, repeated-failure detection, budget caps and an escalation path. The detection matters as much as the cap: an iteration ceiling alone lets the same failing call burn the whole budget before it fires, whereas noticing three identical failures ends it in three. The escalation path is what makes hitting a limit recoverable rather than merely stopped.",
       "id": "ccafc-7c04e2e1"
     },
     {
       "f": "Compaction",
-      "b": "Summarizing conversation/agent state into a durable structured note when nearing context limits, then continuing with the summary.",
+      "b": "Summarising conversation and agent state into a durable structured note that is re-injected as the working record. It beats truncation because it is selective — dropping the oldest messages removes exactly the early constraints that usually still apply. Trigger it proactively, with headroom left for the summarisation call itself.",
       "id": "ccafc-e0abd987"
     },
     {
       "f": "Subagents (Claude Code)",
-      "b": "Delegated tasks running in separate context windows — isolation keeps the main thread clean; enables parallelism.",
+      "b": "Delegated tasks running in separate context windows. Isolation keeps the main thread focused and lets independent work run in parallel, since only the result returns rather than all the intermediate reading. It is not a cost saving — each subagent re-establishes its own context first — and not a capability change, since it runs the same models under the same rules.",
       "id": "ccafc-897c6aba"
     },
     {
       "f": "Hooks (Claude Code)",
-      "b": "Scripted actions that fire at lifecycle points (e.g., after edits, before completion) — enforce tests/lint deterministically.",
+      "b": "Scripted actions firing at lifecycle points, such as after edits or before completion. The distinction that matters: an instruction in a project file is followed most of the time, while a hook runs every time. Anything you genuinely require belongs in the mechanism rather than the prose, which is why tests worth enforcing get a hook.",
       "id": "ccafc-5377fb5f"
     },
     {
       "f": "Tool design checklist",
-      "b": "Distinct purpose · precise description with when-to-use · strict input schema · concise token-efficient output · safe failure messages",
+      "b": "Distinct purpose · precise description stating when to use it *and when not to* · strict input schema · concise output. The description is what the model reasons over when choosing, so a description naming its trigger condition outperforms one stating only its function. Every tool also costs context on every request, so a large surface degrades the decision it enables.",
       "id": "ccafc-7b02962d"
     },
     {
       "f": "Approval gates",
-      "b": "Human confirmation required before irreversible/high-impact actions (deletes, sends, payments, prod changes).",
+      "b": "Human confirmation before irreversible or high-impact actions — deletes, sends, payments, publishes. The reason it matters more for agents than conventional software is that the action sequence is decided at run time, so you cannot enumerate in advance everything it might attempt. Pair the gate with idempotency, so an uncertain outcome can be retried safely.",
       "id": "ccafc-cb3d32b0"
     },
     {
       "f": "Models orchestrate, code computes",
-      "b": "Deterministic logic (math, validation, exact lookups) belongs in tools/code; the model decides and interprets.",
+      "b": "Deterministic logic — arithmetic, validation, exact lookups — belongs in tools and code; the model decides what to do and code computes the answer. Plausibly wrong arithmetic is the failure to avoid, because it survives review in a way an obvious error does not. Use the model for judgement, ambiguity and language, and give it tools for anything with a definite answer.",
       "id": "ccafc-2b8061c4"
     },
     {
       "id": "ccafc-claude-md",
       "f": "What is the role of CLAUDE.md in Claude Code workflows?",
-      "b": "A project-root specification providing build commands, test patterns, style rules, and repository architecture guidelines for automated agentic development."
+      "b": "A project-root file providing build commands, test patterns, style rules and architectural context, loaded on every session. It puts shared conventions where the tooling reads them and where review applies, rather than in individual habits. Keep it to things that stay true — stale guidance there is worse than none — and never put credentials in a checked-in file."
     },
     {
       "id": "ccafc-ci-cd-headless",
       "f": "How is Claude Code executed headlessly in CI/CD pipelines?",
-      "b": "Using non-interactive print mode: claude -p 'prompt', allowing automated PR reviews and test generation."
+      "b": "In non-interactive print mode, which allows automated PR review, test generation and lint fixes in CI. The critical guardrail is that headless execution removes the human from the loop during the run, so the review moves to the boundary: scoped permissions, no direct push, and changes landing as a diff a person approves."
     },
     {
       "id": "ccafc-hybrid-rag-arch",
       "f": "What are the 3 layers of Production Hybrid RAG?",
-      "b": "1. Dense Vector Search (semantic)\n2. Sparse BM25 (exact keywords/SKUs)\n3. Cross-Encoder Re-ranking (deep semantic alignment)."
+      "b": "Dense vector search for semantic similarity · sparse lexical matching for exact identifiers and codes · cross-encoder re-ranking over the merged candidates. Dense and sparse fail in opposite directions, which is why both run: a part number carries little semantic signal, and a paraphrase carries no lexical one. Re-ranking is expensive per pair, so it scores the short list rather than the corpus."
     },
     {
       "id": "ccafc-compaction-trigger",
       "f": "Why should context compaction be triggered proactively at 80% utilization?",
-      "b": "To ensure sufficient headroom remains in the context window to execute the summarization and compaction prompt itself."
+      "b": "Because compaction is itself a model call and needs room to run. Waiting for saturation means the first sign of the problem is a failed request, at which point there may be no space left to compact your way out of it. The exact threshold is a tuning decision; being proactive rather than reactive is the principle."
     },
     {
       "id": "ccafc-router-vs-orchestrator",
       "f": "When should an Architect choose a Router over an Orchestrator-Worker?",
-      "b": "Router: Single task directed to 1 specialist handler.\nOrchestrator: Complex task decomposed into N parallel subtasks recombined into one result."
+      "b": "Router: one task directed to a single specialist handler, chosen by a cheap classification step. Orchestrator-workers: one complex task decomposed into independent subtasks explored in parallel and synthesised afterwards. Routing is about picking the right path; orchestration is about doing several things at once. Fan-out only pays when the branches are genuinely independent."
     },
     {
       "id": "ccafc-evaluator-optimizer",
       "f": "What is the Evaluator-Optimizer loop topology?",
-      "b": "A two-stage workflow where an Optimizer generates candidate output and a separate Evaluator grades it against strict criteria, looping until threshold is reached."
+      "b": "A two-stage loop where one step generates candidate output and a separate evaluator scores it against explicit criteria, triggering revision below threshold. The criteria are what make it a gate rather than a second opinion. Place it at the step whose quality varies, so a failure stays local instead of propagating into a plausible-looking final answer."
     },
     {
       "id": "ccafc-chunk-overlap",
       "f": "What is the recommended chunk overlap percentage in RAG indexing?",
-      "b": "10% to 20% overlap (e.g. 50 tokens on 500-token chunks) to prevent contextual fragmentation across sentence splits."
+      "b": "Commonly 10-20%, for example 50 tokens on 500-token chunks, so a passage split across a boundary is not lost to both chunks. Treat it as a starting point rather than a rule — the right figure depends on how self-contained your content is, and overlap trades index size and duplicate retrievals against the risk of fragmenting meaning."
     },
     {
       "id": "ccafc-lost-in-middle",
       "f": "What is the 'Lost in the Middle' attention curve phenomenon?",
-      "b": "LLMs attend strongest to the beginning and end of long contexts; placing instructions at the end maximizes instruction following."
+      "b": "Content at the beginning and end of a long context is attended to more consistently than content in the interior. The actionable half is placement: put the source material first inside clear delimiters and the instruction at the end, closest to where generation begins. It is a tendency rather than a hard rule, so critical constraints deserve prominence regardless."
     },
     {
       "id": "ccafc-ast-indexing",
       "f": "Why use AST symbol indexing for large codebase search?",
-      "b": "It indexes function signatures, classes, and call hierarchies directly without saturating the LLM context with irrelevant file bodies."
+      "b": "It indexes function signatures, classes and call hierarchies rather than loading files into context, so search finds the relevant code without spending the context window on thousands of irrelevant lines. The same principle as retrieval over a large corpus: select first, then read. Context is the scarce resource, and search is how you spend it deliberately."
     },
     {
       "id": "ccafc-graceful-fallback",
       "f": "What is the standard model cascade order in enterprise production?",
-      "b": "Claude Sonnet 5 (Primary) → Retry with Jitter (Transient errors) → Claude Haiku 4.5 (Fallback) → Cached/Rule response."
+      "b": "Sonnet 5 as primary → retry with backoff and jitter for transient errors → Haiku 4.5 as a fallback tier → cached or rule-based response → human escalation. Each rung degrades further and covers what the one above cannot. Log which rung answered: a fallback that silently serves a weaker answer turns an outage into a quality incident nobody attributes correctly."
     },
     {
       "id": "ccafc-caching-cost-benefit",
       "f": "What is the cost reduction of Prompt Caching on input tokens?",
-      "b": "Prompt cache reads receive roughly a 90% discount relative to standard input token pricing."
+      "b": "Roughly 90% — cache reads cost about a tenth of the standard input rate. Writes carry a premium (about 1.25x at the short TTL), so caching pays from the second read at that TTL and the third at the longer one. The minimum cacheable prefix varies by model and is not ordered by recency, so verify with the cache-read usage field rather than assuming."
     },
     {
       "id": "ccafc-deterministic-first",
       "f": "What is the First Principle of AI System Architecture?",
-      "b": "Never use an autonomous agent loop where a deterministic code workflow or single prompt pipeline is sufficient."
+      "b": "Never use an autonomous loop where a deterministic workflow or a single prompt would do. Loops cost more, run slower and behave less predictably, and they earn that only when the number and order of steps genuinely cannot be known in advance. Simplicity here is an argument about cost, debuggability and failure surface rather than about elegance."
     },
     {
       "id": "ccafc-token-bucket-replenish",
       "f": "How does the Token Bucket algorithm enforce API rate limits?",
-      "b": "Tokens refill at a steady rate per minute; bursts are permitted up to bucket capacity before requests are throttled with HTTP 429."
+      "b": "Tokens refill at a steady rate and bursts are permitted up to bucket capacity, which matches how real traffic arrives. Shaping traffic on your side keeps you inside the provider's limits rather than discovering them as 429s — and a 429 costs latency while you back off, with retries that can synchronise and make the next window worse."
     }
   ],
   "lessons": [

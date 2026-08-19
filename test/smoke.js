@@ -649,6 +649,21 @@ vm.createContext(sandbox);
   check(cp.seen === 0, `progress ignores ids no longer in the bank (seen=${cp.seen})`);
   evalIn(`S.answered={}; S.domStats={}; S.cardBox={}`);
 
+  /* ---------- 17a. flashcard depth ----------
+     Card backs averaged 17.9 words and one was two words long. A card is the
+     only place some facts appear, so a back that states the fact without the
+     consequence teaches recall rather than judgement. Floor set from what
+     Phase 5 achieved: 100 cards averaging 56 words, minimum 46. */
+  const wcCard = str => str.trim().split(/\s+/).length;
+  const thinCards = [];
+  for (const [id, dd] of Object.entries(data)) {
+    dd.cards.forEach((cc, i) => {
+      if (wcCard(cc.b) < 40) thinCards.push(`${id}[${i}] ${wcCard(cc.b)}w`);
+    });
+  }
+  check(thinCards.length === 0,
+    `every flashcard back carries the fact and why it matters (${thinCards.slice(0, 3).join(", ") || "100 at 40+ words"})`);
+
   /* ---------- 17b. question explanation depth ----------
      Explanations averaged 16.7 words before Phase 3 - they stated the answer
      rather than teaching the reason. These floors stop that returning.

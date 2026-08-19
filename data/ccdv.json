@@ -1906,128 +1906,128 @@
   "cards": [
     {
       "f": "Required Messages API fields",
-      "b": "model, max_tokens, and messages are required; system and tools are optional. Sampling parameters (temperature, top_p, top_k) are rejected on current Claude models — steer with prompting.",
+      "b": "model, max_tokens and a messages array are required; system, tools and output_config are optional. max_tokens being mandatory surprises people coming from APIs that default it — and it caps thinking and response text together, so a limit sized around the answer will truncate once thinking is on. Sampling parameters are not optional but rejected on current models.",
       "id": "ccdvc-94b77d90"
     },
     {
       "f": "stop_reason values to know",
-      "b": "end_turn (natural finish) · max_tokens (truncated) · tool_use (Claude wants a tool run) · stop_sequence (hit your custom stop string) · refusal (declined on safety grounds — check stop_reason before reading content) · pause_turn (server-side tool loop paused; re-send to resume)",
+      "b": "end_turn (finished naturally) · max_tokens (truncated) · tool_use (run a tool and return the result) · stop_sequence · refusal (terminal) · pause_turn (server-tool loop paused; re-send to resume) · model_context_window_exceeded. Branch on this before reading content: truncated, refused and finished all arrive as a successful response with content in it.",
       "id": "ccdvc-9210b11f"
     },
     {
       "f": "Tool-use loop",
-      "b": "1) Claude returns tool_use block → 2) your code executes the tool → 3) send tool_result back → 4) Claude continues. Repeat until end_turn.",
+      "b": "Claude returns a tool_use block, your code executes the tool, you append a tool_result carrying the matching tool_use_id, and the loop repeats until it stops requesting tools. Two common errors: treating tool_use as a failure, and returning an empty result instead of an error — which makes the model conclude the data does not exist rather than that the call failed.",
       "id": "ccdvc-7436d53a"
     },
     {
       "f": "Prompt caching",
-      "b": "Reuses a cached prompt prefix (system prompt, docs, tool defs) across calls at heavily discounted input cost. Order stable content first.",
+      "b": "Reuses a processed prefix across calls at roughly a tenth of the input rate. It is a prefix match, which governs everything else: stable content first, volatile content after the last breakpoint, or the cache silently never hits. The failure is invisible — no error, just a cache read of zero and full price on every call. Watch the cache-read usage field.",
       "id": "ccdvc-c077fe03"
     },
     {
       "f": "Batches API",
-      "b": "Asynchronous bulk processing at a 50% discount — ideal for non-urgent, high-volume workloads.",
+      "b": "Asynchronous bulk processing at half price on input and output, returned within 24 hours. Ideal where nobody is waiting: nightly pipelines, bulk classification, backfills. Two operational details — most batches finish well inside the window but design against 24 hours, and results arrive in arbitrary order, so key them by your own identifier rather than position.",
       "id": "ccdvc-6ccc08c8"
     },
     {
       "f": "Streaming",
-      "b": "Server-sent events delivering tokens as generated — the fix for perceived latency in chat UIs.",
+      "b": "Server-sent events delivering tokens as they are generated. It does not make generation faster; it removes the wait before anything appears, which is what users experience as slowness. It is also the practical requirement above roughly 16K max_tokens, where non-streaming requests risk client timeouts regardless of any user-experience consideration.",
       "id": "ccdvc-9bad9f6f"
     },
     {
       "f": "Prompt injection",
-      "b": "Untrusted content (web pages, emails, docs) containing instructions that try to hijack the model. Treat fetched content as data; least-privilege tools; approval gates.",
+      "b": "Untrusted content — web pages, emails, documents, third-party tool descriptions — carrying text that tries to hijack the model. The model is not malfunctioning; it processed text it was given. Delimiting helps and is not sufficient. What bounds the damage is least-privilege tooling and approval gates, because those hold whether or not anyone noticed the attack.",
       "id": "ccdvc-1563ea76"
     },
     {
       "f": "MCP in one line",
-      "b": "Open standard ('USB-C for AI') letting clients discover and call tools/resources/prompts exposed by MCP servers.",
+      "b": "An open standard letting clients discover and call tools, resources and prompts exposed by servers. The argument is combinatorial: without it, every client needs a bespoke connector for every source, so integrations multiply rather than add. Write a server once and any compatible client can use it — an ecosystem gain rather than a capability one.",
       "id": "ccdvc-88842ffb"
     },
     {
       "f": "MCP server primitives",
-      "b": "Tools (model-invoked actions) · Resources (data/context) · Prompts (reusable templates)",
+      "b": "Tools (actions the model invokes) · Resources (data it reads) · Prompts (reusable templates the server offers). The dividing line is side effects, and honouring it keeps a server predictable: an action exposed as inert data hides the fact that something changes when it runs. If unsure which a capability is, ask whether calling it twice differs from calling it once.",
       "id": "ccdvc-cc59e5ca"
     },
     {
       "f": "Agent vs workflow",
-      "b": "Workflow = fixed predefined steps (predictable, cheap). Agent = model-directed loop with tools (open-ended tasks). Use the simplest that works.",
+      "b": "Workflow = fixed predefined steps: predictable, cheap, easy to test and debug. Agent = a model-directed loop with tools: open-ended and far less predictable. The criterion for wanting a loop is narrow — the number and order of steps cannot be known in advance. Reaching for one because a task feels sophisticated is how teams pay loop cost for a pipeline.",
       "id": "ccdvc-c5a576e3"
     },
     {
       "f": "CLAUDE.md",
-      "b": "Project instruction file Claude Code loads automatically — conventions, build commands, architecture notes.",
+      "b": "The project instruction file Claude Code loads on every session — conventions, build and test commands, architecture notes, constraints not obvious from any single file. Keep it to things that stay true, since stale guidance there is worse than none. It is checked in, so credentials must never go in it and changes go through review like any other.",
       "id": "ccdvc-17aea2e8"
     },
     {
       "f": "API key hygiene",
-      "b": "Server-side only, environment variables/secret manager, never in client code or repos, rotate on exposure.",
+      "b": "Server-side only, from environment variables or a secret manager, never in client code or a repository. Anything in front-end code is readable by any visitor regardless of bundling. The server tier is also the only place you can enforce per-user rate limits, authorisation and logging — so this is where the controls live, not merely where the secret hides.",
       "id": "ccdvc-af06cb9c"
     },
     {
       "f": "Long-context prompt order",
-      "b": "Long documents first, instructions/question at the end — improves accuracy on big contexts.",
+      "b": "Documents first inside clear delimiters, instruction at the end. The instruction sits closest to where generation begins, which measurably improves instruction-following on long inputs, and the delimiters tell the model where source material ends — without that boundary, text inside a document can read as a command you did not issue.",
       "id": "ccdvc-756ca249"
     },
     {
       "id": "ccdvc-thinking-budget",
       "f": "How is thinking depth controlled on current Claude models?",
-      "b": "With `thinking: {type: 'adaptive'}` — Claude decides how much to think per request — and `output_config.effort` (low, medium, high, xhigh, max) to steer the depth. Note effort is nested inside output_config, not a top-level parameter. The old fixed `budget_tokens` dial is rejected with a 400 on Opus 5, Sonnet 5, Opus 4.8 and 4.7."
+      "b": "With thinking set to adaptive, so Claude decides how much to think per request, and output_config.effort (low through max) steering the depth. Note effort is nested inside output_config rather than top-level. The old fixed budget_tokens dial is rejected with a 400 on Opus 5, Sonnet 5, Opus 4.8 and 4.7 — code carrying it forward fails validation rather than degrading."
     },
     {
       "id": "ccdvc-thinking-sig",
       "f": "How must thinking blocks be handled in multi-turn conversation history?",
-      "b": "They contain an encrypted signature and must be passed back unaltered in assistant turns."
+      "b": "Pass them back unchanged, signature included, alongside the text block. The signature is what verifies the block was not altered, so editing or reconstructing it breaks the turn — and dropping them to save tokens can trigger ordering and signature errors rather than quietly working. Reading a summarised block is fine; modifying it is not."
     },
     {
       "id": "ccdvc-comp-use-beta",
       "f": "What beta header is required for Anthropic Computer Use tools?",
-      "b": "anthropic-beta: computer-use-2024-10-22"
+      "b": "anthropic-beta: computer-use-2025-11-24, paired with the computer_20251124 tool version. Beta headers and tool version strings are dated and move together, so a header carried forward from an older integration will not match the current tool. Check both against the current documentation whenever you revisit a computer-use integration."
     },
     {
       "id": "ccdvc-comp-use-tools",
       "f": "What are the 3 built-in Computer Use tools?",
-      "b": "computer_20251124 (screen/mouse/keyboard), bash_20250124 (shell), text_editor_20250728 (file editing)."
+      "b": "computer_20251124 (screen, mouse, keyboard), bash_20250124 (shell), text_editor_20250728 (file editing). All three are client-side: your harness owns the environment and executes every action, which is exactly where an approval gate belongs for anything irreversible. Note the text editor's type and name change together — mismatching them returns a 400."
     },
     {
       "id": "ccdvc-pdf-document",
       "f": "How are native PDF files passed to the Messages API?",
-      "b": "As a document content block: {type: 'document', source: {type: 'base64', media_type: 'application/pdf', data: '...'}}."
+      "b": "As a document content block with a base64 source and the application/pdf media type, placed before the text block that asks about it. Everything travels in the request body — the API cannot reach your filesystem, so a local path means nothing. For documents reused across calls, upload once via the Files API and reference the file id instead."
     },
     {
       "id": "ccdvc-mcp-transports",
       "f": "What are the two standard MCP transport layers?",
-      "b": "1. stdio (standard input/output for local child processes)\n2. SSE (Server-Sent Events over HTTP for remote servers)."
+      "b": "stdio for a local subprocess, and an HTTP-based transport for remote servers. stdio is the right default for anything local: no port, no listener, no authentication surface, and nothing but the parent process can reach it. HTTP transport is for when the network is the point, and it brings the access-control questions that go with it."
     },
     {
       "id": "ccdvc-mcp-roots",
       "f": "What is the purpose of roots/list in MCP?",
-      "b": "Allows the client to inform the server about workspace root directories it is authorized to access."
+      "b": "It lets the client tell the server which workspace directories it may inspect. Read the direction carefully: this is a boundary the client declares inward, not a privilege the server holds — the name misleads people into reading it as superuser access, which inverts a security control. In multi-tenant environments it is what keeps one tenant's server away from another's files."
     },
     {
       "id": "ccdvc-mcp-sampling",
       "f": "What is MCP Client Sampling (sampling/createMessage)?",
-      "b": "Allows an MCP server to request an LLM completion from the host client with user consent."
+      "b": "It lets an MCP server request a model completion from the host client, with user consent. The consent step is the point: it keeps control of model usage and cost with the application rather than the server, and it means a third-party server cannot silently spend your tokens or route your data through a prompt you never saw."
     },
     {
       "id": "ccdvc-cache-invalidation",
       "f": "What causes a Prompt Cache invalidation?",
-      "b": "Any modification to tokens preceding the cache breakpoint invalidates the cache for that and all downstream blocks."
+      "b": "Any change to tokens before the breakpoint, because caching is an exact prefix match — one altered byte changes every downstream cache key at once. The usual culprits are a timestamp, a session id or a per-user greeting placed early. It fails silently, which is what makes it expensive: no error, just a cache read of zero and full price."
     },
     {
       "id": "ccdvc-batch-size-limit",
       "f": "What is the maximum number of requests allowed in a single Batches API file?",
-      "b": "10,000 requests per batch file with a 24-hour processing window."
+      "b": "Up to 100,000 requests or 256 MB per batch, whichever is reached first, with results returned within 24 hours. Most batches complete well inside that window, but 24 hours is what you design against. Results come back in arbitrary order, so key them by your own custom identifier rather than by position in the file."
     },
     {
       "id": "ccdvc-ratelimit-reset",
       "f": "Which response header specifies the exact timestamp when token rate limits reset?",
-      "b": "anthropic-ratelimit-tokens-reset (formatted as an ISO 8601 UTC timestamp)."
+      "b": "anthropic-ratelimit-tokens-reset, an ISO 8601 timestamp. Parsing it turns backoff from a guess into a measurement — you wait until the window actually replenishes rather than doubling blindly. The related headers report your limit and what remains, which lets a client pace itself before it hits 429 at all rather than discovering the limit by tripping it."
     },
     {
       "id": "ccdvc-stop-pause-turn",
       "f": "What does stop_reason: 'pause_turn' indicate?",
-      "b": "A server-side long-running execution paused and requires the client to resend state to continue."
+      "b": "A server-side tool loop reached its iteration limit — work in progress rather than a failure. Re-send the conversation including the assistant turn and the server resumes where it paused. Do not append a 'Continue.' message: the API detects the trailing server-tool block itself. SDK tool runners do not auto-resume this, so a paused turn can silently end a run."
     }
   ],
   "lessons": [

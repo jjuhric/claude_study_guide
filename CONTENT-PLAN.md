@@ -139,10 +139,12 @@ permissions.
       review.
 
 ### Phase 5 — flashcards
-- [ ] **5.1** Verify all 100 backs against `docs/FACTS.md` — including the
-      claim that sampling parameters are rejected on current models.
-- [ ] **5.2** Expand backs to a 45-word floor: the fact, why it matters, and
-      the mistake it prevents.
+- [x] **5.1** All 100 verified. Six factual defects found and fixed — see the
+      commit; the worst was a card recommending `temperature: 0.0`, which
+      contradicted another card in the same app and is rejected on current
+      models.
+- [x] **5.2** Backs expanded: **17.9w → 56w average**, minimum 46 (was 2).
+      Suite floor set at 40.
 
 ### Phase 6 — tool reference content
 The tools present themselves as authoritative references, so same bar.

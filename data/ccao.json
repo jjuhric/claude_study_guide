@@ -1906,128 +1906,128 @@
   "cards": [
     {
       "f": "What CCAO-F study domains does this app use?",
-      "b": "Prompting · Output Evaluation · Model Selection · Workflow Integration · Knowledge Management · Governance & Risk · Troubleshooting. These are this app's study groupings — the official domain list and weightings are in the Partner Academy exam guide.",
+      "b": "Prompting · Output Evaluation · Model Selection · Workflow Integration · Knowledge Management · Governance & Risk · Troubleshooting. These are **this app's** groupings, not published exam weightings — the official blueprint lives in Anthropic Partner Academy. Treat them as a study structure, and verify anything you plan to rely on against the official guide.",
       "id": "ccaoc-0d1d2a7c"
     },
     {
       "f": "What does CCAO-F cost?",
-      "b": "$99 USD (confirmed on Anthropic's Pearson VUE page). Independent study sites widely report 120 minutes and a scaled pass mark of 720 on a 100–1000 range, but Anthropic publishes the authoritative format only in the Partner Academy exam guide — treat those figures as unconfirmed.",
+      "b": "$99 USD, confirmed on Anthropic's public Pearson VUE listing. Format figures such as question count and time limit are reported by third-party study sites rather than by Anthropic, so treat them as indicative and check the official exam guide. Domain weightings have no public corroboration at all and are not stated here.",
       "id": "ccaoc-f32f2230"
     },
     {
       "f": "Hallucination",
-      "b": "Fluent, confident output containing fabricated or unsupported claims. Mitigate by grounding in sources, asking for citations, and verifying before use.",
+      "b": "Fluent, confident output containing fabricated or unsupported claims. The danger is that the surface cues people use to judge reliability — coherence, specificity, an assured tone — are produced identically whether or not the content is true. Mitigate by grounding in supplied sources, asking for quoted passages, and verifying anything a reader will act on.",
       "id": "ccaoc-2584b778"
     },
     {
       "f": "When should a human stay in the loop?",
-      "b": "Final accountability, legal/binding decisions, high-stakes external communication, and anything requiring judgment your org assigns to people.",
+      "b": "Wherever accountability sits: binding commitments, decisions about people, regulatory filings, and anything leaving the organisation. The test is who answers for the outcome, not how difficult the task is. Note the boundary is the *decision* — drafting, summarising and analysing can all be assisted right up to the point of commitment.",
       "id": "ccaoc-3c5a5fc2"
     },
     {
       "f": "Projects (Claude feature)",
-      "b": "Persistent workspaces with custom instructions + knowledge files, so recurring workflows don't need re-pasting context every chat.",
+      "b": "Persistent workspaces holding custom instructions and knowledge files, so recurring work starts from the same grounding without anyone re-pasting context. The main risk to manage is staleness: a superseded document produces confidently outdated answers, and nothing in the output signals it. Curation is the ongoing cost, not a one-off setup step.",
       "id": "ccaoc-51f7a52d"
     },
     {
       "f": "Role prompting",
-      "b": "Assigning Claude a persona/expertise ('You are a...') to shape tone, perspective, and domain conventions.",
+      "b": "Assigning a persona to shape tone, perspective and domain conventions. It genuinely changes emphasis and vocabulary — and it grants no knowledge. A role cannot supply your proprietary data or make an unsupported claim more reliable; it states the same claim in a more authoritative register, which is arguably worse. Use roles for framing, and supply facts as facts.",
       "id": "ccaoc-dcc496b5"
     },
     {
       "f": "Few-shot prompting",
-      "b": "Including 1+ worked examples of input → desired output so Claude mimics the pattern and format.",
+      "b": "Including worked examples of input and desired output so the model matches the pattern. Examples are the strongest signal in a prompt: they fix structure, depth, formatting and edge-case handling at once, unambiguously. Choose them deliberately — the model matches their length and register too, and a set showing only easy cases teaches the easy path.",
       "id": "ccaoc-e8f4c459"
     },
     {
       "f": "Haiku vs Sonnet vs Opus — quick rule",
-      "b": "Haiku: fast/cheap, high-volume simple tasks. Sonnet: balanced default. Opus-class: hardest reasoning and highest-stakes quality.",
+      "b": "Haiku 4.5: fast and cheap for high-volume, well-specified work; 200K context, 64K output. Sonnet 5: the balanced default for most substantive work; 1M context, 128K output. Opus 5: hardest reasoning and highest-stakes judgement, same limits. Start at the cheapest tier clearing your quality bar and escalate on measured evidence, not on caution.",
       "id": "ccaoc-1c78b511"
     },
     {
       "f": "Web search vs training data",
-      "b": "Training data has a cutoff date; web search fetches current info. Use search for anything time-sensitive.",
+      "b": "Training data has a cutoff, so current or private information is not available to be recalled — the model is not reasoning badly, it simply never had the fact. Search fetches at request time and closes that gap. A larger context window lets you supply more yourself but retrieves nothing, and deeper reasoning adds no facts.",
       "id": "ccaoc-791117d7"
     },
     {
       "f": "Fix for degraded answers in a long chat",
-      "b": "Context has accumulated noise — start a fresh conversation seeded with a concise summary of the key points.",
+      "b": "Accumulated context has crowded out what matters — superseded drafts, abandoned directions, resolved tangents all compete with the instructions still in force. Start a fresh conversation seeded with a deliberate summary of current requirements, decisions made and open questions. The curation is most of the value; a long conversation is not the same as a well-informed one.",
       "id": "ccaoc-75bce46b"
     },
     {
       "f": "Data governance first question",
-      "b": "Before pasting data into any AI tool: is this data class approved by org policy for this tool?",
+      "b": "Is this data class approved by policy for this tool? It comes first because it can make the whole task impermissible, and no amount of prompt quality rescues data you were not permitted to send. When the answer is no, the useful help is a permitted route — masked data, an approved deployment, a different process — rather than a better prompt.",
       "id": "ccaoc-66309935"
     },
     {
       "f": "Making outputs verifiable",
-      "b": "Ask Claude to quote source passages / cite where each claim comes from — unsupported claims become visible instantly.",
+      "b": "Ask for the specific source passage behind each claim. That converts verification from judging whether something sounds right — exactly the judgement fluent writing defeats — into comparing a quote against a document, which is fast and mechanical. A quote that is not in the source exposes the problem without evaluating the argument at all.",
       "id": "ccaoc-bc1dfeb2"
     },
     {
       "id": "ccaoc-vision-calc",
       "f": "What is the token cost formula for images and PDF pages processed by Claude?",
-      "b": "Tokens = (Width × Height) / 750 (with dimensions scaled down if exceeding 1568px)."
+      "b": "Images consume input tokens, and the count scales with resolution. Current models read images at markedly higher resolution than earlier ones, which is why they handle dense diagrams well — and a full-resolution image can cost several times what the same picture cost before. Send the smallest size that keeps the detail legible, and measure with the token-counting endpoint rather than trusting a remembered formula."
     },
     {
       "id": "ccaoc-asl-levels",
       "f": "What are Anthropic AI Safety Levels (ASL-1 to ASL-4)?",
-      "b": "A risk framework where ASL-2 represents frontier models requiring automated classifiers, and ASL-3/4 require physical air-gapping and extreme containment."
+      "b": "Anthropic's published responsible-scaling framework: capability is assessed against defined thresholds, and crossing one triggers stronger security and deployment requirements. Two properties matter in a customer conversation — it is capability-triggered rather than product-triggered, and it is public, so cite the published policy rather than paraphrasing tier definitions from memory, since those are updated over time."
     },
     {
       "id": "ccaoc-temp-zero",
       "f": "When should Temperature be set to 0.0?",
-      "b": "For factual data extraction, mathematical reasoning, code generation, and tasks requiring deterministic consistency."
+      "b": "It should not be. Sampling parameters — temperature, top_p, top_k — are removed on current models: Opus 5, Opus 4.8 and 4.7 reject them outright and Sonnet 5 rejects non-default values. Steer behaviour with prompting and structured outputs instead. Worth knowing that temperature 0 never guaranteed identical output even where it was accepted; it narrowed sampling, which is not determinism."
     },
     {
       "id": "ccaoc-zdr-policy",
       "f": "What is an Enterprise Zero-Data-Retention (ZDR) agreement?",
-      "b": "A contractual guarantee that customer prompts and completions are never stored on disk beyond transit and never used for model training."
+      "b": "A contractual commitment that prompt inputs and completions are not retained on persistent storage or used for training. The important property is that it is contractual — negotiated rather than configured, so no parameter, header or instruction in a prompt achieves it. When a customer with regulatory obligations asks, point them at the agreement for their deployment."
     },
     {
       "id": "ccaoc-xml-delimiters",
       "f": "Why are XML tags preferred over markdown headers for prompt sectioning?",
-      "b": "XML tags (&lt;context&gt;, &lt;instructions&gt;) unambiguously separate developer instructions from variable user/untrusted data."
+      "b": "Tags give an unambiguous boundary between source material and instructions, and models are trained to respect that structure. It matters for quality, since instructions buried in a long document compete poorly with it — and for safety, because without a boundary text inside a document can read as a command. That is the mechanism behind prompt injection."
     },
     {
       "id": "ccaoc-few-shot",
       "f": "What is the primary benefit of few-shot prompting?",
-      "b": "It teaches the target output structure, formatting edge cases, and stylistic nuances through concrete examples rather than abstract rules."
+      "b": "It teaches structure, formatting and edge-case handling by demonstration rather than description, which removes the interpretive room where inconsistency lives. One filled-in example fixes section order, depth and tone at once. The trade-off is that examples cost input tokens on every request, and a poorly chosen one anchors the output to its length and style."
     },
     {
       "id": "ccaoc-chain-of-thought",
       "f": "How does Chain of Thought (CoT) prompting reduce reasoning errors?",
-      "b": "By allocating generation tokens for intermediate calculation steps before outputting the final answer, preventing premature conclusion errors."
+      "b": "It was a real technique on models that did not reason by default, and on current models it is not how reasoning is controlled. Depth is a property of the request — adaptive thinking, with an effort level setting how deep it goes. A prompt phrase changes the wording of the answer rather than whether the model reasons."
     },
     {
       "id": "ccaoc-hallucination-audit",
       "f": "What is the only valid way to verify LLM factual claims for external publication?",
-      "b": "Independent human or ground-truth verification against primary source records."
+      "b": "Independent verification against primary sources. Asking the model whether it is sure produces a self-assessment generated by the same process that produced the claim, so a confident retraction and a confident confirmation cost exactly the same. Running the prompt twice measures consistency rather than correctness — two wrong answers can agree perfectly."
     },
     {
       "id": "ccaoc-escalation-criteria",
       "f": "What is the valid criterion for escalating from Haiku to Sonnet or Opus?",
-      "b": "Documented reasoning or comprehension failures on task eval datasets, not prompt length or user seniority."
+      "b": "Observed reasoning or comprehension failures on your own evaluation cases. That is direct evidence capability is the binding constraint. The common false signals are prompt length, which is a context-window question, and stakeholder seniority, which raises the cost of being wrong without making the task harder — it may justify more review rather than a bigger model."
     },
     {
       "id": "ccaoc-project-instructions",
       "f": "Where should persistent project-wide conventions and schemas be placed in Claude Projects?",
-      "b": "In the Project Custom Instructions, keeping chat prompts focused on the immediate task."
+      "b": "In the project's custom instructions, so they apply to every conversation without anyone re-pasting them, and a change goes through one place rather than many. The test for what belongs there is stability: anything changing every few minutes belongs in the conversation instead. Credentials never belong there under any circumstances."
     },
     {
       "id": "ccaoc-refusal-remediation",
       "f": "What is the appropriate response when Claude refuses a query on safety grounds?",
-      "b": "Analyze the prompt to remove policy-sensitive keywords or reframe the business goal legitimately; do not spam slight variations."
+      "b": "Supply the legitimate context the assessment is missing — what the work is, why it is authorised, what the output is for — and escalate through proper channels if it still declines. Note the distinction: clarifying intent is honest, whereas rephrasing to conceal it is a different act even when the words look similar. A refusal on a genuinely improper request is the system working."
     },
     {
       "id": "ccaoc-structured-json",
       "f": "What is the best way to ensure Claude outputs valid, parseable JSON?",
-      "b": "Specify a JSON schema in prompt instructions or use structured output configuration, paired with a few-shot JSON example."
+      "b": "Constrain the output shape at the request level with a schema, then validate the parsed result before anything downstream consumes it. Asking nicely produces valid JSON most of the time, which is the worst failure profile available — reliable enough to pass testing and frequent enough to break in production. The guarantee has to live in your code."
     },
     {
       "id": "ccaoc-token-approx",
       "f": "What is the rough rule of thumb for English word-to-token conversion?",
-      "b": "100 English words is approximately 130 tokens (or ~0.75 words per token)."
+      "b": "Roughly 0.75 words per token for English, so 100 words is about 130 tokens. Treat it as an order-of-magnitude sanity check only: the real count is model-specific and comes from the token-counting endpoint. Other providers' tokenizers undercount Claude noticeably, and the gap widens on code and non-English text."
     }
   ],
   "lessons": [
