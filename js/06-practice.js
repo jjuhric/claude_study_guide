@@ -333,7 +333,7 @@ function contextCompactionVisualizer(){
     + '<div><span class="ltag" style="background:var(--coral); color:#fff;">Context Architecture</span><h2 style="font-size:20px; margin-top:4px;">🧱 200k Context Window & 80% Compaction Simulator</h2></div>'
     + '<button class="btn sm ' + (ctxTokens.compactionActive ? 'ghost' : '') + '" onclick="toggleContextCompaction()">' + (ctxTokens.compactionActive ? '↺ Reset to Uncompacted State' : '⚡ Apply 80% Semantic Compaction') + '</button>'
     + '</div>'
-    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Anthropic models share a finite 200,000 token budget across System Prompts, Tool Schemas, RAG Chunks, and Conversation History.</p>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Anthropic models share a finite token budget across System Prompts, Tool Schemas, RAG Chunks, and Conversation History &mdash; up to 1M on current Opus and Sonnet models, 200K on Haiku 4.5.</p>'
     + '<div id="ctxBudgetVisualBar" style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card); margin-bottom:16px;"></div>'
     + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:14px;">'
     + '<div style="border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--bg);">'

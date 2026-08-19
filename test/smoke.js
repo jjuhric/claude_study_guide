@@ -1469,6 +1469,22 @@ vm.createContext(sandbox);
   check(!/max(imum)? (output )?(is |of )?8,?192/i.test(corpus) || /Haiku/.test(corpus),
     "no stale per-model output cap stated without naming the model it applies to");
 
+  /* The literal phrase above ("...all current models") is one way to state
+     the 200K bug; "the same 200,000-token window" and "your 200,000-token
+     context window" are others that said the same wrong thing without
+     tripping it. Five real instances of this were found across three
+     lessons and two tools this way. "fast tier" / "fast, cheap" are accepted
+     alongside "Haiku" because several lessons refer to Haiku by tier name in
+     the surrounding paragraph rather than repeating the model name at every
+     mention. */
+  const twoHundredKHits = [...corpus.matchAll(/200,?000[- ]token|200K\b/g)];
+  const badTwoHundredK = twoHundredKHits.filter(m => {
+    const around = corpus.slice(Math.max(0, m.index - 200), m.index + 200);
+    return !/Haiku|fast tier|fast, cheap|fast, economical/i.test(around);
+  });
+  check(badTwoHundredK.length === 0,
+    `every 200K-token reference names Haiku 4.5 or the fast tier as the model it applies to (${badTwoHundredK.length} unqualified)`);
+
   /* ---------- 12. the FinOps calculator does arithmetic, not decoration ----------
      A pricing tool that shows a wrong number misleads more directly than a wrong
      quiz question, because the learner reads it as computed rather than claimed.

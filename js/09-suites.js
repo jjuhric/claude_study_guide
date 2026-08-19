@@ -1851,7 +1851,7 @@ function knowledgeGraphView(){
     circuit:"Circuit Breakers monitor failure rates to downstream tools and block calls after a threshold, preventing cascading failures across the agent graph.",
     batch:"The Message Batches API processes up to 100,000 requests (or 256MB, whichever comes first) asynchronously at 50% cost reduction for evals, classification, and nightly pipelines.",
     streaming:"Server-Sent Events deliver content_block_delta events token-by-token. Reduces perceived latency. Supports thinking block streaming.",
-    context:"The 200,000-token context window is a hard limit. At 80% capacity, trigger semantic compaction using structured tags instead of FIFO truncation."
+    context:"The context window is a hard limit &mdash; up to 1M tokens on current Opus and Sonnet models, 200K on Haiku 4.5. At 80% capacity, trigger semantic compaction using structured tags instead of FIFO truncation."
   };
   const W=560,H=340;
   window._kgSel=function(id){
@@ -2052,7 +2052,7 @@ function tokenBudgetVisualizer(){
     +"<div class=\"panel\">"
     +"<div style=\"text-align:center;\"><div style=\"font-size:36px;\">📊</div>"
     +"<h2 style=\"font-size:20px;margin-top:6px;\">Token Budget Visualizer with Live Sliders</h2>"
-    +"<p class=\"subtext\" style=\"margin-top:6px;\">Drag sliders to allocate tokens across your 200,000-token context window and see cache eligibility in real time.</p></div>"
+    +"<p class=\"subtext\" style=\"margin-top:6px;\">Drag sliders to allocate tokens across your context window (up to 1M on current Opus and Sonnet, 200K on Haiku 4.5) and see cache eligibility in real time.</p></div>"
     +"<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:18px 0;\">"
     +"<div>"
     +"<div style=\"margin-bottom:16px;\">"

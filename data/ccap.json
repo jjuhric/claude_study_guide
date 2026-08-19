@@ -1262,7 +1262,7 @@
       "q": "In a multi-agent software engineering team (planner, coder, reviewer), how should task handoffs be structured?",
       "opts": [
         "Using typed JSON contracts that pass only necessary artifact references and acceptance criteria rather than full conversational history",
-        "Passing the entire unpruned 200,000-token chat transcript between all agents on every turn",
+        "Passing the entire unpruned multi-hundred-thousand-token chat transcript between all agents on every turn",
         "Writing handoff notes on physical sticky notes",
         "Having agents communicate exclusively via voice synthesis"
       ],
