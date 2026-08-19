@@ -4,6 +4,153 @@
    shares one global scope, in the order listed in index.html. */
 "use strict";
 /* ================= LESSON WIDGETS ================= */
+/* ---- Lesson widgets referenced by lesson bodies but never implemented.
+   Eight lessons across all four certifications carried a data-widget the
+   dispatcher had no branch for, so opening any of them threw a ReferenceError
+   inside initLessonWidgets and aborted the rest of lessonView. The suite only
+   ever rendered lesson 0, which is why it never saw this. Rates and limits
+   below come from docs/FACTS.md. ---- */
+
+const TOKEN_COST_MODELS = [
+  { id: "claude-opus-5",   label: "Claude Opus 5",   inM: 5.00, outM: 25.00, note: "1M context / 128K output" },
+  { id: "claude-sonnet-5", label: "Claude Sonnet 5", inM: 3.00, outM: 15.00, note: "1M context / 128K output" },
+  { id: "claude-haiku-4-5", label: "Claude Haiku 4.5", inM: 1.00, outM: 5.00, note: "200K context / 64K output" },
+];
+
+function renderTokenCostCalculator(container){
+  container.innerHTML = `
+    <h5>💰 Token Cost Estimator</h5>
+    <p class="subtext" style="margin-bottom:10px;">Per-1M rates from the current
+      rate card. Cached reads are billed at roughly a tenth of the input rate,
+      which is why the cached row moves so much at volume.</p>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:12px;">
+      <div><label style="font-size:12px; font-weight:700;">Input tokens / call</label>
+        <input id="wtcIn" type="number" min="0" value="20000" oninput="updateTokenCost()"
+               style="width:100%; padding:6px 8px; border:2px solid var(--border); border-radius:8px; background:var(--bg); color:var(--ink);"></div>
+      <div><label style="font-size:12px; font-weight:700;">Output tokens / call</label>
+        <input id="wtcOut" type="number" min="0" value="800" oninput="updateTokenCost()"
+               style="width:100%; padding:6px 8px; border:2px solid var(--border); border-radius:8px; background:var(--bg); color:var(--ink);"></div>
+      <div><label style="font-size:12px; font-weight:700;">Calls / day</label>
+        <input id="wtcCalls" type="number" min="1" value="100000" oninput="updateTokenCost()"
+               style="width:100%; padding:6px 8px; border:2px solid var(--border); border-radius:8px; background:var(--bg); color:var(--ink);"></div>
+      <div><label style="font-size:12px; font-weight:700;">Cacheable share of input</label>
+        <input id="wtcCache" type="range" min="0" max="100" value="0" oninput="updateTokenCost()" style="width:100%;">
+        <div id="wtcCacheVal" style="font-size:12px; font-weight:700; color:var(--coral-dark);">0%</div></div>
+    </div>
+    <div id="wtcOutBox"></div>`;
+  updateTokenCost();
+}
+
+function updateTokenCost(){
+  const num = id => Math.max(0, parseFloat((document.getElementById(id) || {}).value) || 0);
+  const inTok = num("wtcIn"), outTok = num("wtcOut"), calls = num("wtcCalls");
+  const cachePct = num("wtcCache");
+  const cv = document.getElementById("wtcCacheVal");
+  if(cv) cv.textContent = cachePct + "%";
+  const cachedIn = inTok * (cachePct / 100), freshIn = inTok - cachedIn;
+  const rows = TOKEN_COST_MODELS.map(m => {
+    // Cache reads are ~0.1x the input rate (docs/FACTS.md §7).
+    const daily = (freshIn * m.inM + cachedIn * m.inM * 0.1 + outTok * m.outM) / 1e6 * calls;
+    return { m, daily };
+  });
+  const cheapest = Math.min(...rows.map(r => r.daily));
+  const box = document.getElementById("wtcOutBox");
+  if(!box) return;
+  box.innerHTML = '<table style="width:100%; border-collapse:collapse; font-size:12.5px;">'
+    + '<thead><tr style="border-bottom:1.5px solid var(--border);">'
+    + '<th style="text-align:left; padding:6px;">Model</th>'
+    + '<th style="text-align:right; padding:6px;">Per day</th>'
+    + '<th style="text-align:right; padding:6px;">Per month</th>'
+    + '<th style="text-align:right; padding:6px;">vs cheapest</th></tr></thead><tbody>'
+    + rows.map(r => '<tr style="border-bottom:1px solid var(--border);">'
+        + '<td style="padding:6px;"><b>' + r.m.label + '</b><br><span style="color:var(--muted); font-size:11px;">' + r.m.note + '</span></td>'
+        + '<td style="padding:6px; text-align:right; font-weight:700;">$' + r.daily.toFixed(2) + '</td>'
+        + '<td style="padding:6px; text-align:right;">$' + (r.daily * 30).toFixed(0) + '</td>'
+        + '<td style="padding:6px; text-align:right; color:var(--muted);">'
+        + (r.daily === cheapest ? '—' : (r.daily / cheapest).toFixed(1) + '×') + '</td></tr>').join('')
+    + '</tbody></table>'
+    + '<p class="subtext" style="margin-top:8px;">Raise the cacheable share and watch the '
+    + 'input side collapse. That is why a large stable prefix is the first cost lever at volume — and why '
+    + 'a volatile value early in the prompt, which silently prevents any cache hit, is so expensive.</p>';
+}
+
+function renderComputerUseSimulator(container){
+  container.innerHTML = `
+    <h5>🖥️ Computer Use Loop</h5>
+    <p class="subtext" style="margin-bottom:10px;">Computer use is a
+      <b>client-side</b> tool: your harness owns the environment and executes every
+      action. Step through one iteration of the loop.</p>
+    <div id="wcuStage" style="border:2px solid var(--border); border-radius:10px; padding:12px; background:var(--bg); min-height:96px;"></div>
+    <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+      <button class="btn sm" onclick="stepComputerUse(1)">Next step →</button>
+      <button class="btn ghost sm" onclick="stepComputerUse(0)">Reset</button>
+    </div>`;
+  window._wcuStep = 0;
+  stepComputerUse(0);
+}
+
+const WCU_STEPS = [
+  { t: "1. Screenshot", d: "Your harness captures the screen and sends it as an image content block. Resolution is the main cost and accuracy lever — 1080p is a balanced default, and lower resolutions cut cost where the interface is still legible." },
+  { t: "2. Model proposes an action", d: "The response contains a tool_use block naming an action and coordinates. Coordinates map directly to image pixels on current models, so no scale-factor arithmetic is needed on the way back." },
+  { t: "3. Your harness executes it", d: "Nothing happens on Anthropic's side. Your code performs the click or keystroke, which is exactly where an approval gate belongs for anything irreversible." },
+  { t: "4. Return the result", d: "Send a tool_result referencing the tool_use_id — usually a fresh screenshot. A failure goes back the same way with is_error set, never as an empty result." },
+  { t: "5. Loop, with a bound", d: "Repeat until the model stops requesting actions. Because the harness drives the loop, the iteration cap and spend ceiling are yours to impose — nothing else will stop it." },
+];
+
+function stepComputerUse(advance){
+  if(typeof window._wcuStep !== "number") window._wcuStep = 0;
+  window._wcuStep = advance ? (window._wcuStep + 1) % WCU_STEPS.length : 0;
+  const s = WCU_STEPS[window._wcuStep];
+  const el = document.getElementById("wcuStage");
+  if(!el) return;
+  el.innerHTML = '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Step '
+    + (window._wcuStep + 1) + ' of ' + WCU_STEPS.length + '</div>'
+    + '<div style="font-weight:800; margin-bottom:6px;">' + s.t + '</div>'
+    + '<div style="font-size:13px; line-height:1.5;">' + s.d + '</div>';
+}
+
+function renderXmlPromptChecker(container){
+  container.innerHTML = `
+    <h5>🏷️ Prompt Structure Checker</h5>
+    <p class="subtext" style="margin-bottom:10px;">Paste a prompt that mixes source
+      material with instructions. This checks the structural properties that make long-context
+      prompts reliable — it does not judge the wording.</p>
+    <textarea id="wxpIn" rows="7" oninput="checkXmlPrompt()"
+      style="width:100%; padding:8px; border:2px solid var(--border); border-radius:8px; background:var(--bg); color:var(--ink); font-family:ui-monospace,Menlo,Consolas,monospace; font-size:12.5px;"
+    >Summarise the document below in three bullets.
+
+The quarterly report says revenue rose 12% ...</textarea>
+    <div id="wxpOut" style="margin-top:10px;"></div>`;
+  checkXmlPrompt();
+}
+
+function checkXmlPrompt(){
+  const el = document.getElementById("wxpIn");
+  const out = document.getElementById("wxpOut");
+  if(!el || !out) return;
+  const t = el.value || "";
+  const tags = [...t.matchAll(/<\/?([a-z_][a-z0-9_-]*)>/gi)].map(m => m[1].toLowerCase());
+  const opened = tags.filter((_, i) => !/^<\//.test(t));
+  const hasDelim = /<([a-z_][a-z0-9_-]*)>[\s\S]*<\/\1>/i.test(t);
+  const lastQ = Math.max(t.lastIndexOf("?"), t.search(/\n[^\n]*$/));
+  const tail = t.slice(Math.max(0, t.length - 220)).toLowerCase();
+  const instructionAtEnd = /(summar|list|extract|answer|explain|rewrite|classif|return|produce)/.test(tail);
+  const checks = [
+    { ok: hasDelim, good: "Source material is delimited with a matching tag pair.",
+      bad: "No matching tag pair found. Without a boundary the model has to infer where the source ends — and text inside a document can read as an instruction, which is how prompt injection gets a foothold." },
+    { ok: instructionAtEnd, good: "The instruction appears near the end, closest to where generation begins.",
+      bad: "The instruction looks like it sits before the material. On long inputs, an instruction at the end is followed more reliably." },
+    { ok: t.length > 40, good: "Prompt has enough content to evaluate.",
+      bad: "Too short to assess structure." },
+  ];
+  out.innerHTML = checks.map(c =>
+    '<div style="display:flex; gap:8px; align-items:flex-start; padding:7px 9px; margin-bottom:6px; border-radius:8px; border:1px solid var(--border); background:var(--card);">'
+    + '<span style="font-size:14px;">' + (c.ok ? "✅" : "⚠️") + '</span>'
+    + '<span style="font-size:12.5px; line-height:1.45;">' + (c.ok ? c.good : c.bad) + '</span></div>').join('')
+    + '<p class="subtext" style="margin-top:6px;">Structure is necessary and not sufficient: delimiting '
+    + 'untrusted content reduces injection risk without removing it, so tools still need least-privilege scoping.</p>';
+}
+
 function initLessonWidgets(){
   const boxes = document.querySelectorAll('.widget-box');
   boxes.forEach(box => {

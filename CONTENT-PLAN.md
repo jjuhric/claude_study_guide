@@ -100,7 +100,8 @@ in task 3.5 and target ~22 average, rather than writing to a number.
 Worked examples with real code, the decision criteria actually applied, failure
 modes with symptoms, links to the questions each lesson teaches. Roughly double
 each; floors 400/250 → 900/600.
-- [ ] **4.1** CCAR-P (4,784w today)
+- [x] **4.1** CCAR-P — 4,784w → **7,975w**. Domain lessons 1,036–1,174w each
+      (were 495–621), foundation 692w (was 390). Masterclasses left at ~420w.
 - [ ] **4.2** CCAR-F (5,084w)
 - [ ] **4.3** CCDV-F (7,086w)
 - [ ] **4.4** CCAO-F (7,793w)

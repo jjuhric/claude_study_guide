@@ -224,7 +224,21 @@ vm.createContext(sandbox);
       try { call(fn, c.id); check(els.app.innerHTML.length > 200, `${c.code}: ${label} renders`); }
       catch (e) { check(false, `${c.code}: ${label} threw -> ${e.message}`); }
     }
-    try { call("lessonView", c.id, 0); check(els.app.innerHTML.length > 200, `${c.code}: lesson 0 renders`); }
+    /* Every lesson, not just the first. Eight lessons across all four certs
+       carried a data-widget with no dispatcher branch, so opening any of them
+       threw a ReferenceError inside initLessonWidgets and aborted lessonView.
+       Rendering only lesson 0 could never see it. */
+    try {
+      const broken = [];
+      for (let li = 0; li < (c.lessons || []).length; li++) {
+        try {
+          call("lessonView", c.id, li);
+          if (els.app.innerHTML.length <= 200) broken.push(`${li} empty`);
+        } catch (e) { broken.push(`${li}: ${e.message}`); }
+      }
+      check(broken.length === 0,
+        `${c.code}: all ${(c.lessons || []).length} lessons render (${broken.slice(0, 2).join("; ") || "no throws"})`);
+    }
     catch (e) { check(false, `${c.code}: lessonView threw -> ${e.message}`); }
   }
 
