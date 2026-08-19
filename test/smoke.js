@@ -749,6 +749,34 @@ vm.createContext(sandbox);
   check(noVideo.length === 0, `every lesson has a video block (${noVideo.slice(0, 3).join(", ") || "all present"})`);
   check(noTakeaways.length === 0, `every domain lesson has key takeaways (${noTakeaways.slice(0, 3).join(", ") || "all present"})`);
 
+  /* A flat per-lesson floor cannot catch unevenness within a cert: a domain
+     lesson can clear 850 words and still be thin if that domain carries far
+     more questions than its siblings. CCAF's "Context, Retrieval &
+     Reliability" was the real case -- 29 questions (the largest domain in the
+     app) against 1,073 words, 37 words/question against a 44-104 range
+     everywhere else. It cleared the flat floor comfortably and was still the
+     thinnest lesson in the app relative to what it had to teach.
+     lessonForDomain(c,d) maps domain d to lesson index d+1 (index 0 is the
+     foundation lesson, which teaches no single domain). */
+  const unevenLessons = [];
+  for (const [id, d] of Object.entries(data)) {
+    const qByDomain = {};
+    d.questions.forEach(qq => { qByDomain[qq.d] = (qByDomain[qq.d] || 0) + 1; });
+    Object.entries(qByDomain).forEach(([dom, n]) => {
+      const li = Number(dom) + 1;
+      const l = d.lessons[li];
+      if (!l || l.foundation) return;
+      const w = prose(l.b).split(" ").filter(Boolean).length;
+      const perQ = w / n;
+      if (perQ < 40) unevenLessons.push(`${id}[${li}] "${l.h}" ${w}w / ${n}q = ${perQ.toFixed(1)}w/q`);
+    });
+  }
+  /* 40, not the 35 first drafted: the CCAF defect above was 37.0 w/q, and a
+     floor has to sit above what it is meant to catch. 40 still sits below
+     every other domain lesson in the app (43.6 is the next-lowest). */
+  check(unevenLessons.length === 0,
+    `every domain lesson keeps pace with the questions it teaches, 40 words/question minimum (${unevenLessons.slice(0, 3).join("; ") || "none thin"})`);
+
   // A domain's lesson should not be dwarfed by the questions it teaches.
   const ratios = [];
   for (const [id, d] of Object.entries(data)) {
