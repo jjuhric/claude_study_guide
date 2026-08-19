@@ -102,7 +102,9 @@ modes with symptoms, links to the questions each lesson teaches. Roughly double
 each; floors 400/250 → 900/600.
 - [x] **4.1** CCAR-P — 4,784w → **7,975w**. Domain lessons 1,036–1,174w each
       (were 495–621), foundation 692w (was 390). Masterclasses left at ~420w.
-- [ ] **4.2** CCAR-F (5,084w)
+- [x] **4.2** CCAR-F — 5,084w → **7,543w**. Domain lessons 872–1,126w.
+      The Context/Retrieval lesson gained real retrieval teaching, which it
+      lacked despite owning 10 retrieval questions after the 2.3 re-tag.
 - [ ] **4.3** CCDV-F (7,086w)
 - [ ] **4.4** CCAO-F (7,793w)
 - [ ] **4.5** Raise the lesson floors in the suite.
