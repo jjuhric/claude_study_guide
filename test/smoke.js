@@ -1602,6 +1602,20 @@ vm.createContext(sandbox);
   check(eightyFive.length === 0,
     `no 85% cache discount claim (${eightyFive.slice(0, 2).join(" | ") || "none"})`);
 
+  /* ---------- 17. a retired model called "current" ----------
+     Found twice in CCAO's governance content: an ASL safety-tier table saying
+     "Claude 3 / 3.5 / 3.7" or "ASL-2: Current frontier models" without naming
+     a model at all, in a spot that (on the second one) still implied today's
+     lineup. The existing model-name checks require an Opus/Sonnet/Haiku/Fable
+     qualifier next to the number, so "Claude 3" and bare "3.5" / "3.7" slid
+     through undetected -- a different regex gap than the ones already
+     checked. This looks specifically for a retired bare version number
+     described as current, rather than banning "Claude 3" outright, since a
+     historical mention (Claude 3 was superseded by...) is legitimate content. */
+  const retiredAsCurrent = (corpus.match(/Claude\s*3(?:\.[57])?[^<]{0,120}?current|current[^<]{0,120}?Claude\s*3(?:\.[57])?/gi) || []);
+  check(retiredAsCurrent.length === 0,
+    `no retired Claude 3-generation model described as current (${retiredAsCurrent.slice(0, 2).join(" | ") || "none"})`);
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();

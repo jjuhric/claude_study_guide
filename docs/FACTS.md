@@ -188,6 +188,11 @@ Minimum cacheable prefix, which is **not monotonic across generations**:
 - Structured outputs are incompatible with citations (400) and with prefill.
 - MCP is JSON-RPC 2.0. The connector needs both `mcp_servers` **and** a
   matching `mcp_toolset` entry in `tools`, with beta `mcp-client-2025-11-20`.
+- **Image tokens**: approximately `(width_px × height_px) / 750`. Images are
+  downscaled so neither dimension exceeds 1568px before that formula applies,
+  so resolution above that ceiling stops costing more — send the smallest
+  size that keeps the needed detail legible. Images count as input tokens
+  like any other content; there is no separate image budget or flat fee.
 
 ## 10. Error codes
 
