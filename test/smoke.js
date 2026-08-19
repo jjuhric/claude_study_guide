@@ -1044,7 +1044,8 @@ vm.createContext(sandbox);
   check(/Automated System Prompt Optimizer Engine/.test(els.app.innerHTML) && /rawPromptInput/.test(els.app.innerHTML), "promptOptimizerEngine renders prompt linter");
 
   call("paretoFrontierView");
-  check(/Latency P99 vs Cost Pareto Frontier Explorer/.test(els.app.innerHTML), "paretoFrontierView renders Pareto frontier scatter plot");
+  check(/Cost vs Capability Pareto Frontier/.test(els.app.innerHTML) && /On frontier/.test(els.app.innerHTML),
+    "paretoFrontierView renders the frontier with derived membership");
 
   call("audioPodcastExporter");
   check(/Spoken Flashcard Audio Podcast Briefing/.test(els.app.innerHTML), "audioPodcastExporter renders podcast player");
@@ -1507,6 +1508,41 @@ vm.createContext(sandbox);
   }
   check(staleRateLiterals.length === 0,
     `every bare per-1M rate literal matches the rate card (${[...new Set(staleRateLiterals)].join(", ") || "none stale"})`);
+
+  /* ---------- 16. retired rate strings and the cache floors ----------
+     The allow-list checks rate PAIRS ("$5.00 / $25.00"). Rates written singly,
+     or as "$0.80 base / $0.08 cached" inside a dropdown label, slipped past it
+     for a full phase -- a caching simulator was still charging Opus $15/MTok
+     and reading cache at $1.50. None of the values below is a valid rate for
+     any current model in any position (input, output or cache read), so their
+     presence anywhere is a stale figure by definition.
+     $15.00 and $5.00 are deliberately absent: both are live rates today. */
+  // $1.50 and $2.50 are deliberately absent: they are Batch API rates (50% of
+  // Sonnet 5 input and Haiku 4.5 output), not retired list prices.
+  const RETIRED_RATES = ["$0.80", "$0.08", "$4.00", "$75.00"];
+  const foundRetired = RETIRED_RATES.filter(r => corpus.includes(r));
+  check(foundRetired.length === 0,
+    `no retired per-1M rate strings (${foundRetired.join(", ") || "none"})`);
+
+  /* Cache minimums are per-model and run OPPOSITE to price -- Haiku 4.5 needs
+     4,096 while Opus 5 needs 512. Every place in the app got this backwards by
+     pairing "1,024 Sonnet/Opus" with "2,048 Haiku", a figure that was never
+     right for 4.5. The pairing is what to catch: it reads as authoritative. */
+  check(!/2,?048[^.<]{0,40}Haiku|Haiku[^.<]{0,40}2,?048\s*(tokens|minimum)/i.test(corpus),
+    "no claim that Haiku's cache minimum is 2,048");
+  const floorClaims = /4,?096/.test(corpus) && /512/.test(corpus) && /1,?024/.test(corpus);
+  check(floorClaims, "all three cache floors (512 / 1,024 / 4,096) are taught");
+
+  /* The 85% cache discount was the most repeated wrong fact in the project --
+     17 places at the start of this pass, and it kept reappearing in content
+     written after the accuracy phase because it is the figure everyone
+     remembers. A cache read bills at 0.1x input, so the saving is 90%. */
+  // 'read' alone is too broad -- it matches 'readiness' in the score copy.
+  // The [^.<] boundary let a sentence break hide one: "...caching. Increase
+  // prefix size to enable 85% savings." Allow periods, exclude only tags.
+  const eightyFive = (corpus.match(/85\s*%[^<]{0,80}(cach|discount)|cach[^<]{0,80}85\s*%/gi) || []);
+  check(eightyFive.length === 0,
+    `no 85% cache discount claim (${eightyFive.slice(0, 2).join(" | ") || "none"})`);
 
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;

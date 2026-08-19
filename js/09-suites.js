@@ -94,7 +94,7 @@ function analyzeCachePrompt(){
     + (hasDynamicPrefix
         ? '<div style="background:rgba(217,119,87,0.12); border:1px solid var(--coral); padding:10px; border-radius:6px; color:var(--coral); font-weight:700;">❌ Critical Cache Invalidation: Dynamic prefix detected before static guidelines! Exact prefix matching requires static instructions first.</div>'
         : '<div style="background:rgba(90,158,111,0.12); border:1px solid var(--green); padding:10px; border-radius:6px; color:var(--green); font-weight:700;">✓ Prefix Alignment: Static instructions appear ahead of dynamic inputs.</div>')
-    + '<div style="background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:6px;"><b>Minimum Token Floor:</b> Ensure static prefix exceeds <b>1,024 tokens</b> for Sonnet/Opus and <b>2,048 tokens</b> for Haiku.</div>'
+    + '<div style="background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:6px;"><b>Minimum Token Floor:</b> The static prefix must exceed 512 tokens (Opus 5), 1,024 (Sonnet 5 and Opus 4.8) and 4,096 (Haiku 4.5). Check cache_read_input_tokens in the usage block to confirm it actually cached.</div>'
     + '<div style="background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:6px;"><b>Cache Cap:</b> Maximum of <b>4 cache_control breakpoints</b> allowed per request.</div>'
     + '</div>';
 }
@@ -373,6 +373,8 @@ function tokenProfilerLab(){
   const costCache = (cachedInput / 1000000) * 0.30;
   const costOutput = ((output + thinking) / 1000000) * 15.00;
   const totalCost = (costInput + costCache + costOutput).toFixed(4);
+  /* 2.70 = Sonnet 5 input ($3.00) minus the cache read rate ($0.30). The
+     arithmetic was right all along; only the label was stale. */
   const maxSavings = (((cachedInput / 1000000) * 2.70)).toFixed(4);
   
   $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
@@ -402,7 +404,7 @@ function tokenProfilerLab(){
     + '<div style="background:var(--bg); border:1.5px solid var(--border); border-radius:10px; padding:16px; text-align:center; margin-bottom:14px;">'
     + '<div style="font-size:11.5px; color:var(--muted); font-weight:700; text-transform:uppercase;">Calculated Request Cost (Claude Sonnet 5)</div>'
     + '<div style="font-size:32px; font-weight:900; color:var(--green); margin:4px 0;">$' + totalCost + '</div>'
-    + '<div style="font-size:12px; color:var(--blue); font-weight:700;">💰 Prompt Caching Saved: $' + maxSavings + ' (85% Read Discount)</div>'
+    + '<div style="font-size:12px; color:var(--blue); font-weight:700;">💰 Prompt Caching Saved: $' + maxSavings + ' (90% saved — reads bill at 0.1x input)</div>'
     + '</div>'
     + '</div>'
     + '</div>';
@@ -754,37 +756,77 @@ let paretoHitRate = 50;
 function paretoFrontierView(){
   if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
   renderHeader();
-  
   award("pareto_pioneer");
-  
-  const points = [
-    { name: "Claude Haiku 4.5", latency: "250ms", cost: "$0.80", pareto: true },
-    { name: "Claude Sonnet 5 (Cached)", latency: "400ms", cost: "$0.75", pareto: true },
-    { name: "Claude Sonnet 5 (Thinking)", latency: "1800ms", cost: "$3.45", pareto: true },
-    { name: "Claude Opus 5 (Uncached)", latency: "2500ms", cost: "$15.00", pareto: false }
+
+  /* This view used to plot hardcoded tail-latency figures that were invented
+     outright, alongside per-1k costs that were wrong by three orders of
+     magnitude, and a cache-hit slider that changed nothing but its own label. Cost is now computed from
+     the rate card for a stated workload, the frontier is derived rather than
+     asserted, and the axis that cannot be sourced is labelled as an ordering
+     rather than a measurement. */
+  const WORKLOAD = { staticPrefix: 4000, dynamicIn: 600, out: 500 };
+  const hit = paretoHitRate / 100;
+  /* Capability is a declared ordering, not a benchmark: it says Opus 5 sits
+     above Sonnet 5 sits above Haiku 4.5 on hard work, which is what the tiers
+     mean. It is not a score anyone measured, and it is not comparable across
+     task types -- on classification the ordering is nearly flat. */
+  const CANDIDATES = [
+    { name: "Haiku 4.5",            inM: 1.00, outM: 5.00,  capability: 1, cached: true,  note: "Fastest and cheapest; the ceiling is lower on multi-step reasoning." },
+    { name: "Sonnet 5",             inM: 3.00, outM: 15.00, capability: 2, cached: true,  note: "The default for coding and tool use." },
+    { name: "Opus 5",               inM: 5.00, outM: 25.00, capability: 3, cached: true,  note: "Highest ceiling on long-horizon and agentic work." },
+    { name: "Opus 5 (no caching)",  inM: 5.00, outM: 25.00, capability: 3, cached: false, note: "Same model, same answers, more money — the point of the exercise." }
   ];
-  
+  const priced = CANDIDATES.map(function(c){
+    const cachedIn  = c.cached ? WORKLOAD.staticPrefix * hit : 0;
+    const freshIn   = WORKLOAD.staticPrefix - cachedIn + WORKLOAD.dynamicIn;
+    const cost = (freshIn / 1e6) * c.inM
+               + (cachedIn / 1e6) * c.inM * 0.10   /* reads bill at 0.1x input */
+               + (WORKLOAD.out / 1e6) * c.outM;
+    return Object.assign({}, c, { cost: cost });
+  });
+  /* A point is on the frontier when nothing else is at least as capable AND
+     strictly cheaper. Derived every render, so the slider genuinely moves it:
+     at a 0% hit rate the uncached Opus row is not dominated, because caching
+     is buying nothing. */
+  priced.forEach(function(p){
+    p.pareto = !priced.some(function(o){
+      return o !== p && o.capability >= p.capability && o.cost < p.cost;
+    });
+  });
+  const dominated = priced.filter(function(p){ return !p.pareto; }).length;
+
   $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
     + '<div class="panel">'
-    + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
-    + '<div><span class="ltag" style="background:var(--green); color:#fff;">Tradeoff Analysis</span><h2 style="font-size:20px; margin-top:4px;">📈 Latency P99 vs Cost Pareto Frontier Explorer</h2></div>'
-    + '</div>'
-    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">Map P99 latency against request cost to identify optimal Pareto-efficient model architectures.</p>'
+    + '<div><span class="ltag" style="background:var(--green); color:#fff;">Tradeoff Analysis</span>'
+    + '<h2 style="font-size:20px; margin-top:4px;">📈 Cost vs Capability Pareto Frontier</h2></div>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin:8px 0 16px;">Cost is computed from the current rate card for one request of '
+    + (WORKLOAD.staticPrefix + WORKLOAD.dynamicIn).toLocaleString() + ' input tokens ('
+    + WORKLOAD.staticPrefix.toLocaleString() + ' of them a reusable static prefix) and '
+    + WORKLOAD.out + ' output tokens. A point sits on the frontier when nothing else is at least as capable and strictly cheaper.</p>'
     + '<div style="margin-bottom:16px; border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card);">'
     + '<label style="font-size:12px; font-weight:700; display:block; margin-bottom:6px;">Prompt Caching Hit Rate: ' + paretoHitRate + '%</label>'
     + '<input type="range" min="0" max="90" step="5" value="' + paretoHitRate + '" oninput="paretoHitRate=parseInt(this.value,10); paretoFrontierView()" style="width:100%;">'
     + '</div>'
     + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">'
-    + points.map(pt => '<div style="border:1.5px solid var(--border); border-radius:10px; padding:14px; background:var(--card);">'
-        + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">'
+    + priced.map(function(pt){ return '<div style="border:1.5px solid ' + (pt.pareto ? 'var(--green)' : 'var(--coral)') + '; border-radius:10px; padding:14px; background:var(--card);">'
+        + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:8px;">'
         + '<b style="font-size:13px; color:var(--ink);">' + pt.name + '</b>'
-        + (pt.pareto ? '<span style="color:var(--green); font-size:11px; font-weight:800;">Pareto Optimal ✓</span>' : '<span style="color:var(--coral); font-size:11px; font-weight:800;">Sub-optimal ⚠️</span>')
+        + (pt.pareto ? '<span style="color:var(--green); font-size:11px; font-weight:800;">On frontier ✓</span>'
+                     : '<span style="color:var(--coral); font-size:11px; font-weight:800;">Dominated ✗</span>')
         + '</div>'
-        + '<div style="font-size:12px; color:var(--muted);">P99 Latency: <b>' + pt.latency + '</b> · Cost / 1k: <b>' + pt.cost + '</b></div>'
-        + '</div>').join('')
+        + '<div style="font-size:12px; color:var(--muted);">Cost / request: <b>$' + pt.cost.toFixed(5) + '</b> · Capability tier: <b>' + pt.capability + ' of 3</b></div>'
+        + '<div style="font-size:11.5px; color:var(--muted); margin-top:6px; line-height:1.45;">' + pt.note + '</div>'
+        + '</div>'; }).join('')
+    + '</div>'
+    + '<div style="margin-top:14px; font-size:12px; color:var(--muted); line-height:1.6; background:var(--bg); border-radius:8px; padding:12px;">'
+    + (dominated > 0
+        ? '💡 At a ' + paretoHitRate + '% hit rate, ' + dominated + ' option is strictly dominated — same capability, higher cost. Dominated options are the only ones a cost review can remove for free; everything on the frontier is a real trade you have to argue about.'
+        : '💡 At a 0% hit rate nothing is dominated, because caching is buying nothing. Raise the slider and watch the uncached row fall off the frontier — that is the whole argument for caching, made without touching model choice.')
+    + '<br><br>Capability here is a declared ordering of the tiers, not a benchmark score, and it is not comparable across task types: on classification the three are far closer than the tiers suggest. Latency is deliberately absent — Anthropic publishes no figures to cite, and the ones this view used to show were invented.'
     + '</div>'
     + '</div>';
 }
+
 
 /* ================= 4. SPOKEN FLASHCARD AUDIO PODCAST GENERATOR ================= */
 let podcastState = { playing: false, idx: 0, speed: 1.0 };
@@ -1317,8 +1359,8 @@ function animatedConceptCards(){
      desc:'Your app calls the Messages API with model, max_tokens, messages[] and optional system prompt. The HTTPS request reaches Anthropic inference cluster in ~50 ms.'},
     {icon:'🗄️',color:'#5a9e6f',title:'2. Cache Prefix Check',
      desc:'Anthropic checks if the first N tokens match a cached prefix. Breakpoints set with cache_control:{type:"ephemeral"} at the END of stable text blocks. Min threshold: 1,024 tokens (Haiku: 2,048).'},
-    {icon:'⚡',color:'#5b7fa6',title:'3. Cache Hit → 85% Off',
-     desc:'Cache hit: prefix reused, read cost = 10% of write. Effective input savings up to 85%. TTL is 5 min of inactivity. Re-sending the same prefix resets the 5-minute clock.'},
+    {icon:'⚡',color:'#5b7fa6',title:'3. Cache Hit → reads at 0.1x input',
+     desc:'Cache hit: the prefix is reused and billed at 0.1x the INPUT rate — not 10% of the write rate, which is a different and larger number. That is a 90% saving on the cached portion only; dynamic tokens and output still bill in full, so the saving on the whole request is always smaller than the headline. TTL is 5 minutes of inactivity, and every read resets the clock.'},
     {icon:'🧠',color:'#8a6fae',title:'4. Model Inference',
      desc:'Claude processes the (fresh or cached) tokens through transformer layers. Extended thinking generates a <thinking> block before the final <text> response—visible in content[].'},
     {icon:'🌊',color:'#d97757',title:'5. Streaming Response',
@@ -1372,7 +1414,7 @@ function apiPayloadInspector(){
     cache:{
       label:'With Prompt Caching',
       req:JSON.stringify({model:'claude-sonnet-5',max_tokens:512,system:[{type:'text',text:'You are an expert Claude tutor. [1024+ tokens of stable context...]',cache_control:{type:'ephemeral'}}],messages:[{role:'user',content:'What is cache_control?'}]},null,2),
-      res:JSON.stringify({id:'msg_02Yk',type:'message',role:'assistant',content:[{type:'text',text:'cache_control marks the prefix breakpoint where Anthropic caches your input for 5 minutes, reducing re-send cost by 85%.'}],stop_reason:'end_turn',usage:{input_tokens:8,output_tokens:26,cache_creation_input_tokens:1250,cache_read_input_tokens:0}},null,2)
+      res:JSON.stringify({id:'msg_02Yk',type:'message',role:'assistant',content:[{type:'text',text:'cache_control marks the prefix breakpoint. The prefix is cached for 5 minutes, refreshed on every hit, and re-sends bill that portion at 0.1x the input rate — a 90% saving on the cached tokens, not on the whole request.'}],stop_reason:'end_turn',usage:{input_tokens:8,output_tokens:26,cache_creation_input_tokens:1250,cache_read_input_tokens:0}},null,2)
     },
     tool:{
       label:'Tool Use',
@@ -1980,7 +2022,7 @@ function tokenBudgetVisualizer(){
       warn.style.borderColor="#c94f4f";
       warn.style.color="#c94f4f";
     } else if(sys>=1024){
-      warn.textContent="💾 System prompt ≥ 1,024 tokens — eligible for cache_control! Potential 85% cost saving on re-sends.";
+      warn.textContent="💾 System prompt ≥ 1,024 tokens — above the Sonnet 5 and Opus 4.8 cache floor (Opus 5 needs only 512; Haiku 4.5 needs 4,096). Cached re-sends bill that prefix at 0.1x input.";
       warn.style.background="#5a9e6f22";
       warn.style.borderColor="#5a9e6f";
       warn.style.color="#5a9e6f";
@@ -2600,8 +2642,8 @@ function misconceptionDebunker(){
      field:"cache_control: {type: 'ephemeral'} placed as the last element of the static content block."},
     {myth:"Haiku has a lower cache_control token threshold than Sonnet.",
      why:"Cheaper, simpler models should have lower requirements.",
-     truth:"Haiku requires a HIGHER minimum: 2,048 tokens vs 1,024 for Sonnet and Opus. This is the single most-failed threshold question.",
-     field:"Cache minimum thresholds: Haiku=2048, Sonnet/Opus=1024."},
+     truth:"Haiku 4.5 requires the HIGHEST minimum of the three at 4,096 tokens, against 1,024 for Sonnet 5 and just 512 for Opus 5. The floors run opposite to price, so a prefix that caches happily on your most expensive model can silently fail to cache on your cheapest — which is exactly the direction a cost-optimisation refactor moves in.",
+     field:"Cache minimum prefix: Opus 5 = 512, Sonnet 5 and Opus 4.8 = 1,024, Haiku 4.5 = 4,096."},
     {myth:"You can have multiple system prompt turns in a messages[] array.",
      why:"You might want to inject context at different points in the conversation.",
      truth:"Only ONE system role turn is allowed, and it must be the FIRST message if present. All subsequent turns must alternate user/assistant.",
@@ -2725,8 +2767,9 @@ function cheatSheetGenerator(){
   const SECTIONS={
     numbers:{label:"Key Numbers & Thresholds",items:[
       {k:"Context Window",v:"1M tokens (Opus/Sonnet); 200K (Haiku 4.5)"},
-      {k:"Cache min — Sonnet/Opus",v:"1,024 tokens"},
-      {k:"Cache min — Haiku",v:"2,048 tokens"},
+      {k:"Cache min — Opus 5",v:"512 tokens"},
+      {k:"Cache min — Sonnet 5 / Opus 4.8",v:"1,024 tokens"},
+      {k:"Cache min — Haiku 4.5",v:"4,096 tokens (the highest, not the lowest)"},
       {k:"Cache TTL",v:"5 minutes (resets on each read)"},
       {k:"Cache read cost",v:"10% of full input token price"},
       {k:"Batch API discount",v:"50% off standard pricing"},

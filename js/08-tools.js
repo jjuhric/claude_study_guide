@@ -166,7 +166,7 @@ const SOCRATIC_TOPICS = [
   },
   {
     id: "caching_thresholds",
-    title: "Prompt Caching 1024 Token Minimum Threshold",
+    title: "Prompt Caching Minimum Prefix Thresholds",
     scenario: "Candidate asks: 'Why didn't my 300-token system prompt trigger a cache hit on Claude Sonnet 5?'",
     socraticSteps: [
       { speaker: "Candidate", text: "I added cache_control to my 300-token prompt, but cache_read_input_tokens was 0." },
@@ -721,7 +721,7 @@ function diagramSandboxView(){
   const allNodes = [
     { id: "client", name: "Client Query", cat: "Entry", icon: "🌐" },
     { id: "haiku_router", name: "Haiku Classifier", cat: "Routing", icon: "⚡" },
-    { id: "prompt_cache", name: "Prompt Cache (1024t+)", cat: "Optimization", icon: "💾" },
+    { id: "prompt_cache", name: "Prompt Cache (per-model floor)", cat: "Optimization", icon: "💾" },
     { id: "sonnet_specialist", name: "Sonnet Synthesis", cat: "Model", icon: "🧠" },
     { id: "mcp_server", name: "MCP Tool Host", cat: "Protocol", icon: "🔌" },
     { id: "microvm", name: "Firecracker MicroVM", cat: "Security", icon: "🔒" },
@@ -761,7 +761,7 @@ function validateTopologyGraph(){
   box.innerHTML = '<h4 style="font-size:14px; margin-bottom:8px; color:var(--green);">✓ Architectural Validation Report:</h4>'
     + '<div style="display:flex; flex-direction:column; gap:6px; font-size:12.5px;">'
     + '<div style="display:flex; justify-content:space-between; padding:8px 10px; background:var(--bg); border-radius:6px;"><span>Routing Tier:</span><b style="color:var(--green);">Haiku Classifier (Sub-400ms triage)</b></div>'
-    + '<div style="display:flex; justify-content:space-between; padding:8px 10px; background:var(--bg); border-radius:6px;"><span>Prompt Caching:</span><b style="color:var(--green);">Enabled on Static System Guidelines (85% off)</b></div>'
+    + '<div style="display:flex; justify-content:space-between; padding:8px 10px; background:var(--bg); border-radius:6px;"><span>Prompt Caching:</span><b style="color:var(--green);">Enabled on Static System Guidelines (reads at 0.1x input)</b></div>'
     + '<div style="display:flex; justify-content:space-between; padding:8px 10px; background:var(--bg); border-radius:6px;"><span>Tool Sandboxing:</span><b style="color:var(--green);">Enforced via Ephemeral MicroVM Container</b></div>'
     + '</div>';
 }

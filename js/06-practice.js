@@ -214,7 +214,7 @@ function modelRoiCalculatorView(){
     + '<div><span class="ltag" style="background:var(--gold); color:#1a1a1a;">FinOps Workbench</span><h2 style="font-size:20px; margin-top:4px;">💰 Model Cost & Latency ROI Calculator</h2></div>'
     + '<button class="btn ghost sm" onclick="copyRoiSummary()">📋 Copy Executive Brief</button>'
     + '</div>'
-    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Calculate exact monthly token spend and latency tradeoffs across Claude Sonnet 5, Haiku, and Opus with Prompt Caching (85% off) and Batch API (50% off).</p>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Calculate exact monthly token spend and latency tradeoffs across Claude Sonnet 5, Haiku, and Opus with Prompt Caching (reads at 0.1x input) and Batch API (50% off).</p>'
     + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-bottom:16px;">'
     + '<div style="border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--card);">'
     + '<h4 style="font-size:13.5px; margin-bottom:10px;">📊 Workload Parameters</h4>'

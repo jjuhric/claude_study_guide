@@ -13,8 +13,8 @@ function renderPromptCachingSimulator(container){
         <label><b>Model Tier:</b></label>
         <select id="wCacheModel" onchange="calcCacheSim()" style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:12.5px;">
           <option value="sonnet" selected>Claude Sonnet 5 ($3.00 base / $0.30 cached)</option>
-          <option value="haiku">Claude Haiku 4.5 ($0.80 base / $0.08 cached)</option>
-          <option value="opus">Claude Opus 5 ($15.00 base / $1.50 cached)</option>
+          <option value="haiku">Claude Haiku 4.5 ($1.00 base / $0.10 cached)</option>
+          <option value="opus">Claude Opus 5 ($5.00 base / $0.50 cached)</option>
         </select>
       </div>
       <div>
@@ -50,12 +50,16 @@ function calcCacheSim(){
   if (reqEl) reqEl.textContent = reqs + " requests";
   if (dynEl) dynEl.textContent = dyn.toLocaleString() + " tokens";
   
-  const minTokens = (model === "haiku") ? 2048 : 1024;
+  // Cache floors are per-model and are NOT ordered by tier: the cheapest
+  // model has the highest floor. docs/FACTS.md 7.
+  const minTokens = (model === "haiku") ? 4096 : (model === "opus") ? 512 : 1024;
   const isCacheable = prefix >= minTokens;
   
-  const baseRate = (model === "haiku") ? 0.80 : (model === "sonnet") ? 3.00 : 15.00;
-  const writeRate = baseRate * 1.25;
-  const readRate = baseRate * 0.15; // ~90% discount
+  const baseRate = (model === "haiku") ? 1.00 : (model === "sonnet") ? 3.00 : 5.00;
+  const writeRate = baseRate * 1.25;   // first store costs 25% more than input
+  const readRate = baseRate * 0.10;    // a cache read bills at 0.1x input
+  // readRate was 0.15 under a comment claiming "~90% discount" -- the code and
+  // its own comment disagreed, and the code was the wrong one of the two.
   
   // Cost WITHOUT caching
   const rawTotalTokens = reqs * (prefix + dyn);
@@ -83,7 +87,7 @@ function calcCacheSim(){
       <div style="background:rgba(217,119,87,0.12); border:1px solid var(--coral); border-radius:8px; padding:12px;">
         <b style="color:var(--coral);">⚠️ Cache Miss: Below Minimum Token Threshold</b><br>
         <span style="font-size:12px; color:var(--ink);">
-          Prefix is ${prefix.toLocaleString()} tokens, but <b>${model.toUpperCase()}</b> requires at least <b>${minTokens.toLocaleString()} tokens</b> to activate prompt caching. Increase prefix size to enable 85% savings.
+          Prefix is ${prefix.toLocaleString()} tokens, but <b>${model.toUpperCase()}</b> requires at least <b>${minTokens.toLocaleString()} tokens</b> to activate prompt caching. Note the floors are not ordered by tier — Haiku 4.5 needs 4,096 while Opus 5 needs only 512. cache_control below the floor is ignored silently, with no error. Increase prefix size to reach the floor, or accept that this prompt is too small for caching to pay.
         </span>
       </div>
     `;
@@ -105,7 +109,7 @@ function calcCacheSim(){
           </div>
         </div>
         <div style="font-size:11.5px; color:var(--muted); line-height:1.4;">
-          💡 <b>Exam Fact:</b> Cache writes cost 1.25x base on first turn, but subsequent turns save 85% ($0.15x base). Every cache read automatically refreshes the 5-minute TTL window.
+          💡 <b>Exam Fact:</b> The first turn writes the prefix at 1.25x input; every later turn reads it at 0.1x, a 90% saving on the cached portion. Each read refreshes the 5-minute TTL, so a steadily used prefix stays warm — but the write is only worth paying once, which is why a prefix that changes each call costs more than not caching at all.
         </div>
       </div>
     `;
@@ -208,7 +212,7 @@ const WAR_ROOM_SCENARIOS = [
         { id: "sonnet_raw", label: "Sonnet Direct for Everything", cost: 2100, lat: 1400, comp: 90, correct: false, note: "Slightly over budget without router filtering simple questions." }
       ],
       context: [
-        { id: "hybrid_rag_cache", label: "Prompt Caching on Medical Guidelines + Hybrid RAG for EHR", cost: -150, lat: -200, comp: 98, correct: true, note: "85% savings on static hospital guidelines with precise BM25 lookup for ICD-10 error codes." },
+        { id: "hybrid_rag_cache", label: "Prompt Caching on Medical Guidelines + Hybrid RAG for EHR", cost: -150, lat: -200, comp: 98, correct: true, note: "90% savings on the cached prefix on static hospital guidelines with precise BM25 lookup for ICD-10 error codes." },
         { id: "dump_full_ehr", label: "Dump Entire 50-Page Patient History into Prompt Context", cost: 900, lat: 1200, comp: 60, correct: false, note: "Wastes context window and risks context amnesia." }
       ],
       security: [
@@ -1154,7 +1158,7 @@ function sdkPlaygroundView(){
     + '</select>'
     + '</div>'
     + '<div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; padding-top:18px;">'
-    + '<label style="font-size:12.5px; font-weight:700;"><input type="checkbox" '+(sdkState.caching?'checked':'')+' onchange="setSdkOpt(\'caching\', this.checked)"> Prompt Caching (85% off)</label>'
+    + '<label style="font-size:12.5px; font-weight:700;"><input type="checkbox" '+(sdkState.caching?'checked':'')+' onchange="setSdkOpt(\'caching\', this.checked)"> Prompt Caching (reads at 0.1x input)</label>'
     + '<label style="font-size:12.5px; font-weight:700;"><input type="checkbox" '+(sdkState.thinking?'checked':'')+' onchange="setSdkOpt(\'thinking\', this.checked)"> Extended Thinking (2,048t)</label>'
     + '<label style="font-size:12.5px; font-weight:700;"><input type="checkbox" '+(sdkState.toolCall?'checked':'')+' onchange="setSdkOpt(\'toolCall\', this.checked)"> Tool Calling Schema</label>'
     + '</div>'

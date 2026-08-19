@@ -524,7 +524,7 @@ function renderModelDecisionTree(){
       <div class="tree-step">
         <label><b>3. Repeated Static Context:</b></label>
         <div id="treeQ3">
-          <span class="tree-opt active" onclick="setTreeStep(3, 'caching', this)">🔄 Yes (Shared System Prompt, FAQ, or Docs > 1,024 tokens)</span>
+          <span class="tree-opt active" onclick="setTreeStep(3, 'caching', this)">🔄 Yes (Shared System Prompt, FAQ, or Docs above the model cache floor — 512 Opus 5, 1,024 Sonnet 5, 4,096 Haiku 4.5)</span>
           <span class="tree-opt" onclick="setTreeStep(3, 'nocache', this)">❌ No (Short or Fully Unique Prompts)</span>
         </div>
       </div>
@@ -533,7 +533,7 @@ function renderModelDecisionTree(){
         <b>Recommended Architecture:</b> <span style="color:var(--coral-dark); font-weight:700;">Claude Haiku 4.5 + Prompt Caching</span><br>
         <span style="font-size:12.5px; line-height:1.5; color:var(--ink);">
           • <b>Model:</b> Claude Haiku 4.5 ($1.00 / $5.00 per MTok)<br>
-          • <b>Optimization:</b> Ephemeral Prompt Caching saves 85% on cached input tokens ($0.08 / MTok read).<br>
+          • <b>Optimization:</b> Prompt caching bills reads at 0.1x input — $0.10/MTok on Haiku 4.5, a 90% saving on the cached portion.<br>
           • <b>Key Exam Rationale:</b> Lightweight classification, routing, and high-throughput tagging should always default to Haiku.
         </span>
       </div>
@@ -571,7 +571,7 @@ function updateTreeModelResult(){
     + '<span style="font-size:12.5px; line-height:1.5; color:var(--ink);">'
     + '• <b>Base Pricing:</b> ' + pricing + ' per MTok<br>'
     + (treeState.q2 === 'batch' ? '• <b>Batches API:</b> 50% discount across input and output tokens.<br>' : '')
-    + (treeState.q3 === 'caching' ? '• <b>Prompt Caching:</b> ~90% discount on cached prefix reads ($0.08, $0.30, or $1.50/MTok).<br>' : '')
+    + (treeState.q3 === 'caching' ? '• <b>Prompt Caching:</b> reads bill at 0.1x input — $0.10, $0.30 or $0.50/MTok respectively.<br>' : '')
     + '• <b>Exam Rule:</b> ' + rationale
     + '</span>';
 }
@@ -820,7 +820,7 @@ const CRAM_DATA = {
         title: "⏱️ 8. 60-Second Last-Minute Exam Review",
         items: [
           "1. 100 words ≈ 130 tokens; Vision = (W × H) / 750.",
-          "2. Prompt Caching saves 85% on reads (5-min TTL, min 1024 Sonnet / 2048 Haiku tokens).",
+          "2. Prompt caching bills reads at 0.1x input, a 90% saving (5-min TTL; minimum prefix 512 Opus 5 / 1,024 Sonnet 5 / 4,096 Haiku 4.5 — not ordered by tier).",
           "3. Batches API saves flat 50% for asynchronous 24-hr batch jobs.",
           "4. Role prompts set tone and vocabulary, NOT capability or factuality.",
           "5. Fluency carries 0% correlation with truthfulness.",
@@ -864,7 +864,7 @@ const CRAM_DATA = {
       {
         title: "⚡ 3. Prompt Caching & Batches API Specifications",
         items: [
-          "<b>Minimum Cache Breakpoint:</b> <b>1,024 tokens</b> (Sonnet/Opus); <b>2,048 tokens</b> (Haiku). Sub-minimum prefixes fail silently without caching.",
+          "<b>Minimum Cache Breakpoint:</b> 512 tokens (Opus 5), 1,024 (Sonnet 5 and Opus 4.8) and 4,096 (Haiku 4.5). The floors are not ordered by tier — the cheapest model has the highest one. A sub-minimum prefix fails silently: cache_control is ignored, no error is raised, and the only symptom is cache_read_input_tokens staying at 0.",
           "<b>Cache Pricing & TTL:</b> 5-minute TTL (refreshes on hit). Cache write: 1.25x base input. Cache read: <b>0.15x base input (~90% discount)</b>.",
           "<b>Cache Placement:</b> Attach <code>'cache_control': {'type': 'ephemeral'}</code> to system prompt, tool definitions, or large reference documents. Max 4 breakpoints.",
           "<b>Batches API:</b> <code>POST /v1/messages/batches</code>. Max 10,000 requests, 32MB payload, 24-hr SLA, <b>flat 50% discount</b> on input and output tokens."

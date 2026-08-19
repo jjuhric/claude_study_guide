@@ -110,7 +110,7 @@ const TOOLS = [
   {fn:"whiteboardDuelView",      em:"⚔️", name:"Whiteboard Duel",             desc:"Real-time architecture whiteboarding, head to head.",                cta:"Start Duel",         g:"practice"},
 
   {fn:"confidenceCalibrationView",em:"🎚️",name:"Confidence Calibration",      desc:"Brier score on where confidence and correctness diverge.",           cta:"Check Calibration",  g:"diagnostics"},
-  {fn:"paretoFrontierView",      em:"📈", name:"Cost vs Latency Frontier",    desc:"Explore the P99 latency and cost Pareto frontier.",                  cta:"Explore Frontier",   g:"diagnostics"},
+  {fn:"paretoFrontierView",      em:"📈", name:"Cost vs Capability Frontier", desc:"See which model choices are dominated — same capability, higher cost.", cta:"Explore Frontier",   g:"diagnostics"},
 
   {fn:"examCountdownPlannerView",em:"🗓️", name:"Exam Countdown Planner",      desc:"Daily pacing plan against your booked exam date.",                   cta:"Plan Countdown",     g:"reference"},
   {fn:"studyRoadmapView",        em:"🛣️", name:"Study Roadmap",               desc:"Milestone roadmap through the whole syllabus.",                      cta:"View Roadmap",       g:"reference"},
