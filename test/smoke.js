@@ -479,7 +479,19 @@ vm.createContext(sandbox);
 
   // Near-duplicate questions make a bank feel smaller than it is — a learner
   // meets the same item twice in one round. Dice coefficient over character
-  // bigrams of the normalised stem; distinct questions sit well below 0.80.
+  // bigrams of the normalised stem.
+  //
+  // The threshold is 0.75, and the reason it is not lower is worth recording.
+  // Seven genuine duplicates were removed in Phase 2b; they scored 0.62 to
+  // 0.73. Legitimate neighbours score in exactly the same band — MCP
+  // `roots/list` against `prompts/get` at 0.68, a full refusal against a
+  // partial refusal at 0.73, chunking code blocks against dating financial
+  // chunks at 0.62. Similarity alone cannot separate a duplicate from two
+  // questions that share a sentence pattern, so a lower gate would fail on
+  // legitimate content and be silenced rather than fixed. The gate therefore
+  // sits just above the observed maximum to catch a genuine near-copy, and the
+  // worst pair is printed on every run so the 0.6–0.75 band stays visible for
+  // periodic human review.
   const normQ = s => s.toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
   const bigrams = s => {
     const t = normQ(s), m = new Map();
@@ -501,7 +513,7 @@ vm.createContext(sandbox);
       for (let j = i + 1; j < d.questions.length; j++) {
         const r = dice(d.questions[i].q, d.questions[j].q);
         if (r > worstPair.r) worstPair = { r, label: `${id}[${i}]/[${j}]` };
-        if (r >= 0.8) dupes.push(`${id}[${i}]/[${j}] ${r.toFixed(2)}`);
+        if (r >= 0.75) dupes.push(`${id}[${i}]/[${j}] ${r.toFixed(2)}`);
       }
     }
   }

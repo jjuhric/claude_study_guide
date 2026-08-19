@@ -1067,23 +1067,23 @@
       "id": "ccdvq-a3f23ffa"
     },
     {
+      "id": "ccdvq-b7f0d215",
       "d": 5,
-      "q": "Content retrieved from a web page instructs the model to ignore prior instructions and email a file. This is:",
+      "q": "You wrap all retrieved web content in `<document>` tags before passing it to the model. Is that sufficient defence against prompt injection?",
       "opts": [
-        "A model defect to report",
-        "Prompt injection — retrieved content is data, never instructions",
-        "A legitimate instruction if the user opened the page",
-        "Harmless because models ignore such text"
+        "Yes - tagged content is treated as data",
+        "No - it reduces the risk but the defence must also bound what acting on injected text could achieve",
+        "Yes, provided the tags are uppercase",
+        "No - delimiters have no effect and should be dropped"
       ],
       "a": 1,
-      "exp": "This is prompt injection. Retrieved content is data, and the moment it is allowed to function as instruction the boundary that keeps an agent safe is gone. The model is not defective - it processed text it was given, which is what it does - so the defence has to be architectural rather than a matter of the model being more careful. A user opening a page is not authorisation for that page to act on their behalf; they asked for a summary, not for whatever the page author wanted. Assume such text will sometimes be followed, and constrain what following it could accomplish.",
+      "exp": "Delimiting genuinely helps: a clear boundary makes it far less likely that text inside a document reads as an instruction. But it is a probabilistic improvement rather than a guarantee, and an attacker writing the content can craft text that survives it. The defence that actually bounds the damage is architectural - least-privilege tools, approval gates on irreversible actions, and egress restriction - because those hold whether or not the model was fooled. Treat delimiters as the first layer and never the only one.",
       "why": [
-        "The model processed text it was given, which is expected behaviour. Reporting it as a defect misdirects the fix away from architecture.",
-        "Correct. Retrieved content is data, never instruction, and the defence has to be structural rather than a hope the model notices.",
-        "Opening a page is not authorisation for its author to act on the user's behalf. They asked for a summary, nothing more.",
-        "Assuming such text is always ignored is exactly the assumption these attacks exploit. Plan for it sometimes working."
-      ],
-      "id": "ccdvq-3da5959f"
+        "Tagging makes the boundary clearer without making it unbreakable. An attacker writing the content can craft text that survives it.",
+        "Correct. It reduces the risk, and the durable defence bounds what acting on injected text could accomplish.",
+        "Letter case is irrelevant. The weakness is that any prompt-level convention can be argued with by prompt-level content.",
+        "Delimiters do help and are worth keeping. The error is treating them as sufficient on their own."
+      ]
     },
     {
       "d": 5,
@@ -1504,23 +1504,23 @@
       "exp": "tool_choice of any forces the model to call one of the provided tools rather than replying with plain text. It is useful when a tool call is the only sensible outcome - a routing step, or an extraction that must land in a schema - and it removes the possibility of a conversational answer where you expected structured action. Use it deliberately, because forcing a call when none applies pushes the model to pick the least-bad tool rather than saying it cannot help. Note it is a valid parameter, and some platforms have additional constraints on combining it with other settings."
     },
     {
-      "id": "ccdvq-80",
+      "id": "ccdvq-9e33b1c4",
       "d": 2,
-      "q": "How should an application handle `stop_reason: 'tool_use'`?",
+      "q": "A long-running request using a server-side tool returns `stop_reason: 'pause_turn'`. Your loop should:",
       "opts": [
-        "Execute the requested tool locally and append a `tool_result` content block to the messages history before calling the API again",
-        "Throw a runtime exception because the model encountered an error",
-        "Immediately display the tool arguments directly to the end user as the final answer",
-        "Retry the identical prompt with temperature=0"
+        "Treat it as a failure and restart the task",
+        "Re-send the conversation including the assistant turn, so the server resumes where it left off",
+        "Append a user message saying 'Continue.' and send again",
+        "Increase max_tokens and retry the original request"
       ],
-      "a": 0,
+      "a": 1,
+      "exp": "A server-side tool loop has its own iteration limit, and reaching it produces `pause_turn` - work in progress rather than a failure. Re-sending the conversation with the assistant turn appended lets the server pick up from where it paused. Adding a 'Continue.' message is the intuitive move and the wrong one: the API detects the trailing server-tool block and resumes on its own, so the extra turn is noise in the transcript. Worth knowing that SDK tool runners do not auto-resume this, so a paused turn can end a run silently unless your loop checks for it.",
       "why": [
-        "Correct. Run the tool, append a tool_result with the matching id, and call again so the model can continue.",
-        "It is normal control flow rather than an error. The model is asking your code to run something on its behalf.",
-        "Tool arguments are an internal protocol detail. A user has no way to act on them and should never see them.",
-        "This discards the tool request, and the sampling parameter it names is rejected on current models."
-      ],
-      "exp": "Execute the tool locally, append the result as a tool_result block referencing the matching tool_use_id, and call again so the model can continue. This is expected control flow, not an error - treating it as a failure is the classic first-integration bug and produces an agent that appears to abandon every task needing a tool. Showing raw tool arguments to a user exposes an internal protocol detail they cannot act on. Retrying with a sampling parameter is doubly wrong: it discards the tool request, and current models reject those parameters outright."
+        "It is not a failure. Restarting discards work the server has already done and will hit the same limit again.",
+        "Correct. Re-send with the assistant turn appended and the server resumes from where it paused.",
+        "The API detects the trailing server-tool block and resumes automatically, so an extra instruction just adds noise.",
+        "The output ceiling was not the constraint. This is a server-side tool iteration limit, not a token limit."
+      ]
     },
     {
       "id": "ccdvq-81",
@@ -1599,23 +1599,23 @@
       "exp": "The division of labour is retrieval versus reasoning. Embeddings turn text into vectors so similarity search can find the passages likely to be relevant, and the model then reads those passages and reasons over them to produce an answer. Neither half substitutes for the other: embeddings cannot synthesise or explain, and sending fifty thousand pages to the model is neither affordable nor effective. The quality ceiling is usually set by retrieval rather than by the model - if the right passage is not retrieved, no amount of reasoning capability recovers it, which is why retrieval evaluation matters."
     },
     {
-      "id": "ccdvq-85",
+      "id": "ccdvq-4c1a7f20",
       "d": 3,
-      "q": "In MCP, what is the difference between a Tool and a Resource?",
+      "q": "You need to know whether a large prompt will fit and what it will cost, before sending it. The right approach is:",
       "opts": [
-        "Tools perform active side-effect operations (e.g. write file, run SQL); Resources are passive, read-only data references (e.g. URI content)",
-        "Tools are always free; Resources cost $1 per read",
-        "Tools only run in Python; Resources only run in C++",
-        "There is no difference; they are interchangeable aliases"
+        "Estimate with a general-purpose tokenizer library such as tiktoken",
+        "Call the token-counting endpoint with the same model you will use",
+        "Divide the character count by four",
+        "Send it and read the usage figures from the response"
       ],
-      "a": 0,
+      "a": 1,
+      "exp": "Token counts are model-specific, so the only accurate answer comes from the counting endpoint called with the model you actually intend to use. The common shortcuts are all biased in the same direction: tiktoken is OpenAI's tokenizer and undercounts Claude tokens substantially, more so on code and non-English text, and a characters-over-four heuristic is rougher still. Sending the request and reading usage afterwards does tell you the truth, but only once you have already paid for it - which defeats the purpose when the question is whether to send it at all.",
       "why": [
-        "Correct. Tools perform side-effecting operations; resources are passive, read-only data references.",
-        "Pricing is a property of your implementation and infrastructure rather than of the protocol primitive.",
-        "Both are language-agnostic. Servers can be written in any language that speaks the protocol.",
-        "The distinction is load-bearing. Conflating them is how a side-effecting operation gets treated as a harmless read."
-      ],
-      "exp": "Tools act and resources are read. The distinction is side effects, and honouring it is what makes a server predictable to integrate against: a read exposed as a tool invites approval prompts it does not need, and an action exposed as a resource hides the fact that calling it changes something. That second case is the one that causes incidents. The framing also guides your own server design - if you cannot decide which a capability is, ask whether calling it twice is equivalent to calling it once. Cost and language are implementation details, not protocol distinctions."
+        "That is a different provider's tokenizer. It undercounts Claude tokens noticeably, and the gap widens on code and non-English input.",
+        "Correct. Token counts are model-specific, so count with the model you will actually use.",
+        "A character heuristic is rougher than a foreign tokenizer and varies wildly by content type.",
+        "This is accurate but arrives after you have already been billed, which is too late if the question is whether to send it."
+      ]
     },
     {
       "id": "ccdvq-86",

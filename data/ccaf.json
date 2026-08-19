@@ -801,23 +801,23 @@
       "id": "ccafq-28c1de46"
     },
     {
+      "id": "ccafq-3d90e6a1",
       "d": 3,
-      "q": "A tool returns 5,000 rows when the agent needs a handful. The right change is:",
+      "q": "Claude returns three tool_use blocks in one response. Your harness executes them and sends the results back. The correct shape is:",
       "opts": [
-        "Increase the context window",
-        "Add pagination and filtering parameters so the agent requests only what it needs",
-        "Summarize the rows with another model call",
-        "Accept it as the cost of completeness"
+        "Three separate user messages, one per tool result",
+        "A single user message containing all three tool_result blocks",
+        "One message with the results concatenated into a text block",
+        "Whichever order the tools finished in, as separate turns"
       ],
       "a": 1,
-      "exp": "Add pagination and filtering so the agent requests only what it needs. Selection belongs in the tool, where code can do it precisely and cheaply, rather than in the context window where five thousand rows crowd out reasoning and get re-paid for on every subsequent turn. A larger window raises the ceiling without addressing the waste. Summarising with another model call pays a second time to discard data you should not have fetched. Accepting it as the cost of completeness misidentifies context as free.",
+      "exp": "Return every result for a turn in one user message. This looks like a formatting detail and is not: splitting parallel results across several messages teaches the model that its parallel calls were handled sequentially, and it becomes measurably less likely to batch calls in future turns - so the harness quietly degrades its own throughput. Each result must carry the `tool_use_id` it answers, so ordering within the message does not matter. A failed tool still gets a `tool_result` with the error flag set rather than being omitted.",
       "why": [
-        "A larger window makes the waste affordable for longer without reducing it, and every later turn still carries the rows.",
-        "Correct. Pagination and filtering push selection into the tool, where code can do it precisely and cheaply.",
-        "A second model call pays again to discard data that should not have been retrieved in the first place.",
-        "Context is the scarce resource in an agent loop. Treating it as free is what causes this problem."
-      ],
-      "id": "ccafq-a5d7a5b2"
+        "Splitting results across messages trains the model away from making parallel calls, which costs throughput on every later turn.",
+        "Correct. All results in a single user message, each referencing the tool_use_id it answers.",
+        "Concatenating into text discards the block structure and the ids that pair each result with its request.",
+        "Completion order is irrelevant, and splitting by it reintroduces the multi-message problem."
+      ]
     },
     {
       "d": 3,
@@ -896,23 +896,23 @@
       "id": "ccafq-48bd8a24"
     },
     {
+      "id": "ccafq-8b21c4de",
       "d": 4,
-      "q": "An agent occasionally repeats the same failing action indefinitely. The right safeguard is:",
+      "q": "A RAG system answers poorly. Before changing the model or the prompt, what should you measure?",
       "opts": [
-        "A longer system prompt",
-        "Repeated-failure detection with a cap, then escalation to a different strategy or a human",
-        "A larger context window",
-        "Removing the tool"
+        "Average response length",
+        "Whether retrieval returned the passages that actually contain the answer",
+        "Total tokens per query",
+        "How long generation takes"
       ],
       "a": 1,
-      "exp": "Detect the repetition, cap it, and escalate. The detection is what makes this efficient - an iteration ceiling alone lets the same failing call burn the entire budget before it fires, whereas noticing three identical failures ends it immediately. Escalation is what makes it recoverable: a different strategy or a human, rather than simply stopping in an undefined state. A longer prompt does not impose a bound, a larger window just holds more of the same failure, and removing the tool discards a capability to solve a control problem.",
+      "exp": "Retrieval and generation fail in different ways and need separating before either is tuned. If the right passage never reached the context, no model and no prompt can recover it - the ceiling on the whole system is set by what retrieval fetches. Measure that directly: take questions with known answers, check whether the containing passage appears in the retrieved set, and only then look at whether the model reasoned well over what it received. Teams routinely spend weeks on prompts for a problem that was retrieval all along, because both failures look identical in the final answer.",
       "why": [
-        "Instructions do not impose a hard bound. The loop can ignore guidance and continue.",
-        "Correct. Detect the repetition, cap it, and escalate to a different strategy or a human so the run ends recoverably.",
-        "More context holds more of the same repeated failure. It does not stop the repetition.",
-        "Removing the tool loses a capability to solve a control-flow problem that guards would fix directly."
-      ],
-      "id": "ccafq-c0ab68e8"
+        "Length describes the output's shape rather than whether the material needed to answer was ever supplied.",
+        "Correct. If retrieval did not return the passage containing the answer, no prompt or model change can recover it.",
+        "Token count is a cost measure and says nothing about whether the retrieved content was relevant.",
+        "Latency is a performance property, unrelated to whether the right passages were found."
+      ]
     },
     {
       "d": 4,

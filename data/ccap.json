@@ -554,23 +554,23 @@
       "id": "ccapq-34d2ef39"
     },
     {
+      "id": "ccapq-1a9c5e88",
       "d": 1,
-      "q": "An agent completes ninety percent of a task then fails. Users receive nothing. The design fix is:",
+      "q": "Your fallback chain silently serves answers from a weaker model during an outage. The design problem is:",
       "opts": [
-        "A larger model",
-        "Persist intermediate results so a late failure still delivers completed work",
-        "Longer timeouts",
-        "Retry the whole task automatically"
+        "The weaker model costs less, so quality is being over-paid for",
+        "Users and downstream systems cannot tell a degraded answer from a normal one, so they trust it equally",
+        "Fallbacks should never be used in production",
+        "The chain should retry the primary model indefinitely instead"
       ],
       "a": 1,
-      "exp": "Persist intermediate results so a late failure still delivers what was completed. That converts a total loss into a partial success, which on a long task is the difference between a frustrating system and an unusable one - and it also gives you a resume point rather than a restart. A larger model does not change what happens when a run fails at the end. Longer timeouts address one cause of failure among many, and retrying the whole task pays again for everything that already worked.",
+      "exp": "Graceful degradation is only graceful if the consumer knows it happened. An answer served from a fallback tier may be perfectly usable, or may be materially weaker on exactly the hard cases that matter - and a caller with no signal treats both identically, which is how a quiet outage becomes a quality incident nobody attributes correctly. Surface which tier answered: in the response metadata for downstream systems, and visibly where a person is relying on it for a consequential decision. It also makes the outage measurable afterwards, since fallback rate becomes a metric rather than an inference.",
       "why": [
-        "Capability does not change what happens to completed work when a run fails late.",
-        "Correct. Persist intermediate results so a late failure still delivers the work already done.",
-        "Longer timeouts address one failure cause among many and do nothing to preserve completed work.",
-        "Retrying everything repeats the successful ninety percent at full cost, and may hit the same failure again."
-      ],
-      "id": "ccapq-03cd4197"
+        "Cost is not the issue. A cheaper answer that nobody knows is a fallback is the problem, whatever it cost.",
+        "Correct. Without a signal, consumers trust a degraded answer exactly as much as a normal one.",
+        "Fallbacks are the right pattern. The gap is that the degradation is invisible, not that it exists.",
+        "Indefinite retry removes the fallback's purpose and leaves users waiting through the entire outage."
+      ]
     },
     {
       "d": 1,
@@ -763,23 +763,23 @@
       "id": "ccapq-78221971"
     },
     {
+      "id": "ccapq-6f4b0d73",
       "d": 3,
-      "q": "An agent observability stack should capture:",
+      "q": "An agent reaches the correct final answer, but the trace shows it got there by a route you would not sanction. Your evaluation should:",
       "opts": [
-        "Error counts only",
-        "Step-level traces — tool calls, inputs and outputs, tokens, latency — plus outcome metrics and sampled human review",
-        "Screenshots of the UI",
-        "Only the final answer"
+        "Score it as a pass, since the output was correct",
+        "Score the trajectory as well as the outcome, because a right answer by a wrong route will not generalise",
+        "Ignore traces and measure only end-state correctness",
+        "Fail every run whose path differs from the reference"
       ],
       "a": 1,
-      "exp": "Three layers, each catching what the others miss. Step-level traces show what happened inside a run - which tools ran, with what inputs, at what cost and latency. Outcome metrics show whether runs are succeeding, which traces alone do not tell you. Sampled human review of transcripts catches quality problems no metric was written to detect, and that is how silent degradation gets found. Error counts alone are the common gap: they see crashes and are blind to a system that runs cleanly and answers badly.",
+      "exp": "Outcome-only scoring rewards luck. An agent that reached the right answer by ignoring a required check, using a tool it should not have, or guessing where it should have verified, will produce a wrong answer on the next input that differs slightly - and outcome metrics will not have warned you. Scoring the trajectory catches that while the run still looks successful. The counterweight matters too: penalising every deviation from a reference path removes the adaptability that justified an agent over a fixed workflow, so the bar is whether the route was legitimate rather than whether it was the expected one.",
       "why": [
-        "Error counts detect crashes and are blind to a system that completes every run while producing poor output.",
-        "Correct. Step-level traces, outcome metrics, and sampled human review - each catching what the others cannot.",
-        "Interface screenshots capture appearance rather than the tool calls, costs and outcomes that need observing.",
-        "The final answer alone hides where a run went wrong, which is what makes a failure diagnosable."
-      ],
-      "id": "ccapq-864c7a14"
+        "Outcome-only scoring rewards a correct answer reached by luck, and gives no warning before the next input breaks it.",
+        "Correct. Score the trajectory as well as the outcome, since a right answer by an illegitimate route will not generalise.",
+        "Discarding traces removes the only evidence of how the answer was produced, which is what distinguishes robustness from luck.",
+        "Requiring an exact path removes the adaptability that justified using an agent rather than a fixed workflow."
+      ]
     },
     {
       "d": 3,
