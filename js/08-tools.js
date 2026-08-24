@@ -289,6 +289,10 @@ function publishProfileToLeaderboard(){
 
 
 /* ================= 1. VOICE-ACTIVATED COMMUTER QUIZ ================= */
+/* Same resumable pattern as the Hands-Free Audio Quiz in 06-practice.js:
+   Pause stops speech and aborts any in-progress mic listen without moving
+   the question index, and persists that index (plus the exact question set)
+   so Resume works both mid-session and after fully leaving the page. */
 let commuterState = {
   active: false,
   certId: "ccao",
@@ -298,25 +302,55 @@ let commuterState = {
   statusText: ""
 };
 
+function commuterKey(certId){ return 'commuter:' + certId; }
+
+function saveCommuterProgress(){
+  S.audioProgress = S.audioProgress || {};
+  S.audioProgress[commuterKey(commuterState.certId)] = {
+    idx: commuterState.idx,
+    total: commuterState.questions.length,
+    questionIds: commuterState.questions.map(q => q.id),
+    ts: Date.now()
+  };
+  save();
+}
+
+function clearCommuterProgress(certId){
+  S.audioProgress = S.audioProgress || {};
+  delete S.audioProgress[commuterKey(certId)];
+  save();
+}
+
+function getCommuterResume(certId){
+  const p = (S.audioProgress || {})[commuterKey(certId)];
+  return (p && p.questionIds && p.idx < p.questionIds.length) ? p : null;
+}
+
 function voiceCommuterView(){
   if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
   renderHeader();
-  
+
   award("voice_commuter");
-  
-  $("app").innerHTML = '<button class="back" onclick="stopCommuterMode(); home()">← Back</button>'
+  const resume = getCommuterResume(commuterState.certId);
+
+  $("app").innerHTML = '<button class="back" onclick="pauseCommuterMode(); home()">← Back</button>'
     + '<div class="panel center">'
     + '<div style="font-size:38px;">🎧</div>'
     + '<h2 style="font-size:20px; margin-top:6px;">Hands-Free Voice-Activated Commuter Quiz</h2>'
     + '<p class="subtext" style="margin-top:6px;">Listen to questions narrated via speech synthesis and speak your answer ("Option 1", "Two", "Three", "Four") hands-free.</p>'
     + '<div style="display:flex; justify-content:center; gap:10px; margin:16px 0; flex-wrap:wrap;">'
-    + '<select id="vcTrackSelect" onchange="commuterState.certId=this.value" style="padding:8px 12px; font-size:13px; font-weight:700; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--ink);">'
+    + '<select id="vcTrackSelect" onchange="pauseCommuterMode(); commuterState.certId=this.value; voiceCommuterView()" style="padding:8px 12px; font-size:13px; font-weight:700; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--ink);">'
     + CERTS.map(c => '<option value="' + c.id + '" ' + (c.id === commuterState.certId ? 'selected' : '') + '>' + c.code + ' · ' + c.name + '</option>').join('')
     + '</select>'
-    + '<button class="btn" onclick="startCommuterSession()">▶️ Start Hands-Free Session</button>'
+    + (!commuterState.active ? '<button class="btn" onclick="startCommuterSession()">▶️ Start Hands-Free Session</button>' : '')
+    + (resume && !commuterState.active ? '<button class="btn" onclick="resumeCommuterSession()">▶️ Resume (' + (resume.idx + 1) + '/' + resume.total + ')</button>' : '')
+    + (commuterState.active ? '<button class="btn ghost" onclick="pauseCommuterMode(); voiceCommuterView()">⏸️ Pause</button>' : '')
+    + (commuterState.active || resume ? '<button class="btn ghost" onclick="stopCommuterMode(); voiceCommuterView()">⏹️ End Session</button>' : '')
     + '</div>'
-    + '<div id="vcStage" style="display:none; border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:620px; margin:16px auto; text-align:left;"></div>'
+    + '<div id="vcStage" style="display:' + (commuterState.active ? 'block' : 'none') + '; border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:620px; margin:16px auto; text-align:left;"></div>'
     + '</div>';
+
+  if (commuterState.active) renderCommuterQuestion();
 }
 
 function startCommuterSession(){
@@ -325,11 +359,37 @@ function startCommuterSession(){
     loadCert(c).then(() => startCommuterSession());
     return;
   }
-  
+  clearCommuterProgress(commuterState.certId);
   commuterState.questions = sampleByDomain(c, 5).map(i => c.questions[i]);
   commuterState.idx = 0;
   commuterState.active = true;
-  
+
+  const stage = document.getElementById("vcStage");
+  if (stage) stage.style.display = "block";
+  renderCommuterQuestion();
+}
+
+/* Rebuilds the same question set from the saved ids and jumps to the saved
+   index, the same approach as the Hands-Free Audio Quiz's resume. */
+function resumeCommuterSession(){
+  const resume = getCommuterResume(commuterState.certId);
+  if (!resume) { startCommuterSession(); return; }
+  const c = CERTS.find(x => x.id === commuterState.certId) || CERTS[0];
+  if (!c._loaded) {
+    loadCert(c).then(() => resumeCommuterSession());
+    return;
+  }
+  const byId = {};
+  c.questions.forEach(q => { byId[q.id] = q; });
+  const rebuilt = resume.questionIds.map(id => byId[id]).filter(Boolean);
+  if (rebuilt.length !== resume.questionIds.length) {
+    toast('That saved session no longer matches the question bank — starting fresh.');
+    startCommuterSession();
+    return;
+  }
+  commuterState.questions = rebuilt;
+  commuterState.idx = resume.idx;
+  commuterState.active = true;
   const stage = document.getElementById("vcStage");
   if (stage) stage.style.display = "block";
   renderCommuterQuestion();
@@ -339,7 +399,7 @@ function renderCommuterQuestion(){
   const q = commuterState.questions[commuterState.idx];
   const stage = document.getElementById("vcStage");
   if (!stage || !q) return;
-  
+
   stage.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">'
     + '<span style="font-size:12px; font-weight:700; color:var(--muted);">Hands-Free Question ' + (commuterState.idx + 1) + ' of ' + commuterState.questions.length + '</span>'
     + '<span id="vcMicBadge" style="font-size:12px; font-weight:800; color:var(--coral);">🎙️ Listening...</span>'
@@ -355,57 +415,61 @@ function renderCommuterQuestion(){
     + '<button class="btn ghost sm" onclick="speakCommuterQuestion()">🔊 Re-play Audio</button>'
     + '<button class="btn sm" onclick="advanceCommuterQuestion(1)">Next Question →</button>'
     + '</div>';
-    
+
+  saveCommuterProgress();
   speakCommuterQuestion();
 }
 
 function speakCommuterQuestion(){
   if (typeof window === 'undefined' || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
-  
+
   const q = commuterState.questions[commuterState.idx];
   if (!q) return;
-  
+
   const text = q.q + ". Option 1: " + q.opts[0] + ". Option 2: " + q.opts[1] + ". Option 3: " + q.opts[2] + ". Option 4: " + q.opts[3];
   const utter = new SpeechSynthesisUtterance(text);
   utter.rate = 1.05;
-  
+
   utter.onend = () => {
+    if (!commuterState.active) return; // paused while the question was still speaking
     const sEl = document.getElementById("vcStatusText");
     if (sEl) sEl.textContent = "🎙️ Speak: 'Option 1', 'Option 2', 'Option 3', or 'Option 4'...";
     listenForCommuterAnswer();
   };
-  
+
   window.speechSynthesis.speak(utter);
 }
 
 function listenForCommuterAnswer(){
   const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRec) return;
-  
+
   try {
     const rec = new SpeechRec();
     rec.continuous = false;
     rec.interimResults = false;
-    
+    commuterState.recognition = rec;
+
     rec.onresult = (e) => {
+      if (!commuterState.active) return;
       const transcript = (e.results[0][0].transcript || "").toLowerCase();
       const sEl = document.getElementById("vcStatusText");
       if (sEl) sEl.textContent = "Heard: '" + transcript + "'";
-      
+
       let pick = -1;
       if (transcript.includes("one") || transcript.includes("1") || transcript.includes("first")) pick = 0;
       else if (transcript.includes("two") || transcript.includes("2") || transcript.includes("second")) pick = 1;
       else if (transcript.includes("three") || transcript.includes("3") || transcript.includes("third")) pick = 2;
       else if (transcript.includes("four") || transcript.includes("4") || transcript.includes("fourth")) pick = 3;
-      
+
       if (pick !== -1) {
         advanceCommuterQuestion(pick);
       } else {
         if (sEl) sEl.textContent = "Could not parse option number. Speak 'Option 1-4'...";
       }
     };
-    
+
     rec.start();
   } catch(e){}
 }
@@ -414,7 +478,7 @@ function advanceCommuterQuestion(pick){
   const q = commuterState.questions[commuterState.idx];
   const isOk = pick === q.a;
   playSound(isOk ? 'correct' : 'wrong');
-  
+
   if (commuterState.idx < commuterState.questions.length - 1) {
     commuterState.idx++;
     renderCommuterQuestion();
@@ -427,6 +491,8 @@ function finishCommuterSession(){
   const stage = document.getElementById("vcStage");
   if (!stage) return;
   addXP(30, "Commuter Audio Quiz");
+  commuterState.active = false;
+  clearCommuterProgress(commuterState.certId);
   stage.innerHTML = '<div style="text-align:center;">'
     + '<div style="font-size:44px; margin-bottom:6px;">🎉</div>'
     + '<h3 style="font-size:18px; margin-bottom:4px;">Commuter Quiz Completed!</h3>'
@@ -435,10 +501,26 @@ function finishCommuterSession(){
     + '</div>';
 }
 
-function stopCommuterMode(){
-  if (typeof window !== 'undefined' && window.speechSynthesis) {
-    window.speechSynthesis.cancel();
+/* Pause: stop speaking, abort any in-progress mic listen, keep idx exactly
+   where it is, and persist it so Resume works in-session or after leaving. */
+function pauseCommuterMode(){
+  if (!commuterState.active) return;
+  commuterState.active = false;
+  if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
+  if (commuterState.recognition) {
+    try { commuterState.recognition.abort(); } catch(e){}
+    commuterState.recognition = null;
   }
+  saveCommuterProgress();
+  toast("⏸️ Commuter quiz paused — resume anytime, even after leaving this page");
+}
+
+/* End Session: pause plus forget the saved position. */
+function stopCommuterMode(){
+  const certId = commuterState.certId;
+  pauseCommuterMode();
+  commuterState.active = false;
+  clearCommuterProgress(certId);
 }
 
 /* ================= 2. DYNAMIC WEAK-SPOT HEATMAP MATRIX ================= */

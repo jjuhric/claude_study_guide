@@ -829,50 +829,120 @@ function paretoFrontierView(){
 
 
 /* ================= 4. SPOKEN FLASHCARD AUDIO PODCAST GENERATOR ================= */
-let podcastState = { playing: false, idx: 0, speed: 1.0 };
+/* This used to call a helper named "speak text" that was never defined
+   anywhere in the app, so Play threw immediately and silently did nothing;
+   the "100 Leitner flashcards" briefing was one hardcoded sentence that
+   ignored podcastState
+   .idx entirely. Rebuilt on the shared resumable player against the real
+   deck: front, then the answer, per card, actually spoken. */
+let podcastState = { certId: 'all', speed: 1.0 };
+
+function podcastKey(){ return 'podcast:' + podcastState.certId; }
+
+function getPodcastDeck(){
+  const withCode = c => getAllCertCards(c).map(card => ({ card, certCode: c.code }));
+  if (podcastState.certId === 'all') {
+    let deck = [];
+    CERTS.forEach(c => { if (c._loaded) deck = deck.concat(withCode(c)); });
+    return deck;
+  }
+  const c = CERTS.find(x => x.id === podcastState.certId);
+  return (c && c._loaded) ? withCode(c) : [];
+}
+
+function podcastNeedsLoading(){
+  return podcastState.certId === 'all' ? CERTS.some(c => !c._loaded)
+    : !(CERTS.find(x => x.id === podcastState.certId) || {})._loaded;
+}
+
+function buildPodcastChunks(){
+  const deck = getPodcastDeck();
+  const chunks = [];
+  deck.forEach((entry, i) => {
+    chunks.push('Card ' + (i + 1) + ' of ' + deck.length + ', ' + entry.certCode + '. ' + entry.card.f);
+    chunks.push('The answer: ' + entry.card.b);
+  });
+  return chunks;
+}
 
 function audioPodcastExporter(){
   if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
   renderHeader();
-  
+
   award("podcast_producer");
-  
+  const key = podcastKey();
+  const resume = apResumePoint(key);
+  const deckSize = getPodcastDeck().length;
+
   $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
     + '<div class="panel center">'
     + '<div style="font-size:38px;">🎙️</div>'
     + '<h2 style="font-size:20px; margin-top:6px;">Spoken Flashcard Audio Podcast Briefing</h2>'
-    + '<p class="subtext" style="margin-top:6px;">Continuous spoken active recall streaming all 100 Leitner flashcards aloud with automated pause timing.</p>'
+    + '<p class="subtext" style="margin-top:6px;">Continuous spoken active recall streaming your Leitner flashcards aloud, card by card.</p>'
     + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:540px; margin:20px auto; text-align:left;">'
-    + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">'
+    + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">'
     + '<b>Audio Podcast Briefing Player</b>'
-    + '<select onchange="podcastState.speed=parseFloat(this.value)" style="padding:4px 8px; font-size:12px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink);">'
-    + '<option value="1.0">1.0x Speed</option>'
-    + '<option value="1.25">1.25x Speed</option>'
-    + '<option value="1.5">1.5x Speed</option>'
+    + '<div style="display:flex; gap:6px;">'
+    + '<select onchange="podcastPickDeck(this.value)" style="padding:4px 8px; font-size:12px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink);">'
+    + '<option value="all"' + (podcastState.certId === 'all' ? ' selected' : '') + '>All certs</option>'
+    + CERTS.map(c => '<option value="' + c.id + '"' + (podcastState.certId === c.id ? ' selected' : '') + '>' + c.code + '</option>').join('')
     + '</select>'
+    + '<select onchange="podcastSetSpeed(this.value)" style="padding:4px 8px; font-size:12px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink);">'
+    + '<option value="1.0"' + (podcastState.speed === 1.0 ? ' selected' : '') + '>1.0x Speed</option>'
+    + '<option value="1.25"' + (podcastState.speed === 1.25 ? ' selected' : '') + '>1.25x Speed</option>'
+    + '<option value="1.5"' + (podcastState.speed === 1.5 ? ' selected' : '') + '>1.5x Speed</option>'
+    + '</select>'
+    + '</div>'
     + '</div>'
     + '<div style="background:var(--bg); padding:16px; border-radius:10px; border:1px solid var(--border); text-align:center; margin-bottom:14px;">'
     + '<div style="font-size:32px; margin-bottom:6px;">🎧</div>'
-    + '<b style="font-size:14px;">Anthropic Certification High-Yield Audio Briefing</b>'
-    + '<div style="font-size:12px; color:var(--muted); margin-top:4px;">100 Spoken Flashcards · Leitner Spaced Recall</div>'
+    + '<b id="podcastNowPlaying" style="font-size:14px;">Anthropic Certification High-Yield Audio Briefing</b>'
+    + '<div style="font-size:12px; color:var(--muted); margin-top:4px;">' + deckSize + ' Spoken Flashcards · Leitner Spaced Recall</div>'
     + '</div>'
     + '<div style="display:flex; justify-content:center; gap:10px;">'
-    + '<button class="btn" onclick="togglePodcastPlayback()">' + (podcastState.playing ? '⏸️ Pause Podcast' : '▶️ Stream Audio Podcast') + '</button>'
+    + '<button id="podcastPlayBtn" class="btn" onclick="togglePodcastPlayback()">' + (apIsPlaying(key) ? '⏸️ Pause Podcast' : (resume ? '▶️ Resume (' + resume.idx + '/' + resume.total + ')' : '▶️ Stream Audio Podcast')) + '</button>'
+    + (resume && !apIsPlaying(key) ? '<button class="btn ghost" onclick="apStop(); audioPodcastExporter();">🔁 Start Over</button>' : '')
     + '</div>'
     + '</div>'
     + '</div>';
 }
 
-function togglePodcastPlayback(){
-  podcastState.playing = !podcastState.playing;
-  if (podcastState.playing) {
-    speakText("Welcome to the Anthropic Claude Certification Audio Briefing. Item 1: What is the minimum token floor for Prompt Caching on Claude Sonnet 5? Pause for answer... The answer is 1,024 tokens.");
-    toast("🎧 Audio podcast streaming started!");
-  } else {
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
-    toast("⏸️ Podcast paused.");
-  }
+function podcastPickDeck(certId){
+  apPause();
+  podcastState.certId = certId;
   audioPodcastExporter();
+}
+
+function podcastSetSpeed(v){
+  podcastState.speed = parseFloat(v) || 1.0;
+  if (apIsPlaying(podcastKey())) {
+    apPause();
+    togglePodcastPlayback();
+  }
+}
+
+function togglePodcastPlayback(){
+  const key = podcastKey();
+  if (apIsPlaying(key)) { apPause(); audioPodcastExporter(); return; }
+  if (podcastNeedsLoading()) {
+    toast('Loading flashcards…');
+    const certs = podcastState.certId === 'all' ? CERTS : [CERTS.find(x => x.id === podcastState.certId)];
+    Promise.all(certs.map(c => c._loaded ? Promise.resolve() : loadCert(c))).then(togglePodcastPlayback);
+    return;
+  }
+  const resumeAt = apStartIdxFor(key);
+  toast(resumeAt > 0 ? '▶️ Resuming podcast…' : '🎧 Audio podcast streaming started!');
+  apPlay(key, buildPodcastChunks(), {
+    startIdx: resumeAt,
+    rate: podcastState.speed,
+    voice: getBestVoice(),
+    onChunk: (idx, total) => {
+      const label = document.getElementById('podcastNowPlaying');
+      if (label) label.textContent = 'Card ' + (Math.floor(idx / 2) + 1) + ' of ' + Math.ceil(total / 2);
+    },
+    onStateChange: () => audioPodcastExporter(),
+    onDone: () => toast('✅ Podcast complete — great review session!')
+  });
 }
 
 
@@ -1122,23 +1192,65 @@ function cacheTTLSimulator(){
 }
 
 /* ================= 4. INTERACTIVE AUDIO SPEED-DRILL GAUNTLET ================= */
+/* The question used to be a single hardcoded line and the "Speak Answer"
+   button just toasted the same canned "recognized" line every time — no
+   audio ever played. It now cycles through a small bank of real questions
+   and actually speaks each one (pausable), even though the answer capture
+   itself stays a simulated mic tap rather than real speech recognition. */
+const SPEED_DRILL_QUESTIONS = [
+  { q: 'What is the recommended context utilization threshold for triggering proactive compaction?', a: '80% capacity' },
+  { q: 'What HTTP status code does budget_tokens return on Claude Opus 5?', a: '400 — the parameter is rejected' },
+  { q: 'Roughly what fraction of the input rate does a prompt cache read bill at?', a: 'About 0.1x the input rate' },
+  { q: 'What discount does the Batches API give on input and output tokens?', a: '50% off, within a 24-hour window' }
+];
+let speedDrillIdx = 0;
+
+function speedDrillKey(){ return 'drill:speed-gauntlet:' + speedDrillIdx; }
+
 function audioSpeedDrillView(){
   if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
   renderHeader();
-  
+
   award("speed_audio_specialist");
-  
+  const item = SPEED_DRILL_QUESTIONS[speedDrillIdx];
+  const key = speedDrillKey();
+
   $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
     + '<div class="panel center">'
     + '<div style="font-size:38px;">🎙️</div>'
     + '<h2 style="font-size:20px; margin-top:6px;">Interactive Audio Speed-Drill Gauntlet</h2>'
-    + '<p class="subtext" style="margin-top:6px;">10-second rapid voice answer challenges with live speech waveform feedback.</p>'
+    + '<p class="subtext" style="margin-top:6px;">Rapid-fire questions read aloud, answered hands-free.</p>'
     + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:540px; margin:20px auto; text-align:center;">'
-    + '<b style="font-size:14px; display:block; margin-bottom:8px; color:var(--coral);">Speed Challenge Question:</b>'
-    + '<p style="font-size:13px; font-weight:700; margin-bottom:16px;">What is the recommended maximum context capacity ratio before compaction?</p>'
-    + '<button class="btn" onclick="toast(&quot;🎙️ Spoken answer recognized: 80% Capacity! (+25 XP)&quot;)">🎙️ Speak Answer into Mic (10s Clock)</button>'
+    + '<b style="font-size:14px; display:block; margin-bottom:8px; color:var(--coral);">Speed Challenge Question ' + (speedDrillIdx + 1) + ' of ' + SPEED_DRILL_QUESTIONS.length + ':</b>'
+    + '<p style="font-size:13px; font-weight:700; margin-bottom:16px;">' + esc(item.q) + '</p>'
+    + '<div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">'
+    + '<button id="drillPlayBtn" class="btn ghost" onclick="toggleSpeedDrillAudio()">' + (apIsPlaying(key) ? '⏸️ Pause' : '🔊 Read Question Aloud') + '</button>'
+    + '<button class="btn" onclick="submitSpeedDrillAnswer()">🎙️ Speak Answer into Mic (10s Clock)</button>'
+    + '</div>'
     + '</div>'
     + '</div>';
+}
+
+function toggleSpeedDrillAudio(){
+  const key = speedDrillKey();
+  apToggle(key, () => [SPEED_DRILL_QUESTIONS[speedDrillIdx].q], {
+    rate: 1.05,
+    voice: getBestVoice(),
+    onStateChange: (playing) => {
+      const btn = document.getElementById('drillPlayBtn');
+      if (btn) btn.innerHTML = playing ? '⏸️ Pause' : '🔊 Read Question Aloud';
+    }
+  });
+}
+
+function submitSpeedDrillAnswer(){
+  const item = SPEED_DRILL_QUESTIONS[speedDrillIdx];
+  playSound('correct');
+  toast('🎙️ Answer: ' + item.a + ' (+25 XP)');
+  addXP(25, 'Speed Drill');
+  apStop();
+  speedDrillIdx = (speedDrillIdx + 1) % SPEED_DRILL_QUESTIONS.length;
+  audioSpeedDrillView();
 }
 
 
@@ -1227,29 +1339,103 @@ function codeSnippetAnnotator(){
 }
 
 /* ================= 4. SYNCHRONIZED AUDIO LECTURE & TRANSCRIPT ENGINE ================= */
+/* This used to render a fixed, fabricated "Lesson 12" transcript sample
+   whose only button just toasted "narration started" — nothing was ever
+   spoken. Rebuilt to actually narrate a chosen lesson (reusing the same
+   script-builder and resumable-audio engine as the in-lesson Listen button
+   in js/04-study.js), with the transcript panel showing the sentence
+   currently speaking in sync with the audio instead of a static sample. */
+let narratorState = { certId: 'ccao', lessonIdx: 0 };
+
+function narratorKey(){ return ttsAudioKey(narratorState.certId, narratorState.lessonIdx, 'brief'); }
+
 function lessonAudioNarrator(){
   if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
   renderHeader();
-  
+
   award("lecture_listener");
-  
+
+  const c = CERTS.find(x => x.id === narratorState.certId);
+  if (!c._loaded) {
+    $("app").innerHTML = '<button class="back" onclick="home()">← Back</button><div class="panel center"><p class="subtext">Loading lessons…</p></div>';
+    loadCert(c).then(lessonAudioNarrator);
+    return;
+  }
+  if (narratorState.lessonIdx >= c.lessons.length) narratorState.lessonIdx = 0;
+  const les = c.lessons[narratorState.lessonIdx];
+  const key = narratorKey();
+  const resume = apResumePoint(key);
+
   $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
     + '<div class="panel center">'
     + '<div style="font-size:38px;">🎙️</div>'
     + '<h2 style="font-size:20px; margin-top:6px;">Synchronized Audio Lecture & Transcript Player</h2>'
-    + '<p class="subtext" style="margin-top:6px;">Listen to high-yield audio lectures for each lesson with autoscrolling transcript highlights.</p>'
+    + '<p class="subtext" style="margin-top:6px;">Listen to a high-yield audio lecture for any lesson, with the transcript following along sentence by sentence.</p>'
     + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:580px; margin:20px auto; text-align:left;">'
+    + '<div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">'
+    + '<select onchange="narratorPickCert(this.value)" style="flex:1; min-width:140px; padding:6px 8px; font-size:12.5px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink);">'
+    + CERTS.map(cc => '<option value="' + cc.id + '"' + (cc.id === narratorState.certId ? ' selected' : '') + '>' + cc.code + '</option>').join('')
+    + '</select>'
+    + '<select onchange="narratorPickLesson(this.value)" style="flex:2; min-width:180px; padding:6px 8px; font-size:12.5px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink);">'
+    + c.lessons.map((l, i) => '<option value="' + i + '"' + (i === narratorState.lessonIdx ? ' selected' : '') + '>' + esc(l.h) + '</option>').join('')
+    + '</select>'
+    + '</div>'
     + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">'
     + '<b>Audio Lecture Control Panel</b>'
-    + '<span style="font-size:12px; color:var(--green); font-weight:700;">Status: Ready ▶️</span>'
+    + '<span id="narratorStatus" style="font-size:12px; color:var(--green); font-weight:700;">' + (apIsPlaying(key) ? '● Narrating…' : 'Status: Ready ▶️') + '</span>'
     + '</div>'
-    + '<div style="background:var(--bg); padding:14px; border-radius:8px; border:1px solid var(--border); font-size:12px; line-height:1.5; margin-bottom:14px;">'
-    + '📖 <b>Synchronized Lecture Transcript:</b><br>'
-    + '<i>"Welcome to Lesson 12: Extended Thinking & Reasoning Traces. Claude Sonnet 5 introduces controllable reasoning budgets via thinking blocks..."</i>'
+    + '<div id="narratorTranscript" style="background:var(--bg); padding:14px; border-radius:8px; border:1px solid var(--border); font-size:12px; line-height:1.5; margin-bottom:14px; min-height:44px;">'
+    + '📖 <b>Now speaking:</b><br><i>' + (apIsPlaying(key) ? 'Starting…' : 'Press play to begin.') + '</i>'
     + '</div>'
-    + '<button class="btn sm" onclick="toast(&quot;🎙️ Audio lecture narration started!&quot;)" style="width:100%;">▶️ Play Synchronized Audio Lecture</button>'
+    + '<button id="narratorPlayBtn" class="btn sm" onclick="toggleLessonAudioNarrator()" style="width:100%;">'
+    + (apIsPlaying(key) ? '⏸️ Pause' : (resume ? '▶️ Resume (' + resume.idx + '/' + resume.total + ')' : '▶️ Play Synchronized Audio Lecture'))
+    + '</button>'
     + '</div>'
     + '</div>';
+}
+
+function narratorPickCert(certId){
+  apPause();
+  narratorState.certId = certId;
+  narratorState.lessonIdx = 0;
+  lessonAudioNarrator();
+}
+
+function narratorPickLesson(idx){
+  apPause();
+  narratorState.lessonIdx = parseInt(idx, 10) || 0;
+  lessonAudioNarrator();
+}
+
+function toggleLessonAudioNarrator(){
+  const c = CERTS.find(x => x.id === narratorState.certId);
+  const les = c.lessons[narratorState.lessonIdx];
+  const key = narratorKey();
+  if (!apIsPlaying(key)) {
+    toast(apStartIdxFor(key) > 0 ? '▶️ Resuming lecture…' : '🎙️ Playing synchronized audio lecture…');
+  }
+  apToggle(key, () => splitIntoSentences(buildHighYieldAudioScript(les, 'brief')), {
+    rate: 1.0,
+    voice: getBestVoice(),
+    onChunk: (idx, total, text) => {
+      const t = document.getElementById('narratorTranscript');
+      if (t) t.innerHTML = '📖 <b>Now speaking (' + (idx + 1) + '/' + total + '):</b><br><i>' + esc(text) + '</i>';
+    },
+    onStateChange: (playing) => {
+      const btn = document.getElementById('narratorPlayBtn');
+      const status = document.getElementById('narratorStatus');
+      if (btn) {
+        const resume = apResumePoint(key);
+        btn.innerHTML = playing ? '⏸️ Pause' : (resume ? '▶️ Resume (' + resume.idx + '/' + resume.total + ')' : '▶️ Play Synchronized Audio Lecture');
+      }
+      if (status) status.textContent = playing ? '● Narrating…' : 'Status: Paused';
+    },
+    onDone: () => {
+      toast('✅ Lecture complete');
+      const t = document.getElementById('narratorTranscript');
+      if (t) t.innerHTML = '📖 <b>Now speaking:</b><br><i>Lecture complete — press play to listen again.</i>';
+    }
+  });
 }
 
 
@@ -1301,27 +1487,61 @@ function inlineLessonPlayground(){
 }
 
 /* ================= 3. 30-SECOND HIGH-YIELD AUDIO LESSON RECAPS ================= */
+/* Two problems fixed alongside the pause bug: the button used to just
+   toast "playing" without calling speechSynthesis at all, and one of the
+   three "rules" it displayed was fabricated (no source for "MicroVM tool
+   execution: Zero-trust memory wiping"), while another stated the prompt
+   cache floor as a flat 1,024 tokens — the real floors are per-model and
+   run opposite to price (512 on Opus 5, up to 4,096 on Haiku 4.5). */
+const AUDIO_RECAP_RULES = [
+  'Prompt caching minimums are per model and not ordered by recency: 512 tokens on Opus 5, 1,024 on Sonnet 5 and Opus 4.8, 4,096 on Haiku 4.5.',
+  'max_tokens caps thinking and response text together on current models — size it with headroom for both.',
+  'budget_tokens is rejected with a 400 on Opus 5, Sonnet 5, Opus 4.8 and 4.7. Use thinking of type adaptive with output_config.effort instead.'
+];
+
+function audioRecapKey(){ return 'recap:high-yield'; }
+
 function lessonAudioRecap(){
   if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
   renderHeader();
-  
+
   award("audio_recap_scholar");
-  
+  const key = audioRecapKey();
+  const resume = apResumePoint(key);
+
   $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
     + '<div class="panel center">'
     + '<div style="font-size:38px;">📖</div>'
     + '<h2 style="font-size:20px; margin-top:6px;">30-Second High-Yield Audio Lesson Recap</h2>'
-    + '<p class="subtext" style="margin-top:6px;">Listen to 30-second audio summaries highlighting the top exam-tested rules for each topic.</p>'
+    + '<p class="subtext" style="margin-top:6px;">Listen to a short audio summary highlighting top exam-tested rules.</p>'
     + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:540px; margin:20px auto; text-align:center;">'
     + '<b style="font-size:14px; display:block; margin-bottom:6px; color:var(--green);">High-Yield Exam Rules Summary:</b>'
-    + '<div style="font-size:12px; color:var(--muted); line-height:1.5; margin-bottom:14px;">'
-    + '1. Minimum token floor for Prompt Caching: 1,024 tokens on Sonnet/Opus.<br>'
-    + '2. <code>max_tokens</code> caps thinking <i>and</i> response text together — leave headroom for both.<br>'
-    + '3. MicroVM tool execution: Zero-trust memory wiping upon return.'
+    + '<div style="font-size:12px; color:var(--muted); line-height:1.5; margin-bottom:14px; text-align:left;">'
+    + AUDIO_RECAP_RULES.map((r, i) => (i + 1) + '. ' + r).join('<br>')
     + '</div>'
-    + '<button class="btn" onclick="toast(&quot;🎙️ Playing 30-second audio recap...&quot;)">▶️ Play 30-Second Audio Recap</button>'
+    + '<button id="recapPlayBtn" class="btn" onclick="toggleRecapPlayback()">'
+    + (apIsPlaying(key) ? '⏸️ Pause' : (resume ? '▶️ Resume (' + resume.idx + '/' + resume.total + ')' : '▶️ Play Audio Recap'))
+    + '</button>'
     + '</div>'
     + '</div>';
+}
+
+function toggleRecapPlayback(){
+  const key = audioRecapKey();
+  if (!apIsPlaying(key)) {
+    toast(apStartIdxFor(key) > 0 ? '▶️ Resuming recap…' : '🎙️ Playing audio recap…');
+  }
+  apToggle(key, () => AUDIO_RECAP_RULES.map((r, i) => 'Rule ' + (i + 1) + ': ' + r), {
+    rate: 1.0,
+    voice: getBestVoice(),
+    onStateChange: (playing) => {
+      const btn = document.getElementById('recapPlayBtn');
+      if (!btn) return;
+      const resume = apResumePoint(key);
+      btn.innerHTML = playing ? '⏸️ Pause' : (resume ? '▶️ Resume (' + resume.idx + '/' + resume.total + ')' : '▶️ Play Audio Recap');
+    },
+    onDone: () => toast('✅ Recap complete')
+  });
 }
 
 /* ================= 4. SOCRATIC WHAT-IF SCENARIO EXPLORER ================= */

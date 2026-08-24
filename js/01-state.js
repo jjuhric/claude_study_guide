@@ -38,6 +38,7 @@ function getFreshState(){
     cohortCode: "",
     examDate: "",
     voiceNotes: {},
+    audioProgress: {},
     notifsEnabled: false,
     dailyBossHistory: {},
     lang: "en",

@@ -110,6 +110,11 @@ const mkEl = id => ({
   classList: { _s: new Set(), add(c) { this._s.add(c); }, remove(c) { this._s.delete(c); }, contains(c) { return this._s.has(c); } },
   appendChild() {}, remove() {}, addEventListener() {}, focus() {}, setAttribute() {}, getAttribute: () => null,
   insertAdjacentHTML(pos, html) { this.innerHTML += html; },
+  // No real HTML parsing here, so a scratch element built via
+  // document.createElement("div") to strip tags out of innerHTML (the
+  // audio-script builders do this) finds nothing rather than throwing —
+  // an honest "no matches" rather than a faked parse.
+  querySelectorAll: () => [], querySelector: () => null,
 });
 // Four stand-in answer buttons so answer() can grade and annotate them.
 const optEls = [0, 1, 2, 3].map(i => mkEl("opt" + i));
@@ -158,6 +163,16 @@ const sandbox = {
     if (!fs.existsSync(f)) return Promise.resolve({ ok: false, status: 404 });
     return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(fs.readFileSync(f, "utf8"))) });
   },
+  // Enough of the Web Speech API to exercise the resumable audio player's
+  // synchronous state transitions (apPlay/apPause set AP.playing, AP.key and
+  // save progress before any timer fires). setTimeout above is a permanent
+  // no-op several other tests rely on, so the chunk-to-chunk advance inside
+  // apSpeakNext (which waits on it) never actually runs here — speak() below
+  // deliberately does not call utt.onend, matching that. Play/pause/resume
+  // across a chunk boundary is verified for real in the browser instead;
+  // this only pins the part that doesn't need a timer.
+  speechSynthesis: { speak() {}, cancel() {}, pause() {}, resume() {}, getVoices: () => [] },
+  SpeechSynthesisUtterance: class { constructor(text) { this.text = text; } },
 };
 sandbox.window = sandbox;
 vm.createContext(sandbox);
@@ -1640,6 +1655,58 @@ vm.createContext(sandbox);
   const staleBatchLimit = (corpus.match(/10,?000\s*requests|32\s*MB/gi) || []);
   check(staleBatchLimit.length === 0,
     `no stale Batches API limit -- 100,000 requests / 256MB, not 10,000 / 32MB (${staleBatchLimit.slice(0, 3).join(", ") || "none"})`);
+
+  /* ---------- 19. resumable audio: pause is real, and resume finds the app's own place ----------
+     Every "listen to X" feature used to reinvent playback control, and most
+     of it was broken: the podcast player called a speakText() that was
+     never defined anywhere (Play threw and did nothing), the synchronized
+     lecture player and the 30-second recap never called speechSynthesis at
+     all (their buttons just toasted "started"), and the one feature with a
+     working queue (the lesson narrator) could silently restart from the
+     beginning on resume depending on browser timing. speakText() must never
+     reappear under that name. */
+  check(!/\bspeakText\(/.test(corpus), "no call to the undefined speakText() that used to crash the podcast player");
+
+  /* The shared engine's synchronous state transitions -- the part that does
+     not depend on a timer firing (see the speechSynthesis stub note above) --
+     exercised directly. */
+  evalIn(`apPlay("test:engine", ["one","two","three"], {})`);
+  check(evalIn(`apIsPlaying("test:engine")`) === true, "apPlay marks the key as playing");
+  check(evalIn(`AP.idx`) === 0, "a fresh apPlay starts at index 0");
+  evalIn(`apPause()`);
+  check(evalIn(`apIsPlaying("test:engine")`) === false, "apPause stops playback");
+  check(evalIn(`AP.idx`) === 0, "apPause does not advance the index — nothing was skipped");
+  check(evalIn(`S.audioProgress["test:engine"] && S.audioProgress["test:engine"].idx === 0 && S.audioProgress["test:engine"].total === 3`) === true,
+    "pausing persists the exact position to S.audioProgress, not just in memory");
+  check(evalIn(`apStartIdxFor("test:engine")`) === 0, "apStartIdxFor reads the saved position back for the next apPlay");
+  // Simulate having advanced partway through the queue, the way apSpeakNext
+  // would once each utterance's onend fires, then pausing there.
+  evalIn(`AP.idx = 1; apPause()`);
+  check(evalIn(`S.audioProgress["test:engine"].idx`) === 1, "pausing partway through saves that exact position, not position 0");
+  check(evalIn(`apStartIdxFor("test:engine")`) === 1, "the next apPlay for this key would resume at 1, not restart at 0");
+  // A fresh apPlay() from a DIFFERENT key must not see the first key's saved
+  // position — resume points are per-key, not global.
+  check(evalIn(`apStartIdxFor("test:other")`) === 0, "an unrelated key has no resume point of its own");
+  evalIn(`apStop()`); // clears S.audioProgress["test:engine"] and returns AP to idle
+  check(evalIn(`S.audioProgress["test:engine"]`) === undefined, "apStop (Start Over) forgets the saved position, unlike apPause");
+  check(evalIn(`AP.key`) === null, "apStop fully releases the engine");
+
+  /* Every real feature's Play/Pause button reflects this correctly, checked
+     through the actual view-rendering code rather than the engine directly. */
+  // ttsPlayBtn's own innerHTML is what updateAudioControlsUI rewrites, not
+  // els.app.innerHTML — that's a static snapshot taken once when lessonView
+  // assigned it, and mutating a child element afterward doesn't flow back
+  // into it in this DOM shim. els is the same object the sandbox's
+  // getElementById reads from, so it's checked directly here.
+  evalIn(`S.audioProgress = {}`);
+  call("lessonView", "ccao", 0);
+  check(/▶️ Listen/.test(els.ttsPlayBtn.innerHTML), "a lesson with no playback history shows Listen, not a stale Resume label");
+  evalIn(`document.getElementById("ttsPlayBtn").onclick()`); // play
+  check(evalIn(`apIsPlaying(ttsAudioKey("ccao", 0, ttsMode))`) === true, "clicking Listen starts the lesson narrator on the engine");
+  check(/⏸️ Pause/.test(els.ttsPlayBtn.innerHTML), "the button relabels to Pause while playing");
+  evalIn(`document.getElementById("ttsPlayBtn").onclick()`); // pause
+  check(/▶️ Resume \(0\/\d+\)/.test(els.ttsPlayBtn.innerHTML), "pausing immediately shows a Resume label with a position, not a bare Listen");
+  evalIn(`ttsStop(); S.audioProgress = {}`);
 
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;

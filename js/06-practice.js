@@ -903,37 +903,74 @@ function pickTrapLine(i){
 }
 
 /* ================= 2. HANDS-FREE AUDIO QUIZ MODE ================= */
+/* Turn-by-turn (speak question -> timed reveal -> speak answer -> next) does
+   not fit the chunk-queue player in 02-ui.js, so this keeps its own timers
+   but borrows the same two ideas: Pause always leaves the current question
+   index in place rather than resetting it, and that position is persisted
+   to S.audioProgress (including which questions were in the shuffled set,
+   so resuming reopens the exact same session rather than a new shuffle) so
+   it survives leaving the view entirely, not just an in-session pause. */
 let audioQuizState = {
   certId: "ccao",
   active: false,
   idx: 0,
   questions: [],
-  timer: null
+  revealTimer: null,
+  nextTimer: null
 };
+
+function audioQuizKey(certId){ return 'quiz:' + certId; }
+
+function saveAudioQuizProgress(){
+  S.audioProgress = S.audioProgress || {};
+  S.audioProgress[audioQuizKey(audioQuizState.certId)] = {
+    idx: audioQuizState.idx,
+    total: audioQuizState.questions.length,
+    questionIds: audioQuizState.questions.map(q => q.id),
+    ts: Date.now()
+  };
+  save();
+}
+
+function clearAudioQuizProgress(certId){
+  S.audioProgress = S.audioProgress || {};
+  delete S.audioProgress[audioQuizKey(certId)];
+  save();
+}
+
+function getAudioQuizResume(certId){
+  const p = (S.audioProgress || {})[audioQuizKey(certId)];
+  return (p && p.questionIds && p.idx < p.questionIds.length) ? p : null;
+}
 
 function audioQuizView(){
   if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
   renderHeader();
-  
-  $("app").innerHTML = '<button class="back" onclick="stopAudioQuiz(); home()">← Back</button>'
+  const resume = getAudioQuizResume(audioQuizState.certId);
+
+  $("app").innerHTML = '<button class="back" onclick="pauseAudioQuiz(); home()">← Back</button>'
     + '<div class="panel center">'
     + '<div style="font-size:38px;">🎙️</div>'
     + '<h2 style="font-size:20px; margin-top:6px;">Hands-Free Audio Quiz (Active Recall)</h2>'
     + '<p class="subtext" style="margin-top:6px;">Study on the go. High-yield questions and 4-way explanations read aloud automatically with pause-and-reveal timing.</p>'
     + '<div style="display:flex; justify-content:center; gap:10px; margin:16px 0; flex-wrap:wrap;">'
-    + '<select id="aqTrackSelect" onchange="audioQuizState.certId=this.value" style="padding:8px 12px; font-size:13px; font-weight:700; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--ink);">'
+    + '<select id="aqTrackSelect" onchange="pauseAudioQuiz(); audioQuizState.certId=this.value; audioQuizView()" style="padding:8px 12px; font-size:13px; font-weight:700; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--ink);">'
     + CERTS.map(c => '<option value="' + c.id + '" ' + (c.id === audioQuizState.certId ? 'selected' : '') + '>' + c.code + ' · ' + c.name + '</option>').join('')
     + '</select>'
-    + '<button id="aqStartBtn" class="btn" onclick="startAudioQuizSession()">▶️ Start Audio Session</button>'
-    + '<button id="aqStopBtn" class="btn ghost" onclick="stopAudioQuiz()" style="display:none;">⏹️ Stop</button>'
+    + '<button id="aqStartBtn" class="btn" onclick="startAudioQuizSession()" style="display:' + (audioQuizState.active ? 'none' : 'inline-block') + ';">▶️ Start Audio Session</button>'
+    + (resume && !audioQuizState.active ? '<button id="aqResumeBtn" class="btn" onclick="resumeAudioQuizSession()">▶️ Resume (' + (resume.idx + 1) + '/' + resume.total + ')</button>' : '')
+    + '<button id="aqPauseBtn" class="btn ghost" onclick="pauseAudioQuiz()" style="display:' + (audioQuizState.active ? 'inline-block' : 'none') + ';">⏸️ Pause</button>'
+    + '<button id="aqStopBtn" class="btn ghost" onclick="stopAudioQuiz()" style="display:' + (audioQuizState.active || resume ? 'inline-block' : 'none') + ';">⏹️ End Session</button>'
     + '</div>'
-    + '<div id="aqDisplayCard" style="border:2px solid var(--border); border-radius:12px; padding:18px; background:var(--card); max-width:600px; margin:0 auto; text-align:left; display:none;">'
+    + '<div id="aqDisplayCard" style="border:2px solid var(--border); border-radius:12px; padding:18px; background:var(--card); max-width:600px; margin:0 auto; text-align:left; display:' + (audioQuizState.active ? 'block' : 'none') + ';">'
     + '<div id="aqStatus" style="font-size:12px; font-weight:700; color:var(--coral); margin-bottom:6px;"></div>'
     + '<div id="aqQuestionText" style="font-size:15px; font-weight:700; line-height:1.5; margin-bottom:12px;"></div>'
     + '<div id="aqOptionsText" style="font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:12px;"></div>'
     + '<div id="aqRationaleText" style="font-size:12.5px; border-left:3px solid var(--green); padding:8px 12px; background:var(--bg); display:none;"></div>'
     + '</div>'
     + '</div>';
+
+  if (audioQuizState.active) playAudioQuizTurn();
 }
 
 function startAudioQuizSession(){
@@ -943,17 +980,39 @@ function startAudioQuizSession(){
     loadCert(c).then(() => startAudioQuizSession());
     return;
   }
-  
+  clearAudioQuizProgress(audioQuizState.certId);
   audioQuizState.questions = shuffleArr(c.questions.slice()).slice(0, 10);
   audioQuizState.idx = 0;
   audioQuizState.active = true;
-  
-  document.getElementById("aqStartBtn") && (document.getElementById("aqStartBtn").style.display = "none");
-  document.getElementById("aqStopBtn") && (document.getElementById("aqStopBtn").style.display = "inline-block");
-  document.getElementById("aqDisplayCard") && (document.getElementById("aqDisplayCard").style.display = "block");
-  
+
   award("audio_scholar");
-  playAudioQuizTurn();
+  audioQuizView();
+}
+
+/* Rebuilds the exact same shuffled set from the saved question ids (rather
+   than a fresh shuffle) and jumps straight to the saved index. */
+function resumeAudioQuizSession(){
+  const resume = getAudioQuizResume(audioQuizState.certId);
+  if (!resume) { startAudioQuizSession(); return; }
+  const c = CERTS.find(x => x.id === audioQuizState.certId);
+  if (!c) return;
+  if (!c._loaded) {
+    loadCert(c).then(() => resumeAudioQuizSession());
+    return;
+  }
+  const byId = {};
+  c.questions.forEach(q => { byId[q.id] = q; });
+  const rebuilt = resume.questionIds.map(id => byId[id]).filter(Boolean);
+  if (rebuilt.length !== resume.questionIds.length) {
+    // A question was removed or renumbered since this session was saved.
+    toast('That saved session no longer matches the question bank — starting fresh.');
+    startAudioQuizSession();
+    return;
+  }
+  audioQuizState.questions = rebuilt;
+  audioQuizState.idx = resume.idx;
+  audioQuizState.active = true;
+  audioQuizView();
 }
 
 function playAudioQuizTurn(){
@@ -962,33 +1021,34 @@ function playAudioQuizTurn(){
     toast("✨ Audio Quiz Session Complete!");
     return;
   }
-  
+
   const q = audioQuizState.questions[audioQuizState.idx];
   const qEl = document.getElementById("aqQuestionText");
   const oEl = document.getElementById("aqOptionsText");
   const rEl = document.getElementById("aqRationaleText");
   const sEl = document.getElementById("aqStatus");
-  
+
   if (sEl) sEl.textContent = "Question " + (audioQuizState.idx + 1) + " of " + audioQuizState.questions.length;
   if (qEl) qEl.textContent = q.q;
   if (oEl) oEl.innerHTML = q.opts.map((o, i) => "<b>Option " + (i + 1) + ":</b> " + esc(o)).join("<br>");
   if (rEl) { rEl.style.display = "none"; rEl.textContent = ""; }
-  
+  saveAudioQuizProgress();
+
   if (typeof window !== 'undefined' && window.speechSynthesis) {
     window.speechSynthesis.cancel();
-    
+
     // 1. Speak Question
     const promptText = "Question " + (audioQuizState.idx + 1) + ": " + q.q + ". " + q.opts.map((o, i) => "Option " + (i + 1) + ": " + o).join(". ");
     const utt = new SpeechSynthesisUtterance(promptText);
     utt.rate = 1.0;
-    
+
     utt.onend = () => {
       // 2. Pause for 3 seconds for active recall
       if (!audioQuizState.active) return;
       if (sEl) sEl.textContent = "🤔 Thinking... revealing answer in 3 seconds...";
       playSound('flip');
-      
-      setTimeout(() => {
+
+      audioQuizState.revealTimer = setTimeout(() => {
         if (!audioQuizState.active) return;
         // 3. Reveal and speak answer
         if (sEl) sEl.textContent = "✅ Correct Answer: Option " + (q.a + 1);
@@ -997,13 +1057,13 @@ function playAudioQuizTurn(){
           rEl.innerHTML = "<b>Correct Answer: Option " + (q.a + 1) + " (" + esc(q.opts[q.a]) + ")</b><br>" + esc(q.exp);
         }
         playSound('correct');
-        
+
         const ansText = "The correct answer is Option " + (q.a + 1) + ": " + q.opts[q.a] + ". " + q.exp;
         const ansUtt = new SpeechSynthesisUtterance(ansText);
         ansUtt.rate = 1.0;
         ansUtt.onend = () => {
           if (!audioQuizState.active) return;
-          setTimeout(() => {
+          audioQuizState.nextTimer = setTimeout(() => {
             audioQuizState.idx++;
             playAudioQuizTurn();
           }, 2500);
@@ -1011,16 +1071,39 @@ function playAudioQuizTurn(){
         window.speechSynthesis.speak(ansUtt);
       }, 3000);
     };
-    
+
     window.speechSynthesis.speak(utt);
   }
 }
 
-function stopAudioQuiz(){
+/* Pause: stop speaking, cancel the pending reveal/advance timers, and keep
+   audioQuizState.idx exactly where it is (this question re-asks in full on
+   resume, rather than resuming mid-reveal) — then persist it so Resume
+   works whether that's ten seconds from now or after fully leaving the app. */
+function pauseAudioQuiz(){
+  if (!audioQuizState.active) return;
   audioQuizState.active = false;
-  if (typeof window !== 'undefined' && window.speechSynthesis) {
-    window.speechSynthesis.cancel();
-  }
+  if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
+  if (audioQuizState.revealTimer) { clearTimeout(audioQuizState.revealTimer); audioQuizState.revealTimer = null; }
+  if (audioQuizState.nextTimer) { clearTimeout(audioQuizState.nextTimer); audioQuizState.nextTimer = null; }
+  saveAudioQuizProgress();
+  const startBtn = document.getElementById("aqStartBtn");
+  const resumeBtn = document.getElementById("aqResumeBtn");
+  const pauseBtn = document.getElementById("aqPauseBtn");
+  if (pauseBtn) pauseBtn.style.display = "none";
+  if (startBtn && !resumeBtn) startBtn.style.display = "inline-block";
+  toast("⏸️ Audio quiz paused — resume anytime, even after leaving this page");
+}
+
+/* End Session: pause plus forget the saved position — "start over" rather
+   than "pause here". */
+function stopAudioQuiz(){
+  const certId = audioQuizState.certId;
+  pauseAudioQuiz();
+  audioQuizState.active = false;
+  clearAudioQuizProgress(certId);
+  const resumeBtn = document.getElementById("aqResumeBtn");
+  if (resumeBtn) resumeBtn.remove();
   document.getElementById("aqStartBtn") && (document.getElementById("aqStartBtn").style.display = "inline-block");
   document.getElementById("aqStopBtn") && (document.getElementById("aqStopBtn").style.display = "none");
 }

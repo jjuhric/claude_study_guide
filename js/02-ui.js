@@ -103,6 +103,136 @@ function toggleSound(){
   }
 }
 
+/* ================= RESUMABLE AUDIO PLAYER (shared TTS engine) =================
+   Every "listen to X" feature funnels through here so pause, resume, and
+   resume-after-exit work the same way once, instead of each feature
+   half-implementing its own.
+
+   Native speechSynthesis.pause()/.resume() is unreliable once you're
+   speaking a queue of short utterances back to back — browsers frequently
+   lose the paused state at an utterance boundary, so "resume" silently
+   restarts from the beginning. "Pause" here never calls the native pause:
+   it cancels whatever is currently speaking and simply stops advancing the
+   queue index. "Resume" re-enters the queue at that saved index. That gives
+   up mid-sentence resume (you resume at the start of the current chunk, not
+   the exact word) for something that works every time — the same
+   chunk-level granularity every audio feature in this app already uses.
+
+   Position is saved to S.audioProgress[key] on every chunk boundary, not
+   only on pause, so simply navigating away mid-playback (without stopping
+   first) still leaves a resume point. */
+let AP = { key: null, queue: [], idx: 0, playing: false, rate: 1.0, voice: null,
+  onChunk: null, onDone: null, onStateChange: null };
+
+function apResumePoint(key){
+  const p = (S.audioProgress || {})[key];
+  return (p && typeof p.idx === "number" && p.idx < p.total) ? p : null;
+}
+
+/* What index a fresh apPlay(key, ...) call should start at: the exact
+   in-memory position if this key is the one currently loaded (paused or
+   playing), otherwise whatever was last persisted, otherwise the start. */
+function apStartIdxFor(key){
+  if (AP.key === key) return AP.idx;
+  const p = apResumePoint(key);
+  return p ? p.idx : 0;
+}
+
+function apIsPlaying(key){ return AP.playing && AP.key === key; }
+
+function apSaveProgress(){
+  if (!AP.key) return;
+  S.audioProgress = S.audioProgress || {};
+  if (AP.idx >= AP.queue.length) delete S.audioProgress[AP.key];
+  else S.audioProgress[AP.key] = { idx: AP.idx, total: AP.queue.length, ts: Date.now() };
+  save();
+}
+
+/* Start playing `chunks` (an array of strings) under `key` from
+   opts.startIdx (normally apStartIdxFor(key)). opts: rate, voice,
+   onChunk(idx,total,text) before each chunk speaks, onDone() when the
+   queue finishes, onStateChange(playing) on every transition. */
+function apPlay(key, chunks, opts){
+  opts = opts || {};
+  if (typeof window === "undefined" || !window.speechSynthesis) {
+    toast("Speech synthesis is not supported in this browser");
+    return;
+  }
+  window.speechSynthesis.cancel();
+  AP.key = key;
+  AP.queue = chunks || [];
+  AP.idx = (opts.startIdx != null) ? opts.startIdx : 0;
+  AP.playing = true;
+  AP.rate = opts.rate || 1.0;
+  AP.voice = opts.voice || (typeof getBestVoice === "function" ? getBestVoice() : null);
+  AP.onChunk = opts.onChunk || null;
+  AP.onDone = opts.onDone || null;
+  AP.onStateChange = opts.onStateChange || null;
+  if (AP.onStateChange) AP.onStateChange(true);
+  apSpeakNext();
+}
+
+function apSpeakNext(){
+  if (!AP.playing) return;
+  if (AP.idx >= AP.queue.length) {
+    AP.playing = false;
+    apSaveProgress();
+    if (AP.onStateChange) AP.onStateChange(false);
+    if (AP.onDone) AP.onDone();
+    return;
+  }
+  const text = AP.queue[AP.idx];
+  if (AP.onChunk) AP.onChunk(AP.idx, AP.queue.length, text);
+  apSaveProgress();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.rate = AP.rate;
+  if (AP.voice) utt.voice = AP.voice;
+  const advance = () => {
+    if (!AP.playing) return; // paused/stopped while this utterance was speaking
+    AP.idx++;
+    setTimeout(() => { if (AP.playing) apSpeakNext(); }, 40);
+  };
+  utt.onend = advance;
+  utt.onerror = advance;
+  window.speechSynthesis.speak(utt);
+}
+
+/* Pause: stops audio immediately, keeps AP.idx where it was so the next
+   apPlay(key, ..., {startIdx: apStartIdxFor(key)}) picks up right there. */
+function apPause(){
+  if (typeof window === "undefined" || !window.speechSynthesis) return;
+  AP.playing = false;
+  window.speechSynthesis.cancel();
+  apSaveProgress();
+  if (AP.onStateChange) AP.onStateChange(false);
+}
+
+/* Stop: pause plus clear the resume point entirely — "start over" rather
+   than "pause here". */
+function apStop(){
+  if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
+  const key = AP.key;
+  AP.playing = false;
+  AP.queue = [];
+  AP.idx = 0;
+  if (key) {
+    S.audioProgress = S.audioProgress || {};
+    delete S.audioProgress[key];
+    save();
+  }
+  if (AP.onStateChange) AP.onStateChange(false);
+  AP.key = null;
+}
+
+/* One toggle button for most features: Play if paused/stopped, Pause if
+   playing. buildChunks is called fresh each time so it always reflects
+   current content (voice/speed/mode changes rebuild the queue). */
+function apToggle(key, buildChunks, opts){
+  if (apIsPlaying(key)) { apPause(); return; }
+  const chunks = buildChunks();
+  apPlay(key, chunks, Object.assign({ startIdx: apStartIdxFor(key) }, opts || {}));
+}
+
 /* ================= FULL-TEXT SEARCH ================= */
 let searchIndex = null;
 async function buildSearchIndex(){

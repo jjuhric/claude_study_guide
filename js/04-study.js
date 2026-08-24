@@ -81,6 +81,7 @@ function lessonView(id,i){
    +'<div class="rowbtns">'+prevBtn+nextBtn+'</div></div>';
   initLessonWidgets();
   populateVoiceDropdown();
+  updateAudioControlsUI(apIsPlaying(ttsAudioKey(id, i, ttsMode)), id, i);
   if (typeof window !== 'undefined') {
     if (typeof window.scrollTo === 'function') window.scrollTo(0, 0);
     if (document.documentElement) document.documentElement.scrollTop = 0;
@@ -112,12 +113,11 @@ function copyCode(btn){
 /* ================= SMART HUMAN-LIKE AUDIO LESSON NARRATOR ================= */
 let ttsSpeed = 1.0;
 let ttsMode = 'brief'; // 'brief' (high-yield) or 'full'
-let ttsIsPlaying = false;
-let ttsQueue = [];
-let ttsQueueIdx = 0;
 let ttsCurrentVoice = null;
 let ttsActiveCert = null;
 let ttsActiveIdx = null;
+
+function ttsAudioKey(id, i, mode){ return 'lesson:' + id + ':' + i + ':' + mode; }
 
 function getAvailableVoices(){
   if (typeof window === 'undefined' || !window.speechSynthesis) return [];
@@ -176,6 +176,16 @@ function populateVoiceDropdown(){
   sel.innerHTML = opts;
 }
 
+/* Was this lesson's narration actually playing (not just paused) right now,
+   under whatever mode is about to change? Both setters below use this to
+   decide whether to seamlessly carry playback across the settings change —
+   apPause() saves the exact sentence position under the key active at the
+   moment it's called, so a following ttsPlayLesson() resumes right there
+   rather than restarting from the top. */
+function ttsWasPlaying(){
+  return ttsActiveCert != null && apIsPlaying(ttsAudioKey(ttsActiveCert, ttsActiveIdx, ttsMode));
+}
+
 function setTtsVoice(voiceName){
   if (typeof window === 'undefined' || !window.speechSynthesis) return;
   const voices = window.speechSynthesis.getVoices() || [];
@@ -184,23 +194,20 @@ function setTtsVoice(voiceName){
     ttsCurrentVoice = found;
     try { localStorage.setItem('cq_tts_voice', found.name); } catch(e){}
     toast('Voice: ' + found.name.split(' ')[0]);
-    if (ttsIsPlaying) {
-      const id = ttsActiveCert;
-      const idx = ttsActiveIdx;
-      ttsStop();
-      ttsPlayLesson(id, idx);
+    if (ttsWasPlaying()) {
+      apPause();
+      ttsPlayLesson(ttsActiveCert, ttsActiveIdx);
     }
   }
 }
 
 function setTtsMode(mode){
+  const wasPlaying = ttsWasPlaying();
   ttsMode = mode;
   toast(mode === 'brief' ? '🎙️ Mode: High-Yield Brief' : '📖 Mode: Full Lesson');
-  if (ttsIsPlaying) {
-    const id = ttsActiveCert;
-    const idx = ttsActiveIdx;
-    ttsStop();
-    ttsPlayLesson(id, idx);
+  if (wasPlaying) {
+    apPause();
+    ttsPlayLesson(ttsActiveCert, ttsActiveIdx);
   }
 }
 
@@ -273,6 +280,11 @@ function splitIntoSentences(text){
   return raw.map(s => s.trim()).filter(s => s.length > 0);
 }
 
+/* Play/Pause toggle for a lesson's narration. First call (or a call after
+   Stop) starts fresh unless a resume point is saved for this exact
+   cert+lesson+mode, in which case it picks up right there — including
+   across a full exit and return, since the position lives in S.audioProgress
+   rather than only in memory. */
 function ttsPlayLesson(id, i){
   if (typeof window === 'undefined' || !window.speechSynthesis) {
     toast('Speech synthesis not supported in this browser');
@@ -283,96 +295,71 @@ function ttsPlayLesson(id, i){
   const les = c.lessons[i];
   ttsActiveCert = id;
   ttsActiveIdx = i;
+  const key = ttsAudioKey(id, i, ttsMode);
 
-  if (window.speechSynthesis.paused) {
-    window.speechSynthesis.resume();
-    ttsIsPlaying = true;
-    updateAudioControlsUI(true);
-    return;
+  if (!apIsPlaying(key)) {
+    const resumeAt = apStartIdxFor(key);
+    toast(resumeAt > 0
+      ? '▶️ Resuming narration…'
+      : (ttsMode === 'brief' ? '🎙️ Playing High-Yield Audio Brief' : '📖 Reading Full Lesson'));
   }
 
-  window.speechSynthesis.cancel();
-  const script = buildHighYieldAudioScript(les, ttsMode);
-  ttsQueue = splitIntoSentences(script);
-  ttsQueueIdx = 0;
-  ttsIsPlaying = true;
-  updateAudioControlsUI(true);
-  toast(ttsMode === 'brief' ? '🎙️ Playing High-Yield Audio Brief' : '📖 Reading Full Lesson');
-  ttsSpeakNextSentence();
-}
-
-function ttsSpeakNextSentence(){
-  if (!ttsIsPlaying || ttsQueueIdx >= ttsQueue.length) {
-    ttsIsPlaying = false;
-    updateAudioControlsUI(false);
-    return;
-  }
-
-  const sentence = ttsQueue[ttsQueueIdx];
-  const utt = new SpeechSynthesisUtterance(sentence);
-  utt.rate = ttsSpeed;
-  
   if (!ttsCurrentVoice) ttsCurrentVoice = getBestVoice();
-  if (ttsCurrentVoice) utt.voice = ttsCurrentVoice;
-
-  utt.onend = () => {
-    ttsQueueIdx++;
-    // short natural pause between sentences
-    setTimeout(() => {
-      if (ttsIsPlaying) ttsSpeakNextSentence();
-    }, 40);
-  };
-
-  utt.onerror = () => {
-    ttsQueueIdx++;
-    if (ttsIsPlaying) ttsSpeakNextSentence();
-  };
-
-  window.speechSynthesis.speak(utt);
+  apToggle(key, () => splitIntoSentences(buildHighYieldAudioScript(les, ttsMode)), {
+    rate: ttsSpeed,
+    voice: ttsCurrentVoice,
+    onStateChange: (playing) => updateAudioControlsUI(playing, id, i),
+    onDone: () => toast('✅ Narration complete')
+  });
 }
 
 function ttsPause(){
-  if (typeof window !== 'undefined' && window.speechSynthesis) {
-    window.speechSynthesis.pause();
-    ttsIsPlaying = false;
-    updateAudioControlsUI(false);
-    toast('Audio paused');
-  }
+  apPause();
+  toast('Audio paused — resume anytime, even after leaving this lesson');
 }
 
+/* "Start over": clears the saved position as well as stopping playback,
+   unlike ttsPause which keeps it. Always refers to whatever is currently
+   loaded (ttsActiveCert/Idx), which is what a Stop control acts on. */
 function ttsStop(){
-  if (typeof window !== 'undefined' && window.speechSynthesis) {
-    window.speechSynthesis.cancel();
-    ttsIsPlaying = false;
-    ttsQueue = [];
-    ttsQueueIdx = 0;
-    updateAudioControlsUI(false);
-  }
+  const id = ttsActiveCert, idx = ttsActiveIdx;
+  apStop();
+  if (id != null) updateAudioControlsUI(false, id, idx);
 }
 
 function ttsSetSpeed(speed){
   ttsSpeed = parseFloat(speed) || 1.0;
   toast('Speed: ' + ttsSpeed + 'x');
+  if (ttsWasPlaying()) {
+    apPause();
+    ttsPlayLesson(ttsActiveCert, ttsActiveIdx);
+  }
 }
 
-function updateAudioControlsUI(playing){
+/* id/idx identify which lesson this specific button controls — passed in
+   explicitly by every caller rather than re-read from the button's own
+   data-cert/data-idx attributes, so this always reflects the lesson that was
+   actually playing (or the lesson currently on screen), never whichever
+   button happens to be in the DOM when this runs. */
+function updateAudioControlsUI(playing, id, idx){
   const playBtn = document.getElementById('ttsPlayBtn');
   const statusEl = document.getElementById('ttsStatusLabel');
-  if (playBtn) {
-    if (playing) {
-      playBtn.classList.add('playing');
-      playBtn.innerHTML = '⏸️ Pause';
-      playBtn.onclick = () => ttsPause();
-      if (statusEl) statusEl.innerHTML = '<span style="color:var(--green); font-size:11px; font-weight:700;">● Narrating (' + (ttsMode === 'brief' ? 'High-Yield' : 'Full') + ')...</span>';
-    } else {
-      playBtn.classList.remove('playing');
-      playBtn.innerHTML = '▶️ Listen';
-      playBtn.onclick = () => {
-        const id = playBtn.getAttribute('data-cert');
-        const idx = parseInt(playBtn.getAttribute('data-idx'), 10);
-        ttsPlayLesson(id, idx);
-      };
-      if (statusEl) statusEl.innerHTML = '';
+  if (!playBtn) return;
+  const key = ttsAudioKey(id, idx, ttsMode);
+  if (playing) {
+    playBtn.classList.add('playing');
+    playBtn.innerHTML = '⏸️ Pause';
+    playBtn.onclick = () => ttsPause();
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--green); font-size:11px; font-weight:700;">● Narrating (' + (ttsMode === 'brief' ? 'High-Yield' : 'Full') + ')...</span>';
+  } else {
+    playBtn.classList.remove('playing');
+    const resume = apResumePoint(key);
+    playBtn.innerHTML = resume ? '▶️ Resume (' + resume.idx + '/' + resume.total + ')' : '▶️ Listen';
+    playBtn.onclick = () => ttsPlayLesson(id, idx);
+    if (statusEl) {
+      statusEl.innerHTML = resume
+        ? '<span style="color:var(--muted); font-size:11px;">Paused — <a href="#" onclick="ttsStop(); return false;" style="color:var(--coral-dark); font-weight:700;">start over</a> instead?</span>'
+        : '';
     }
   }
 }
@@ -1162,31 +1149,51 @@ function toggleCramActiveRecall(){
   }
 }
 
-function ttsPlayCramSummary(id){
+function cramAudioKey(id){ return 'cram:' + id; }
+
+function buildCramScript(id){
   const data = CRAM_DATA[id];
-  if (!data) return;
-  if (typeof window === 'undefined' || !window.speechSynthesis) {
-    toast('Speech synthesis not supported');
-    return;
-  }
-  window.speechSynthesis.cancel();
+  if (!data) return '';
   let script = 'Exam Cram Briefing for ' + data.name + '. ';
   data.cards.slice(0, 3).forEach(c => {
     script += c.title + '. ';
     c.items.slice(0, 3).forEach(it => {
-      const clean = it.replace(/<[^>]+>/g, ' ');
-      script += clean + '. ';
+      script += it.replace(/<[^>]+>/g, ' ') + '. ';
     });
   });
   script += ' Good luck on test day. Head to the mock exam to lock in your score.';
-  const utt = new SpeechSynthesisUtterance(script);
-  utt.rate = 1.05;
-  if (typeof getBestVoice === 'function') {
-    const v = getBestVoice();
-    if (v) utt.voice = v;
+  return script;
+}
+
+/* Play/Pause toggle, resumable across exit — same engine and the same
+   pause-means-stay-put semantics as the lesson narrator above. */
+function ttsPlayCramSummary(id){
+  if (!CRAM_DATA[id]) return;
+  if (typeof window === 'undefined' || !window.speechSynthesis) {
+    toast('Speech synthesis not supported');
+    return;
   }
-  window.speechSynthesis.speak(utt);
-  toast('🎙️ Playing 2-Minute Audio Cram Summary...');
+  const key = cramAudioKey(id);
+  if (!apIsPlaying(key)) {
+    toast(apStartIdxFor(key) > 0 ? '▶️ Resuming Audio Cram…' : '🎙️ Playing 2-Minute Audio Cram Summary...');
+  }
+  apToggle(key, () => splitIntoSentences(buildCramScript(id)), {
+    rate: 1.05,
+    voice: getBestVoice(),
+    onStateChange: (playing) => updateCramAudioUI(id, playing),
+    onDone: () => toast('✅ Cram summary complete')
+  });
+}
+
+function updateCramAudioUI(id, playing){
+  const btn = document.getElementById('cramAudioBtn');
+  if (!btn) return;
+  if (playing) {
+    btn.innerHTML = '⏸️ Pause Audio Cram';
+  } else {
+    const resume = apResumePoint(cramAudioKey(id));
+    btn.innerHTML = resume ? '▶️ Resume Audio Cram (' + resume.idx + '/' + resume.total + ')' : '🎙️ Audio Cram (2m)';
+  }
 }
 
 function cramSheetView(id){
@@ -1213,7 +1220,7 @@ function cramSheetView(id){
     + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
     + '<div><span class="ltag" style="background:'+data.color+'; color:#fff;">Official Cram Sheet</span><h2 style="font-size:20px; margin-top:4px;">📋 '+data.name+'</h2></div>'
     + '<div style="display:flex; gap:6px; flex-wrap:wrap;">'
-    + '<button class="btn ghost sm" onclick="ttsPlayCramSummary(\''+id+'\')">🎙️ Audio Cram (2m)</button>'
+    + '<button id="cramAudioBtn" class="btn ghost sm" onclick="ttsPlayCramSummary(\''+id+'\')">🎙️ Audio Cram (2m)</button>'
     + '<button id="recallToggleBtn" class="btn ghost sm" onclick="toggleCramActiveRecall()">🙈 Active Recall Mode</button>'
     + '<button class="btn sm" onclick="window.print()">🖨️ Print / PDF</button>'
     + '</div>'
@@ -1228,6 +1235,7 @@ function cramSheetView(id){
     + '<button class="btn" onclick="startMock(\''+id+'\')">⚔️ Test Yourself in Mock Exam</button>'
     + '<button class="btn ghost" onclick="learnList(\''+id+'\')">📖 Return to Study Guide</button>'
     + '</div></div>';
+  updateCramAudioUI(id, apIsPlaying(cramAudioKey(id)));
 }
 
 function labToolsModal(){
