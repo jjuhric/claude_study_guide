@@ -317,6 +317,7 @@
   .speed-timer-bar { height: 10px; border-radius: 5px; background: var(--border); overflow: hidden; margin: 10px 0; }
   .speed-timer-fill { height: 100%; background: var(--green); transition: width 0.1s linear, background-color 0.3s ease; }
   .speed-timer-fill.urgent { background: var(--coral) !important; animation: pulse 0.5s infinite alternate; }
+  @keyframes pulse{from{opacity:1;} to{opacity:.55;}}
 
   /* Enhanced Cram Sheet & Active Recall Styles */
   .cram-grid.active-recall-active .cram-item-list li {
@@ -412,6 +413,44 @@
 
   .rag-chunk{border:1px solid var(--border); border-radius:8px; padding:10px; margin-bottom:8px; background:var(--card); font-family:monospace; font-size:12px; line-height:1.5;}
   .rag-overlap{background:rgba(232,180,72,.35); font-weight:700; border-radius:3px; padding:0 2px;}
+
+  /* Games: Glossary Hangman letter keys, Hollywood Squares board */
+  @keyframes shake{10%,90%{transform:translateX(-1px);} 20%,80%{transform:translateX(2px);} 30%,50%,70%{transform:translateX(-4px);} 40%,60%{transform:translateX(4px);}}
+
+  .hgkey{aspect-ratio:1; display:flex; align-items:center; justify-content:center; background:var(--bg); border:2px solid var(--border); border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; color:var(--ink); font-family:inherit; padding:0; transition:transform .1s;}
+  .hgkey:hover:not(:disabled){border-color:var(--coral);}
+  .hgkey:active:not(:disabled){transform:scale(.88);}
+  .hgkey.correct{border-color:var(--green); background:rgba(90,158,111,.12); color:var(--green);}
+  .hgkey.wrong{border-color:var(--red); background:rgba(198,91,78,.10); color:var(--red); opacity:.65;}
+  .hgkey:disabled{cursor:default;}
+
+  /* SVG figure parts pop in on creation -- animation, not transition, since
+     the whole SVG is a fresh element tree on every re-render. transform-box
+     makes transform-origin:center measure the shape's own bounding box
+     rather than the SVG viewport, so each part grows from its own middle. */
+  @keyframes hgPartIn{0%{opacity:0; transform:scale(.4);} 100%{opacity:1; transform:scale(1);}}
+  .hg-part{animation:hgPartIn .35s ease both; transform-box:fill-box; transform-origin:center;}
+
+  @keyframes hgLetterPop{0%{transform:scale(1.8); opacity:0;} 100%{transform:scale(1); opacity:1;}}
+  .hg-letter.reveal{display:inline-block; animation:hgLetterPop .28s ease both;}
+  .hg-word.shake{display:inline-block; animation:shake .35s ease;}
+
+  .sqcell{aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:800; background:var(--bg); border:2px solid var(--border); border-radius:10px; cursor:pointer; color:var(--ink); font-family:inherit; padding:0; transition:transform .1s;}
+  .sqcell:hover:not(:disabled){border-color:var(--coral);}
+  .sqcell:active:not(:disabled){transform:scale(.92);}
+  .sqcell:disabled{cursor:default;}
+  .sqcell.sqx{color:var(--coral);}
+  .sqcell.sqo{color:var(--blue);}
+  .sqcell.active{border-color:var(--gold);}
+
+  @keyframes sqPop{0%{transform:scale(.3); opacity:0;} 100%{transform:scale(1); opacity:1;}}
+  .sqcell.sqx, .sqcell.sqo{animation:sqPop .3s cubic-bezier(.34,1.56,.64,1);}
+
+  @keyframes sqWinPulse{0%,100%{box-shadow:0 0 0 0 rgba(232,180,72,.55);} 50%{box-shadow:0 0 0 7px rgba(232,180,72,0);}}
+  .sqcell.winline{border-color:var(--gold); animation:sqWinPulse .9s ease-in-out 2;}
+
+  .sqboard.shake{animation:shake .4s ease;}
+  .sqturn{display:inline-block; animation:pulse 1.4s ease-in-out infinite alternate;}
 
   /* Printable Handbook */
   @media print{

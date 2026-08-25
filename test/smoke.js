@@ -42,7 +42,7 @@ const check = (cond, label) => { if (cond) console.log(`  ok    ${label}`); else
 
 /* ---------- 1. every module is declared, present, and parses ---------- */
 check(scriptSrcs.length >= 2, `index.html declares ${scriptSrcs.length} script files`);
-check(scriptSrcs[scriptSrcs.length - 1].endsWith("11-boot.js"),
+check(scriptSrcs[scriptSrcs.length - 1].endsWith("13-boot.js"),
   `boot loads last (${scriptSrcs[scriptSrcs.length - 1]})`);
 const onDisk = fs.readdirSync(path.join(ROOT, "js")).filter(f => f.endsWith(".js")).sort();
 const declared = scriptSrcs.map(s => s.replace("js/", "")).sort();
@@ -211,6 +211,7 @@ vm.createContext(sandbox);
     if (m.questions !== d.questions.length) drift.push(`${id} questions ${m.questions}≠${d.questions.length}`);
     if (m.cards !== d.cards.length) drift.push(`${id} cards ${m.cards}≠${d.cards.length}`);
     if (m.lessons !== d.lessons.length) drift.push(`${id} lessons ${m.lessons}≠${d.lessons.length}`);
+    if (m.glossary !== (d.glossary || []).length) drift.push(`${id} glossary ${m.glossary}≠${(d.glossary || []).length}`);
     if (m.code !== d.code) drift.push(`${id} code ${m.code}≠${d.code}`);
   }
   check(drift.length === 0, `manifest matches the content files (${drift.join(", ") || "no drift"})`);
@@ -1707,6 +1708,158 @@ vm.createContext(sandbox);
   evalIn(`document.getElementById("ttsPlayBtn").onclick()`); // pause
   check(/▶️ Resume \(0\/\d+\)/.test(els.ttsPlayBtn.innerHTML), "pausing immediately shows a Resume label with a position, not a bare Listen");
   evalIn(`ttsStop(); S.audioProgress = {}`);
+
+  /* ---------- Games: Glossary Hangman ---------- */
+  // Word pool validation: well-formed regardless of how much of the
+  // per-domain content is authored yet -- glossary content lands
+  // incrementally, one domain at a time (see docs/HANGMAN_GLOSSARY_PLAN.md),
+  // so this checks shape, not completeness. A per-domain minimum count is
+  // added once every domain has real content.
+  {
+    const badGlossary = [];
+    const dupGlossary = [];
+    for (const [id, d] of Object.entries(data)) {
+      const nDom = CERTS.find(c => c.id === id).domains.length;
+      const seen = {};
+      (d.glossary || []).forEach((g, i) => {
+        if (!g.term || !g.term.trim()) badGlossary.push(`${id}.glossary[${i}] empty term`);
+        if (!g.hint || !g.hint.trim()) badGlossary.push(`${id}.glossary[${i}] empty hint`);
+        if (!/^[a-z]+g-[0-9a-f]{8}$/.test(g.id || "")) badGlossary.push(`${id}.glossary[${i}] bad id (${g.id})`);
+        if (typeof g.d !== "number" || g.d < 0 || g.d >= nDom) badGlossary.push(`${id}.glossary[${i}] domain out of range (${g.d})`);
+        if (g.term && (g.term.length < 2 || g.term.length > 30)) badGlossary.push(`${id}.glossary[${i}] term length ${g.term.length}`);
+        const key = g.d + ":" + (g.term || "").toLowerCase();
+        if (seen[key]) dupGlossary.push(`${id} "${g.term}" in domain ${g.d}`);
+        seen[key] = true;
+      });
+    }
+    check(badGlossary.length === 0, `every glossary entry is well-formed (${badGlossary.slice(0, 3).join(", ") || "all valid"})`);
+    check(dupGlossary.length === 0, `no duplicate glossary term within a domain (${dupGlossary.slice(0, 3).join(", ") || "none"})`);
+    const totalGlossary = Object.values(data).reduce((n, d) => n + (d.glossary || []).length, 0);
+    check(totalGlossary > 0, `at least some glossary content exists (${totalGlossary} entries)`);
+  }
+
+  // Engine tests: exercise hangPickTerm/hangGuessLetter directly -- the same
+  // approach the resumable-audio section above uses -- pure state
+  // transitions, not a click-through (the shim has no real attribute
+  // tracking or HTML parsing to click through anyway).
+  evalIn(`S.hangmanRecent = {}; S.hangmanStats = {wins:0, losses:0, perfect:0, played:0};`);
+  check(evalIn(`hangGlossaryPool(CERTS.find(c=>c.id==="ccao"), 0).length`) > 0, "the seeded ccao domain-0 glossary pool is non-empty");
+  {
+    const picks = [];
+    for (let i = 0; i < 5; i++) picks.push(evalIn(`hangPickTerm("ccao", 0).term`));
+    check(picks.every(Boolean), "hangPickTerm always returns a term when the pool is non-empty");
+  }
+  check(evalIn(`hangGlossaryPool(CERTS.find(c=>c.id==="ccdv"), 1).length`) === 0, "a domain with no glossary content yet returns an empty pool, not a crash");
+  check(evalIn(`hangPickTerm("ccdv", 1)`) === null, "hangPickTerm returns null rather than throwing on an empty pool");
+
+  evalIn(`hangState = {active:true, certId:"ccao", d:0, entry:{id:"test", term:"ab c", hint:"test hint", d:0}, guessed:[], misses:0, phase:"playing"};`);
+  check(evalIn(`hangMaskedWord()`) === "__ _", "an unguessed multi-word term masks letters but always shows the space");
+  evalIn(`hangGuessLetter("a")`);
+  check(evalIn(`hangState.guessed.includes("a") && hangState.misses`) === 0, "a correct letter is recorded without costing a miss");
+  check(evalIn(`hangMaskedWord()`) === "a_ _", "the revealed letter appears in the masked word immediately");
+  evalIn(`hangGuessLetter("z")`);
+  check(evalIn(`hangState.misses`) === 1, "a wrong letter increments misses by exactly one");
+  evalIn(`hangGuessLetter("z")`); // repeat guess must be a no-op
+  check(evalIn(`hangState.misses`) === 1, "re-guessing an already-guessed letter does not double-count a miss");
+  evalIn(`hangGuessLetter("b"); hangGuessLetter("c");`);
+  check(evalIn(`hangState.phase`) === "won", "guessing every remaining letter transitions the round to won");
+  check(evalIn(`hangState.active`) === false, "a finished round releases hangState.active");
+
+  evalIn(`hangState = {active:true, certId:"ccao", d:0, entry:{id:"test2", term:"xy", hint:"test hint", d:0}, guessed:[], misses:0, phase:"playing"};`);
+  ["q", "w", "e", "r", "t", "u"].forEach(ch => evalIn(`hangGuessLetter("${ch}")`));
+  check(evalIn(`hangState.phase`) === "lost", "six wrong guesses transitions the round to lost");
+  check(evalIn(`hangState.misses`) === 6, "misses stop exactly at the 6-miss cap");
+  evalIn(`hangGuessLetter("q")`); // round already over -- must be inert
+  check(evalIn(`hangState.misses`) === 6, "no further mutation is accepted once a round has ended");
+
+  /* ---------- Games: Hollywood Squares ---------- */
+  // Win detection: all 8 lines (3 rows, 3 cols, 2 diagonals), plus a full
+  // board with no 3-in-a-row (tie).
+  {
+    const lines = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+    const badLines = [];
+    lines.forEach((line, li) => {
+      const board = Array(9).fill(null);
+      line.forEach(i => board[i] = "X");
+      const result = evalIn(`sqCheckWin(${JSON.stringify(board)})`);
+      const gotLine = result && result.line ? result.line.slice().sort((a, b) => a - b) : null;
+      if (!result || result.winner !== "X" || JSON.stringify(gotLine) !== JSON.stringify(line)) badLines.push(`line ${li}`);
+    });
+    check(badLines.length === 0, `sqCheckWin detects all 8 win lines (${badLines.join(", ") || "all 8 ok"})`);
+  }
+  check(evalIn(`sqCheckWin(["X","O","X","O","O","X","O","X","O"])`) === null, "sqCheckWin returns null on a full board with no 3-in-a-row");
+  check(evalIn(`sqIsFull(["X","O","X","O","O","X","O","X","O"])`) === true, "sqIsFull detects a completely filled board");
+  check(evalIn(`sqIsFull(["X","O","X","O","O","X","O","X",null])`) === false, "sqIsFull is false while any cell remains empty");
+
+  // AI sanity: from a board one move from winning, sqPickAiSquare must
+  // return that exact square -- not merely "not dumb".
+  check(evalIn(`sqPickAiSquare(["X","X",null,null,null,null,null,null,null], "X")`) === 2, "sqPickAiSquare completes a winning line when one is available");
+  check(evalIn(`sqPickAiSquare([null,"O",null,null,"O",null,null,null,null], "X")`) === 7, "sqPickAiSquare blocks the opponent's winning line when it has no win of its own");
+  check(evalIn(`sqPickAiSquare(["X","O","X","O","O","X","O","X",null], "X")`) === 8, "sqPickAiSquare never returns an already-occupied index");
+
+  // Steal logic: a primary miss offers the OTHER seat a steal on the exact
+  // same question, not a fresh one; a correct steal claims the square for
+  // the stealer; a double miss leaves the square empty and marks its
+  // question spent so a later re-pick swaps in a fresh one. Uses "local"
+  // mode so both seats are human-controlled and the sequence is fully
+  // deterministic (no AI randomness).
+  evalIn(`sqNewBoard("ccao", "local")`);
+  {
+    const qBefore = evalIn(`sqState.squareQ[0].id`);
+    evalIn(`sqPickSquare(0)`);
+    check(evalIn(`sqState.answeringSeat`) === "X", "the picker answers the primary attempt first");
+    const wrongIdx = evalIn(`(sqState.squareQ[0].a + 1) % sqState.squareQ[0].opts.length`);
+    evalIn(`sqResolveAnswer(${wrongIdx})`);
+    check(evalIn(`sqState.primaryMiss`) === true, "a wrong primary answer flags the steal phase");
+    check(evalIn(`sqState.answeringSeat`) === "O", "a primary miss offers the steal to the OTHER seat");
+    check(evalIn(`sqState.squareQ[0].id`) === qBefore, "the steal attempt uses the exact same question, not a fresh one");
+    check(evalIn(`sqState.board[0]`) === null, "the square is not yet claimed while a steal is pending");
+
+    const correctIdx = evalIn(`sqState.squareQ[0].a`);
+    evalIn(`sqResolveAnswer(${correctIdx})`);
+    check(evalIn(`sqState.board[0]`) === "O", "a correct steal claims the square for the stealer, not the original picker");
+    check(evalIn(`sqState.turn`) === "O", "the pick-turn still alternates after a steal claim, independent of who claimed the square");
+  }
+  {
+    evalIn(`sqPickSquare(1)`);
+    const spentQId = evalIn(`sqState.squareQ[1].id`);
+    const wrong1 = evalIn(`(sqState.squareQ[1].a + 1) % sqState.squareQ[1].opts.length`);
+    evalIn(`sqResolveAnswer(${wrong1})`); // primary miss
+    evalIn(`sqResolveAnswer(${wrong1})`); // same wrong index is still wrong for the steal
+    check(evalIn(`sqState.board[1]`) === null, "a double miss leaves the square empty");
+    check(evalIn(`sqState.spent.includes(1)`) === true, "a double-missed square is marked spent");
+    check(evalIn(`sqState.phase`) === "picking", "play continues to the next pick after a double miss");
+
+    evalIn(`sqPickSquare(1)`); // re-pick the spent square later
+    check(evalIn(`sqState.squareQ[1].id`) !== spentQId, "re-picking a spent square swaps in a fresh question");
+    check(evalIn(`sqState.spent.includes(1)`) === false, "picking a spent square clears its spent flag");
+  }
+
+  // vs-Computer XP boundary: a human's correct answer earns XP; the
+  // computer's own correct answer never does, regardless of its random roll.
+  evalIn(`S.squaresStats = {vsComputer:{w:0,l:0,t:0}, vsLocal:{w:0,l:0,t:0}, vsPeer:{w:0,l:0,t:0}}; S.xp = 0;`);
+  evalIn(`sqNewBoard("ccao", "computer")`); // human is always X and always picks first
+  evalIn(`sqPickSquare(0)`);
+  evalIn(`sqResolveAnswer(sqState.squareQ[0].a)`); // human answers correctly
+  check(evalIn(`S.xp`) === 8, "a correct human primary answer in vs-computer mode earns XP");
+  check(evalIn(`sqState.turn`) === "O", "turn passes to the computer seat after the human's claim");
+  evalIn(`sqResolveAiPick()`); // drive the AI directly rather than via its setTimeout
+  check(evalIn(`sqState.phase`) === "answering" && evalIn(`sqState.answeringSeat`) === "O", "the AI's pick moves the game into the answering phase for its own seat");
+  const xpBeforeAi = evalIn(`S.xp`);
+  evalIn(`sqResolveAiTurn()`);
+  check(evalIn(`S.xp`) === xpBeforeAi, "the computer's own correct answer never earns the human XP");
+
+  // sqEndGame stat/badge branching, tested directly and deterministically.
+  evalIn(`S.squaresStats = {vsComputer:{w:0,l:0,t:0}, vsLocal:{w:0,l:0,t:0}, vsPeer:{w:0,l:0,t:0}}; S.badges = S.badges.filter(b=>b!=="squares_ai_victor");`);
+  evalIn(`sqState.mode = "computer"; sqState.human = "X"; sqState.active = true; sqEndGame("X", [0,1,2])`);
+  check(evalIn(`S.squaresStats.vsComputer.w`) === 1, "a human win in vs-computer mode increments the win counter");
+  check(evalIn(`S.badges.includes("squares_ai_victor")`) === true, "beating the computer awards the Square Off badge");
+  check(evalIn(`sqState.phase`) === "over" && evalIn(`sqState.active`) === false, "sqEndGame transitions to over and releases active");
+  evalIn(`sqState.active = true; sqEndGame("O", [0,1,2])`); // the computer (O) wins
+  check(evalIn(`S.squaresStats.vsComputer.l`) === 1, "a computer win increments the loss counter, not the win counter");
+  evalIn(`sqState.active = true; sqEndGame("tie", null)`);
+  check(evalIn(`S.squaresStats.vsComputer.t`) === 1, "a filled board with no winner records a tie");
+  evalIn(`stopSquaresGame(); S.squaresStats = {vsComputer:{w:0,l:0,t:0}, vsLocal:{w:0,l:0,t:0}, vsPeer:{w:0,l:0,t:0}};`);
 
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;

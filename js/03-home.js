@@ -31,6 +31,7 @@ const TOOL_GROUPS = [
   {id:"reference",   name:"📚 Reference &amp; Study Aids",        desc:"Cheat sheets, explorers, maps, and calculators."},
   {id:"audio",       name:"🎧 Audio &amp; Voice",                 desc:"Hands-free study for commutes and revision."},
   {id:"share",       name:"🏅 Credentials, Sync &amp; Community", desc:"Diplomas, badges, cross-device sync, and leaderboards."},
+  {id:"games",       name:"🎮 Games",                             desc:"Two-player and solo mini-games for active recall."},
 ];
 const TOOLS = [
   {fn:"promptStudioView",        em:"🧪", name:"Golden Prompt Studio",         desc:"Live XML linter, positive framing check &amp; token budget advisor.", cta:"Open Studio",        g:"labs"},
@@ -120,6 +121,9 @@ const TOOLS = [
   {fn:"voiceCommuterView",       em:"🚗", name:"Commuter Voice Quiz",         desc:"Fully hands-free quizzing for the drive in.",                        cta:"Start Commuting",    g:"audio"},
 
   {fn:"cohortHubView",           em:"👥", name:"Study Cohort Hub",            desc:"Group study progress and shared cohort milestones.",                 cta:"Open Cohort",        g:"share"},
+
+  {fn:"hangmanView",             em:"🎪", name:"Glossary Hangman",            desc:"Classic 6-miss hangman on domain-tagged key terms.",                  cta:"Play Hangman",       g:"games"},
+  {fn:"squaresView",             em:"🎬", name:"Hollywood Squares",           desc:"Tic-tac-toe with a steal rule — vs. computer or pass &amp; play.",   cta:"Play Squares",       g:"games"},
 ];
 
 /* Cert picker for the handbook, mirroring cramSheetSelect. */

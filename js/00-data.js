@@ -119,7 +119,11 @@ const BADGES = [
  {id:"scholar_ccdv", em:"📗", name:"Developer Scholar", desc:"Read every CCDV-F lesson"},
  {id:"scholar_ccaf", em:"📙", name:"Architect Scholar", desc:"Read every CCAR-F lesson"},
  {id:"scholar_ccap", em:"📕", name:"Master Scholar", desc:"Read every CCAR-P lesson"},
- {id:"polymath", em:"🎓", name:"Polymath", desc:"Complete the study guide for all 4 certifications"}
+ {id:"polymath", em:"🎓", name:"Polymath", desc:"Complete the study guide for all 4 certifications"},
+ {id:"hangman_survivor", em:"🎪", name:"Hangman Survivor", desc:"Win your first round of Glossary Hangman"},
+ {id:"hangman_flawless", em:"🎯", name:"Word Perfect", desc:"Win a Glossary Hangman round with zero wrong guesses"},
+ {id:"squares_ai_victor", em:"🎬", name:"Square Off", desc:"Beat the computer at Hollywood Squares"},
+ {id:"squares_peer_victor", em:"📡", name:"Long-Distance Duelist", desc:"Beat a real remote opponent at Hollywood Squares over P2P"}
 ];
 
 const TITLES = ["Curious Newcomer","Prompt Novice","Context Wrangler","Token Tactician","Workflow Wizard","Agent Whisperer","MCP Maestro","Orchestration Oracle","Claude Sage","Certification Legend"];

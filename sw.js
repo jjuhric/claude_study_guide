@@ -1,10 +1,11 @@
 // Service Worker for Claude Cert Quest (Offline PWA support)
-const CACHE_NAME = 'certquest-v35';
+const CACHE_NAME = 'certquest-v40';
 const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
   './css/app.css',
+  './images/games/movie-clapperboard.svg',
   './js/00-data.js',
   './js/01-state.js',
   './js/02-ui.js',
@@ -16,7 +17,9 @@ const ASSETS = [
   './js/08-tools.js',
   './js/09-suites.js',
   './js/10-quiz.js',
-  './js/11-boot.js',
+  './js/11-hangman.js',
+  './js/12-squares.js',
+  './js/13-boot.js',
   './data/manifest.json',
   './data/ccao.json',
   './data/ccdv.json',

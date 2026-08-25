@@ -1,14 +1,15 @@
 # Claude Cert Quest 🧭
 
 [![Anthropic Certifications](https://img.shields.io/badge/Anthropic-Certifications%20Prep-d97757.svg)](https://www.pearsonvue.com/us/en/anthropic.html)
-[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v35)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
-[![Tests](https://img.shields.io/badge/Tests-413%20Passing-5b7fa6.svg)](test/smoke.js)
+[![Offline Ready](https://img.shields.io/badge/PWA-Offline%20Ready%20(v38)-5a9e6f.svg)](https://jjuhric.github.io/claude_study_guide/)
+[![Tests](https://img.shields.io/badge/Tests-476%20Passing-5b7fa6.svg)](test/smoke.js)
 [![License](https://img.shields.io/badge/License-MIT-8a6fae.svg)](LICENSE)
 
 A gamified study platform for the **Anthropic Claude Certification Program**:
-**400 practice questions** with per-option rationales, **100 spaced-repetition
-flashcards**, **44 lessons**, and **76 interactive labs and simulators** — all
-reachable from the dashboard.
+**403 practice questions** with per-option rationales, **103 spaced-repetition
+flashcards**, **44 lessons**, **78 interactive labs and simulators**, and
+**2 games** (Glossary Hangman, Hollywood Squares) — all reachable from the
+dashboard.
 
 Content depth is measured, not asserted: answer explanations average **92 words**
 (none below 74), flashcard backs average **56** (none below 46), and the lessons
@@ -52,11 +53,24 @@ Pearson VUE and Skilljar listings. Each certification has **100 questions and
 | 🎯 **Review Misses** | Serves only questions you have previously answered wrong. |
 | 🩹 **Weakest Domain** | Drills whichever domain you score lowest in; untested domains come first. |
 
-Plus **76 labs and simulators** in six collapsible dashboard sections — Labs &
-Simulators, Practice & Testing, Diagnostics & Analytics, Reference & Study Aids,
-Audio & Voice, and Credentials/Sync/Community. They start collapsed so the
-certification cards stay in view; open one, use **Expand all**, or type in the
-filter box, which expands whichever sections match.
+Plus **78 labs and simulators** in seven collapsible dashboard sections — Labs
+& Simulators, Practice & Testing, Diagnostics & Analytics, Reference & Study
+Aids, Audio & Voice, Credentials/Sync/Community, and Games. They start
+collapsed so the certification cards stay in view; open one, use **Expand
+all**, or type in the filter box, which expands whichever sections match.
+
+**🎮 Games.** Two active-recall games, each pulling from a certification's own
+domain-tagged content so no two sessions look alike:
+
+- **Glossary Hangman** — classic 6-miss hangman. The word is a short term from
+  a curated per-domain glossary compiled from this app's own lesson content
+  (never the question bank's answer text, which is almost all full sentences);
+  the hint and full definition reveal only once the round ends.
+- **Hollywood Squares** — a 3×3 board where each square is a real question
+  from the bank. Answer correctly to claim it; answer wrong and your opponent
+  gets a **steal** attempt on the exact same question. Play against the
+  computer or pass-and-play on one device. Real remote peer-to-peer play is
+  planned but not yet implemented.
 
 **Spaced repetition.** Flashcards use Leitner boxes: recall a card and it moves
 up a box and returns later (1 → 2 → 4 → 9 → 21 days); miss it and it drops to
@@ -103,10 +117,12 @@ js/07-progress.js        sync, profile, planning, reporting
 js/08-tools.js           arcade, community, voice, calibration
 js/09-suites.js          teaching suites and widgets
 js/10-quiz.js            quiz, flashcards, mock exam
-js/11-boot.js            relocated init + content loader (loads last)
+js/11-hangman.js         Glossary Hangman game
+js/12-squares.js         Hollywood Squares game (vs-computer, local, P2P)
+js/13-boot.js            relocated init + content loader (loads last)
 docs/FACTS.md            verified Claude API facts; the source every fact cites
 data/manifest.json       per-cert counts, loaded at boot for the home screen
-data/<cert>.json         questions, flashcards, and lessons, one file per cert
+data/<cert>.json         questions, flashcards, lessons, and glossary, one file per cert
 tools/build-manifest.js  regenerates the manifest from the content files
 tools/check-lesson-lengths.js  prints per-lesson word counts
 test/smoke.js            dependency-free offline test suite
@@ -118,10 +134,10 @@ manifest.webmanifest     PWA install metadata
 **These are classic scripts, not ES modules.** The app uses ~470 inline event
 handlers (`onclick="foo()"`) that resolve against **global scope**. Module scope
 would break every one of them. All files share one global scope, in the order
-`index.html` lists them — so **load order matters**, and `11-boot.js` must stay
+`index.html` lists them — so **load order matters**, and `13-boot.js` must stay
 last.
 
-**Anything that runs at load time belongs in `11-boot.js`.** Each file hoists
+**Anything that runs at load time belongs in `13-boot.js`.** Each file hoists
 only its own declarations, so init code that calls a function defined in a later
 file will throw. The test suite loads the files in declared order specifically
 so it catches this.
@@ -257,7 +273,7 @@ with no way out. The suite checks both.
 
 ### Anything that runs at load time
 
-Put it in `js/11-boot.js`. Each file hoists only its own declarations, so init
+Put it in `js/13-boot.js`. Each file hoists only its own declarations, so init
 code in an earlier file that calls a function defined in a later one throws at
 boot. The suite loads the files in declared order to catch exactly this.
 
