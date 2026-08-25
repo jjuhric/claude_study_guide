@@ -2101,6 +2101,192 @@
       "term": "prompt chaining",
       "hint": "Known steps in a known order with tool calls at defined points — the right pattern for predictable sequences like look up order, check policy, draft refund.",
       "d": 0
+    },
+    {
+      "id": "ccafg-2deaa922",
+      "term": "diagnosability",
+      "hint": "The real ceiling on system complexity: when failures can no longer be attributed to a specific step and changes have unpredictable effects, the system has outgrown its design, regardless of model or prompt count.",
+      "d": 0
+    },
+    {
+      "id": "ccafg-0a5ffc40",
+      "term": "evaluator-optimiser",
+      "hint": "A generate step plus a check step with explicit criteria, placed at the specific step whose quality varies rather than at the end, so a failure stays local instead of propagating into a plausible final answer.",
+      "d": 0
+    },
+    {
+      "id": "ccafg-e07c5427",
+      "term": "routing",
+      "hint": "A classifier dispatches to specialist handlers, each with a focused prompt and tool set -- one cheap classification call buys smaller prompts and cost that tracks difficulty.",
+      "d": 0
+    },
+    {
+      "id": "ccafg-e266076e",
+      "term": "autonomy is a spectrum",
+      "hint": "An agent decides its own steps; a workflow follows yours. Autonomy is about who chooses the path -- never about who approves consequences, which sensitive actions still require regardless.",
+      "d": 0
+    },
+    {
+      "id": "ccafg-88e2b6b8",
+      "term": "escalation path",
+      "hint": "What a defined limit needs so hitting it leaves work in a recoverable state rather than simply stopping -- one of three controls, alongside iteration caps and repeated-failure detection, that make autonomy operationally acceptable.",
+      "d": 0
+    },
+    {
+      "id": "ccafg-336ae210",
+      "term": "project instructions file",
+      "hint": "A checked-in file applying the same conventions, commands, and guardrails to every engineer -- reviewable and revertible like any other change. Secrets never belong in it.",
+      "d": 1
+    },
+    {
+      "id": "ccafg-436f6f18",
+      "term": "plan, review, execute",
+      "hint": "The recommended loop for non-trivial changes: explore and plan first, review the plan, then execute in verified steps with tests between them -- a single sweeping prompt produces an unreviewable change.",
+      "d": 1
+    },
+    {
+      "id": "ccafg-4befad88",
+      "term": "unstated scope",
+      "hint": "When an agent makes a sweeping change where a narrow fix was wanted, the usual cause -- say which files may change and ask for the minimal diff, or improving the surrounding code looks like doing the job well.",
+      "d": 1
+    },
+    {
+      "id": "ccafg-441f0122",
+      "term": "headless CI",
+      "hint": "Running agentic coding unattended demands scoped permissions, no direct push to main, and changes landing as diffs a human reviews -- auto-merging anything green removes the review that made it safe.",
+      "d": 1
+    },
+    {
+      "id": "ccafg-7d7cea82",
+      "term": "hooks",
+      "hint": "What runs a requirement every time, versus project instructions that are followed most of the time -- a rule that matters enough to write down twice probably belongs in the mechanism instead of the prose.",
+      "d": 1
+    },
+    {
+      "id": "ccafg-1f08da6e",
+      "term": "subagent permissions",
+      "hint": "Subagents share the same models and same permissions as the main session -- the benefit they buy is context isolation and parallelism, not extra capability or privilege.",
+      "d": 1
+    },
+    {
+      "id": "ccafg-717f16ed",
+      "term": "contract-first design",
+      "hint": "Define the schema before writing the prompt, constrain generation to it, and validate downstream anyway -- writing the prompt first and fitting a parser to whatever emerges inverts the dependency.",
+      "d": 2
+    },
+    {
+      "id": "ccafg-e9836e88",
+      "term": "examples fix population",
+      "hint": "A schema fixes which fields exist; one or two worked examples fix how they're populated for awkward cases -- the strongest signal in a prompt, since the model matches their length and register too.",
+      "d": 2
+    },
+    {
+      "id": "ccafg-5103d7a9",
+      "term": "prompt versioning",
+      "hint": "Treating a widely-depended-on prompt like shipped code: version it, test changes against a fixed regression set, and roll out behind a gate rather than editing in place and waiting for complaints.",
+      "d": 2
+    },
+    {
+      "id": "ccafg-c8c2696d",
+      "term": "one contract, two consumers",
+      "hint": "Defining a single schema containing both structured fields and a prose field, rather than generating twice or parsing prose after the fact -- one generation means the summary and the data can never disagree.",
+      "d": 2
+    },
+    {
+      "id": "ccafg-0df8d248",
+      "term": "shared prompt component",
+      "hint": "When many prompts must share tone or policy, copy-paste guarantees the copies drift -- one versioned component included by all of them prevents invisible drift across dozens of copies.",
+      "d": 2
+    },
+    {
+      "id": "ccafg-7de8a6d3",
+      "term": "sharper tools",
+      "hint": "Preferring a small number of well-named tools with distinct purposes over many overlapping micro-tools -- selection errors are usually description problems, and a generic do-anything endpoint destroys the model's ability to choose correctly.",
+      "d": 3
+    },
+    {
+      "id": "ccafg-6a8b21a4",
+      "term": "mandatory limit",
+      "hint": "A tool's row or result cap should be mandatory, not optional -- an optional limit is one the model can omit, and it will omit it on exactly the broad query that most needed it.",
+      "d": 3
+    },
+    {
+      "id": "ccafg-36621558",
+      "term": "idempotent tool",
+      "hint": "Makes an uncertain outcome safe to retry -- a timeout leaves you unable to tell whether an action succeeded, and without idempotency the only choices are risking a duplicate or leaving it unresolved.",
+      "d": 3
+    },
+    {
+      "id": "ccafg-b13d7ec0",
+      "term": "trigger condition",
+      "hint": "Stating when a tool applies, not just what it does -- a description naming its trigger condition performs measurably better than one stating only its function.",
+      "d": 3
+    },
+    {
+      "id": "ccafg-888b026b",
+      "term": "one tool, not two",
+      "hint": "When the wrong tool keeps getting chosen and the distinction between two overlapping options can't be clearly articulated, that's evidence they should be one tool with a parameter instead of two that compete.",
+      "d": 3
+    },
+    {
+      "id": "ccafg-5c1a574e",
+      "term": "the reuse argument",
+      "hint": "Wrapping a capability as an MCP server pays off when several clients or agents should reuse it through a standard interface -- for a single consumer it's overhead: a process boundary, a version to pin, latency you didn't need.",
+      "d": 3
+    },
+    {
+      "id": "ccafg-0eec9baa",
+      "term": "sentence window retrieval",
+      "hint": "Indexing single sentences for precise embedding matches, but returning each match with its surrounding sentences attached at retrieval time -- the embedding search runs on the precise unit, the model reads the coarse one.",
+      "d": 4
+    },
+    {
+      "id": "ccafg-8f1cedbb",
+      "term": "hybrid search",
+      "hint": "Running dense vector search and sparse BM25/TF-IDF keyword search together and merging results -- vector search is weak on exact identifiers, lexical matching is useless on a reworded question, real queries need both.",
+      "d": 4
+    },
+    {
+      "id": "ccafg-33c30cc0",
+      "term": "re-ranking",
+      "hint": "The second retrieval stage that scores query and document together to order a short list accurately -- expensive per pair, which is why it runs on the dozens of candidates cheap retrieval narrowed down to, not the whole corpus.",
+      "d": 4
+    },
+    {
+      "id": "ccafg-5530d449",
+      "term": "provenance",
+      "hint": "Distinguishing retrieved facts from the agent's own conclusions -- conflating sourced material with generated inference makes errors impossible to trace.",
+      "d": 4
+    },
+    {
+      "id": "ccafg-69eda46e",
+      "term": "access labels",
+      "hint": "Permissions enforced in the retrieval query itself, not as an instruction not to use certain content -- an instruction arrives after the content is already in context, too late to matter.",
+      "d": 4
+    },
+    {
+      "id": "ccafg-02bf1eae",
+      "term": "thundering herd",
+      "hint": "What fixed-interval or non-jittered backoff causes: every failed caller retries on the same schedule, so a recovering dependency gets hit by all of them at once and falls back over immediately.",
+      "d": 4
+    },
+    {
+      "id": "ccafg-dc96f1bf",
+      "term": "multilingual embeddings",
+      "hint": "Placing semantically equivalent sentences from different languages near each other in vector space, so a query in one language can retrieve a passage in another -- doesn't extend to BM25, which matches literal tokens only.",
+      "d": 4
+    },
+    {
+      "id": "ccafg-def32beb",
+      "term": "preprocessing quality",
+      "hint": "Vector search cannot recover from bad input -- OCR garbage on a scanned document embeds with normal confidence and lands nowhere near the true meaning, so validation has to happen before embedding, not after.",
+      "d": 4
+    },
+    {
+      "id": "ccafg-bfc7c60e",
+      "term": "verified end state",
+      "hint": "The reliability metric that actually matters: the rate of runs reaching a correct, verifiable conclusion. Token counts, tool-call volume, and wall-clock time are diagnostics, not goals.",
+      "d": 4
     }
   ]
 }

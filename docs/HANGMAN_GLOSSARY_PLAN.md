@@ -32,13 +32,13 @@ genuinely playable full spread — top up opportunistically.
 - [x] 5. Security — 7 terms
 - [x] 6. MCP — 6 terms
 
-## CCAR-F / CCAF (5 domains) — [~] seeded, 3 terms (domain 0 only)
+## CCAR-F / CCAF (5 domains) — [x] done, 34 terms
 
-- [~] 0. Agentic Architecture & Orchestration — 3 terms seeded (`loop guards`, `orchestrator-workers`, `prompt chaining`)
-- [ ] 1. Claude Code Workflows
-- [ ] 2. Prompt Engineering & Structured Output
-- [ ] 3. Tool Design & MCP Integration
-- [ ] 4. Context, Retrieval & Reliability
+- [x] 0. Agentic Architecture & Orchestration — 8 terms
+- [x] 1. Claude Code Workflows — 6 terms
+- [x] 2. Prompt Engineering & Structured Output — 5 terms
+- [x] 3. Tool Design & MCP Integration — 6 terms
+- [x] 4. Context, Retrieval & Reliability — 9 terms
 
 ## CCAR-P / CCAP (5 domains) — [~] seeded, 3 terms (domain 0 only)
 
