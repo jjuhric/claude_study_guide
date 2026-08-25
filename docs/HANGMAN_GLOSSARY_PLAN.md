@@ -22,15 +22,15 @@ Evaluation, Model Selection, Workflow Integration, Knowledge Management,
 Governance & Risk, Troubleshooting. Below the 10-15 target per domain but a
 genuinely playable full spread — top up opportunistically.
 
-## CCDV-F (7 domains) — [~] seeded, 3 terms (domain 0 only)
+## CCDV-F (7 domains) — [x] done, 51 terms
 
-- [~] 0. API Mechanics — 3 terms seeded (`stop_reason`, `stateless`, `streaming`)
-- [ ] 1. Tool Use & Structured Output
-- [ ] 2. Agents & SDK
-- [ ] 3. Model Selection & Cost
-- [ ] 4. Prompt & Context Engineering
-- [ ] 5. Security
-- [ ] 6. MCP
+- [x] 0. API Mechanics — 11 terms
+- [x] 1. Tool Use & Structured Output — 7 terms
+- [x] 2. Agents & SDK — 7 terms
+- [x] 3. Model Selection & Cost — 7 terms
+- [x] 4. Prompt & Context Engineering — 6 terms
+- [x] 5. Security — 7 terms
+- [x] 6. MCP — 6 terms
 
 ## CCAR-F / CCAF (5 domains) — [~] seeded, 3 terms (domain 0 only)
 

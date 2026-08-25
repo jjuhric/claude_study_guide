@@ -1781,8 +1781,14 @@ vm.createContext(sandbox);
     for (let i = 0; i < 5; i++) picks.push(evalIn(`hangPickTerm("ccao", 0).term`));
     check(picks.every(Boolean), "hangPickTerm always returns a term when the pool is non-empty");
   }
-  check(evalIn(`hangGlossaryPool(CERTS.find(c=>c.id==="ccdv"), 1).length`) === 0, "a domain with no glossary content yet returns an empty pool, not a crash");
-  check(evalIn(`hangPickTerm("ccdv", 1)`) === null, "hangPickTerm returns null rather than throwing on an empty pool");
+  // Domain 99 doesn't exist in any cert and never will -- a stable way to
+  // test the empty-pool path without this test going stale as real
+  // domains get glossary content filled in over time (ccdv's domain 1 was
+  // this test's original example; it no longer qualifies now that it has
+  // real content, which is exactly the kind of drift a hardcoded "known
+  // empty" domain invites).
+  check(evalIn(`hangGlossaryPool(CERTS.find(c=>c.id==="ccdv"), 99).length`) === 0, "a domain with no glossary content returns an empty pool, not a crash");
+  check(evalIn(`hangPickTerm("ccdv", 99)`) === null, "hangPickTerm returns null rather than throwing on an empty pool");
 
   evalIn(`hangState = {active:true, certId:"ccao", d:0, entry:{id:"test", term:"ab c", hint:"test hint", d:0}, guessed:[], misses:0, phase:"playing"};`);
   check(evalIn(`hangMaskedWord()`) === "__ _", "an unguessed multi-word term masks letters but always shows the space");

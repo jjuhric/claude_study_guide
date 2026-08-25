@@ -2111,6 +2111,294 @@
       "term": "streaming",
       "hint": "Delivers tokens incrementally over server-sent events. Doesn't make generation faster — makes it feel faster by removing the wait before anything appears.",
       "d": 0
+    },
+    {
+      "id": "ccdvg-24b1e5e5",
+      "term": "rate-limit headers",
+      "hint": "Six response headers (anthropic-ratelimit-*) reporting your current RPM/TPM quota and when each resets -- parse the reset timestamp instead of guessing a backoff duration.",
+      "d": 0
+    },
+    {
+      "id": "ccdvg-3e72871e",
+      "term": "full jitter",
+      "hint": "The randomized backoff formula that prevents synchronized retry storms: sleep a random duration between 0 and the exponential cap, not the cap itself.",
+      "d": 0
+    },
+    {
+      "id": "ccdvg-695b89be",
+      "term": "529",
+      "hint": "Anthropic's service is temporarily overloaded -- unlike a 429, it has nothing to do with your own quota, but calls for the same jittered backoff.",
+      "d": 0
+    },
+    {
+      "id": "ccdvg-de85a926",
+      "term": "thinking signature",
+      "hint": "An encrypted signature token inside a thinking block that must be passed back unaltered on the next turn in a multi-turn conversation.",
+      "d": 0
+    },
+    {
+      "id": "ccdvg-6cc7032e",
+      "term": "Files API",
+      "hint": "Upload a reused document once and reference its file id on later calls, instead of resending the same base64 bytes every request.",
+      "d": 0
+    },
+    {
+      "id": "ccdvg-9dc638de",
+      "term": "1M context window",
+      "hint": "Current Opus and Sonnet models; Haiku 4.5 is the exception at 200K. A larger window changes what fits in one request but not whether sending all of it is a good idea.",
+      "d": 0
+    },
+    {
+      "id": "ccdvg-c993db1d",
+      "term": "TTFT",
+      "hint": "Time-to-First-Token. Streaming reduces this from multiple seconds to sub-200ms -- it doesn't speed up total generation, it removes the wait before anything appears.",
+      "d": 0
+    },
+    {
+      "id": "ccdvg-6c672290",
+      "term": "adaptive thinking",
+      "hint": "Depth comes from output_config.effort (low/medium/high/xhigh/max), not a fixed token budget; max_tokens caps thinking and response text together as one shared budget.",
+      "d": 0
+    },
+    {
+      "id": "ccdvg-4a2d9b54",
+      "term": "structured outputs",
+      "hint": "Supplying a JSON schema through output_config.format constrains decoding so the response conforms by construction -- no parse failures, no repair retries.",
+      "d": 1
+    },
+    {
+      "id": "ccdvg-48c1b7e5",
+      "term": "strict: true",
+      "hint": "Gives tool arguments the same schema-conformance guarantee as structured outputs. Needs additionalProperties: false and an explicit required list.",
+      "d": 1
+    },
+    {
+      "id": "ccdvg-065c6d58",
+      "term": "shape, not meaning",
+      "hint": "What a schema guarantees. A response can be perfectly schema-valid and still be wrong -- an end date before its start date passes any reasonable schema. Semantic validation stays your job.",
+      "d": 1
+    },
+    {
+      "id": "ccdvg-ed574dc9",
+      "term": "tool_choice",
+      "hint": "Controls whether the model can reply in prose (auto), must call some tool (any), or must call one named tool -- forcing a call when none applies pushes it toward the least-bad option.",
+      "d": 1
+    },
+    {
+      "id": "ccdvg-509ad387",
+      "term": "prefilling",
+      "hint": "Seeding the assistant turn with { to force JSON continuation. Rejected with a 400 error on current models -- use structured outputs instead.",
+      "d": 1
+    },
+    {
+      "id": "ccdvg-d283f936",
+      "term": "tool_result",
+      "hint": "The response sent back after executing a tool, carrying the matching tool_use_id. Errors belong here too (is_error: true), not a thrown exception.",
+      "d": 1
+    },
+    {
+      "id": "ccdvg-3782a0e3",
+      "term": "is_error",
+      "hint": "The field that reports a tool failure back to the model as a normal tool_result, so it can retry or adapt, instead of a silent empty result that reads as 'the data doesn't exist.'",
+      "d": 1
+    },
+    {
+      "id": "ccdvg-1e3d8496",
+      "term": "agent loop",
+      "hint": "An integration becomes an agent when the number and order of steps are decided at run time, not written in advance -- not a function of model size or speed.",
+      "d": 2
+    },
+    {
+      "id": "ccdvg-e77f5dca",
+      "term": "Agent SDK",
+      "hint": "The Claude Code harness packaged as a library: the loop, tool execution, context management, and permission model. A developer library, not a prompt editor or fine-tuning service.",
+      "d": 2
+    },
+    {
+      "id": "ccdvg-b63527df",
+      "term": "tool runner",
+      "hint": "Part of the regular API SDK -- drives request, execute, repeat over tools you define, with no built-in tools or sandbox. Easy to confuse with the Agent SDK since both leave deployment to you.",
+      "d": 2
+    },
+    {
+      "id": "ccdvg-dd6394d5",
+      "term": "subagent isolation",
+      "hint": "Delegating to a subagent with its own context window buys focus and parallelism, not extra capability -- it generally increases total token usage rather than reducing it.",
+      "d": 2
+    },
+    {
+      "id": "ccdvg-d8c45d36",
+      "term": "server tool pause",
+      "hint": "A server-side tool loop has its own iteration limit; reaching it returns pause_turn -- resend the conversation including the assistant turn, without appending a 'Continue' message.",
+      "d": 2
+    },
+    {
+      "id": "ccdvg-5e913345",
+      "term": "Computer Use",
+      "hint": "Anthropic tool betas (computer_20251124, bash_20250124, text_editor_20250728) that let a model interact with desktop environments directly -- screenshots should be scaled to standard resolutions, not raw 4K.",
+      "d": 2
+    },
+    {
+      "id": "ccdvg-bf053259",
+      "term": "iteration cap",
+      "hint": "A mandatory bound on an autonomous loop -- without one, an agent's failure mode is unbounded spend, not merely a bad run.",
+      "d": 2
+    },
+    {
+      "id": "ccdvg-57e7f8b4",
+      "term": "right-sizing",
+      "hint": "Matching each pipeline step to the cheapest model tier that clears its quality bar, verified by an eval on real cases -- not intuition or public benchmarks.",
+      "d": 3
+    },
+    {
+      "id": "ccdvg-b39ebd7e",
+      "term": "cache breakpoint",
+      "hint": "Marks where a prompt's stable prefix ends. A request supports at most four, and each only looks back 20 content blocks for a prior entry to extend.",
+      "d": 3
+    },
+    {
+      "id": "ccdvg-fd6fc362",
+      "term": "cache_control",
+      "hint": "The field (type: 'ephemeral') that marks a system prompt or document block for 5-minute caching, refreshed on every cache hit.",
+      "d": 3
+    },
+    {
+      "id": "ccdvg-0fa84d76",
+      "term": "custom_id",
+      "hint": "The key you assign to a Batches API request yourself -- results return in arbitrary order, so position can't be used to match them back.",
+      "d": 3
+    },
+    {
+      "id": "ccdvg-609fda85",
+      "term": "token counting endpoint",
+      "hint": "The way to measure cost before sending, using the model you'll actually call -- general-purpose tokenizers from other providers undercount Claude, especially on code.",
+      "d": 3
+    },
+    {
+      "id": "ccdvg-dfe35003",
+      "term": "cache-read usage field",
+      "hint": "What actually confirms caching is working -- since a broken cache fails silently at full price with no error, watching this field is the only way to catch it.",
+      "d": 3
+    },
+    {
+      "id": "ccdvg-5462ec30",
+      "term": "effort level",
+      "hint": "A paid dial in both tokens and latency, replacing the older fixed thinking-token budget -- set per task class from evals, not globally or at maximum by default.",
+      "d": 3
+    },
+    {
+      "id": "ccdvg-8edc7037",
+      "term": "compaction",
+      "hint": "Periodically summarizing decisions and state into a durable note re-injected as the working record, done proactively at a utilization threshold -- not the same as truncation, which discards by position rather than importance.",
+      "d": 4
+    },
+    {
+      "id": "ccdvg-d74c7d1d",
+      "term": "AST chunking",
+      "hint": "Splitting code along function and class boundaries instead of a fixed character count, so a chunk is never a function body missing its own signature.",
+      "d": 4
+    },
+    {
+      "id": "ccdvg-dd7f1ff2",
+      "term": "system parameter",
+      "hint": "A top-level field on the request, set once alongside model and messages -- not an entry inside the messages array. Writing it as a role:'system' message is a common porting mistake.",
+      "d": 4
+    },
+    {
+      "id": "ccdvg-23e0849f",
+      "term": "named file delimiters",
+      "hint": "Wrapping each of several files in a named tag like <file name='...'> so the model can cite which specific file a claim came from, rather than one undifferentiated wall of pasted text.",
+      "d": 4
+    },
+    {
+      "id": "ccdvg-c4c96a86",
+      "term": "regression set",
+      "hint": "A fixed set of representative and edge cases a prompt candidate is compared against before rollout -- without one, a single example looking better is not evidence of improvement.",
+      "d": 4
+    },
+    {
+      "id": "ccdvg-e6e8cc55",
+      "term": "embeddings",
+      "hint": "The retrieval half of RAG: turns text into vectors so similarity search can surface likely-relevant passages. A retrieval mechanism, not a reasoning one -- Claude still has to read and reason over what comes back.",
+      "d": 4
+    },
+    {
+      "id": "ccdvg-71eac070",
+      "term": "trust boundary",
+      "hint": "Instructions come only from your application and its user; everything else -- web pages, tool results, retrieved documents -- is data to be reasoned about, never obeyed.",
+      "d": 5
+    },
+    {
+      "id": "ccdvg-a2f92b6c",
+      "term": "prompt injection",
+      "hint": "Malicious instructions embedded in content an agent reads. Not a model defect -- the defense is architectural, since a longer 'be careful' system prompt is exactly the layer the attack targets.",
+      "d": 5
+    },
+    {
+      "id": "ccdvg-8fed9524",
+      "term": "least privilege",
+      "hint": "Granting only the tools and scopes a task actually needs, rather than relying on judgment about when to use broader access -- a shared admin credential destroys both this and attribution at once.",
+      "d": 5
+    },
+    {
+      "id": "ccdvg-8ac514d6",
+      "term": "approval gates",
+      "hint": "Explicit confirmation required before irreversible actions (deletion, sending mail, moving money). Logging a destructive action detects it after the damage; a gate prevents it.",
+      "d": 5
+    },
+    {
+      "id": "ccdvg-d249e685",
+      "term": "untrusted input",
+      "hint": "A generated value crossing into a database query, shell command, or outbound request is untrusted at that boundary regardless of how it was produced -- schema-valid is not the same as safe to execute.",
+      "d": 5
+    },
+    {
+      "id": "ccdvg-51ea5ee0",
+      "term": "data classification",
+      "hint": "Establishing that your policy and agreements permit processing a given class of user-supplied data -- the question that precedes formatting, length, and every technical consideration.",
+      "d": 5
+    },
+    {
+      "id": "ccdvg-b8115491",
+      "term": "exfiltration path",
+      "hint": "Automatically fetching or posting to an endpoint suggested by untrusted retrieved content -- the mechanism by which a successful injection turns into actual data loss.",
+      "d": 5
+    },
+    {
+      "id": "ccdvg-d0abb618",
+      "term": "N-by-M integration problem",
+      "hint": "Without a shared protocol, every client needs a bespoke connector for every data source -- the count multiplies with each addition. MCP turns that into write-once servers any compatible client can use.",
+      "d": 6
+    },
+    {
+      "id": "ccdvg-fb8db1dd",
+      "term": "MCP primitives",
+      "hint": "Tools, Resources, and Prompts, split by side effects: tools act, resources read, prompts are reusable templates -- the dividing line decides which one a capability actually is.",
+      "d": 6
+    },
+    {
+      "id": "ccdvg-276ba8e3",
+      "term": "roots/list",
+      "hint": "The client telling an MCP server which workspace paths it may touch -- a boundary declared inward, unlike the other primitives which are capabilities offered outward.",
+      "d": 6
+    },
+    {
+      "id": "ccdvg-b7d96da2",
+      "term": "pin server versions",
+      "hint": "Treating a connected MCP server like any library your code depends on -- upgrade deliberately, since a renamed tool upstream breaks your agent with no warning otherwise.",
+      "d": 6
+    },
+    {
+      "id": "ccdvg-4c8229b3",
+      "term": "untrusted tool descriptions",
+      "hint": "Descriptions supplied by an MCP server are remote content reaching the model's context -- they must never be able to escalate what the agent is permitted to do.",
+      "d": 6
+    },
+    {
+      "id": "ccdvg-aab4e991",
+      "term": "stdio transport",
+      "hint": "A local subprocess server speaks over standard input/output -- no port, no listener, nothing but its parent process can reach it. HTTP/SSE is for remote servers instead.",
+      "d": 6
     }
   ]
 }
