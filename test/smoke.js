@@ -42,7 +42,7 @@ const check = (cond, label) => { if (cond) console.log(`  ok    ${label}`); else
 
 /* ---------- 1. every module is declared, present, and parses ---------- */
 check(scriptSrcs.length >= 2, `index.html declares ${scriptSrcs.length} script files`);
-check(scriptSrcs[scriptSrcs.length - 1].endsWith("11-boot.js"),
+check(scriptSrcs[scriptSrcs.length - 1].endsWith("13-boot.js"),
   `boot loads last (${scriptSrcs[scriptSrcs.length - 1]})`);
 const onDisk = fs.readdirSync(path.join(ROOT, "js")).filter(f => f.endsWith(".js")).sort();
 const declared = scriptSrcs.map(s => s.replace("js/", "")).sort();
@@ -211,6 +211,7 @@ vm.createContext(sandbox);
     if (m.questions !== d.questions.length) drift.push(`${id} questions ${m.questions}≠${d.questions.length}`);
     if (m.cards !== d.cards.length) drift.push(`${id} cards ${m.cards}≠${d.cards.length}`);
     if (m.lessons !== d.lessons.length) drift.push(`${id} lessons ${m.lessons}≠${d.lessons.length}`);
+    if (m.glossary !== (d.glossary || []).length) drift.push(`${id} glossary ${m.glossary}≠${(d.glossary || []).length}`);
     if (m.code !== d.code) drift.push(`${id} code ${m.code}≠${d.code}`);
   }
   check(drift.length === 0, `manifest matches the content files (${drift.join(", ") || "no drift"})`);

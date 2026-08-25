@@ -103,10 +103,12 @@ js/07-progress.js        sync, profile, planning, reporting
 js/08-tools.js           arcade, community, voice, calibration
 js/09-suites.js          teaching suites and widgets
 js/10-quiz.js            quiz, flashcards, mock exam
-js/11-boot.js            relocated init + content loader (loads last)
+js/11-hangman.js         Glossary Hangman game
+js/12-squares.js         Hollywood Squares game (vs-computer, local, P2P)
+js/13-boot.js            relocated init + content loader (loads last)
 docs/FACTS.md            verified Claude API facts; the source every fact cites
 data/manifest.json       per-cert counts, loaded at boot for the home screen
-data/<cert>.json         questions, flashcards, and lessons, one file per cert
+data/<cert>.json         questions, flashcards, lessons, and glossary, one file per cert
 tools/build-manifest.js  regenerates the manifest from the content files
 tools/check-lesson-lengths.js  prints per-lesson word counts
 test/smoke.js            dependency-free offline test suite
@@ -118,10 +120,10 @@ manifest.webmanifest     PWA install metadata
 **These are classic scripts, not ES modules.** The app uses ~470 inline event
 handlers (`onclick="foo()"`) that resolve against **global scope**. Module scope
 would break every one of them. All files share one global scope, in the order
-`index.html` lists them — so **load order matters**, and `11-boot.js` must stay
+`index.html` lists them — so **load order matters**, and `13-boot.js` must stay
 last.
 
-**Anything that runs at load time belongs in `11-boot.js`.** Each file hoists
+**Anything that runs at load time belongs in `13-boot.js`.** Each file hoists
 only its own declarations, so init code that calls a function defined in a later
 file will throw. The test suite loads the files in declared order specifically
 so it catches this.
@@ -257,7 +259,7 @@ with no way out. The suite checks both.
 
 ### Anything that runs at load time
 
-Put it in `js/11-boot.js`. Each file hoists only its own declarations, so init
+Put it in `js/13-boot.js`. Each file hoists only its own declarations, so init
 code in an earlier file that calls a function defined in a later one throws at
 boot. The suite loads the files in declared order to catch exactly this.
 

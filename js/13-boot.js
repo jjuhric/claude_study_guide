@@ -1,4 +1,4 @@
-/* 11-boot.js
+/* 13-boot.js
    Relocated init + content loader. Loads last.
    Part of Claude Cert Quest. */
 "use strict";
@@ -128,7 +128,7 @@ function loadCert(c){
     if(!r.ok) throw new Error("data/"+c.id+".json returned HTTP "+r.status);
     return r.json();
   }).then(d=>{
-    c.questions=d.questions||[]; c.cards=d.cards||[]; c.lessons=d.lessons||[];
+    c.questions=d.questions||[]; c.cards=d.cards||[]; c.lessons=d.lessons||[]; c.glossary=d.glossary||[];
     migrateCertKeys(c);
     shuffleOptions(c);
     c._loaded=true; c._loading=null;

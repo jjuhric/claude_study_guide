@@ -24,12 +24,13 @@ for (const id of IDS) {
     questions: (d.questions || []).length,
     cards: (d.cards || []).length,
     lessons: (d.lessons || []).length,
+    glossary: (d.glossary || []).length,
   };
 }
 
 const out = path.join(ROOT, "data", "manifest.json");
 fs.writeFileSync(out, JSON.stringify(manifest, null, 2) + "\n", "utf8");
 for (const [id, m] of Object.entries(manifest)) {
-  console.log(`  ${m.code.padEnd(8)} ${String(m.questions).padStart(3)} questions  ${m.cards} cards  ${m.lessons} lessons`);
+  console.log(`  ${m.code.padEnd(8)} ${String(m.questions).padStart(3)} questions  ${m.cards} cards  ${m.lessons} lessons  ${m.glossary} glossary`);
 }
 console.log(`wrote data/manifest.json (${fs.statSync(out).size} bytes)`);
