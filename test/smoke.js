@@ -1772,6 +1772,95 @@ vm.createContext(sandbox);
   evalIn(`hangGuessLetter("q")`); // round already over -- must be inert
   check(evalIn(`hangState.misses`) === 6, "no further mutation is accepted once a round has ended");
 
+  /* ---------- Games: Hollywood Squares ---------- */
+  // Win detection: all 8 lines (3 rows, 3 cols, 2 diagonals), plus a full
+  // board with no 3-in-a-row (tie).
+  {
+    const lines = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+    const badLines = [];
+    lines.forEach((line, li) => {
+      const board = Array(9).fill(null);
+      line.forEach(i => board[i] = "X");
+      const result = evalIn(`sqCheckWin(${JSON.stringify(board)})`);
+      const gotLine = result && result.line ? result.line.slice().sort((a, b) => a - b) : null;
+      if (!result || result.winner !== "X" || JSON.stringify(gotLine) !== JSON.stringify(line)) badLines.push(`line ${li}`);
+    });
+    check(badLines.length === 0, `sqCheckWin detects all 8 win lines (${badLines.join(", ") || "all 8 ok"})`);
+  }
+  check(evalIn(`sqCheckWin(["X","O","X","O","O","X","O","X","O"])`) === null, "sqCheckWin returns null on a full board with no 3-in-a-row");
+  check(evalIn(`sqIsFull(["X","O","X","O","O","X","O","X","O"])`) === true, "sqIsFull detects a completely filled board");
+  check(evalIn(`sqIsFull(["X","O","X","O","O","X","O","X",null])`) === false, "sqIsFull is false while any cell remains empty");
+
+  // AI sanity: from a board one move from winning, sqPickAiSquare must
+  // return that exact square -- not merely "not dumb".
+  check(evalIn(`sqPickAiSquare(["X","X",null,null,null,null,null,null,null], "X")`) === 2, "sqPickAiSquare completes a winning line when one is available");
+  check(evalIn(`sqPickAiSquare([null,"O",null,null,"O",null,null,null,null], "X")`) === 7, "sqPickAiSquare blocks the opponent's winning line when it has no win of its own");
+  check(evalIn(`sqPickAiSquare(["X","O","X","O","O","X","O","X",null], "X")`) === 8, "sqPickAiSquare never returns an already-occupied index");
+
+  // Steal logic: a primary miss offers the OTHER seat a steal on the exact
+  // same question, not a fresh one; a correct steal claims the square for
+  // the stealer; a double miss leaves the square empty and marks its
+  // question spent so a later re-pick swaps in a fresh one. Uses "local"
+  // mode so both seats are human-controlled and the sequence is fully
+  // deterministic (no AI randomness).
+  evalIn(`sqNewBoard("ccao", "local")`);
+  {
+    const qBefore = evalIn(`sqState.squareQ[0].id`);
+    evalIn(`sqPickSquare(0)`);
+    check(evalIn(`sqState.answeringSeat`) === "X", "the picker answers the primary attempt first");
+    const wrongIdx = evalIn(`(sqState.squareQ[0].a + 1) % sqState.squareQ[0].opts.length`);
+    evalIn(`sqResolveAnswer(${wrongIdx})`);
+    check(evalIn(`sqState.primaryMiss`) === true, "a wrong primary answer flags the steal phase");
+    check(evalIn(`sqState.answeringSeat`) === "O", "a primary miss offers the steal to the OTHER seat");
+    check(evalIn(`sqState.squareQ[0].id`) === qBefore, "the steal attempt uses the exact same question, not a fresh one");
+    check(evalIn(`sqState.board[0]`) === null, "the square is not yet claimed while a steal is pending");
+
+    const correctIdx = evalIn(`sqState.squareQ[0].a`);
+    evalIn(`sqResolveAnswer(${correctIdx})`);
+    check(evalIn(`sqState.board[0]`) === "O", "a correct steal claims the square for the stealer, not the original picker");
+    check(evalIn(`sqState.turn`) === "O", "the pick-turn still alternates after a steal claim, independent of who claimed the square");
+  }
+  {
+    evalIn(`sqPickSquare(1)`);
+    const spentQId = evalIn(`sqState.squareQ[1].id`);
+    const wrong1 = evalIn(`(sqState.squareQ[1].a + 1) % sqState.squareQ[1].opts.length`);
+    evalIn(`sqResolveAnswer(${wrong1})`); // primary miss
+    evalIn(`sqResolveAnswer(${wrong1})`); // same wrong index is still wrong for the steal
+    check(evalIn(`sqState.board[1]`) === null, "a double miss leaves the square empty");
+    check(evalIn(`sqState.spent.includes(1)`) === true, "a double-missed square is marked spent");
+    check(evalIn(`sqState.phase`) === "picking", "play continues to the next pick after a double miss");
+
+    evalIn(`sqPickSquare(1)`); // re-pick the spent square later
+    check(evalIn(`sqState.squareQ[1].id`) !== spentQId, "re-picking a spent square swaps in a fresh question");
+    check(evalIn(`sqState.spent.includes(1)`) === false, "picking a spent square clears its spent flag");
+  }
+
+  // vs-Computer XP boundary: a human's correct answer earns XP; the
+  // computer's own correct answer never does, regardless of its random roll.
+  evalIn(`S.squaresStats = {vsComputer:{w:0,l:0,t:0}, vsLocal:{w:0,l:0,t:0}, vsPeer:{w:0,l:0,t:0}}; S.xp = 0;`);
+  evalIn(`sqNewBoard("ccao", "computer")`); // human is always X and always picks first
+  evalIn(`sqPickSquare(0)`);
+  evalIn(`sqResolveAnswer(sqState.squareQ[0].a)`); // human answers correctly
+  check(evalIn(`S.xp`) === 8, "a correct human primary answer in vs-computer mode earns XP");
+  check(evalIn(`sqState.turn`) === "O", "turn passes to the computer seat after the human's claim");
+  evalIn(`sqResolveAiPick()`); // drive the AI directly rather than via its setTimeout
+  check(evalIn(`sqState.phase`) === "answering" && evalIn(`sqState.answeringSeat`) === "O", "the AI's pick moves the game into the answering phase for its own seat");
+  const xpBeforeAi = evalIn(`S.xp`);
+  evalIn(`sqResolveAiTurn()`);
+  check(evalIn(`S.xp`) === xpBeforeAi, "the computer's own correct answer never earns the human XP");
+
+  // sqEndGame stat/badge branching, tested directly and deterministically.
+  evalIn(`S.squaresStats = {vsComputer:{w:0,l:0,t:0}, vsLocal:{w:0,l:0,t:0}, vsPeer:{w:0,l:0,t:0}}; S.badges = S.badges.filter(b=>b!=="squares_ai_victor");`);
+  evalIn(`sqState.mode = "computer"; sqState.human = "X"; sqState.active = true; sqEndGame("X", [0,1,2])`);
+  check(evalIn(`S.squaresStats.vsComputer.w`) === 1, "a human win in vs-computer mode increments the win counter");
+  check(evalIn(`S.badges.includes("squares_ai_victor")`) === true, "beating the computer awards the Square Off badge");
+  check(evalIn(`sqState.phase`) === "over" && evalIn(`sqState.active`) === false, "sqEndGame transitions to over and releases active");
+  evalIn(`sqState.active = true; sqEndGame("O", [0,1,2])`); // the computer (O) wins
+  check(evalIn(`S.squaresStats.vsComputer.l`) === 1, "a computer win increments the loss counter, not the win counter");
+  evalIn(`sqState.active = true; sqEndGame("tie", null)`);
+  check(evalIn(`S.squaresStats.vsComputer.t`) === 1, "a filled board with no winner records a tie");
+  evalIn(`stopSquaresGame(); S.squaresStats = {vsComputer:{w:0,l:0,t:0}, vsLocal:{w:0,l:0,t:0}, vsPeer:{w:0,l:0,t:0}};`);
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();

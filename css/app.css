@@ -420,6 +420,13 @@
   .hgkey.wrong{border-color:var(--red); background:rgba(198,91,78,.10); color:var(--red); opacity:.65;}
   .hgkey:disabled{cursor:default;}
 
+  .sqcell{aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:800; background:var(--bg); border:2px solid var(--border); border-radius:10px; cursor:pointer; color:var(--ink); font-family:inherit; padding:0;}
+  .sqcell:hover:not(:disabled){border-color:var(--coral);}
+  .sqcell:disabled{cursor:default;}
+  .sqcell.sqx{color:var(--coral);}
+  .sqcell.sqo{color:var(--blue);}
+  .sqcell.active{border-color:var(--gold);}
+
   /* Printable Handbook */
   @media print{
     .handbook-page{break-after:page; page-break-after:always; margin-bottom:30px;}

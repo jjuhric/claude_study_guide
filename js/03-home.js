@@ -123,6 +123,7 @@ const TOOLS = [
   {fn:"cohortHubView",           em:"👥", name:"Study Cohort Hub",            desc:"Group study progress and shared cohort milestones.",                 cta:"Open Cohort",        g:"share"},
 
   {fn:"hangmanView",             em:"🎪", name:"Glossary Hangman",            desc:"Classic 6-miss hangman on domain-tagged key terms.",                  cta:"Play Hangman",       g:"games"},
+  {fn:"squaresView",             em:"🎬", name:"Hollywood Squares",           desc:"Tic-tac-toe with a steal rule — vs. computer or pass &amp; play.",   cta:"Play Squares",       g:"games"},
 ];
 
 /* Cert picker for the handbook, mirroring cramSheetSelect. */
