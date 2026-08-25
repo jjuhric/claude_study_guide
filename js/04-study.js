@@ -219,6 +219,33 @@ function buildHighYieldAudioScript(les, mode){
 
   if (mode === 'full') {
     div.querySelectorAll('pre, code, script, style, .widget-box, .sim-terminal, .code-copy-btn').forEach(el => el.remove());
+    // A diagram's SVG <text> labels are separate wrapped fragments for
+    // rendering -- read aloud via innerText they come out fragmented and
+    // out of order. Speak just the caption, already written as one
+    // spoken-friendly sentence, instead of the diagram itself.
+    div.querySelectorAll('.diagram-box').forEach(el => {
+      const cap = el.querySelector('.diagram-cap');
+      const p = document.createElement('p');
+      p.textContent = cap ? cap.textContent.trim() : '';
+      el.replaceWith(p);
+    });
+    // innerText flattens a table's header and data cells into one run-on
+    // stream with no row/column framing. Speak each row as its own
+    // "Header: value" phrase instead, so a listener can tell which value
+    // belongs to which column without seeing the table.
+    div.querySelectorAll('table').forEach(table => {
+      const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+      const bodyRows = table.querySelectorAll('tbody tr').length ? table.querySelectorAll('tbody tr') : table.querySelectorAll('tr');
+      const spoken = Array.from(bodyRows).map(row => {
+        const cells = Array.from(row.querySelectorAll('td')).map(c => c.textContent.trim());
+        if (!cells.length) return '';
+        if (headers.length === cells.length) return cells.map((c, i) => headers[i] ? headers[i] + ': ' + c : c).join(', ');
+        return cells.join(', ');
+      }).filter(Boolean).join('. ');
+      const p = document.createElement('p');
+      p.textContent = spoken;
+      table.replaceWith(p);
+    });
     return les.h + '. ' + (div.innerText || div.textContent || '');
   }
 
@@ -260,7 +287,10 @@ function buildHighYieldAudioScript(les, mode){
   }
 
   // 4. Key Takeaways
-  const takeaways = div.querySelector('.takeaways');
+  // Every lesson's takeaways box uses class 'kbox', not 'takeaways' -- this
+  // selector never matched anything, so Brief-mode narration silently
+  // skipped key takeaways for every single lesson in the app.
+  const takeaways = div.querySelector('.kbox');
   if (takeaways) {
     script += ' Finally, your key takeaways for test day: ';
     const items = takeaways.querySelectorAll('li');

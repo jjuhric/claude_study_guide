@@ -1668,6 +1668,17 @@ vm.createContext(sandbox);
      reappear under that name. */
   check(!/\bspeakText\(/.test(corpus), "no call to the undefined speakText() that used to crash the podcast player");
 
+  /* buildHighYieldAudioScript's Brief mode looked for a '.takeaways' element
+     to narrate key takeaways -- every lesson actually uses class 'kbox', so
+     that selector never matched anything and Brief-mode narration silently
+     skipped key takeaways for every lesson in the app. This class of bug is
+     real-DOM-dependent (querySelectorAll is a stub returning [] in this VM
+     sandbox -- see mkEl's own comment above), so it can only be verified
+     live in a browser; this guards against the exact wrong selector string
+     reappearing, and confirms the diagram/table read-aloud fix shipped. */
+  check(!/querySelector\(['"]\.takeaways['"]\)/.test(html), "Brief-mode audio no longer looks for the nonexistent .takeaways class");
+  check(/diagram-cap/.test(html) && /thead th/.test(html), "Full-lesson audio speaks a diagram's caption and a table's headers instead of flattening raw markup");
+
   /* The shared engine's synchronous state transitions -- the part that does
      not depend on a timer firing (see the speechSynthesis stub note above) --
      exercised directly. */
