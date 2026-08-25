@@ -413,6 +413,13 @@
   .rag-chunk{border:1px solid var(--border); border-radius:8px; padding:10px; margin-bottom:8px; background:var(--card); font-family:monospace; font-size:12px; line-height:1.5;}
   .rag-overlap{background:rgba(232,180,72,.35); font-weight:700; border-radius:3px; padding:0 2px;}
 
+  /* Games: Glossary Hangman letter keys, Hollywood Squares board */
+  .hgkey{aspect-ratio:1; display:flex; align-items:center; justify-content:center; background:var(--bg); border:2px solid var(--border); border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; color:var(--ink); font-family:inherit; padding:0;}
+  .hgkey:hover:not(:disabled){border-color:var(--coral);}
+  .hgkey.correct{border-color:var(--green); background:rgba(90,158,111,.12); color:var(--green);}
+  .hgkey.wrong{border-color:var(--red); background:rgba(198,91,78,.10); color:var(--red); opacity:.65;}
+  .hgkey:disabled{cursor:default;}
+
   /* Printable Handbook */
   @media print{
     .handbook-page{break-after:page; page-break-after:always; margin-bottom:30px;}

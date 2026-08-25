@@ -1709,6 +1709,69 @@ vm.createContext(sandbox);
   check(/▶️ Resume \(0\/\d+\)/.test(els.ttsPlayBtn.innerHTML), "pausing immediately shows a Resume label with a position, not a bare Listen");
   evalIn(`ttsStop(); S.audioProgress = {}`);
 
+  /* ---------- Games: Glossary Hangman ---------- */
+  // Word pool validation: well-formed regardless of how much of the
+  // per-domain content is authored yet -- glossary content lands
+  // incrementally, one domain at a time (see docs/HANGMAN_GLOSSARY_PLAN.md),
+  // so this checks shape, not completeness. A per-domain minimum count is
+  // added once every domain has real content.
+  {
+    const badGlossary = [];
+    const dupGlossary = [];
+    for (const [id, d] of Object.entries(data)) {
+      const nDom = CERTS.find(c => c.id === id).domains.length;
+      const seen = {};
+      (d.glossary || []).forEach((g, i) => {
+        if (!g.term || !g.term.trim()) badGlossary.push(`${id}.glossary[${i}] empty term`);
+        if (!g.hint || !g.hint.trim()) badGlossary.push(`${id}.glossary[${i}] empty hint`);
+        if (!/^[a-z]+g-[0-9a-f]{8}$/.test(g.id || "")) badGlossary.push(`${id}.glossary[${i}] bad id (${g.id})`);
+        if (typeof g.d !== "number" || g.d < 0 || g.d >= nDom) badGlossary.push(`${id}.glossary[${i}] domain out of range (${g.d})`);
+        if (g.term && (g.term.length < 2 || g.term.length > 30)) badGlossary.push(`${id}.glossary[${i}] term length ${g.term.length}`);
+        const key = g.d + ":" + (g.term || "").toLowerCase();
+        if (seen[key]) dupGlossary.push(`${id} "${g.term}" in domain ${g.d}`);
+        seen[key] = true;
+      });
+    }
+    check(badGlossary.length === 0, `every glossary entry is well-formed (${badGlossary.slice(0, 3).join(", ") || "all valid"})`);
+    check(dupGlossary.length === 0, `no duplicate glossary term within a domain (${dupGlossary.slice(0, 3).join(", ") || "none"})`);
+    const totalGlossary = Object.values(data).reduce((n, d) => n + (d.glossary || []).length, 0);
+    check(totalGlossary > 0, `at least some glossary content exists (${totalGlossary} entries)`);
+  }
+
+  // Engine tests: exercise hangPickTerm/hangGuessLetter directly -- the same
+  // approach the resumable-audio section above uses -- pure state
+  // transitions, not a click-through (the shim has no real attribute
+  // tracking or HTML parsing to click through anyway).
+  evalIn(`S.hangmanRecent = {}; S.hangmanStats = {wins:0, losses:0, perfect:0, played:0};`);
+  check(evalIn(`hangGlossaryPool(CERTS.find(c=>c.id==="ccao"), 0).length`) > 0, "the seeded ccao domain-0 glossary pool is non-empty");
+  {
+    const picks = [];
+    for (let i = 0; i < 5; i++) picks.push(evalIn(`hangPickTerm("ccao", 0).term`));
+    check(picks.every(Boolean), "hangPickTerm always returns a term when the pool is non-empty");
+  }
+  check(evalIn(`hangGlossaryPool(CERTS.find(c=>c.id==="ccdv"), 1).length`) === 0, "a domain with no glossary content yet returns an empty pool, not a crash");
+  check(evalIn(`hangPickTerm("ccdv", 1)`) === null, "hangPickTerm returns null rather than throwing on an empty pool");
+
+  evalIn(`hangState = {active:true, certId:"ccao", d:0, entry:{id:"test", term:"ab c", hint:"test hint", d:0}, guessed:[], misses:0, phase:"playing"};`);
+  check(evalIn(`hangMaskedWord()`) === "__ _", "an unguessed multi-word term masks letters but always shows the space");
+  evalIn(`hangGuessLetter("a")`);
+  check(evalIn(`hangState.guessed.includes("a") && hangState.misses`) === 0, "a correct letter is recorded without costing a miss");
+  check(evalIn(`hangMaskedWord()`) === "a_ _", "the revealed letter appears in the masked word immediately");
+  evalIn(`hangGuessLetter("z")`);
+  check(evalIn(`hangState.misses`) === 1, "a wrong letter increments misses by exactly one");
+  evalIn(`hangGuessLetter("z")`); // repeat guess must be a no-op
+  check(evalIn(`hangState.misses`) === 1, "re-guessing an already-guessed letter does not double-count a miss");
+  evalIn(`hangGuessLetter("b"); hangGuessLetter("c");`);
+  check(evalIn(`hangState.phase`) === "won", "guessing every remaining letter transitions the round to won");
+  check(evalIn(`hangState.active`) === false, "a finished round releases hangState.active");
+
+  evalIn(`hangState = {active:true, certId:"ccao", d:0, entry:{id:"test2", term:"xy", hint:"test hint", d:0}, guessed:[], misses:0, phase:"playing"};`);
+  ["q", "w", "e", "r", "t", "u"].forEach(ch => evalIn(`hangGuessLetter("${ch}")`));
+  check(evalIn(`hangState.phase`) === "lost", "six wrong guesses transitions the round to lost");
+  check(evalIn(`hangState.misses`) === 6, "misses stop exactly at the 6-miss cap");
+  evalIn(`hangGuessLetter("q")`); // round already over -- must be inert
+  check(evalIn(`hangState.misses`) === 6, "no further mutation is accepted once a round has ended");
+
   console.log(fails ? `\n${fails} FAILURE(S)` : "\nall checks passed");
   process.exitCode = fails ? 1 : 0;
 })();

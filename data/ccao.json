@@ -2165,5 +2165,228 @@
       "b": "<p>Enterprise consultants and delivery leads must navigate corporate governance, regulatory compliance (HIPAA, GDPR, SOC 2), and AI safety frameworks. Anthropic's safety philosophy is operationalized through its <b>Responsible Scaling Policy (RSP)</b> and <b>Zero Data Retention (ZDR)</b> enterprise commitments.</p>\n\n<div class='callout'>\n<div class='lbl'>Anthropic Responsible Scaling Policy (RSP) Safety Tiers</div>\n<ul>\n  <li><b>ASL-1 (AI Safety Level 1):</b> Standard models that pose no biological, chemical, or cyber proliferation risk (comparable to basic search engines).</li>\n  <li><b>ASL-2:</b> Models with early dangerous-capability signals that fall short of autonomous cyberattack or CBRN synthesis. Requires standard red-teaming and abuse filtering. Which deployed models sit at which tier is not fixed — it is reassessed as capability is evaluated, so check Anthropic's published RSP for the current mapping rather than treating any tier assignment as permanent.</li>\n  <li><b>ASL-3:</b> Models capable of providing actionable instructions for biological weapon creation or autonomous cyberattack execution. Requires air-gapped compute, strict physical access security, and multi-party cryptographic authorization.</li>\n  <li><b>ASL-4:</b> High-risk autonomous proliferation risks requiring nation-state level containment standards.</li>\n</ul>\n</div>\n\n<h4>Enterprise Privacy & Zero Data Retention (ZDR)</h4>\n<p>When customers interact with Claude through the official Commercial API, Anthropic provides contractual <b>Zero Data Retention</b> agreements: customer prompt inputs and generated completions are never retained on persistent disk after processing, and are <b>never used to train future Anthropic models</b>.</p>\n\n<p>This strict boundary protects corporate intellectual property, proprietary source code, and confidential customer records from data leakage. Unlike consumer chat interfaces that may use conversations for reinforcement learning, commercial API endpoints provide complete legal data isolation.</p>\n\n<div class='warn'>\n<div class='lbl'>Exam Gotcha: Disclaimers vs Architectural Guardrails</div>\n<p>Adding a disclaimer like <i>\"AI may make mistakes\"</i> does not absolve an organization of regulatory liability in healthcare, financial lending, or legal advisory services. Compliance requires <b>deterministic architectural guardrails</b>: human-in-the-loop confirmation gates, output schema validation, and retrieval grounding.</p>\n</div>\n\n<h4>Managing Regulated PII and PHI</h4>\n<p>When deploying AI applications in healthcare (HIPAA) or financial services (GLBA, PCI-DSS):</p>\n<ul>\n  <li>Execute a formal Business Associate Agreement (BAA) with Anthropic or your cloud provider (AWS Bedrock / GCP Vertex AI).</li>\n  <li>Implement client-side PII scrubbing (e.g. Microsoft Presidio) to mask social security numbers and patient names before sending payloads.</li>\n  <li>Enforce least-privilege role-based access control (RBAC) on all downstream knowledge stores and vector databases.</li>\n  <li>Maintain comprehensive audit logs tracking who queried the model, when, and which data records were accessed.</li>\n</ul>\n\n<div class='vbox'>\n<div class='lbl'>📺 Watch</div>\n<a href='https://www.youtube.com/watch?v=LPZh9BOjkQs' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Anthropic Constitutional AI & Safety Framework</span><span class='vdesc'>Anthropic's approach to alignment, constitutional AI, and enterprise safety.</span></span></a>\n</div>\n\n<div class='kbox'>\n<div class='lbl'>Key takeaways</div>\n<ul>\n  <li>Anthropic Commercial API data is never used for model training under Zero Data Retention terms.</li>\n  <li>ASL-3 containment triggers when models demonstrate dangerous autonomous cyberwarfare or CBRN capabilities.</li>\n  <li>Regulatory compliance in high-stakes domains requires architectural verification gates, not passive user disclaimers.</li>\n  <li>Always mask PII on the client side and establish formal enterprise BAAs for HIPAA/GDPR workloads.</li>\n  <li>Log all user queries and system actions to maintain compliance with SOC 2 and ISO 27001 audit standards.</li>\n</ul>\n</div>"
     }
   ],
-  "glossary": []
+  "glossary": [
+    {
+      "id": "ccaog-82bc8a15",
+      "term": "few-shot prompting",
+      "hint": "Showing one filled-in example instead of describing a structure in prose — the most reliable way to get consistent output shape, and the best fix for edge cases the prompt keeps failing on.",
+      "d": 0
+    },
+    {
+      "id": "ccaog-cbcdeefc",
+      "term": "XML tags",
+      "hint": "Claude is explicitly trained to recognize tags like <context> and <instructions>, creating unambiguous boundaries that prevent instruction-data confusion.",
+      "d": 0
+    },
+    {
+      "id": "ccaog-df97385f",
+      "term": "Lost in the Middle",
+      "hint": "The attention effect where tokens at the very start and end of a prompt get the most weight, so content buried in the middle of a long context can lose retrieval accuracy.",
+      "d": 0
+    },
+    {
+      "id": "ccaog-e28a29c6",
+      "term": "delimiters",
+      "hint": "A heading, a tag, or a line of dashes that stops the model from confusing your instructions with the content it's meant to work on.",
+      "d": 0
+    },
+    {
+      "id": "ccaog-43be7f8d",
+      "term": "role prompting",
+      "hint": "Telling Claude to act as a persona shapes tone, register, and perspective. It does not unlock hidden capabilities or add accuracy.",
+      "d": 0
+    },
+    {
+      "id": "ccaog-be055f77",
+      "term": "positive framing",
+      "hint": "Stating what to do ('summarize in 3 bullets') instead of what not to do ('don't be verbose'), which gives no actionable guidance to act on.",
+      "d": 0
+    },
+    {
+      "id": "ccaog-a8eb15bc",
+      "term": "structured output",
+      "hint": "Specifying the exact shape you need — field names, types, an example instance — and treating what comes back as a draft to validate, not a guarantee to trust.",
+      "d": 0
+    },
+    {
+      "id": "ccaog-29965d6e",
+      "term": "hallucination",
+      "hint": "Fluent, confident-sounding text that contains factual errors. Polish carries no information about accuracy, which is why evaluation has to be a habit, not a feeling.",
+      "d": 1
+    },
+    {
+      "id": "ccaog-aaef7dc4",
+      "term": "golden dataset",
+      "hint": "A curated set of representative inputs paired with outputs a human has confirmed are correct — gives you something fixed to measure a prompt change against.",
+      "d": 1
+    },
+    {
+      "id": "ccaog-5fd58f61",
+      "term": "LLM-as-a-judge",
+      "hint": "Using a capable model with an explicit, detailed rubric to score outputs from another model or prompt version, instead of an unstructured 'is this good?' opinion.",
+      "d": 1
+    },
+    {
+      "id": "ccaog-73e0b784",
+      "term": "position bias",
+      "hint": "A judge model's tendency to favor whichever candidate response it sees first (or second), independent of actual quality — fixed by running comparisons in both orders.",
+      "d": 1
+    },
+    {
+      "id": "ccaog-d9cd7f53",
+      "term": "round-tripping",
+      "hint": "Running an output back through the model to ask if it's correct. Feels like verification and isn't — a self-assessment costs the same whether the answer is right or wrong.",
+      "d": 1
+    },
+    {
+      "id": "ccaog-ac1919ae",
+      "term": "context window",
+      "hint": "The total text a model can see at once. A larger one lets you supply more source material, but it retrieves nothing and does not make reasoning deeper.",
+      "d": 2
+    },
+    {
+      "id": "ccaog-f8beced4",
+      "term": "adaptive thinking",
+      "hint": "The setting that controls reasoning depth on a request, separate from model tier — a hard question on the fast tier with high effort can out-think an easy one on the top tier with none.",
+      "d": 2
+    },
+    {
+      "id": "ccaog-50b7fcfb",
+      "term": "temperature",
+      "hint": "A sampling parameter rejected on current Claude models. Consistent, deterministic-feeling output comes from the prompt — an explicit format, a schema, worked examples — not a sampling knob.",
+      "d": 2
+    },
+    {
+      "id": "ccaog-e06dde6e",
+      "term": "data residency",
+      "hint": "Where data may be processed and stored, and what regulatory obligations apply — establishing this narrows model options before cost or features are worth comparing.",
+      "d": 2
+    },
+    {
+      "id": "ccaog-80a19f29",
+      "term": "right-sizing",
+      "hint": "Moving the simplest, highest-volume steps to a smaller, cheaper model tier — usually the largest and least disruptive cost lever available.",
+      "d": 2
+    },
+    {
+      "id": "ccaog-9ed765f2",
+      "term": "schema validation",
+      "hint": "Parsing returned data against an explicit definition of required keys, correct types, and allowed values. Catches structurally invalid output, not wrong-but-valid output.",
+      "d": 3
+    },
+    {
+      "id": "ccaog-f2390e3b",
+      "term": "internal champion",
+      "hint": "Someone who already gets good results on a team's actual tasks. Their working example carries more weight than a top-down mandate with no proof behind it.",
+      "d": 3
+    },
+    {
+      "id": "ccaog-449704d1",
+      "term": "versioned template",
+      "hint": "The shared prompt plus the context it needs, standardized so different people get consistent results on the same task instead of each improvising their own input.",
+      "d": 3
+    },
+    {
+      "id": "ccaog-5018bffb",
+      "term": "cycle time",
+      "hint": "A measurable reduction in this, or in rework, with quality held constant, is the real evidence a workflow is working — not just a feeling of speed.",
+      "d": 3
+    },
+    {
+      "id": "ccaog-74dcd59f",
+      "term": "freed time",
+      "hint": "What a workflow's time saving actually becomes only if it's tracked and redirected to something. Left untracked, a real saving shows up nowhere.",
+      "d": 3
+    },
+    {
+      "id": "ccaog-ffcc1422",
+      "term": "Project",
+      "hint": "A persistent workspace with reference documents and reusable instructions, so a recurring task starts from the same grounding every run instead of every prompt.",
+      "d": 3
+    },
+    {
+      "id": "ccaog-0718a164",
+      "term": "grounding",
+      "hint": "Supplying your own material so answers are specific and current. It improves relevance and reduces error — it does not guarantee correctness.",
+      "d": 4
+    },
+    {
+      "id": "ccaog-31ee87df",
+      "term": "staleness",
+      "hint": "The main risk in a shared knowledge space: an outdated document produces confident, outdated answers that look just as authoritative as current ones.",
+      "d": 4
+    },
+    {
+      "id": "ccaog-cd714262",
+      "term": "Custom Instructions",
+      "hint": "Standing behavior — coding standards, output formats, house style — applied to every chat in a project. A different feature from project knowledge documents, which ground answers in material.",
+      "d": 4
+    },
+    {
+      "id": "ccaog-0607aa15",
+      "term": "traceability",
+      "hint": "Answers that cite the specific document and section they came from. The actual signal that a grounded knowledge setup is working, not longer or faster answers.",
+      "d": 4
+    },
+    {
+      "id": "ccaog-38fd6cab",
+      "term": "RAG",
+      "hint": "Retrieval Augmented Generation — retrieving the relevant passages per query rather than resending an entire corpus or relying on one summary that goes stale.",
+      "d": 4
+    },
+    {
+      "id": "ccaog-f28e93c7",
+      "term": "data classification",
+      "hint": "Whether particular data is approved for a given tool. The first question, before prompt quality, model choice, or cost even enter the conversation.",
+      "d": 5
+    },
+    {
+      "id": "ccaog-3e2e2b5c",
+      "term": "ASL",
+      "hint": "AI Safety Levels — Anthropic's tiered framework tying required safeguards to demonstrated model capability, not to any single product launch.",
+      "d": 5
+    },
+    {
+      "id": "ccaog-1f7e0ef4",
+      "term": "Zero-Data-Retention",
+      "hint": "A negotiated contractual arrangement (ZDR) ensuring confidential material is never retained after processing. Not something you can write into a prompt.",
+      "d": 5
+    },
+    {
+      "id": "ccaog-a1ad00d4",
+      "term": "prompt injection",
+      "hint": "Text arriving as data — a pasted email, a customer message — phrased as an instruction, hoping the model follows it instead of treating it as content to analyze.",
+      "d": 5
+    },
+    {
+      "id": "ccaog-7f0fae02",
+      "term": "accountability",
+      "hint": "Sits with whoever reviewed and sent the output. It never transfers to the vendor, the prompt author, or 'it was automated.'",
+      "d": 5
+    },
+    {
+      "id": "ccaog-d2ef940c",
+      "term": "context crowding",
+      "hint": "Why answers get worse late in a long conversation: earlier content has been crowded out as the conversation grew — not model fatigue or account downgrading.",
+      "d": 6
+    },
+    {
+      "id": "ccaog-948e03cb",
+      "term": "numbered list",
+      "hint": "The fix for a consistently ignored instruction: break requirements into individually visible items rather than repeating or shouting the same buried instruction.",
+      "d": 6
+    },
+    {
+      "id": "ccaog-5687196e",
+      "term": "underspecification",
+      "hint": "The usual cause of inconsistent answers across runs. Tighten the format, constraints, and an example, and the acceptable range of answers narrows.",
+      "d": 6
+    },
+    {
+      "id": "ccaog-866c43bb",
+      "term": "quote the passage",
+      "hint": "Asking for the exact source text an answer used, which makes grounding checkable in one step — asking 'did you read it?' just yields a self-report.",
+      "d": 6
+    }
+  ]
 }
