@@ -1186,8 +1186,29 @@ vm.createContext(sandbox);
   call("conceptDecisionTree");
   check(/Interactive Concept Decision Trees/.test(els.app.innerHTML) && /dtnBody/.test(els.app.innerHTML), "conceptDecisionTree renders interactive branching tree");
 
-  call("glossaryTermCallouts");
-  check(/Glossary Term Callouts & Hover Definitions/.test(els.app.innerHTML) && /glossBody/.test(els.app.innerHTML), "glossaryTermCallouts renders glossary with search");
+  /* glossaryReferenceView replaced glossaryTermCallouts, which was
+     unreachable dead code hardcoded to the same 10 terms regardless of
+     which certification was active. These checks specifically target that
+     defect: real cert-awareness, real search, and a real (not label-only)
+     link back to the lesson that teaches each term. */
+  evalIn(`glossaryRefState = {certId:"ccao", query:""}`);
+  call("glossaryReferenceView");
+  check(/Glossary &amp; Reference/.test(els.app.innerHTML) && /glossBody/.test(els.app.innerHTML), "glossaryReferenceView renders glossary with search");
+  // The term list itself is written into #glossBody by renderGlossaryList(),
+  // a separate mock element from els.app in this shim (no real DOM tree
+  // connects them) -- check that element directly, same fix as the earlier
+  // ttsPlayBtn lesson (checking els.app.innerHTML here would silently pass
+  // or fail on stale content regardless of what renderGlossaryList did).
+  check(/positive framing/.test(els.glossBody.innerHTML), "shows a real CCAO glossary term (not the old hardcoded 10-term list)");
+
+  evalIn(`glossaryRefState.certId = "ccdv"; renderGlossaryList()`);
+  check(/stop_reason/.test(els.glossBody.innerHTML) && !/positive framing/.test(els.glossBody.innerHTML), "switching cert swaps to that cert's own glossary terms, not the same list for every cert");
+
+  evalIn(`glossaryRefState = {certId:"ccao", query:"hallucination"}; renderGlossaryList()`);
+  check(/hallucination/i.test(els.glossBody.innerHTML) && !/positive framing/.test(els.glossBody.innerHTML), "search filters the list down to matching terms only");
+
+  evalIn(`glossaryRefState = {certId:"ccao", query:""}; renderGlossaryList()`);
+  check(/onclick="lessonView\('ccao',\d+\)"/.test(els.glossBody.innerHTML), "each term links to the real lesson that teaches its domain, not a plain text label");
 
   /* ---------- 43. Aurora Teaching Suite ---------- */
   call("studyRoadmapView");
@@ -1668,6 +1689,17 @@ vm.createContext(sandbox);
      reappear under that name. */
   check(!/\bspeakText\(/.test(corpus), "no call to the undefined speakText() that used to crash the podcast player");
 
+  /* buildHighYieldAudioScript's Brief mode looked for a '.takeaways' element
+     to narrate key takeaways -- every lesson actually uses class 'kbox', so
+     that selector never matched anything and Brief-mode narration silently
+     skipped key takeaways for every lesson in the app. This class of bug is
+     real-DOM-dependent (querySelectorAll is a stub returning [] in this VM
+     sandbox -- see mkEl's own comment above), so it can only be verified
+     live in a browser; this guards against the exact wrong selector string
+     reappearing, and confirms the diagram/table read-aloud fix shipped. */
+  check(!/querySelector\(['"]\.takeaways['"]\)/.test(html), "Brief-mode audio no longer looks for the nonexistent .takeaways class");
+  check(/diagram-cap/.test(html) && /thead th/.test(html), "Full-lesson audio speaks a diagram's caption and a table's headers instead of flattening raw markup");
+
   /* The shared engine's synchronous state transitions -- the part that does
      not depend on a timer firing (see the speechSynthesis stub note above) --
      exercised directly. */
@@ -1709,18 +1741,22 @@ vm.createContext(sandbox);
   check(/▶️ Resume \(0\/\d+\)/.test(els.ttsPlayBtn.innerHTML), "pausing immediately shows a Resume label with a position, not a bare Listen");
   evalIn(`ttsStop(); S.audioProgress = {}`);
 
-  /* ---------- Games: Glossary Hangman ---------- */
-  // Word pool validation: well-formed regardless of how much of the
-  // per-domain content is authored yet -- glossary content lands
-  // incrementally, one domain at a time (see docs/HANGMAN_GLOSSARY_PLAN.md),
-  // so this checks shape, not completeness. A per-domain minimum count is
-  // added once every domain has real content.
+  /* ---------- Games: Glossary Hangman ----------
+     docs/HANGMAN_GLOSSARY_PLAN.md's content pass is complete -- all 24
+     domains across all 4 certs are authored (197 terms total). The
+     per-domain floor below was deliberately absent while that work was
+     still incremental (a floor set before the content existed would have
+     been red for most of the effort, or set too low to mean anything); now
+     that every domain has cleared 8, the floor holds the line so a future
+     edit can't silently thin one back out. */
   {
     const badGlossary = [];
     const dupGlossary = [];
+    const thinDomains = [];
     for (const [id, d] of Object.entries(data)) {
       const nDom = CERTS.find(c => c.id === id).domains.length;
       const seen = {};
+      const perDomain = {};
       (d.glossary || []).forEach((g, i) => {
         if (!g.term || !g.term.trim()) badGlossary.push(`${id}.glossary[${i}] empty term`);
         if (!g.hint || !g.hint.trim()) badGlossary.push(`${id}.glossary[${i}] empty hint`);
@@ -1730,10 +1766,15 @@ vm.createContext(sandbox);
         const key = g.d + ":" + (g.term || "").toLowerCase();
         if (seen[key]) dupGlossary.push(`${id} "${g.term}" in domain ${g.d}`);
         seen[key] = true;
+        perDomain[g.d] = (perDomain[g.d] || 0) + 1;
       });
+      for (let dom = 0; dom < nDom; dom++) {
+        if ((perDomain[dom] || 0) < 8) thinDomains.push(`${id} domain ${dom} has ${perDomain[dom] || 0}`);
+      }
     }
     check(badGlossary.length === 0, `every glossary entry is well-formed (${badGlossary.slice(0, 3).join(", ") || "all valid"})`);
     check(dupGlossary.length === 0, `no duplicate glossary term within a domain (${dupGlossary.slice(0, 3).join(", ") || "none"})`);
+    check(thinDomains.length === 0, `every domain has at least 8 glossary terms (${thinDomains.slice(0, 3).join(", ") || "all domains ≥8"})`);
     const totalGlossary = Object.values(data).reduce((n, d) => n + (d.glossary || []).length, 0);
     check(totalGlossary > 0, `at least some glossary content exists (${totalGlossary} entries)`);
   }
@@ -1749,8 +1790,14 @@ vm.createContext(sandbox);
     for (let i = 0; i < 5; i++) picks.push(evalIn(`hangPickTerm("ccao", 0).term`));
     check(picks.every(Boolean), "hangPickTerm always returns a term when the pool is non-empty");
   }
-  check(evalIn(`hangGlossaryPool(CERTS.find(c=>c.id==="ccdv"), 1).length`) === 0, "a domain with no glossary content yet returns an empty pool, not a crash");
-  check(evalIn(`hangPickTerm("ccdv", 1)`) === null, "hangPickTerm returns null rather than throwing on an empty pool");
+  // Domain 99 doesn't exist in any cert and never will -- a stable way to
+  // test the empty-pool path without this test going stale as real
+  // domains get glossary content filled in over time (ccdv's domain 1 was
+  // this test's original example; it no longer qualifies now that it has
+  // real content, which is exactly the kind of drift a hardcoded "known
+  // empty" domain invites).
+  check(evalIn(`hangGlossaryPool(CERTS.find(c=>c.id==="ccdv"), 99).length`) === 0, "a domain with no glossary content returns an empty pool, not a crash");
+  check(evalIn(`hangPickTerm("ccdv", 99)`) === null, "hangPickTerm returns null rather than throwing on an empty pool");
 
   evalIn(`hangState = {active:true, certId:"ccao", d:0, entry:{id:"test", term:"ab c", hint:"test hint", d:0}, guessed:[], misses:0, phase:"playing"};`);
   check(evalIn(`hangMaskedWord()`) === "__ _", "an unguessed multi-word term masks letters but always shows the space");

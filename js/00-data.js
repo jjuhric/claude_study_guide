@@ -123,7 +123,8 @@ const BADGES = [
  {id:"hangman_survivor", em:"🎪", name:"Hangman Survivor", desc:"Win your first round of Glossary Hangman"},
  {id:"hangman_flawless", em:"🎯", name:"Word Perfect", desc:"Win a Glossary Hangman round with zero wrong guesses"},
  {id:"squares_ai_victor", em:"🎬", name:"Square Off", desc:"Beat the computer at Hollywood Squares"},
- {id:"squares_peer_victor", em:"📡", name:"Long-Distance Duelist", desc:"Beat a real remote opponent at Hollywood Squares over P2P"}
+ {id:"squares_peer_victor", em:"📡", name:"Long-Distance Duelist", desc:"Beat a real remote opponent at Hollywood Squares over P2P"},
+ {id:"glossary_navigator", em:"📖", name:"Glossary Navigator", desc:"Open the Glossary & Reference view"}
 ];
 
 const TITLES = ["Curious Newcomer","Prompt Novice","Context Wrangler","Token Tactician","Workflow Wizard","Agent Whisperer","MCP Maestro","Orchestration Oracle","Claude Sage","Certification Legend"];

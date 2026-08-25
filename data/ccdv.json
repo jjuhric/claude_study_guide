@@ -2075,22 +2075,22 @@
     {
       "id": "ccdvl-8",
       "h": "Masterclass: Model Context Protocol (MCP) Server Architecture",
-      "b": "<p>The <b>Model Context Protocol (MCP)</b> is an open, standardized protocol created by Anthropic that standardizes how AI applications connect to external tools, databases, and local filesystems. Instead of writing custom brittle API bridges for every tool, MCP standardizes communication over <b>JSON-RPC 2.0</b>.</p>\n\n<div class='callout'>\n<div class='lbl'>The 4 Core MCP Primitives</div>\n<ul>\n  <li><b>Tools (<code>tools/list</code>, <code>tools/call</code>):</b> Executable functions that Claude can invoke to perform actions (e.g. run SQL query, fetch weather, write file).</li>\n  <li><b>Resources (<code>resources/list</code>, <code>resources/read</code>):</b> Structured, read-only data endpoints identified by URIs (e.g. <code>postgres://schema/users</code>).</li>\n  <li><b>Prompts (<code>prompts/list</code>, <code>prompts/get</code>):</b> Parameterized prompt templates managed by the server.</li>\n  <li><b>Roots (<code>roots/list</code>):</b> Workspace directory boundaries that inform the server which filesystem paths it is permitted to access.</li>\n</ul>\n</div>\n\n<h4>JSON-RPC 2.0 Wire Protocol & Error Handling</h4>\n<p>When an MCP tool encounters an error during execution (such as a database query timeout or missing record), the server must return <code>isError: true</code> inside the tool result block rather than crashing the JSON-RPC transport connection.</p>\n\n<pre><code class='language-json'>{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 42,\n  \"result\": {\n    \"content\": [\n      {\n        \"type\": \"text\",\n        \"text\": \"Database error: Table 'customers_2026' does not exist.\"\n      }\n    ],\n    \"isError\": true\n  }\n}</code></pre>\n\n<div class='warn'>\n<div class='lbl'>Exam Rule: Transport Layers</div>\n<p>MCP supports two standard transports: <b>stdio</b> (standard input/output for local processes, IDE plugins, and CLI tools) and <b>Server-Sent Events (SSE) over HTTP</b> (for remote microservices and cloud deployments).</p>\n</div>\n\n<h4>Client Sampling (sampling/createMessage)</h4>\n<p>MCP servers can request the host client application (e.g. Claude Desktop or an enterprise agent) to generate a completion via the <code>sampling/createMessage</code> method. This allows an MCP server to delegate sub-reasoning tasks back to Claude while keeping the client application in control of model parameters, token spend, and user confirmation permissions.</p>\n\n<h4>Security Boundaries & Roots Discovery</h4>\n<p>MCP servers must respect filesystem boundaries advertised by the client via <code>roots/list</code>. A secure server validates that all requested file read/write paths fall strictly within the allowlisted workspace root directories, rejecting directory traversal attempts (e.g. <code>../../etc/passwd</code>) with a structured error payload.</p>\n\n<div class='vbox'>\n<div class='lbl'>📺 Watch</div>\n<a href='https://www.youtube.com/watch?v=7j_NE6Pjv-E' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Model Context Protocol (MCP), Clearly Explained</span><span class='vdesc'>What MCP standardises and why the N-by-M integration problem matters.</span></span></a>\n</div>\n\n<div class='kbox'>\n<div class='lbl'>Key takeaways</div>\n<ul>\n  <li>MCP standardizes tool, resource, and prompt integrations using JSON-RPC 2.0 primitives.</li>\n  <li>Tool execution errors must be communicated via <code>isError: true</code> in the tool result so Claude can handle the failure gracefully.</li>\n  <li>Local tools communicate over stdio; remote services communicate over HTTP with Server-Sent Events (SSE).</li>\n  <li>Sampling allows servers to request LLM generations through the client with user-controlled permissions.</li>\n  <li>Always validate file path boundaries against client-provided workspace roots.</li>\n</ul>\n</div>"
+      "b": "<p>The <b>Model Context Protocol (MCP)</b> is an open, standardized protocol created by Anthropic that standardizes how AI applications connect to external tools, databases, and local filesystems. Instead of writing custom brittle API bridges for every tool, MCP standardizes communication over <b>JSON-RPC 2.0</b>.</p><p><i>MCP is like a universal travel power adapter.</i> Without a shared standard, every appliance would need its own custom plug for every country's outlet — every tool would need its own custom bridge to every AI application. MCP defines one plug shape everyone builds to: any compliant server can plug into any compliant client, and neither side has to know the other's internals in advance.</p><div class='diagram-box'><svg viewBox='0 0 600 150' xmlns='http://www.w3.org/2000/svg'><rect x=\"10\" y=\"20\" width=\"135\" height=\"60\" rx=\"10\" fill=\"var(--card)\" stroke=\"var(--blue)\" stroke-width=\"2\"/><text x=\"77.5\" y=\"47.5\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"700\" fill=\"var(--ink)\">Tools</text><text x=\"77.5\" y=\"60.5\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"700\" fill=\"var(--ink)\">tools/list, tools/call</text><text x=\"77.5\" y=\"96\" text-anchor=\"middle\" font-size=\"9\" fill=\"var(--muted)\">actions, side effects</text><rect x=\"157\" y=\"20\" width=\"135\" height=\"60\" rx=\"10\" fill=\"var(--card)\" stroke=\"var(--blue)\" stroke-width=\"2\"/><text x=\"224.5\" y=\"47.5\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"700\" fill=\"var(--ink)\">Resources</text><text x=\"224.5\" y=\"60.5\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"700\" fill=\"var(--ink)\">resources/list, /read</text><text x=\"224.5\" y=\"96\" text-anchor=\"middle\" font-size=\"9\" fill=\"var(--muted)\">data, no side effects</text><rect x=\"304\" y=\"20\" width=\"135\" height=\"60\" rx=\"10\" fill=\"var(--card)\" stroke=\"var(--blue)\" stroke-width=\"2\"/><text x=\"371.5\" y=\"47.5\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"700\" fill=\"var(--ink)\">Prompts</text><text x=\"371.5\" y=\"60.5\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"700\" fill=\"var(--ink)\">prompts/list, /get</text><text x=\"371.5\" y=\"96\" text-anchor=\"middle\" font-size=\"9\" fill=\"var(--muted)\">reusable templates</text><rect x=\"451\" y=\"20\" width=\"135\" height=\"60\" rx=\"10\" fill=\"var(--card)\" stroke=\"var(--gold)\" stroke-width=\"2\"/><text x=\"518.5\" y=\"47.5\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"700\" fill=\"var(--ink)\">Roots</text><text x=\"518.5\" y=\"60.5\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"700\" fill=\"var(--ink)\">roots/list</text><text x=\"518.5\" y=\"96\" text-anchor=\"middle\" font-size=\"9\" fill=\"var(--muted)\">workspace boundary</text></svg><div class='diagram-cap'>The dividing line between primitives is side effects -- if calling it twice differs from calling it once, it is a tool.</div></div>\n\n<div class='callout'>\n<div class='lbl'>The 4 Core MCP Primitives</div>\n<ul>\n  <li><b>Tools (<code>tools/list</code>, <code>tools/call</code>):</b> Executable functions that Claude can invoke to perform actions (e.g. run SQL query, fetch weather, write file).</li>\n  <li><b>Resources (<code>resources/list</code>, <code>resources/read</code>):</b> Structured, read-only data endpoints identified by URIs (e.g. <code>postgres://schema/users</code>).</li>\n  <li><b>Prompts (<code>prompts/list</code>, <code>prompts/get</code>):</b> Parameterized prompt templates managed by the server.</li>\n  <li><b>Roots (<code>roots/list</code>):</b> Workspace directory boundaries that inform the server which filesystem paths it is permitted to access.</li>\n</ul>\n</div>\n\n<h4>JSON-RPC 2.0 Wire Protocol & Error Handling</h4>\n<p>When an MCP tool encounters an error during execution (such as a database query timeout or missing record), the server must return <code>isError: true</code> inside the tool result block rather than crashing the JSON-RPC transport connection.</p>\n\n<pre><code class='language-json'>{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 42,\n  \"result\": {\n    \"content\": [\n      {\n        \"type\": \"text\",\n        \"text\": \"Database error: Table 'customers_2026' does not exist.\"\n      }\n    ],\n    \"isError\": true\n  }\n}</code></pre>\n\n<div class='warn'>\n<div class='lbl'>Exam Rule: Transport Layers</div>\n<p>MCP supports two standard transports: <b>stdio</b> (standard input/output for local processes, IDE plugins, and CLI tools) and <b>Server-Sent Events (SSE) over HTTP</b> (for remote microservices and cloud deployments).</p>\n</div>\n\n<h4>Client Sampling (sampling/createMessage)</h4>\n<p>MCP servers can request the host client application (e.g. Claude Desktop or an enterprise agent) to generate a completion via the <code>sampling/createMessage</code> method. This allows an MCP server to delegate sub-reasoning tasks back to Claude while keeping the client application in control of model parameters, token spend, and user confirmation permissions.</p>\n\n<h4>Security Boundaries & Roots Discovery</h4>\n<p>MCP servers must respect filesystem boundaries advertised by the client via <code>roots/list</code>. A secure server validates that all requested file read/write paths fall strictly within the allowlisted workspace root directories, rejecting directory traversal attempts (e.g. <code>../../etc/passwd</code>) with a structured error payload.</p>\n\n<div class='exbox'><div class='lbl'>Following one query through the error path</div><p>A database tool hits a query against a table that was renamed last week. Instead of crashing the JSON-RPC connection, the server returns the result block from the lesson's own example: <code>isError: true</code> with a plain-text description of what went wrong. Claude receives that as a normal tool result, not a broken session — it can explain the problem to the user or try a corrected query on the next turn. The whole exchange survives one bad query because the error travels through the same structured channel as a success would.</p></div><div class='vbox'>\n<div class='lbl'>📺 Watch</div>\n<a href='https://www.youtube.com/watch?v=7j_NE6Pjv-E' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Model Context Protocol (MCP), Clearly Explained</span><span class='vdesc'>What MCP standardises and why the N-by-M integration problem matters.</span></span></a>\n</div>\n\n<div class='kbox'>\n<div class='lbl'>Key takeaways</div>\n<ul>\n  <li>MCP standardizes tool, resource, and prompt integrations using JSON-RPC 2.0 primitives.</li>\n  <li>Tool execution errors must be communicated via <code>isError: true</code> in the tool result so Claude can handle the failure gracefully.</li>\n  <li>Local tools communicate over stdio; remote services communicate over HTTP with Server-Sent Events (SSE).</li>\n  <li>Sampling allows servers to request LLM generations through the client with user-controlled permissions.</li>\n  <li>Always validate file path boundaries against client-provided workspace roots.</li>\n</ul>\n</div>"
     },
     {
       "id": "ccdvl-9",
       "h": "Masterclass: Claude Code CLI & Headless CI/CD Automation",
-      "b": "<p><b>Claude Code</b> is Anthropic's agentic command-line interface tool designed for deep codebase navigation, editing, refactoring, and test automation. Unlike simple chat assistants, Claude Code operates autonomously inside developer terminal environments.</p>\n\n<div class='callout'>\n<div class='lbl'>The CLAUDE.md Specification</div>\n<p>Claude Code looks for a <code>CLAUDE.md</code> file in the repository root to guide its behavior. A production-ready <code>CLAUDE.md</code> must specify:</p>\n<ul>\n  <li><b>Build & Test Commands:</b> Exact package manager commands (e.g. <code>pnpm test:unit</code>, <code>npm run lint</code>).</li>\n  <li><b>Architecture Boundaries:</b> Folder structures, module hierarchies, and layer restrictions.</li>\n  <li><b>Code Style Rules:</b> Naming conventions, error handling paradigms, and forbidden libraries.</li>\n  <li><b>Deployment Instructions:</b> Safe branch workflows and pre-commit verification hooks.</li>\n</ul>\n</div>\n\n<h4>Headless Execution in CI/CD Pipelines</h4>\n<p>To run Claude Code headlessly in automated GitHub Actions, GitLab CI, or Jenkins pipelines without interactive TTY terminal prompts, invoke non-interactive print mode using <code>claude -p 'prompt'</code>:</p>\n\n<pre><code class='language-bash'># Example: Automated PR Review in GitHub Actions\nclaude -p \"Review the diff in origin/main...HEAD against our security standards in CLAUDE.md. Output findings in Markdown format.\" > pr_review.md</code></pre>\n\n<div class='warn'>\n<div class='lbl'>Exam Rule: Ripgrep & Symbol Search</div>\n<p>Claude Code does not blindly ingest entire 100,000-file codebases into prompt context. It uses <b>ripgrep</b>, glob filters, and AST symbol parsers to dynamically search and read only relevant files on demand.</p>\n</div>\n\n<h4>Automated Test-Driven Refactoring Loops</h4>\n<p>When instructed to fix a bug or refactor code, Claude Code executes an agentic loop:</p>\n<ol>\n  <li>Search codebase using ripgrep and AST symbol lookups to locate relevant files and function definitions.</li>\n  <li>Run reproduction unit tests in the shell to confirm the failure state and capture the exact stack trace.</li>\n  <li>Apply surgical file edits using unified diff patches while preserving existing comments.</li>\n  <li>Re-run the test suite to verify the fix passes 100% cleanly before presenting the completed change to the developer.</li>\n</ol>\n\n<h4>Managing Large Codebases & Context Budgets</h4>\n<p>In massive monorepos, reading whole directories is a frequent developer mistake. Claude Code relies on sub-file slices (reading specific line ranges, e.g. lines 120-180 of a file) rather than dumping 5,000-line modules into context, ensuring maximum token efficiency and rapid iteration speed.</p>\n\n<div class='vbox'>\n<div class='lbl'>📺 Watch</div>\n<a href='https://www.youtube.com/watch?v=GJ5jTgcbRHA' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Claude Code Command Line Tool Tour</span><span class='vdesc'>Terminal workflows, ripgrep navigation, and headless CI/CD integration with Claude Code.</span></span></a>\n</div>\n\n<div class='kbox'>\n<div class='lbl'>Key takeaways</div>\n<ul>\n  <li><code>CLAUDE.md</code> provides repository build commands, testing instructions, and architecture conventions.</li>\n  <li>Run Claude Code in headless CI/CD automation using <code>claude -p 'prompt'</code> (print mode).</li>\n  <li>Dynamic search with ripgrep protects context window budgets across massive enterprise codebases.</li>\n  <li>Claude Code autonomously runs unit tests to verify its own code changes before completing tasks.</li>\n  <li>Always slice specific line ranges when inspecting large files to conserve context tokens.</li>\n</ul>\n</div>"
+      "b": "<p><b>Claude Code</b> is Anthropic's agentic command-line interface tool designed for deep codebase navigation, editing, refactoring, and test automation. Unlike simple chat assistants, Claude Code operates autonomously inside developer terminal environments.</p><p><i>CLAUDE.md is the onboarding document you'd hand a new contractor on their first day.</i> The build commands, the folder conventions, the libraries that are off-limits, the branch workflow — without it, a new contractor (or an agentic tool) has to reverse-engineer your team's rules by trial and error before doing anything useful. With it, day one starts with the rules already known.</p><div class='diagram-box'><svg viewBox='0 0 600 140' xmlns='http://www.w3.org/2000/svg'><marker id=\"c9dA\" markerWidth=\"8\" markerHeight=\"8\" refX=\"6\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L6,3 L0,6 Z\" fill=\"var(--muted)\"/></marker><rect x=\"15\" y=\"30\" width=\"128\" height=\"60\" rx=\"10\" fill=\"var(--card)\" stroke=\"var(--green)\" stroke-width=\"2\"/><text x=\"79\" y=\"57.5\" text-anchor=\"middle\" font-size=\"10.5\" font-weight=\"700\" fill=\"var(--ink)\">Search</text><text x=\"79\" y=\"70.5\" text-anchor=\"middle\" font-size=\"10.5\" font-weight=\"700\" fill=\"var(--ink)\">(ripgrep, AST)</text><line x1=\"143\" y1=\"60\" x2=\"163\" y2=\"60\" stroke=\"var(--muted)\" stroke-width=\"1.5\" marker-end=\"url(#c9dA)\" /><rect x=\"163\" y=\"30\" width=\"128\" height=\"60\" rx=\"10\" fill=\"var(--card)\" stroke=\"var(--green)\" stroke-width=\"2\"/><text x=\"227\" y=\"57.5\" text-anchor=\"middle\" font-size=\"10.5\" font-weight=\"700\" fill=\"var(--ink)\">Reproduce</text><text x=\"227\" y=\"70.5\" text-anchor=\"middle\" font-size=\"10.5\" font-weight=\"700\" fill=\"var(--ink)\">(run failing test)</text><line x1=\"291\" y1=\"60\" x2=\"311\" y2=\"60\" stroke=\"var(--muted)\" stroke-width=\"1.5\" marker-end=\"url(#c9dA)\" /><rect x=\"311\" y=\"30\" width=\"128\" height=\"60\" rx=\"10\" fill=\"var(--card)\" stroke=\"var(--green)\" stroke-width=\"2\"/><text x=\"375\" y=\"57.5\" text-anchor=\"middle\" font-size=\"10.5\" font-weight=\"700\" fill=\"var(--ink)\">Edit</text><text x=\"375\" y=\"70.5\" text-anchor=\"middle\" font-size=\"10.5\" font-weight=\"700\" fill=\"var(--ink)\">(surgical diff)</text><line x1=\"439\" y1=\"60\" x2=\"459\" y2=\"60\" stroke=\"var(--muted)\" stroke-width=\"1.5\" marker-end=\"url(#c9dA)\" /><rect x=\"459\" y=\"30\" width=\"128\" height=\"60\" rx=\"10\" fill=\"var(--card)\" stroke=\"var(--green)\" stroke-width=\"2\"/><text x=\"523\" y=\"57.5\" text-anchor=\"middle\" font-size=\"10.5\" font-weight=\"700\" fill=\"var(--ink)\">Verify</text><text x=\"523\" y=\"70.5\" text-anchor=\"middle\" font-size=\"10.5\" font-weight=\"700\" fill=\"var(--ink)\">(full suite)</text><line x1=\"560\" y1=\"90\" x2=\"560\" y2=\"105\" stroke=\"var(--muted)\" stroke-width=\"1.5\"  /><text x=\"300\" y=\"118\" text-anchor=\"middle\" font-size=\"10\" fill=\"var(--muted)\">Verification gates every execute step -- a change only counts once the suite passes clean.</text></svg><div class='diagram-cap'>The recommended Claude Code loop for non-trivial changes.</div></div>\n\n<div class='callout'>\n<div class='lbl'>The CLAUDE.md Specification</div>\n<p>Claude Code looks for a <code>CLAUDE.md</code> file in the repository root to guide its behavior. A production-ready <code>CLAUDE.md</code> must specify:</p>\n<ul>\n  <li><b>Build & Test Commands:</b> Exact package manager commands (e.g. <code>pnpm test:unit</code>, <code>npm run lint</code>).</li>\n  <li><b>Architecture Boundaries:</b> Folder structures, module hierarchies, and layer restrictions.</li>\n  <li><b>Code Style Rules:</b> Naming conventions, error handling paradigms, and forbidden libraries.</li>\n  <li><b>Deployment Instructions:</b> Safe branch workflows and pre-commit verification hooks.</li>\n</ul>\n</div>\n\n<h4>Headless Execution in CI/CD Pipelines</h4>\n<p>To run Claude Code headlessly in automated GitHub Actions, GitLab CI, or Jenkins pipelines without interactive TTY terminal prompts, invoke non-interactive print mode using <code>claude -p 'prompt'</code>:</p>\n\n<pre><code class='language-bash'># Example: Automated PR Review in GitHub Actions\nclaude -p \"Review the diff in origin/main...HEAD against our security standards in CLAUDE.md. Output findings in Markdown format.\" > pr_review.md</code></pre>\n\n<div class='warn'>\n<div class='lbl'>Exam Rule: Ripgrep & Symbol Search</div>\n<p>Claude Code does not blindly ingest entire 100,000-file codebases into prompt context. It uses <b>ripgrep</b>, glob filters, and AST symbol parsers to dynamically search and read only relevant files on demand.</p>\n</div>\n\n<h4>Automated Test-Driven Refactoring Loops</h4>\n<p>When instructed to fix a bug or refactor code, Claude Code executes an agentic loop:</p>\n<ol>\n  <li>Search codebase using ripgrep and AST symbol lookups to locate relevant files and function definitions.</li>\n  <li>Run reproduction unit tests in the shell to confirm the failure state and capture the exact stack trace.</li>\n  <li>Apply surgical file edits using unified diff patches while preserving existing comments.</li>\n  <li>Re-run the test suite to verify the fix passes 100% cleanly before presenting the completed change to the developer.</li>\n</ol>\n\n<h4>Managing Large Codebases & Context Budgets</h4>\n<p>In massive monorepos, reading whole directories is a frequent developer mistake. Claude Code relies on sub-file slices (reading specific line ranges, e.g. lines 120-180 of a file) rather than dumping 5,000-line modules into context, ensuring maximum token efficiency and rapid iteration speed.</p>\n\n<div class='exbox'><div class='lbl'>The 4-step loop on one real bug</div><p>A test reports a null-pointer failure inside <code>formatInvoice()</code>. Claude Code's loop, applied: <b>search</b> — ripgrep and AST lookups locate the function and its callers; <b>reproduce</b> — the failing test runs in the shell to capture the exact stack trace; <b>edit</b> — a surgical diff patch adds the missing null check without touching surrounding comments; <b>verify</b> — the full suite reruns and must pass 100% clean before the change is presented. Same four steps the lesson lists, run against one concrete failure.</p></div><div class='vbox'>\n<div class='lbl'>📺 Watch</div>\n<a href='https://www.youtube.com/watch?v=GJ5jTgcbRHA' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Claude Code Command Line Tool Tour</span><span class='vdesc'>Terminal workflows, ripgrep navigation, and headless CI/CD integration with Claude Code.</span></span></a>\n</div>\n\n<div class='kbox'>\n<div class='lbl'>Key takeaways</div>\n<ul>\n  <li><code>CLAUDE.md</code> provides repository build commands, testing instructions, and architecture conventions.</li>\n  <li>Run Claude Code in headless CI/CD automation using <code>claude -p 'prompt'</code> (print mode).</li>\n  <li>Dynamic search with ripgrep protects context window budgets across massive enterprise codebases.</li>\n  <li>Claude Code autonomously runs unit tests to verify its own code changes before completing tasks.</li>\n  <li>Always slice specific line ranges when inspecting large files to conserve context tokens.</li>\n</ul>\n</div>"
     },
     {
       "id": "ccdvl-10",
       "h": "Masterclass: Advanced Tool Design, Structured Output & Idempotency",
-      "b": "<p>Tool use (function calling) is how Claude acts upon the outside world. Designing robust tool schemas requires strict JSON Schema definitions, typed parameter validation, and <b>idempotent execution design</b>.</p>\n\n<div class='callout'>\n<div class='lbl'>Handling the stop_reason: \"tool_use\" Control Loop</div>\n<p>When Claude decides to call a tool, it halts generation and emits <code>stop_reason: \"tool_use\"</code>. The client application must:</p>\n<ol>\n  <li>Extract the <code>tool_use</code> content block containing <code>id</code>, <code>name</code>, and <code>input</code> parameters.</li>\n  <li>Execute the local function corresponding to <code>name</code> with the validated <code>input</code> arguments.</li>\n  <li>Append a <code>user</code> turn containing a <code>tool_result</code> block with the matching <code>tool_use_id</code>.</li>\n  <li>Call the API again to allow Claude to synthesize the final answer.</li>\n</ol>\n</div>\n\n<h4>Designing Idempotent Mutation Tools</h4>\n<p>Network interruptions and API timeouts occur in production. If an agent calls <code>charge_credit_card</code> and the network connection drops before receiving the response, the agent will retry the call. Without <b>idempotency keys</b>, the customer will be charged twice.</p>\n\n<pre><code class='language-typescript'>interface ChargeCreditCardInput {\n  customerId: string;\n  amountCents: number;\n  currency: string;\n  idempotencyKey: string; // Unique UUID generated per logical transaction\n}</code></pre>\n\n<div class='warn'>\n<div class='lbl'>Exam Trap: Schema Ambiguity</div>\n<p>Always specify exact units and format restrictions in JSON schema property descriptions (e.g. <i>\"timestamp in ISO-8601 UTC format\"</i>, <i>\"temperature in degrees Celsius\"</i>). Ambiguous schemas cause argument hallucinations.</p>\n</div>\n\n<h4>Parallel Tool Execution Optimization</h4>\n<p>Claude Sonnet 5 supports parallel tool calling: emitting multiple independent <code>tool_use</code> blocks within a single response (e.g. fetching weather for Tokyo, London, and New York simultaneously). Clients should execute these parallel tool calls concurrently using <code>Promise.all()</code>, then append all corresponding <code>tool_result</code> blocks in a single return turn.</p>\n\n<h4>Handling Structured Schema Validation Failures</h4>\n<p>When using tools to produce structured JSON outputs, use a validator like Zod (TypeScript) or Pydantic (Python). If validation fails due to a missing property or wrong data type, format the error into a structured <code>tool_result</code> with <code>is_error: true</code> and feed it back to Claude. The model will inspect the schema error and self-correct on the very next turn.</p>\n\n<div class='vbox'>\n<div class='lbl'>📺 Watch</div>\n<a href='https://www.youtube.com/watch?v=VNB51OsiTVk' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Claude Tool Use Tutorial: Function Calling with the API</span><span class='vdesc'>Walks the tool-use loop end to end, including schemas and tool results.</span></span></a>\n</div>\n\n<h4>Type-Safe Schema Definitions with Zod and Pydantic</h4>\n<p>Modern TypeScript and Python backends avoid writing raw JSON schema dictionaries by hand. Instead, developers define strict schema types using Zod or Pydantic, which automatically generate compliant JSON schemas. These libraries provide runtime type validation, custom coercion filters, and detailed descriptive error messages that can be fed directly back to Claude when argument mismatches occur.</p>\n<p>Always configure strict schema validation on your API endpoints. If an argument fails type checks or violates regex format constraints, return an actionable, structured error payload so the model can correct its inputs autonomously without human intervention.</p>\n\n<div class='kbox'>\n<div class='lbl'>Key takeaways</div>\n<ul>\n  <li>Always match <code>tool_result.tool_use_id</code> to the exact <code>id</code> emitted in Claude's <code>tool_use</code> block.</li>\n  <li>Mutation tools must accept idempotency keys to ensure retry safety during network timeouts.</li>\n  <li>Explicit parameter descriptions and enum constraints prevent tool argument hallucination.</li>\n  <li>Execute parallel tool calls concurrently with <code>Promise.all()</code> to minimize round-trip latency.</li>\n  <li>Catch validation errors and return them via <code>is_error: true</code> to enable automated self-correction.</li>\n</ul>\n</div>"
+      "b": "<p>Tool use (function calling) is how Claude acts upon the outside world. Designing robust tool schemas requires strict JSON Schema definitions, typed parameter validation, and <b>idempotent execution design</b>.</p><p><i>An idempotency key works like an order-confirmation button that only ever fires once.</i> If a customer clicks it five times because the page felt slow, the button doesn't stop the clicks — it just recognizes \"I've already processed this exact order\" on clicks two through five and returns the original result instead of charging again.</p><div class='diagram-box'><svg viewBox='0 0 600 160' xmlns='http://www.w3.org/2000/svg'><marker id=\"c10dA\" markerWidth=\"8\" markerHeight=\"8\" refX=\"6\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L6,3 L0,6 Z\" fill=\"var(--muted)\"/></marker><rect x=\"20\" y=\"60\" width=\"140\" height=\"50\" rx=\"10\" fill=\"var(--card)\" stroke=\"var(--coral)\" stroke-width=\"2\"/><text x=\"90\" y=\"82.5\" text-anchor=\"middle\" font-size=\"10.5\" font-weight=\"700\" fill=\"var(--ink)\">Claude emits</text><text x=\"90\" y=\"95.5\" text-anchor=\"middle\" font-size=\"10.5\" font-weight=\"700\" fill=\"var(--ink)\">tool_use</text><line x1=\"160\" y1=\"85\" x2=\"210\" y2=\"85\" stroke=\"var(--muted)\" stroke-width=\"1.5\" marker-end=\"url(#c10dA)\" /><rect x=\"215\" y=\"60\" width=\"150\" height=\"50\" rx=\"10\" fill=\"var(--card)\" stroke=\"var(--border)\" stroke-width=\"2\"/><text x=\"290\" y=\"82.5\" text-anchor=\"middle\" font-size=\"10.5\" font-weight=\"700\" fill=\"var(--ink)\">Client executes</text><text x=\"290\" y=\"95.5\" text-anchor=\"middle\" font-size=\"10.5\" font-weight=\"700\" fill=\"var(--ink)\">the function</text><line x1=\"365\" y1=\"85\" x2=\"415\" y2=\"85\" stroke=\"var(--muted)\" stroke-width=\"1.5\" marker-end=\"url(#c10dA)\" /><rect x=\"420\" y=\"60\" width=\"160\" height=\"50\" rx=\"10\" fill=\"var(--card)\" stroke=\"var(--green)\" stroke-width=\"2\"/><text x=\"500\" y=\"82.5\" text-anchor=\"middle\" font-size=\"10.5\" font-weight=\"700\" fill=\"var(--ink)\">App returns</text><text x=\"500\" y=\"95.5\" text-anchor=\"middle\" font-size=\"10.5\" font-weight=\"700\" fill=\"var(--ink)\">tool_result</text><line x1=\"495\" y1=\"60\" x2=\"495\" y2=\"20\" stroke=\"var(--muted)\" stroke-width=\"1.5\"  stroke-dasharray=\"3,3\"/><line x1=\"495\" y1=\"20\" x2=\"90\" y2=\"20\" stroke=\"var(--muted)\" stroke-width=\"1.5\" marker-end=\"url(#c10dA)\" stroke-dasharray=\"3,3\"/><text x=\"300\" y=\"12\" text-anchor=\"middle\" font-size=\"9.5\" fill=\"var(--muted)\">API called again -- Claude synthesises the final answer</text></svg><div class='diagram-cap'>A tool_use stop reason is expected control flow, not an error -- run it, return the result, call again.</div></div>\n\n<div class='callout'>\n<div class='lbl'>Handling the stop_reason: \"tool_use\" Control Loop</div>\n<p>When Claude decides to call a tool, it halts generation and emits <code>stop_reason: \"tool_use\"</code>. The client application must:</p>\n<ol>\n  <li>Extract the <code>tool_use</code> content block containing <code>id</code>, <code>name</code>, and <code>input</code> parameters.</li>\n  <li>Execute the local function corresponding to <code>name</code> with the validated <code>input</code> arguments.</li>\n  <li>Append a <code>user</code> turn containing a <code>tool_result</code> block with the matching <code>tool_use_id</code>.</li>\n  <li>Call the API again to allow Claude to synthesize the final answer.</li>\n</ol>\n</div>\n\n<h4>Designing Idempotent Mutation Tools</h4>\n<p>Network interruptions and API timeouts occur in production. If an agent calls <code>charge_credit_card</code> and the network connection drops before receiving the response, the agent will retry the call. Without <b>idempotency keys</b>, the customer will be charged twice.</p>\n\n<pre><code class='language-typescript'>interface ChargeCreditCardInput {\n  customerId: string;\n  amountCents: number;\n  currency: string;\n  idempotencyKey: string; // Unique UUID generated per logical transaction\n}</code></pre>\n\n<div class='warn'>\n<div class='lbl'>Exam Trap: Schema Ambiguity</div>\n<p>Always specify exact units and format restrictions in JSON schema property descriptions (e.g. <i>\"timestamp in ISO-8601 UTC format\"</i>, <i>\"temperature in degrees Celsius\"</i>). Ambiguous schemas cause argument hallucinations.</p>\n</div>\n\n<h4>Parallel Tool Execution Optimization</h4>\n<p>Claude Sonnet 5 supports parallel tool calling: emitting multiple independent <code>tool_use</code> blocks within a single response (e.g. fetching weather for Tokyo, London, and New York simultaneously). Clients should execute these parallel tool calls concurrently using <code>Promise.all()</code>, then append all corresponding <code>tool_result</code> blocks in a single return turn.</p>\n\n<h4>Handling Structured Schema Validation Failures</h4>\n<p>When using tools to produce structured JSON outputs, use a validator like Zod (TypeScript) or Pydantic (Python). If validation fails due to a missing property or wrong data type, format the error into a structured <code>tool_result</code> with <code>is_error: true</code> and feed it back to Claude. The model will inspect the schema error and self-correct on the very next turn.</p>\n\n<div class='exbox'><div class='lbl'>Retrying the charge_credit_card call safely</div><p>Claude calls <code>charge_credit_card</code> with <code>idempotencyKey: \"txn-8842\"</code>. The network drops before the response arrives, so the agent retries with the identical key. The payment processor recognizes <code>txn-8842</code> as already handled and returns the original result instead of charging the customer a second time — the exact retry-safety the lesson's idempotency key exists to guarantee.</p></div><div class='vbox'>\n<div class='lbl'>📺 Watch</div>\n<a href='https://www.youtube.com/watch?v=VNB51OsiTVk' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Claude Tool Use Tutorial: Function Calling with the API</span><span class='vdesc'>Walks the tool-use loop end to end, including schemas and tool results.</span></span></a>\n</div>\n\n<h4>Type-Safe Schema Definitions with Zod and Pydantic</h4>\n<p>Modern TypeScript and Python backends avoid writing raw JSON schema dictionaries by hand. Instead, developers define strict schema types using Zod or Pydantic, which automatically generate compliant JSON schemas. These libraries provide runtime type validation, custom coercion filters, and detailed descriptive error messages that can be fed directly back to Claude when argument mismatches occur.</p>\n<p>Always configure strict schema validation on your API endpoints. If an argument fails type checks or violates regex format constraints, return an actionable, structured error payload so the model can correct its inputs autonomously without human intervention.</p>\n\n<div class='kbox'>\n<div class='lbl'>Key takeaways</div>\n<ul>\n  <li>Always match <code>tool_result.tool_use_id</code> to the exact <code>id</code> emitted in Claude's <code>tool_use</code> block.</li>\n  <li>Mutation tools must accept idempotency keys to ensure retry safety during network timeouts.</li>\n  <li>Explicit parameter descriptions and enum constraints prevent tool argument hallucination.</li>\n  <li>Execute parallel tool calls concurrently with <code>Promise.all()</code> to minimize round-trip latency.</li>\n  <li>Catch validation errors and return them via <code>is_error: true</code> to enable automated self-correction.</li>\n</ul>\n</div>"
     },
     {
       "id": "ccdvl-11",
       "h": "Masterclass: High-Performance Streaming & Extended Thinking",
-      "b": "<p>For low-latency user interfaces and complex multi-step reasoning, developers use <b>Server-Sent Events (SSE) streaming</b> and <b>adaptive thinking</b> with an effort level.</p>\n\n<div class='callout'>\n<div class='lbl'>Server-Sent Events (SSE) Streaming Lifecycle</div>\n<p>When <code>stream: true</code> is passed in the Messages API, Anthropic streams real-time JSON event packets:</p>\n<ul>\n  <li><code>message_start</code>: Carries message ID, model name, and initial usage.</li>\n  <li><code>content_block_start</code>: Emits the start of a <code>text</code>, <code>thinking</code>, or <code>tool_use</code> block.</li>\n  <li><code>content_block_delta</code>: Emits incremental text chunks (<code>text_delta</code>) or thinking tokens (<code>thinking_delta</code>).</li>\n  <li><code>content_block_stop</code>: Signals completion of the active content block.</li>\n  <li><code>message_delta</code>: Emits final <code>stop_reason</code> (e.g. <code>end_turn</code>, <code>tool_use</code>, <code>max_tokens</code>).</li>\n  <li><code>message_stop</code>: Closes the SSE stream connection.</li>\n</ul>\n</div>\n\n<h4>Adaptive Thinking (thinking: { type: \"adaptive\" } + output_config.effort)</h4>\n<p>Adaptive thinking gives Claude an internal reasoning pass before it emits visible output, and lets it decide how much of one each request needs. The older fixed <code>budget_tokens</code> dial was <b>removed</b> and now returns a <b>400</b> on Opus 5, Sonnet 5, Opus 4.8 and 4.7 — steer depth with <code>output_config.effort</code> instead. This drastically improves mathematical proofs, deep algorithm synthesis, and multi-file refactoring.</p>\n\n<div class='warn'>\n<div class='lbl'>Exam Rule: Thinking Token Budgeting</div>\n<p>Thinking tokens are billed as standard output tokens. Setting <code>budget_tokens: 4096</code> reserves up to 4,096 tokens for internal thought. <code>max_tokens</code> must always be set strictly <b>greater than</b> <code>budget_tokens</code> to leave room for the final response.</p>\n</div>\n\n<h4>Handling Network Stream Reconnections</h4>\n<p>When streaming long responses over mobile or flaky network connections, connection drops can truncate the response. Production clients track received token offsets and implement reconnection handlers that resume generation seamlessly without re-running the entire prompt from scratch.</p>\n\n<h4>Streaming Tool Invocations</h4>\n<p>When Claude decides to invoke a tool during a streaming session, the tool input JSON is streamed incrementally across multiple <code>input_json_delta</code> chunks. The client must accumulate these string fragments until <code>content_block_stop</code> is received, and only then parse the complete JSON string into an object for execution.</p>\n\n<div class='vbox'>\n<div class='lbl'>📺 Watch</div>\n<a href='https://www.youtube.com/watch?v=TqC1qOfiVcQ' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Claude Agent SDK Full Workshop (Anthropic)</span><span class='vdesc'>Covers streaming responses and how agent loops consume them in practice.</span></span></a>\n</div>\n\n<h4>Managing Token Streaming in High-Concurrency Environments</h4>\n<p>In high-concurrency enterprise applications serving thousands of simultaneous users, managing open SSE connections requires robust server architecture. Use connection pooling, asynchronous worker queues, and backpressure mechanisms to prevent slow clients from consuming excessive server resources. In addition, always instrument streaming event loops with timeout monitors to terminate orphaned connections if a client disconnects prematurely.</p>\n<p>When implementing user interfaces with real-time token streaming, throttle DOM updates using <code>requestAnimationFrame</code> or 50ms micro-batches. Directly updating the DOM on every single token delta can cause UI lag and browser thread starvation on low-power mobile devices.</p>\n\n<div class='kbox'>\n<div class='lbl'>Key takeaways</div>\n<ul>\n  <li>Handle SSE streaming events incrementally to achieve sub-second perceived Time-to-First-Token (TTFT).</li>\n  <li>Extended Thinking allows Claude to reason through complex logic before generating final output.</li>\n  <li><code>max_tokens</code> must always exceed <code>thinking.budget_tokens</code> to allow space for visible completion tokens.</li>\n  <li>Accumulate streaming content blocks in memory while updating the user interface in real time.</li>\n  <li>Buffer streaming <code>input_json_delta</code> fragments until <code>content_block_stop</code> before attempting to parse JSON tool arguments.</li>\n</ul>\n</div>"
+      "b": "<p>For low-latency user interfaces and complex multi-step reasoning, developers use <b>Server-Sent Events (SSE) streaming</b> and <b>adaptive thinking</b> with an effort level.</p><p><i>SSE streaming is like subtitles appearing word by word as someone speaks, instead of waiting for them to finish the sentence and flashing the whole thing at once.</i> The total time to finish the sentence doesn't change — but the viewer sees something happening immediately instead of staring at a blank screen, which is exactly why streaming is the standard fix for a chat interface that feels sluggish to start.</p><div class='diagram-box'><svg viewBox='0 0 600 120' xmlns='http://www.w3.org/2000/svg'><marker id=\"c11dA\" markerWidth=\"8\" markerHeight=\"8\" refX=\"6\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L6,3 L0,6 Z\" fill=\"var(--muted)\"/></marker><rect x=\"8\" y=\"30\" width=\"92\" height=\"46\" rx=\"6\" fill=\"var(--card)\" stroke=\"var(--blue)\" stroke-width=\"2\"/><text x=\"54\" y=\"57\" text-anchor=\"middle\" font-size=\"8.5\" font-weight=\"700\" fill=\"var(--ink)\">message_start</text><line x1=\"100\" y1=\"53\" x2=\"106\" y2=\"53\" stroke=\"var(--muted)\" stroke-width=\"1.5\" marker-end=\"url(#c11dA)\" /><rect x=\"106\" y=\"30\" width=\"92\" height=\"46\" rx=\"6\" fill=\"var(--card)\" stroke=\"var(--blue)\" stroke-width=\"2\"/><text x=\"152\" y=\"57\" text-anchor=\"middle\" font-size=\"8.5\" font-weight=\"700\" fill=\"var(--ink)\">content_block_start</text><line x1=\"198\" y1=\"53\" x2=\"204\" y2=\"53\" stroke=\"var(--muted)\" stroke-width=\"1.5\" marker-end=\"url(#c11dA)\" /><rect x=\"204\" y=\"30\" width=\"92\" height=\"46\" rx=\"6\" fill=\"var(--card)\" stroke=\"var(--gold)\" stroke-width=\"2\"/><text x=\"250\" y=\"50.5\" text-anchor=\"middle\" font-size=\"8.5\" font-weight=\"700\" fill=\"var(--ink)\">content_block_delta</text><text x=\"250\" y=\"63.5\" text-anchor=\"middle\" font-size=\"8.5\" font-weight=\"700\" fill=\"var(--ink)\">×N</text><line x1=\"296\" y1=\"53\" x2=\"302\" y2=\"53\" stroke=\"var(--muted)\" stroke-width=\"1.5\" marker-end=\"url(#c11dA)\" /><rect x=\"302\" y=\"30\" width=\"92\" height=\"46\" rx=\"6\" fill=\"var(--card)\" stroke=\"var(--blue)\" stroke-width=\"2\"/><text x=\"348\" y=\"57\" text-anchor=\"middle\" font-size=\"8.5\" font-weight=\"700\" fill=\"var(--ink)\">content_block_stop</text><line x1=\"394\" y1=\"53\" x2=\"400\" y2=\"53\" stroke=\"var(--muted)\" stroke-width=\"1.5\" marker-end=\"url(#c11dA)\" /><rect x=\"400\" y=\"30\" width=\"92\" height=\"46\" rx=\"6\" fill=\"var(--card)\" stroke=\"var(--blue)\" stroke-width=\"2\"/><text x=\"446\" y=\"57\" text-anchor=\"middle\" font-size=\"8.5\" font-weight=\"700\" fill=\"var(--ink)\">message_delta</text><line x1=\"492\" y1=\"53\" x2=\"498\" y2=\"53\" stroke=\"var(--muted)\" stroke-width=\"1.5\" marker-end=\"url(#c11dA)\" /><rect x=\"498\" y=\"30\" width=\"92\" height=\"46\" rx=\"6\" fill=\"var(--card)\" stroke=\"var(--blue)\" stroke-width=\"2\"/><text x=\"544\" y=\"57\" text-anchor=\"middle\" font-size=\"8.5\" font-weight=\"700\" fill=\"var(--ink)\">message_stop</text></svg><div class='diagram-cap'>content_block_delta repeats for every incremental chunk -- streaming feels faster, it does not finish faster.</div></div>\n\n<div class='callout'>\n<div class='lbl'>Server-Sent Events (SSE) Streaming Lifecycle</div>\n<p>When <code>stream: true</code> is passed in the Messages API, Anthropic streams real-time JSON event packets:</p>\n<ul>\n  <li><code>message_start</code>: Carries message ID, model name, and initial usage.</li>\n  <li><code>content_block_start</code>: Emits the start of a <code>text</code>, <code>thinking</code>, or <code>tool_use</code> block.</li>\n  <li><code>content_block_delta</code>: Emits incremental text chunks (<code>text_delta</code>) or thinking tokens (<code>thinking_delta</code>).</li>\n  <li><code>content_block_stop</code>: Signals completion of the active content block.</li>\n  <li><code>message_delta</code>: Emits final <code>stop_reason</code> (e.g. <code>end_turn</code>, <code>tool_use</code>, <code>max_tokens</code>).</li>\n  <li><code>message_stop</code>: Closes the SSE stream connection.</li>\n</ul>\n</div>\n\n<h4>Adaptive Thinking (thinking: { type: \"adaptive\" } + output_config.effort)</h4>\n<p>Adaptive thinking gives Claude an internal reasoning pass before it emits visible output, and lets it decide how much of one each request needs. The older fixed <code>budget_tokens</code> dial was <b>removed</b> and now returns a <b>400</b> on Opus 5, Sonnet 5, Opus 4.8 and 4.7 — steer depth with <code>output_config.effort</code> instead. This drastically improves mathematical proofs, deep algorithm synthesis, and multi-file refactoring.</p>\n\n<div class='warn'>\n<div class='lbl'>Exam Rule: Thinking Tokens Still Count Against max_tokens</div>\n<p>Thinking tokens are billed as standard output tokens. On current models, depth is steered by <code>output_config.effort</code> rather than a numeric budget -- there is no token count to set, and <code>budget_tokens</code> is rejected outright on Opus 5, Sonnet 5, Opus 4.8 and 4.7. A high-effort request can still spend a large share of <code>max_tokens</code> on reasoning alone, so size the cap generously: if it's too tight, the response can truncate before any visible text is produced.</p>\n</div>\n\n<h4>Handling Network Stream Reconnections</h4>\n<p>When streaming long responses over mobile or flaky network connections, connection drops can truncate the response. Production clients track received token offsets and implement reconnection handlers that resume generation seamlessly without re-running the entire prompt from scratch.</p>\n\n<h4>Streaming Tool Invocations</h4>\n<p>When Claude decides to invoke a tool during a streaming session, the tool input JSON is streamed incrementally across multiple <code>input_json_delta</code> chunks. The client must accumulate these string fragments until <code>content_block_stop</code> is received, and only then parse the complete JSON string into an object for execution.</p>\n\n<div class='exbox'><div class='lbl'>Reassembling a streamed tool call</div><p>Claude decides to call a search tool mid-stream. Its arguments arrive as fragments across several <code>input_json_delta</code> chunks: <code>{\"que</code>, then <code>ry\":\"lat</code>, then <code>ency fixes\"}</code>. None of these fragments is valid JSON on its own — only after <code>content_block_stop</code> signals the block is complete does the client concatenate them into <code>{\"query\":\"latency fixes\"}</code> and parse it, exactly as the lesson describes.</p></div><div class='vbox'>\n<div class='lbl'>📺 Watch</div>\n<a href='https://www.youtube.com/watch?v=TqC1qOfiVcQ' target='_blank'><span class='vicon'>▶</span><span><span class='vtitle'>Claude Agent SDK Full Workshop (Anthropic)</span><span class='vdesc'>Covers streaming responses and how agent loops consume them in practice.</span></span></a>\n</div>\n\n<h4>Managing Token Streaming in High-Concurrency Environments</h4>\n<p>In high-concurrency enterprise applications serving thousands of simultaneous users, managing open SSE connections requires robust server architecture. Use connection pooling, asynchronous worker queues, and backpressure mechanisms to prevent slow clients from consuming excessive server resources. In addition, always instrument streaming event loops with timeout monitors to terminate orphaned connections if a client disconnects prematurely.</p>\n<p>When implementing user interfaces with real-time token streaming, throttle DOM updates using <code>requestAnimationFrame</code> or 50ms micro-batches. Directly updating the DOM on every single token delta can cause UI lag and browser thread starvation on low-power mobile devices.</p>\n\n<div class='kbox'>\n<div class='lbl'>Key takeaways</div>\n<ul>\n  <li>Handle SSE streaming events incrementally to achieve sub-second perceived Time-to-First-Token (TTFT).</li>\n  <li>Extended Thinking allows Claude to reason through complex logic before generating final output.</li>\n  <li><code>max_tokens</code> bounds thinking tokens plus visible output combined -- size it generously enough that a high-effort reasoning pass doesn't truncate the response before visible text appears.</li>\n  <li>Accumulate streaming content blocks in memory while updating the user interface in real time.</li>\n  <li>Buffer streaming <code>input_json_delta</code> fragments until <code>content_block_stop</code> before attempting to parse JSON tool arguments.</li>\n</ul>\n</div>"
     }
   ],
   "glossary": [
@@ -2111,6 +2111,342 @@
       "term": "streaming",
       "hint": "Delivers tokens incrementally over server-sent events. Doesn't make generation faster — makes it feel faster by removing the wait before anything appears.",
       "d": 0
+    },
+    {
+      "id": "ccdvg-24b1e5e5",
+      "term": "rate-limit headers",
+      "hint": "Six response headers (anthropic-ratelimit-*) reporting your current RPM/TPM quota and when each resets -- parse the reset timestamp instead of guessing a backoff duration.",
+      "d": 0
+    },
+    {
+      "id": "ccdvg-3e72871e",
+      "term": "full jitter",
+      "hint": "The randomized backoff formula that prevents synchronized retry storms: sleep a random duration between 0 and the exponential cap, not the cap itself.",
+      "d": 0
+    },
+    {
+      "id": "ccdvg-695b89be",
+      "term": "529",
+      "hint": "Anthropic's service is temporarily overloaded -- unlike a 429, it has nothing to do with your own quota, but calls for the same jittered backoff.",
+      "d": 0
+    },
+    {
+      "id": "ccdvg-de85a926",
+      "term": "thinking signature",
+      "hint": "An encrypted signature token inside a thinking block that must be passed back unaltered on the next turn in a multi-turn conversation.",
+      "d": 0
+    },
+    {
+      "id": "ccdvg-6cc7032e",
+      "term": "Files API",
+      "hint": "Upload a reused document once and reference its file id on later calls, instead of resending the same base64 bytes every request.",
+      "d": 0
+    },
+    {
+      "id": "ccdvg-9dc638de",
+      "term": "1M context window",
+      "hint": "Current Opus and Sonnet models; Haiku 4.5 is the exception at 200K. A larger window changes what fits in one request but not whether sending all of it is a good idea.",
+      "d": 0
+    },
+    {
+      "id": "ccdvg-c993db1d",
+      "term": "TTFT",
+      "hint": "Time-to-First-Token. Streaming reduces this from multiple seconds to sub-200ms -- it doesn't speed up total generation, it removes the wait before anything appears.",
+      "d": 0
+    },
+    {
+      "id": "ccdvg-6c672290",
+      "term": "adaptive thinking",
+      "hint": "Depth comes from output_config.effort (low/medium/high/xhigh/max), not a fixed token budget; max_tokens caps thinking and response text together as one shared budget.",
+      "d": 0
+    },
+    {
+      "id": "ccdvg-4a2d9b54",
+      "term": "structured outputs",
+      "hint": "Supplying a JSON schema through output_config.format constrains decoding so the response conforms by construction -- no parse failures, no repair retries.",
+      "d": 1
+    },
+    {
+      "id": "ccdvg-48c1b7e5",
+      "term": "strict: true",
+      "hint": "Gives tool arguments the same schema-conformance guarantee as structured outputs. Needs additionalProperties: false and an explicit required list.",
+      "d": 1
+    },
+    {
+      "id": "ccdvg-065c6d58",
+      "term": "shape, not meaning",
+      "hint": "What a schema guarantees. A response can be perfectly schema-valid and still be wrong -- an end date before its start date passes any reasonable schema. Semantic validation stays your job.",
+      "d": 1
+    },
+    {
+      "id": "ccdvg-ed574dc9",
+      "term": "tool_choice",
+      "hint": "Controls whether the model can reply in prose (auto), must call some tool (any), or must call one named tool -- forcing a call when none applies pushes it toward the least-bad option.",
+      "d": 1
+    },
+    {
+      "id": "ccdvg-509ad387",
+      "term": "prefilling",
+      "hint": "Seeding the assistant turn with { to force JSON continuation. Rejected with a 400 error on current models -- use structured outputs instead.",
+      "d": 1
+    },
+    {
+      "id": "ccdvg-d283f936",
+      "term": "tool_result",
+      "hint": "The response sent back after executing a tool, carrying the matching tool_use_id. Errors belong here too (is_error: true), not a thrown exception.",
+      "d": 1
+    },
+    {
+      "id": "ccdvg-3782a0e3",
+      "term": "is_error",
+      "hint": "The field that reports a tool failure back to the model as a normal tool_result, so it can retry or adapt, instead of a silent empty result that reads as 'the data doesn't exist.'",
+      "d": 1
+    },
+    {
+      "id": "ccdvg-1e3d8496",
+      "term": "agent loop",
+      "hint": "An integration becomes an agent when the number and order of steps are decided at run time, not written in advance -- not a function of model size or speed.",
+      "d": 2
+    },
+    {
+      "id": "ccdvg-e77f5dca",
+      "term": "Agent SDK",
+      "hint": "The Claude Code harness packaged as a library: the loop, tool execution, context management, and permission model. A developer library, not a prompt editor or fine-tuning service.",
+      "d": 2
+    },
+    {
+      "id": "ccdvg-b63527df",
+      "term": "tool runner",
+      "hint": "Part of the regular API SDK -- drives request, execute, repeat over tools you define, with no built-in tools or sandbox. Easy to confuse with the Agent SDK since both leave deployment to you.",
+      "d": 2
+    },
+    {
+      "id": "ccdvg-dd6394d5",
+      "term": "subagent isolation",
+      "hint": "Delegating to a subagent with its own context window buys focus and parallelism, not extra capability -- it generally increases total token usage rather than reducing it.",
+      "d": 2
+    },
+    {
+      "id": "ccdvg-d8c45d36",
+      "term": "server tool pause",
+      "hint": "A server-side tool loop has its own iteration limit; reaching it returns pause_turn -- resend the conversation including the assistant turn, without appending a 'Continue' message.",
+      "d": 2
+    },
+    {
+      "id": "ccdvg-5e913345",
+      "term": "Computer Use",
+      "hint": "Anthropic tool betas (computer_20251124, bash_20250124, text_editor_20250728) that let a model interact with desktop environments directly -- screenshots should be scaled to standard resolutions, not raw 4K.",
+      "d": 2
+    },
+    {
+      "id": "ccdvg-bf053259",
+      "term": "iteration cap",
+      "hint": "A mandatory bound on an autonomous loop -- without one, an agent's failure mode is unbounded spend, not merely a bad run.",
+      "d": 2
+    },
+    {
+      "id": "ccdvg-57e7f8b4",
+      "term": "right-sizing",
+      "hint": "Matching each pipeline step to the cheapest model tier that clears its quality bar, verified by an eval on real cases -- not intuition or public benchmarks.",
+      "d": 3
+    },
+    {
+      "id": "ccdvg-b39ebd7e",
+      "term": "cache breakpoint",
+      "hint": "Marks where a prompt's stable prefix ends. A request supports at most four, and each only looks back 20 content blocks for a prior entry to extend.",
+      "d": 3
+    },
+    {
+      "id": "ccdvg-fd6fc362",
+      "term": "cache_control",
+      "hint": "The field (type: 'ephemeral') that marks a system prompt or document block for 5-minute caching, refreshed on every cache hit.",
+      "d": 3
+    },
+    {
+      "id": "ccdvg-0fa84d76",
+      "term": "custom_id",
+      "hint": "The key you assign to a Batches API request yourself -- results return in arbitrary order, so position can't be used to match them back.",
+      "d": 3
+    },
+    {
+      "id": "ccdvg-609fda85",
+      "term": "token counting endpoint",
+      "hint": "The way to measure cost before sending, using the model you'll actually call -- general-purpose tokenizers from other providers undercount Claude, especially on code.",
+      "d": 3
+    },
+    {
+      "id": "ccdvg-dfe35003",
+      "term": "cache-read usage field",
+      "hint": "What actually confirms caching is working -- since a broken cache fails silently at full price with no error, watching this field is the only way to catch it.",
+      "d": 3
+    },
+    {
+      "id": "ccdvg-5462ec30",
+      "term": "effort level",
+      "hint": "A paid dial in both tokens and latency, replacing the older fixed thinking-token budget -- set per task class from evals, not globally or at maximum by default.",
+      "d": 3
+    },
+    {
+      "id": "ccdvg-8edc7037",
+      "term": "compaction",
+      "hint": "Periodically summarizing decisions and state into a durable note re-injected as the working record, done proactively at a utilization threshold -- not the same as truncation, which discards by position rather than importance.",
+      "d": 4
+    },
+    {
+      "id": "ccdvg-d74c7d1d",
+      "term": "AST chunking",
+      "hint": "Splitting code along function and class boundaries instead of a fixed character count, so a chunk is never a function body missing its own signature.",
+      "d": 4
+    },
+    {
+      "id": "ccdvg-dd7f1ff2",
+      "term": "system parameter",
+      "hint": "A top-level field on the request, set once alongside model and messages -- not an entry inside the messages array. Writing it as a role:'system' message is a common porting mistake.",
+      "d": 4
+    },
+    {
+      "id": "ccdvg-23e0849f",
+      "term": "named file delimiters",
+      "hint": "Wrapping each of several files in a named tag like <file name='...'> so the model can cite which specific file a claim came from, rather than one undifferentiated wall of pasted text.",
+      "d": 4
+    },
+    {
+      "id": "ccdvg-c4c96a86",
+      "term": "regression set",
+      "hint": "A fixed set of representative and edge cases a prompt candidate is compared against before rollout -- without one, a single example looking better is not evidence of improvement.",
+      "d": 4
+    },
+    {
+      "id": "ccdvg-e6e8cc55",
+      "term": "embeddings",
+      "hint": "The retrieval half of RAG: turns text into vectors so similarity search can surface likely-relevant passages. A retrieval mechanism, not a reasoning one -- Claude still has to read and reason over what comes back.",
+      "d": 4
+    },
+    {
+      "id": "ccdvg-71eac070",
+      "term": "trust boundary",
+      "hint": "Instructions come only from your application and its user; everything else -- web pages, tool results, retrieved documents -- is data to be reasoned about, never obeyed.",
+      "d": 5
+    },
+    {
+      "id": "ccdvg-a2f92b6c",
+      "term": "prompt injection",
+      "hint": "Malicious instructions embedded in content an agent reads. Not a model defect -- the defense is architectural, since a longer 'be careful' system prompt is exactly the layer the attack targets.",
+      "d": 5
+    },
+    {
+      "id": "ccdvg-8fed9524",
+      "term": "least privilege",
+      "hint": "Granting only the tools and scopes a task actually needs, rather than relying on judgment about when to use broader access -- a shared admin credential destroys both this and attribution at once.",
+      "d": 5
+    },
+    {
+      "id": "ccdvg-8ac514d6",
+      "term": "approval gates",
+      "hint": "Explicit confirmation required before irreversible actions (deletion, sending mail, moving money). Logging a destructive action detects it after the damage; a gate prevents it.",
+      "d": 5
+    },
+    {
+      "id": "ccdvg-d249e685",
+      "term": "untrusted input",
+      "hint": "A generated value crossing into a database query, shell command, or outbound request is untrusted at that boundary regardless of how it was produced -- schema-valid is not the same as safe to execute.",
+      "d": 5
+    },
+    {
+      "id": "ccdvg-51ea5ee0",
+      "term": "data classification",
+      "hint": "Establishing that your policy and agreements permit processing a given class of user-supplied data -- the question that precedes formatting, length, and every technical consideration.",
+      "d": 5
+    },
+    {
+      "id": "ccdvg-b8115491",
+      "term": "exfiltration path",
+      "hint": "Automatically fetching or posting to an endpoint suggested by untrusted retrieved content -- the mechanism by which a successful injection turns into actual data loss.",
+      "d": 5
+    },
+    {
+      "id": "ccdvg-d0abb618",
+      "term": "N-by-M integration problem",
+      "hint": "Without a shared protocol, every client needs a bespoke connector for every data source -- the count multiplies with each addition. MCP turns that into write-once servers any compatible client can use.",
+      "d": 6
+    },
+    {
+      "id": "ccdvg-fb8db1dd",
+      "term": "MCP primitives",
+      "hint": "Tools, Resources, and Prompts, split by side effects: tools act, resources read, prompts are reusable templates -- the dividing line decides which one a capability actually is.",
+      "d": 6
+    },
+    {
+      "id": "ccdvg-276ba8e3",
+      "term": "roots/list",
+      "hint": "The client telling an MCP server which workspace paths it may touch -- a boundary declared inward, unlike the other primitives which are capabilities offered outward.",
+      "d": 6
+    },
+    {
+      "id": "ccdvg-b7d96da2",
+      "term": "pin server versions",
+      "hint": "Treating a connected MCP server like any library your code depends on -- upgrade deliberately, since a renamed tool upstream breaks your agent with no warning otherwise.",
+      "d": 6
+    },
+    {
+      "id": "ccdvg-4c8229b3",
+      "term": "untrusted tool descriptions",
+      "hint": "Descriptions supplied by an MCP server are remote content reaching the model's context -- they must never be able to escalate what the agent is permitted to do.",
+      "d": 6
+    },
+    {
+      "id": "ccdvg-aab4e991",
+      "term": "stdio transport",
+      "hint": "A local subprocess server speaks over standard input/output -- no port, no listener, nothing but its parent process can reach it. HTTP/SSE is for remote servers instead.",
+      "d": 6
+    },
+    {
+      "id": "ccdvg-af5e7968",
+      "term": "batch tool results",
+      "hint": "When the model requests several tools at once, return every result in a single user message -- splitting them across messages teaches the model its parallel calls were handled sequentially.",
+      "d": 1
+    },
+    {
+      "id": "ccdvg-5620306e",
+      "term": "choose the shape",
+      "hint": "Fixed sequence, known steps -> workflow; one category among several -> router; steps unknown until run time -> agent loop; independent subtasks -> orchestrator. Start at the top of that list and stop at the first fit.",
+      "d": 2
+    },
+    {
+      "id": "ccdvg-c52e26f8",
+      "term": "canonical cost stack",
+      "hint": "A small model, with caching, submitted in batches -- the combination for high-volume simple work, since each of the three levers compounds rather than substituting for the others.",
+      "d": 3
+    },
+    {
+      "id": "ccdvg-f0c3ba4f",
+      "term": "structure before wording",
+      "hint": "Two structural properties do more for a long prompt than any rephrasing: delimiting source material so content can't read as a command, and putting the instruction last, closest to where generation begins.",
+      "d": 4
+    },
+    {
+      "id": "ccdvg-c103f832",
+      "term": "context is a budget",
+      "hint": "Everything competes for the same space -- system prompt, tool definitions, retrieved documents, history -- and what you put in, and in what order, determines both cost and quality.",
+      "d": 4
+    },
+    {
+      "id": "ccdvg-ec09e09a",
+      "term": "credentials server-side",
+      "hint": "An API key in front-end JavaScript is a published key -- anyone can read it from the bundle or network tab. Keep credentials server-side and have the browser call your own backend instead.",
+      "d": 5
+    },
+    {
+      "id": "ccdvg-b6420d79",
+      "term": "discovery and use",
+      "hint": "Each MCP primitive has a discovery method and a use method (resources/list + read, tools/list + tools/call, prompts/list + prompts/get) -- symmetry that lets a client explore a server without triggering anything.",
+      "d": 6
+    },
+    {
+      "id": "ccdvg-7b1b074a",
+      "term": "bespoke vs standard",
+      "hint": "Without MCP, 4 clients x 6 data sources means 24 bespoke connectors; with MCP, 4 clients + 6 servers is 10 components -- the saving compounds with every new client or source added.",
+      "d": 6
     }
   ]
 }
