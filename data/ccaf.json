@@ -2287,6 +2287,48 @@
       "term": "verified end state",
       "hint": "The reliability metric that actually matters: the rate of runs reaching a correct, verifiable conclusion. Token counts, tool-call volume, and wall-clock time are diagnostics, not goals.",
       "d": 4
+    },
+    {
+      "id": "ccafg-c1c94d59",
+      "term": "80% context rule",
+      "hint": "Context is a shared finite resource (1M tokens on current Opus/Sonnet) -- trigger semantic compaction proactively at 80% capacity to guarantee headroom for the compaction prompt and response generation itself.",
+      "d": 1
+    },
+    {
+      "id": "ccafg-54293748",
+      "term": "start where tests exist",
+      "hint": "On a legacy codebase, begin where correctness is verifiable in minutes -- well-tested, well-bounded areas -- rather than the module nobody understands, which keeps early mistakes cheap and visible.",
+      "d": 1
+    },
+    {
+      "id": "ccafg-be92aca9",
+      "term": "reverse-engineered contract",
+      "hint": "Fitting a parser to whatever output emerges instead of defining the schema first -- fragile, because one sample of the output ends up defining the contract instead of the other way around.",
+      "d": 2
+    },
+    {
+      "id": "ccafg-4232071f",
+      "term": "actionable errors",
+      "hint": "Returning a clear, specific error when a schema-constrained step produces nonsensical values, so the model can correct itself on the next turn instead of silently continuing with a wrong value.",
+      "d": 2
+    },
+    {
+      "id": "ccafg-f1de54d4",
+      "term": "prefilling rejected",
+      "hint": "Seeding the assistant turn with { to force JSON, a technique older material still teaches -- current Claude models reject a prefilled final assistant turn with a 400 error.",
+      "d": 2
+    },
+    {
+      "id": "ccafg-7aabc306",
+      "term": "least privilege server",
+      "hint": "An MCP server exposing SQL for analytics should offer read-only access to a replica, query allowlists, and audit logging -- not production read-write, and never root credentials.",
+      "d": 3
+    },
+    {
+      "id": "ccafg-5f967a43",
+      "term": "filter at the source",
+      "hint": "A tool that can return ten thousand rows should support filtering and pagination and return concise results -- filtering at the source beats paying to carry data into context and then discarding it.",
+      "d": 3
     }
   ]
 }

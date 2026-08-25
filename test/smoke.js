@@ -1741,18 +1741,22 @@ vm.createContext(sandbox);
   check(/▶️ Resume \(0\/\d+\)/.test(els.ttsPlayBtn.innerHTML), "pausing immediately shows a Resume label with a position, not a bare Listen");
   evalIn(`ttsStop(); S.audioProgress = {}`);
 
-  /* ---------- Games: Glossary Hangman ---------- */
-  // Word pool validation: well-formed regardless of how much of the
-  // per-domain content is authored yet -- glossary content lands
-  // incrementally, one domain at a time (see docs/HANGMAN_GLOSSARY_PLAN.md),
-  // so this checks shape, not completeness. A per-domain minimum count is
-  // added once every domain has real content.
+  /* ---------- Games: Glossary Hangman ----------
+     docs/HANGMAN_GLOSSARY_PLAN.md's content pass is complete -- all 24
+     domains across all 4 certs are authored (197 terms total). The
+     per-domain floor below was deliberately absent while that work was
+     still incremental (a floor set before the content existed would have
+     been red for most of the effort, or set too low to mean anything); now
+     that every domain has cleared 8, the floor holds the line so a future
+     edit can't silently thin one back out. */
   {
     const badGlossary = [];
     const dupGlossary = [];
+    const thinDomains = [];
     for (const [id, d] of Object.entries(data)) {
       const nDom = CERTS.find(c => c.id === id).domains.length;
       const seen = {};
+      const perDomain = {};
       (d.glossary || []).forEach((g, i) => {
         if (!g.term || !g.term.trim()) badGlossary.push(`${id}.glossary[${i}] empty term`);
         if (!g.hint || !g.hint.trim()) badGlossary.push(`${id}.glossary[${i}] empty hint`);
@@ -1762,10 +1766,15 @@ vm.createContext(sandbox);
         const key = g.d + ":" + (g.term || "").toLowerCase();
         if (seen[key]) dupGlossary.push(`${id} "${g.term}" in domain ${g.d}`);
         seen[key] = true;
+        perDomain[g.d] = (perDomain[g.d] || 0) + 1;
       });
+      for (let dom = 0; dom < nDom; dom++) {
+        if ((perDomain[dom] || 0) < 8) thinDomains.push(`${id} domain ${dom} has ${perDomain[dom] || 0}`);
+      }
     }
     check(badGlossary.length === 0, `every glossary entry is well-formed (${badGlossary.slice(0, 3).join(", ") || "all valid"})`);
     check(dupGlossary.length === 0, `no duplicate glossary term within a domain (${dupGlossary.slice(0, 3).join(", ") || "none"})`);
+    check(thinDomains.length === 0, `every domain has at least 8 glossary terms (${thinDomains.slice(0, 3).join(", ") || "all domains ≥8"})`);
     const totalGlossary = Object.values(data).reduce((n, d) => n + (d.glossary || []).length, 0);
     check(totalGlossary > 0, `at least some glossary content exists (${totalGlossary} entries)`);
   }

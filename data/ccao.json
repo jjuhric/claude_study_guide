@@ -2387,6 +2387,120 @@
       "term": "quote the passage",
       "hint": "Asking for the exact source text an answer used, which makes grounding checkable in one step — asking 'did you read it?' just yields a self-report.",
       "d": 6
+    },
+    {
+      "id": "ccaog-0f1b28a1",
+      "term": "staged instructions",
+      "hint": "Naming each stage explicitly for multi-part tasks (extract, then compare, then recommend) rather than bundling them -- bundled requests skip stages silently, and named stages make intermediate work checkable.",
+      "d": 0
+    },
+    {
+      "id": "ccaog-79e692ec",
+      "term": "review by consequence",
+      "hint": "Spending review effort on the claims that would be most damaging if wrong, not evenly across a document -- reading only the opening and closing paragraphs misses invented detail, which tends to sit in the middle.",
+      "d": 1
+    },
+    {
+      "id": "ccaog-9bbcd837",
+      "term": "ask for the source passage",
+      "hint": "Asking for the specific quote a claim rests on turns judging whether something sounds right into a fast, mechanical check against the document -- a passage that isn't there is the finding.",
+      "d": 1
+    },
+    {
+      "id": "ccaog-7e53eaa1",
+      "term": "unverified until traced",
+      "hint": "Statistics, dates, quotations, and citations are where generated content is most dangerous, because a fabricated one looks exactly like a real one -- treat all of them as unverified until traced to a source.",
+      "d": 1
+    },
+    {
+      "id": "ccaog-32a2883d",
+      "term": "escalate on evidence",
+      "hint": "The signal to move to a more capable tier is observed failure on your own material -- a smaller model making logical errors on the actual task -- never prompt length or a senior stakeholder's request.",
+      "d": 2
+    },
+    {
+      "id": "ccaog-ca699908",
+      "term": "image token cost",
+      "hint": "An image in a request counts as input tokens, roughly (width x height)/750 -- images are downscaled so neither dimension exceeds 1568px before that formula applies, so pushing resolution past that buys nothing.",
+      "d": 2
+    },
+    {
+      "id": "ccaog-20e59057",
+      "term": "reasoning is a setting",
+      "hint": "A bigger model doesn't automatically reason more carefully, and neither does a longer prompt -- depth comes from thinking:{type:'adaptive'} with output_config.effort, a separate decision from which model tier to use.",
+      "d": 2
+    },
+    {
+      "id": "ccaog-9e329778",
+      "term": "accountability, not difficulty",
+      "hint": "The test for whether a step stays with a human: if a person or organisation answers for the outcome, a human decides regardless of what produced the draft -- irreversible or outward-facing actions always keep this gate.",
+      "d": 3
+    },
+    {
+      "id": "ccaog-a32b83e2",
+      "term": "measured before/after",
+      "hint": "The evidence that answers a skeptical stakeholder's real question -- what happens when it's wrong -- better than a live demo: cycle time or rework measured against the prior process, quality held constant.",
+      "d": 3
+    },
+    {
+      "id": "ccaog-5c7314e1",
+      "term": "handle conflicts explicitly",
+      "hint": "When two sources disagree, an unflagged conflict produces an arbitrary answer -- state which source is authoritative or ask for the disagreement to be surfaced, since deleting the older document assumes recency equals authority.",
+      "d": 4
+    },
+    {
+      "id": "ccaog-4f33f99d",
+      "term": "classification first",
+      "hint": "Before adding a document to a shared space, the question is not whether it's well-formatted but whether its contents are approved for that audience -- everything placed there is visible to everyone with access.",
+      "d": 4
+    },
+    {
+      "id": "ccaog-123be093",
+      "term": "chart transcription",
+      "hint": "Asking Claude to transcribe key numbers from an image into a table before analysis, forcing visual attention onto exact figures instead of letting the model summarize the image impressionistically.",
+      "d": 4
+    },
+    {
+      "id": "ccaog-10fbbc9f",
+      "term": "two-question triage",
+      "hint": "The two questions that cover most day-to-day governance decisions: is this data allowed here, and who is accountable for the result -- policy check comes before prompt quality, every time.",
+      "d": 5
+    },
+    {
+      "id": "ccaog-049077c8",
+      "term": "refusal is information",
+      "hint": "A refusal is information about the request, not a defect to route around -- read it, judge whether the concern is legitimate, and adjust or escalate, since rephrasing to defeat a safeguard is misuse.",
+      "d": 5
+    },
+    {
+      "id": "ccaog-0de39a5f",
+      "term": "decisions about people",
+      "hint": "Screening, evaluation, and anything affecting employment carry obligations most tasks don't -- a legal and HR question before a technical one, not a call for the implementing team to make alone.",
+      "d": 5
+    },
+    {
+      "id": "ccaog-791ca757",
+      "term": "define jargon inline",
+      "hint": "A term with a specific in-house meaning has a different common meaning or none, and the model will use the common one -- repetition teaches nothing, since there's no learning between requests.",
+      "d": 6
+    },
+    {
+      "id": "ccaog-c0d64d16",
+      "term": "audience, not length",
+      "hint": "An accurate summary pitched at the wrong audience is a specification problem, not a length problem -- naming the reader, their expertise, and what they need to do with it fixes vocabulary and framing at once.",
+      "d": 6
+    },
+    {
+      "id": "ccaog-c7030cae",
+      "term": "clarify, then escalate",
+      "hint": "The fix for a refusal on legitimate work, usually a context problem -- supplying the real context is both the honest move and the effective one; if it still declines, escalate rather than rephrase to defeat it.",
+      "d": 6
+    },
+    {
+      "id": "ccaog-eb03c3b7",
+      "term": "diagnose the symptom",
+      "hint": "Matching the shape of a symptom to the shape of its cause before changing the prompt -- quality declining gradually points at context crowding, dropping suddenly points at something that changed.",
+      "d": 6
     }
   ]
 }

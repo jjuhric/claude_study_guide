@@ -2101,6 +2101,234 @@
       "term": "specialists",
       "hint": "Several agents with ten focused tools each make fewer selection errors than one agent with forty tools — smaller sets reduce selection error and context bloat.",
       "d": 0
+    },
+    {
+      "id": "ccapg-3fc5e3fd",
+      "term": "subtask contract",
+      "hint": "What makes a worker's output usable without reading its reasoning: the question it owns, the shape of the answer, what counts as done, and a confidence signal back.",
+      "d": 0
+    },
+    {
+      "id": "ccapg-be810369",
+      "term": "unresolved field",
+      "hint": "What a worker should report when it ran out of budget mid-task, rather than returning a confident partial answer -- a contract with nowhere to record this gets confident partial answers instead.",
+      "d": 0
+    },
+    {
+      "id": "ccapg-cac22178",
+      "term": "context contamination",
+      "hint": "Workers begin referencing material they were never assigned and their outputs converge on the same framing -- cross-talk that removes the independence that made parallel exploration worth the multiple.",
+      "d": 0
+    },
+    {
+      "id": "ccapg-1f9e3170",
+      "term": "orchestrator saturation",
+      "hint": "Latency climbs at the synthesis step while worker latency stays flat, and cost rises with fleet size rather than task difficulty -- the orchestrator is reading too much.",
+      "d": 0
+    },
+    {
+      "id": "ccapg-d68fb3fe",
+      "term": "sizing the fan-out",
+      "hint": "The number of workers is a cost decision, not a capacity one -- each one re-establishes its own context before doing anything useful, so four well-scoped subtasks usually beat twelve overlapping ones.",
+      "d": 0
+    },
+    {
+      "id": "ccapg-971b2733",
+      "term": "partial delivery",
+      "hint": "Persisting intermediate results as work proceeds so a late failure still delivers completed output and a retry has a resume point -- converts an all-or-nothing failure into recoverable progress.",
+      "d": 1
+    },
+    {
+      "id": "ccapg-3c3275b9",
+      "term": "ambiguous outcome",
+      "hint": "A third failure class between transient and permanent: a timeout on a write tells you nothing about whether it happened. Needs idempotency or a way to query what occurred, not a retry decision.",
+      "d": 1
+    },
+    {
+      "id": "ccapg-a5f929da",
+      "term": "re-enterable steps",
+      "hint": "Designing checkpointed steps so resuming a failed run cannot double an effect -- checkpoint at step boundaries, not on a timer, which can capture half-finished state.",
+      "d": 1
+    },
+    {
+      "id": "ccapg-481a7bc4",
+      "term": "raise on exhaustion",
+      "hint": "A retry loop that gives up should surface the failure, not return empty -- a silent empty result makes the agent conclude the data doesn't exist, a confidently wrong answer instead of a visible one.",
+      "d": 1
+    },
+    {
+      "id": "ccapg-0f418767",
+      "term": "visible degradation",
+      "hint": "Surfacing which tier answered a request, in metadata for machines and visibly for a person making a consequential decision -- a silent fallback converts an outage into a quality incident nobody attributes correctly.",
+      "d": 1
+    },
+    {
+      "id": "ccapg-906f9215",
+      "term": "transient vs permanent",
+      "hint": "Transient failures (timeouts, rate limits) resolve on their own and deserve backoff; permanent ones (malformed requests, revoked credentials) fail identically forever, and retrying them just burns budget.",
+      "d": 1
+    },
+    {
+      "id": "ccapg-183c96e8",
+      "term": "tier by step",
+      "hint": "Routing every pipeline step to the cheapest model that meets its own quality bar, verified by evals on representative cases -- running the whole pipeline on a top tier pays top rates for trivial formatting.",
+      "d": 2
+    },
+    {
+      "id": "ccapg-034aa61e",
+      "term": "latency-bound vs cost-bound",
+      "hint": "Frequently conflated and often pulling in opposite directions -- a latency-bound step wants a faster tier and streaming, a cost-bound step wants batching and a cheaper tier, which increases latency.",
+      "d": 2
+    },
+    {
+      "id": "ccapg-2b1c08f2",
+      "term": "watch the tail",
+      "hint": "Nobody experiences median latency -- a healthy average can coexist with a P99 slow enough that a meaningful number of users have a poor experience every day.",
+      "d": 2
+    },
+    {
+      "id": "ccapg-81dfd907",
+      "term": "budget caps",
+      "hint": "Derived from the observed cost distribution of successful runs, plus headroom -- a round number chosen in a meeting either never fires or cuts off legitimate work, and nobody can tell which in advance.",
+      "d": 2
+    },
+    {
+      "id": "ccapg-55d8eb1d",
+      "term": "substitution evidence",
+      "hint": "Public benchmarks rarely reflect your task distribution, and a colleague's experience on a different workload isn't evidence for yours -- measure on your own representative cases before switching models.",
+      "d": 2
+    },
+    {
+      "id": "ccapg-632a2e5b",
+      "term": "cost order",
+      "hint": "The usual order cost actually comes from: repeated prefix content re-sent every call, growing conversation history, oversized retrieved chunks, and only then model tier -- diagnose with per-run traces, not aggregate totals.",
+      "d": 2
+    },
+    {
+      "id": "ccapg-0df0699c",
+      "term": "observability stack",
+      "hint": "Three necessary levels: step-level traces, outcome metrics, and sampled human review of transcripts -- each layer is blind to what the others catch, so error counts alone miss silent quality failures.",
+      "d": 3
+    },
+    {
+      "id": "ccapg-a158ae87",
+      "term": "trajectory scoring",
+      "hint": "Scoring the path an agent took, not just the final answer -- an agent that reached the right result by skipping a required check will fail on the next input that differs slightly, with no warning from outcome metrics alone.",
+      "d": 3
+    },
+    {
+      "id": "ccapg-47735800",
+      "term": "stale eval set",
+      "hint": "The most common failure in production evaluation: traffic drifts but a fixed suite keeps measuring the distribution it was built for, passing confidently while quality falls on what users actually send.",
+      "d": 3
+    },
+    {
+      "id": "ccapg-bae7253d",
+      "term": "judge calibration",
+      "hint": "Validating an LLM judge against human-labelled examples until agreement is acceptable, and recalibrating periodically -- an uncalibrated judge can be confidently wrong in exactly the same way a bigger model is.",
+      "d": 3
+    },
+    {
+      "id": "ccapg-4c334c1a",
+      "term": "pairwise vs absolute",
+      "hint": "Relative comparison is more stable than absolute scoring, because deciding which of two candidates is better is an easier judgement than holding a consistent internal standard across hundreds of items.",
+      "d": 3
+    },
+    {
+      "id": "ccapg-00210718",
+      "term": "span attributes",
+      "hint": "Standard fields (provider, model, token counts) that let traces from different services be queried the same way -- attaching tenant/user identifiers as metadata is what makes billing and anomaly detection possible.",
+      "d": 3
+    },
+    {
+      "id": "ccapg-07b95183",
+      "term": "traces never hold secrets",
+      "hint": "Credentials or personal data must never enter a trace -- traces are widely readable and long-lived, so anything placed there becomes a durable copy of sensitive data under weaker access controls.",
+      "d": 3
+    },
+    {
+      "id": "ccapg-30734fcc",
+      "term": "investigate drift",
+      "hint": "When production quality falls after a model version change, rerun the eval suite, identify the failing segments, and patch or pin accordingly -- a blanket rollback discards improvements along with regressions.",
+      "d": 3
+    },
+    {
+      "id": "ccapg-2d153b0f",
+      "term": "not a security boundary",
+      "hint": "Any control depending on the model behaving correctly fails the first time it's confused. Test: if 'what happens if the model does the wrong thing anyway' still holds, it's a boundary -- if not, it's guidance.",
+      "d": 4
+    },
+    {
+      "id": "ccapg-c81020a3",
+      "term": "confused deputy",
+      "hint": "The classic failure when an agent acts under a broad shared credential: the agent is trusted, so anything that persuades the agent inherits that trust. User-scoped permissions bound a manipulated agent to what the person could do.",
+      "d": 4
+    },
+    {
+      "id": "ccapg-24569beb",
+      "term": "capability combinations",
+      "hint": "Dangerous configurations are usually combinations where each half passed its own review separately -- browsing is low-risk, internal file access is controlled, joining them creates a path to confidential data.",
+      "d": 4
+    },
+    {
+      "id": "ccapg-733e6dca",
+      "term": "reconstructable audit",
+      "hint": "Must answer who requested an action, what the agent did, which tools ran with which inputs, and what approvals were given -- a trail missing any one of them fails at the moment it's needed.",
+      "d": 4
+    },
+    {
+      "id": "ccapg-da616f7d",
+      "term": "bounded autonomy",
+      "hint": "Whether an agent may take a consequential action is rarely yes or no -- it's defined limits, approval thresholds by value, and audit, calibrated so the gate isn't decorative or overly restrictive.",
+      "d": 4
+    },
+    {
+      "id": "ccapg-575e47a2",
+      "term": "differential privacy",
+      "hint": "A statistical guarantee: adding calibrated noise to aggregate outputs bounds how much any individual record can influence the result -- stops individually-harmless queries from reconstructing a specific person.",
+      "d": 4
+    },
+    {
+      "id": "ccapg-ca0f86d7",
+      "term": "synthetic red-teaming",
+      "hint": "Using adversary models to generate large numbers of injection and jailbreak variations at a scale manual red-teaming can't reach -- complements human red-teaming, since novel attack classes still tend to come from a person.",
+      "d": 4
+    },
+    {
+      "id": "ccapg-5fe3a95f",
+      "term": "kernel-isolating sandbox",
+      "hint": "gVisor and Firecracker give each code execution its own kernel surface instead of sharing the host kernel like standard containers -- an escape has to defeat virtualisation, not a language-level guard.",
+      "d": 4
+    },
+    {
+      "id": "ccapg-3423b364",
+      "term": "Content Security Policy",
+      "hint": "Bounds what agent-generated code running in a browser (like a Claude Artifact) can do -- limiting script execution and network egress specifically closes the exfiltration path.",
+      "d": 4
+    },
+    {
+      "id": "ccapg-a7f46bab",
+      "term": "validate tool output",
+      "hint": "A tool returning subtly wrong data rather than an error is the hardest failure to catch, because nothing raises -- invariant checks in code, with anomalies surfaced or halting the pipeline, are the strongest defence.",
+      "d": 1
+    },
+    {
+      "id": "ccapg-e90ff982",
+      "term": "ambiguity is a failure class",
+      "hint": "In high-stakes workflows an agent should detect ambiguous instructions and ask for clarification or route to a human, rather than acting confidently on an assumption.",
+      "d": 1
+    },
+    {
+      "id": "ccapg-db526f47",
+      "term": "effort per task class",
+      "hint": "Reasoning effort converts tokens into accuracy on some task classes and into nothing on others -- set it per class from evals, and re-check when you change model, since the relationship isn't stable across generations.",
+      "d": 2
+    },
+    {
+      "id": "ccapg-826baeee",
+      "term": "caching at volume",
+      "hint": "With a large stable prefix called at high frequency, prompt caching is the single biggest lever -- the repeated prefix dominates spend, so serving it from cache changes the shape of the bill.",
+      "d": 2
     }
   ]
 }

@@ -2399,6 +2399,54 @@
       "term": "stdio transport",
       "hint": "A local subprocess server speaks over standard input/output -- no port, no listener, nothing but its parent process can reach it. HTTP/SSE is for remote servers instead.",
       "d": 6
+    },
+    {
+      "id": "ccdvg-af5e7968",
+      "term": "batch tool results",
+      "hint": "When the model requests several tools at once, return every result in a single user message -- splitting them across messages teaches the model its parallel calls were handled sequentially.",
+      "d": 1
+    },
+    {
+      "id": "ccdvg-5620306e",
+      "term": "choose the shape",
+      "hint": "Fixed sequence, known steps -> workflow; one category among several -> router; steps unknown until run time -> agent loop; independent subtasks -> orchestrator. Start at the top of that list and stop at the first fit.",
+      "d": 2
+    },
+    {
+      "id": "ccdvg-c52e26f8",
+      "term": "canonical cost stack",
+      "hint": "A small model, with caching, submitted in batches -- the combination for high-volume simple work, since each of the three levers compounds rather than substituting for the others.",
+      "d": 3
+    },
+    {
+      "id": "ccdvg-f0c3ba4f",
+      "term": "structure before wording",
+      "hint": "Two structural properties do more for a long prompt than any rephrasing: delimiting source material so content can't read as a command, and putting the instruction last, closest to where generation begins.",
+      "d": 4
+    },
+    {
+      "id": "ccdvg-c103f832",
+      "term": "context is a budget",
+      "hint": "Everything competes for the same space -- system prompt, tool definitions, retrieved documents, history -- and what you put in, and in what order, determines both cost and quality.",
+      "d": 4
+    },
+    {
+      "id": "ccdvg-ec09e09a",
+      "term": "credentials server-side",
+      "hint": "An API key in front-end JavaScript is a published key -- anyone can read it from the bundle or network tab. Keep credentials server-side and have the browser call your own backend instead.",
+      "d": 5
+    },
+    {
+      "id": "ccdvg-b6420d79",
+      "term": "discovery and use",
+      "hint": "Each MCP primitive has a discovery method and a use method (resources/list + read, tools/list + tools/call, prompts/list + prompts/get) -- symmetry that lets a client explore a server without triggering anything.",
+      "d": 6
+    },
+    {
+      "id": "ccdvg-7b1b074a",
+      "term": "bespoke vs standard",
+      "hint": "Without MCP, 4 clients x 6 data sources means 24 bespoke connectors; with MCP, 4 clients + 6 servers is 10 components -- the saving compounds with every new client or source added.",
+      "d": 6
     }
   ]
 }
