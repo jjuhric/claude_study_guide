@@ -1765,52 +1765,79 @@ function conceptDecisionTree(){
   };
 }
 
-/* ── 4. GLOSSARY TERM CALLOUTS ── */
-function glossaryTermCallouts(){
-  if(typeof window!=='undefined'&&window.scrollTo)window.scrollTo(0,0);
+/* ── 4. GLOSSARY & REFERENCE ──
+   Real term-lookup view, sourced from each cert's own glossary[] array --
+   the same content Hangman draws its word pool from (see
+   docs/HANGMAN_GLOSSARY_PLAN.md). Replaces the previous
+   glossaryTermCallouts, which was unreachable dead code: never registered
+   in TOOLS (its name didn't end in a tracked "tool-shaped" suffix, so the
+   reachability check never caught it), hardcoded to 10 cert-agnostic terms
+   regardless of which certification was active, and completely
+   disconnected from the real glossary data. */
+let glossaryRefState = { certId: "ccao", query: "" };
+
+function glossaryReferenceView(){
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
   renderHeader();
   award('glossary_navigator');
-  const TERMS=[
-    {term:'Token Bucket',domain:'Infrastructure',def:'Rate-limit model: a bucket holds T tokens that refill at rate R per second. Each request consumes tokens. When empty, requests are throttled (429).',lesson:'API Limits & Retry Strategies',exam:'Tier 1-4 TPM/RPM limits use token buckets. Know refill math for Tier 2: 40k RPM = 666 RPS.'},
-    {term:'BFS Orchestrator',domain:'Architecture',def:'Breadth-First Search orchestration: an orchestrator that spawns all subagents at the same depth level in parallel before collecting results.',lesson:'Multi-Agent Orchestration',exam:'Fan-out/fan-in is BFS. Fan-out reduces wall-clock latency for independent subtasks.'},
-    {term:'FIFO Truncation',domain:'Context Management',def:'First-In, First-Out: oldest conversation turns are dropped when the context window approaches capacity. Causes amnesia for early instructions.',lesson:'Context Window & Compaction',exam:'FIFO truncation is the WRONG strategy. Use semantic compaction into <key_facts> tags instead.'},
-    {term:'cache_control',domain:'Prompt Caching',def:'API field placed at the END of a stable prefix block. Signals Anthropic to cache that prefix for 5 minutes. Min 1,024 tokens (Haiku: 2,048).',lesson:'Prompt Caching Deep Dive',exam:'Must be at END of static block. Dynamic content after breakpoint is NOT cached.'},
-    {term:'stop_reason',domain:'Messages API',def:'Field in API response indicating why generation ended: end_turn (natural), max_tokens (output cap hit), stop_sequence (trigger hit), tool_use (tool called), pause_turn (a server-side tool loop hit its iteration limit — re-send the assistant turn to resume, do not append a Continue message), refusal (terminal; stop_details is populated only in this case, and is null otherwise, so guard before reading it) and model_context_window_exceeded (the window was exhausted, which is a different fix from max_tokens).',lesson:'Messages API Reference',exam:'tool_use stop_reason means the model wants to call a tool — you must send the tool_result back.'},
-    {term:'MicroVM',domain:'Security',def:'Lightweight VM (e.g., Firecracker) providing hardware-level isolation for tool execution. Kernel-per-VM prevents sandbox escape attacks.',lesson:'Zero-Trust Agentic Security',exam:'Claude runs tools in MicroVMs to enforce zero-trust execution boundaries per tool call.'},
-    {term:'Brier Score',domain:'Evaluation',def:'Mathematical calibration metric: mean squared difference between predicted probability and actual outcome (0=perfect, 1=worst). Lower = better calibration.',lesson:'Evaluation & Calibration',exam:'Used to measure prediction calibration quality. A well-calibrated model has Brier score approaching 0.'},
-    {term:'circuit breaker',domain:'Reliability',def:'Pattern that monitors failure rates and "opens" (blocks) calls to a failing downstream service after a threshold, preventing cascade failures.',lesson:'Resilience Patterns',exam:'Circuit breakers prevent cascading failures in multi-agent pipelines. Use with exponential backoff + jitter.'},
-    {term:'XML encapsulation',domain:'Prompting',def:'Technique of wrapping input data in XML tags (e.g., <document>) to prevent prompt injection — Claude treats tagged content as data, not instructions.',lesson:'Prompt Engineering Fundamentals',exam:'The primary defense against indirect prompt injection from tool outputs and retrieved documents.'},
-    {term:'extended thinking',domain:'Reasoning',def:'Claude feature that generates a <thinking> block of internal reasoning before responding. Improves accuracy on complex multi-step tasks. Enabled with thinking:{type:"adaptive"}; depth comes from output_config.effort.',lesson:'Extended Thinking & Reasoning',exam:'Extended thinking is visible in content[] as type:"thinking". budget_tokens sets the reasoning ceiling.'}
-  ];
-  const html=TERMS.map(t=>'<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;">'
-    +'<div style="display:flex;align-items:flex-start;gap:12px;">'
-    +'<div style="flex-shrink:0;background:var(--coral);color:#fff;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;">'+t.domain+'</div>'
-    +'<div style="flex:1;">'
-    +'<h4 style="margin:0 0 6px;font-size:15px;color:var(--text);">'+t.term+'</h4>'
-    +'<p style="font-size:12.5px;color:var(--text);line-height:1.6;margin:0 0 8px;">'+t.def+'</p>'
-    +'<div style="display:flex;gap:8px;flex-wrap:wrap;">'
-    +'<span style="font-size:11px;background:#5a9e6f22;color:#5a9e6f;border-radius:6px;padding:3px 8px;">📖 Lesson: '+t.lesson+'</span>'
-    +'<span style="font-size:11px;background:#d9775722;color:#d97757;border-radius:6px;padding:3px 8px;">🎯 '+t.exam+'</span>'
-    +'</div>'
-    +'</div></div></div>'
-  ).join('');
-  $('app').innerHTML='<button class="back" onclick="home()">← Back</button>'
-    +'<div class="panel">'
-    +'<div style="text-align:center;"><div style="font-size:36px;">📝</div>'
-    +'<h2 style="font-size:20px;margin-top:6px;">Glossary Term Callouts & Hover Definitions</h2>'
-    +'<p class="subtext" style="margin-top:6px;">Every key technical term defined with its exam-critical context, linked lesson, and why it matters for certification.</p>'
-    +'</div>'
-    +'<div style="margin-top:8px;"><input id="glossSearch" placeholder="🔍 Filter terms..." oninput="window._glossFilter(this.value)" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;box-sizing:border-box;margin-bottom:14px;"></div>'
-    +'<div id="glossBody">'+html+'</div>'
-    +'</div>';
-  window._glossFilter=function(q){
-    const b=document.getElementById('glossBody');
-    if(!b)return;
-    const lo=q.toLowerCase();
-    b.querySelectorAll('div[style*="border-radius:12px"]').forEach(el=>{
-      el.style.display=lo===''||el.textContent.toLowerCase().includes(lo)?'':'none';
-    });
-  };
+
+  const c = CERTS.find(x => x.id === glossaryRefState.certId) || CERTS[0];
+  glossaryRefState.certId = c.id;
+
+  $('app').innerHTML = '<button class="back" onclick="home()">← Back</button>'
+    + '<div class="panel">'
+    + '<div style="text-align:center;"><div style="font-size:36px;">📖</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Glossary &amp; Reference</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Every key term for this certification, defined and tagged by domain.</p></div>'
+    + '<div style="margin:10px 0 14px;">'
+    + '<select id="glossCertSelect" onchange="glossaryRefState.certId=this.value; glossaryRefState.query=\'\'; glossaryReferenceView()" style="width:100%; padding:8px 12px; font-size:13px; font-weight:700; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--ink); box-sizing:border-box; margin-bottom:10px;">'
+    + CERTS.map(x => '<option value="' + x.id + '" ' + (x.id === c.id ? 'selected' : '') + '>' + x.code + ' · ' + x.name + '</option>').join('')
+    + '</select>'
+    + '<input id="glossSearch" placeholder="🔍 Filter terms..." value="' + esc(glossaryRefState.query) + '" oninput="glossaryRefState.query=this.value; renderGlossaryList()" style="width:100%; padding:10px 14px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--ink); font-size:13px; box-sizing:border-box;">'
+    + '</div>'
+    + '<div id="glossBody"></div>'
+    + '</div>';
+
+  if (!c._loaded) {
+    document.getElementById('glossBody').innerHTML = '<div class="subtext">Loading…</div>';
+    loadCert(c).then(() => { if (glossaryRefState.certId === c.id) renderGlossaryList(); });
+    return;
+  }
+  renderGlossaryList();
+}
+
+function renderGlossaryList(){
+  const body = document.getElementById('glossBody');
+  if (!body) return;
+  const c = CERTS.find(x => x.id === glossaryRefState.certId);
+  if (!c) return;
+  const q = glossaryRefState.query.trim().toLowerCase();
+  const all = c.glossary || [];
+  const terms = all
+    .filter(g => !q || g.term.toLowerCase().includes(q) || g.hint.toLowerCase().includes(q))
+    .slice()
+    .sort((a, b) => a.term.localeCompare(b.term));
+
+  if (!terms.length) {
+    body.innerHTML = '<div class="subtext">' + (all.length ? 'No terms match your search.' : 'No glossary terms for this certification yet.') + '</div>';
+    return;
+  }
+
+  body.innerHTML = terms.map(g => {
+    const domainName = c.domains[g.d] || ('Domain ' + (g.d + 1));
+    const lessonIdx = lessonForDomain(c, g.d);
+    const reviewLink = lessonIdx !== -1
+      ? '<a href="javascript:void(0)" onclick="lessonView(\'' + c.id + '\',' + lessonIdx + ')" style="font-size:11px; background:rgba(90,158,111,.15); color:var(--green); border-radius:6px; padding:3px 8px; text-decoration:none; font-weight:700;">📖 Review in lesson</a>'
+      : '';
+    return '<div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:10px;">'
+      + '<div style="display:flex; align-items:flex-start; gap:12px; flex-wrap:wrap;">'
+      + '<div style="flex-shrink:0; background:var(--coral); color:#fff; border-radius:8px; padding:4px 10px; font-size:11px; font-weight:700;">' + esc(domainName) + '</div>'
+      + '<div style="flex:1; min-width:200px;">'
+      + '<h4 style="margin:0 0 6px; font-size:15px; color:var(--ink);">' + esc(g.term) + '</h4>'
+      + '<p style="font-size:12.5px; color:var(--ink); line-height:1.6; margin:0 0 8px;">' + esc(g.hint) + '</p>'
+      + (reviewLink ? '<div>' + reviewLink + '</div>' : '')
+      + '</div></div></div>';
+  }).join('');
 }
 /* ================= END NOVA TEACHING SUITE ================= */
 

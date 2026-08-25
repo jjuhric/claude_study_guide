@@ -84,6 +84,7 @@ const TOOLS = [
   {fn:"promptTransformGallery",  em:"✨", name:"Prompt Transformation Gallery",desc:"Before and after, with the reasoning for each change.",              cta:"Open Gallery",       g:"reference"},
   {fn:"handbookSelect",          em:"📖", name:"Full Study Handbook",          desc:"Every lesson for a certification as one continuous read.",           cta:"Open Handbook",      g:"reference"},
   {fn:"notesView",               em:"🗒️", name:"Scratch Notes",                desc:"Free-form notes kept alongside your study.",                         cta:"Open Notes",         g:"reference"},
+  {fn:"glossaryReferenceView",   em:"📖", name:"Glossary &amp; Reference",     desc:"Every key term, defined and tagged by domain.",                      cta:"Open Glossary",      g:"reference"},
 
   {fn:"audioQuizView",           em:"🎧", name:"Hands-Free Audio Quiz",        desc:"Active recall without looking at the screen.",                       cta:"Start Audio Quiz",   g:"audio"},
   {fn:"audioSpeedDrillView",     em:"🔊", name:"Audio Speed Drill",            desc:"Rapid spoken drilling against the clock.",                           cta:"Start Drill",        g:"audio"},

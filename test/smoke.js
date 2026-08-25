@@ -1186,8 +1186,29 @@ vm.createContext(sandbox);
   call("conceptDecisionTree");
   check(/Interactive Concept Decision Trees/.test(els.app.innerHTML) && /dtnBody/.test(els.app.innerHTML), "conceptDecisionTree renders interactive branching tree");
 
-  call("glossaryTermCallouts");
-  check(/Glossary Term Callouts & Hover Definitions/.test(els.app.innerHTML) && /glossBody/.test(els.app.innerHTML), "glossaryTermCallouts renders glossary with search");
+  /* glossaryReferenceView replaced glossaryTermCallouts, which was
+     unreachable dead code hardcoded to the same 10 terms regardless of
+     which certification was active. These checks specifically target that
+     defect: real cert-awareness, real search, and a real (not label-only)
+     link back to the lesson that teaches each term. */
+  evalIn(`glossaryRefState = {certId:"ccao", query:""}`);
+  call("glossaryReferenceView");
+  check(/Glossary &amp; Reference/.test(els.app.innerHTML) && /glossBody/.test(els.app.innerHTML), "glossaryReferenceView renders glossary with search");
+  // The term list itself is written into #glossBody by renderGlossaryList(),
+  // a separate mock element from els.app in this shim (no real DOM tree
+  // connects them) -- check that element directly, same fix as the earlier
+  // ttsPlayBtn lesson (checking els.app.innerHTML here would silently pass
+  // or fail on stale content regardless of what renderGlossaryList did).
+  check(/positive framing/.test(els.glossBody.innerHTML), "shows a real CCAO glossary term (not the old hardcoded 10-term list)");
+
+  evalIn(`glossaryRefState.certId = "ccdv"; renderGlossaryList()`);
+  check(/stop_reason/.test(els.glossBody.innerHTML) && !/positive framing/.test(els.glossBody.innerHTML), "switching cert swaps to that cert's own glossary terms, not the same list for every cert");
+
+  evalIn(`glossaryRefState = {certId:"ccao", query:"hallucination"}; renderGlossaryList()`);
+  check(/hallucination/i.test(els.glossBody.innerHTML) && !/positive framing/.test(els.glossBody.innerHTML), "search filters the list down to matching terms only");
+
+  evalIn(`glossaryRefState = {certId:"ccao", query:""}; renderGlossaryList()`);
+  check(/onclick="lessonView\('ccao',\d+\)"/.test(els.glossBody.innerHTML), "each term links to the real lesson that teaches its domain, not a plain text label");
 
   /* ---------- 43. Aurora Teaching Suite ---------- */
   call("studyRoadmapView");
