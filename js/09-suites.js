@@ -1589,7 +1589,7 @@ function animatedConceptCards(){
   const cardsHtml=steps.map((s,i)=>'<div id="novaCard'+i+'" style="display:'+(i===0?'block':'none')+';background:var(--card);border:2px solid '+s.color+';border-radius:16px;padding:22px 24px;text-align:center;max-width:540px;margin:0 auto;">'
     +'<div style="font-size:48px;margin-bottom:8px;">'+s.icon+'</div>'
     +'<h3 style="color:'+s.color+';margin:0 0 10px;font-size:16px;">'+s.title+'</h3>'
-    +'<p style="font-size:13px;line-height:1.7;color:var(--text);">'+s.desc+'</p>'
+    +'<p style="font-size:13px;line-height:1.7;color:var(--ink);">'+s.desc+'</p>'
     +'<div style="margin-top:14px;display:flex;gap:6px;justify-content:center;">'
     +steps.map((_,j)=>'<div style="width:9px;height:9px;border-radius:50%;background:'+(j===i?s.color:'var(--border)')+'"></div>').join('')
     +'</div></div>'
@@ -1661,7 +1661,7 @@ function apiPayloadInspector(){
   };
   function renderPayload(key){
     const p=PAYLOADS[key];
-    const annoHtml=Object.entries(annotations).map(([k,v])=>'<tr><td style="padding:5px 8px;font-family:monospace;font-size:11px;color:var(--coral);white-space:nowrap;">"'+k+'"</td><td style="padding:5px 8px;font-size:11px;color:var(--text);line-height:1.5;">'+v+'</td></tr>').join('');
+    const annoHtml=Object.entries(annotations).map(([k,v])=>'<tr><td style="padding:5px 8px;font-family:monospace;font-size:11px;color:var(--coral);white-space:nowrap;">"'+k+'"</td><td style="padding:5px 8px;font-size:11px;color:var(--ink);line-height:1.5;">'+v+'</td></tr>').join('');
     return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0;">'
       +'<div>'
       +'<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:1px;">📤 Request</div>'
@@ -1740,7 +1740,7 @@ function conceptDecisionTree(){
     if(node.result) return '<div style="background:'+node.color+'22;border:2px solid '+node.color+';border-radius:12px;padding:16px;text-align:center;font-size:13px;font-weight:600;color:'+node.color+';">'+node.result+'</div>';
     const id='dtn_'+Math.random().toString(36).slice(2,7);
     return '<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;">'
-      +'<p style="font-size:13px;font-weight:600;color:var(--text);margin:0 0 12px;">'+node.q+'</p>'
+      +'<p style="font-size:13px;font-weight:600;color:var(--ink);margin:0 0 12px;">'+node.q+'</p>'
       +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
       +'<div><button class="btn sm" style="width:100%;background:#5a9e6f22;color:#5a9e6f;border-color:#5a9e6f;" onclick="document.getElementById(\'yes_'+id+'\').style.display=\'block\';this.parentElement.parentElement.parentElement.querySelector(\'.dtn-no\').style.display=\'none\'">✅ Yes</button>'
       +'<div id="yes_'+id+'" style="display:none;margin-top:8px;">'+renderNode(node.yes,depth+1)+'</div></div>'
@@ -1870,9 +1870,9 @@ function studyRoadmapView(){
     return "<div style=\"flex:1;min-width:200px;background:"+bg+";border:2px solid "+border+";border-radius:14px;padding:16px;\">"
       +"<div style=\"font-size:20px;text-align:center;\">"+icon+"</div>"
       +"<div style=\"font-size:11px;font-weight:700;color:"+w.color+";text-transform:uppercase;letter-spacing:1px;margin:4px 0;\">"+w.week+"</div>"
-      +"<div style=\"font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;\">"+w.title+"</div>"
+      +"<div style=\"font-size:14px;font-weight:700;color:var(--ink);margin-bottom:8px;\">"+w.title+"</div>"
       +"<div style=\"font-size:11px;color:var(--muted);margin-bottom:8px;\">⏱️ "+w.hrs+"</div>"
-      +"<ul style=\"font-size:11px;color:var(--text);line-height:1.8;padding-left:16px;margin:0 0 10px;\">"+w.topics.map(function(t){return"<li>"+t+"</li>";}).join("")+"</ul>"
+      +"<ul style=\"font-size:11px;color:var(--ink);line-height:1.8;padding-left:16px;margin:0 0 10px;\">"+w.topics.map(function(t){return"<li>"+t+"</li>";}).join("")+"</ul>"
       +(active?"<button class=\"btn sm\" style=\"width:100%;\" onclick=\"_setRW("+(i+1)+")\" >✅ Mark Complete</button>":"")
       +"</div>";
   }).join("");
@@ -1947,12 +1947,12 @@ function architecturePatternLibrary(){
     d.style.display="block";
     d.innerHTML="<div style=\"display:flex;align-items:center;gap:10px;margin-bottom:12px;\">"
       +"<span style=\"font-size:32px;\">"+p.icon+"</span>"
-      +"<div><h3 style=\"margin:0;color:var(--text);\">"+p.name+"</h3>"
+      +"<div><h3 style=\"margin:0;color:var(--ink);\">"+p.name+"</h3>"
       +"<span style=\"font-size:11px;background:var(--coral);color:#fff;border-radius:6px;padding:2px 8px;\">"+p.cat+"</span>"
       +"</div></div>"
       +"<pre style=\"background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11px;line-height:1.7;white-space:pre-wrap;margin-bottom:12px;\">"+p.diag+"</pre>"
-      +"<p style=\"font-size:13px;color:var(--text);line-height:1.6;margin-bottom:10px;\"><strong>Definition:</strong> "+p.def+"</p>"
-      +"<p style=\"font-size:12px;background:#d9775711;border-left:3px solid var(--coral);padding:10px;border-radius:0 8px 8px 0;color:var(--text);line-height:1.6;margin:0;\"><strong>🎯 Exam Focus:</strong> "+p.exam+"</p>"
+      +"<p style=\"font-size:13px;color:var(--ink);line-height:1.6;margin-bottom:10px;\"><strong>Definition:</strong> "+p.def+"</p>"
+      +"<p style=\"font-size:12px;background:#d9775711;border-left:3px solid var(--coral);padding:10px;border-radius:0 8px 8px 0;color:var(--ink);line-height:1.6;margin:0;\"><strong>🎯 Exam Focus:</strong> "+p.exam+"</p>"
       +"<button class=\"btn sm\" style=\"margin-top:12px;\" onclick=\"document.getElementById('aplDetail').style.display='none'\">✕ Close</button>";
     d.scrollIntoView({behavior:"smooth",block:"nearest"});
   };
@@ -1961,7 +1961,7 @@ function architecturePatternLibrary(){
     return patterns.filter(function(p){return !filter||p.cat===filter;}).map(function(p,i){
       return "<div onclick=\"_aplShow("+i+")\" style=\"cursor:pointer;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;\">"
         +"<div style=\"font-size:26px;margin-bottom:6px;\">"+p.icon+"</div>"
-        +"<div style=\"font-size:12px;font-weight:700;color:var(--text);\">"+p.name+"</div>"
+        +"<div style=\"font-size:12px;font-weight:700;color:var(--ink);\">"+p.name+"</div>"
         +"<div style=\"font-size:10px;color:var(--muted);margin-top:3px;\">"+p.cat+"</div>"
         +"</div>";
     }).join("");
@@ -2021,19 +2021,19 @@ function promptTransformGallery(){
   window._ptgCard=function(i){
     const t=T[i];
     return "<div style=\"background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;\">"
-      +"<h3 style=\"margin:0 0 14px;font-size:16px;color:var(--text);\">"+t.title+"</h3>"
+      +"<h3 style=\"margin:0 0 14px;font-size:16px;color:var(--ink);\">"+t.title+"</h3>"
       +"<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;\">"
       +"<div><div style=\"font-size:11px;font-weight:700;color:#c94f4f;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;\">❌ Common Mistake</div>"
-      +"<pre style=\"background:#c94f4f11;border:1px solid #c94f4f44;border-radius:8px;padding:12px;font-size:10.5px;white-space:pre-wrap;line-height:1.6;color:var(--text);margin:0;max-height:200px;overflow-y:auto;\">"+t.bad+"</pre></div>"
+      +"<pre style=\"background:#c94f4f11;border:1px solid #c94f4f44;border-radius:8px;padding:12px;font-size:10.5px;white-space:pre-wrap;line-height:1.6;color:var(--ink);margin:0;max-height:200px;overflow-y:auto;\">"+t.bad+"</pre></div>"
       +"<div><div style=\"font-size:11px;font-weight:700;color:#5a9e6f;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;\">✅ Correct Pattern</div>"
-      +"<pre style=\"background:#5a9e6f11;border:1px solid #5a9e6f44;border-radius:8px;padding:12px;font-size:10.5px;white-space:pre-wrap;line-height:1.6;color:var(--text);margin:0;max-height:200px;overflow-y:auto;\">"+t.good+"</pre></div>"
+      +"<pre style=\"background:#5a9e6f11;border:1px solid #5a9e6f44;border-radius:8px;padding:12px;font-size:10.5px;white-space:pre-wrap;line-height:1.6;color:var(--ink);margin:0;max-height:200px;overflow-y:auto;\">"+t.good+"</pre></div>"
       +"</div>"
       +"<div style=\"background:#d9775711;border-left:3px solid var(--coral);padding:10px 14px;border-radius:0 8px 8px 0;margin-bottom:10px;\">"
       +"<div style=\"font-size:11px;font-weight:700;color:var(--coral);margin-bottom:4px;\">💡 Why This Matters</div>"
-      +"<div style=\"font-size:12px;color:var(--text);line-height:1.6;\">"+t.why+"</div></div>"
+      +"<div style=\"font-size:12px;color:var(--ink);line-height:1.6;\">"+t.why+"</div></div>"
       +"<div style=\"background:#5b7fa611;border-left:3px solid #5b7fa6;padding:10px 14px;border-radius:0 8px 8px 0;\">"
       +"<div style=\"font-size:11px;font-weight:700;color:#5b7fa6;margin-bottom:4px;\">📌 Golden Rule</div>"
-      +"<div style=\"font-size:12px;color:var(--text);line-height:1.6;\">"+t.rule+"</div></div></div>";
+      +"<div style=\"font-size:12px;color:var(--ink);line-height:1.6;\">"+t.rule+"</div></div></div>";
   };
   window._ptgIdx=0;
   $("app").innerHTML="<button class=\"back\" onclick=\"home()\">← Back</button>"
@@ -2113,8 +2113,8 @@ function knowledgeGraphView(){
     d.style.display="block";
     d.innerHTML="<div style=\"display:flex;align-items:center;gap:8px;margin-bottom:10px;\">"
       +"<div style=\"width:14px;height:14px;border-radius:50%;background:"+n.color+"\"></div>"
-      +"<strong style=\"font-size:15px;color:var(--text);\">"+n.label+"</strong></div>"
-      +"<p style=\"font-size:13px;color:var(--text);line-height:1.6;margin-bottom:10px;\">"+DEFS[id]+"</p>"
+      +"<strong style=\"font-size:15px;color:var(--ink);\">"+n.label+"</strong></div>"
+      +"<p style=\"font-size:13px;color:var(--ink);line-height:1.6;margin-bottom:10px;\">"+DEFS[id]+"</p>"
       +"<div style=\"font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;\">Relationships</div>"
       +"<div style=\"display:flex;flex-wrap:wrap;gap:4px;\">"+related+"</div>";
     d.scrollIntoView({behavior:"smooth",block:"nearest"});
@@ -2132,7 +2132,7 @@ function knowledgeGraphView(){
     const lines=words.map(function(w,j){return "<tspan x='"+x+"' dy='"+(j===0?(-(words.length-1)*6)+"px":"12px")+"'>"+w+"</tspan>";}).join("");
     return "<g onclick='_kgSel(&quot;"+n.id+"&quot;)' style='cursor:pointer'>"
       +"<circle cx='"+x+"' cy='"+y+"' r='28' fill='"+n.color+"22' stroke='"+n.color+"' stroke-width='2'/>"
-      +"<text x='"+x+"' y='"+y+"' fill='var(--text)' font-size='8.5' text-anchor='middle' dominant-baseline='middle' font-weight='600'>"+lines+"</text>"
+      +"<text x='"+x+"' y='"+y+"' fill='var(--ink)' font-size='8.5' text-anchor='middle' dominant-baseline='middle' font-weight='600'>"+lines+"</text>"
       +"</g>";
   }).join("");
   $("app").innerHTML="<button class=\"back\" onclick=\"home()\">← Back</button>"
@@ -2212,13 +2212,13 @@ function apiErrorSimulator(){
     d.style.display="block";
     d.innerHTML="<div style=\"display:flex;align-items:center;gap:10px;margin-bottom:14px;\">"
       +"<div style=\"font-size:28px;font-weight:800;color:"+e.color+";\">"+e.code+"</div>"
-      +"<h3 style=\"margin:0;font-size:14px;color:var(--text);\">"+e.name+"</h3></div>"
-      +"<p style=\"font-size:12.5px;color:var(--text);line-height:1.6;margin-bottom:10px;\"><strong>Root Cause:</strong> "+e.cause+"</p>"
+      +"<h3 style=\"margin:0;font-size:14px;color:var(--ink);\">"+e.name+"</h3></div>"
+      +"<p style=\"font-size:12.5px;color:var(--ink);line-height:1.6;margin-bottom:10px;\"><strong>Root Cause:</strong> "+e.cause+"</p>"
       +"<p style=\"font-size:12.5px;color:var(--muted);line-height:1.6;margin-bottom:10px;\"><strong>Retryable?</strong> "+e.retry+"</p>"
       +"<pre style=\"background:var(--bg);border:1px solid "+e.color+"44;border-radius:8px;padding:12px;font-size:10.5px;line-height:1.6;white-space:pre-wrap;margin-bottom:12px;\">"+e.body+"</pre>"
       +"<div style=\"background:#5a9e6f11;border-left:3px solid #5a9e6f;padding:10px 14px;border-radius:0 8px 8px 0;\">"
       +"<div style=\"font-size:11px;font-weight:700;color:#5a9e6f;margin-bottom:4px;\">✅ Recovery</div>"
-      +"<div style=\"font-size:12.5px;color:var(--text);line-height:1.6;\">"+e.fix+"</div></div>"
+      +"<div style=\"font-size:12.5px;color:var(--ink);line-height:1.6;\">"+e.fix+"</div></div>"
       +"<button class=\"btn sm\" style=\"margin-top:12px;\" onclick=\"document.getElementById('aeDetail').style.display='none'\">✕ Close</button>";
     d.scrollIntoView({behavior:"smooth",block:"nearest"});
   };
@@ -2226,7 +2226,7 @@ function apiErrorSimulator(){
     return "<div onclick=\"_aeSel("+i+")\" style=\"cursor:pointer;background:"+e.color+"11;border:2px solid "+e.color+"44;border-radius:10px;padding:12px;\""
       +" onmouseover=\"this.style.borderColor='"+e.color+"'\" onmouseout=\"this.style.borderColor='"+e.color+"44'\">"
       +"<div style=\"font-size:20px;font-weight:800;color:"+e.color+";\">"+e.code+"</div>"
-      +"<div style=\"font-size:11px;color:var(--text);margin-top:4px;line-height:1.4;\">"+e.name.split("—")[0].trim()+"</div>"
+      +"<div style=\"font-size:11px;color:var(--ink);margin-top:4px;line-height:1.4;\">"+e.name.split("—")[0].trim()+"</div>"
       +"</div>";
   }).join("");
   $("app").innerHTML="<button class=\"back\" onclick=\"home()\">← Back</button>"
@@ -2303,15 +2303,15 @@ function tokenBudgetVisualizer(){
     +"<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:18px 0;\">"
     +"<div>"
     +"<div style=\"margin-bottom:16px;\">"
-    +"<label style=\"font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:6px;\">🖥️ System Prompt Tokens</label>"
+    +"<label style=\"font-size:12px;font-weight:700;color:var(--ink);display:block;margin-bottom:6px;\">🖥️ System Prompt Tokens</label>"
     +"<input id=\"tbSys\" type=\"range\" min=\"0\" max=\"20000\" value=\"800\" oninput=\"_tbUpdate()\" style=\"width:100%;\">"
     +"</div>"
     +"<div style=\"margin-bottom:16px;\">"
-    +"<label style=\"font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:6px;\">💬 Conversation Context Tokens</label>"
+    +"<label style=\"font-size:12px;font-weight:700;color:var(--ink);display:block;margin-bottom:6px;\">💬 Conversation Context Tokens</label>"
     +"<input id=\"tbCtx\" type=\"range\" min=\"0\" max=\"160000\" value=\"20000\" oninput=\"_tbUpdate()\" style=\"width:100%;\">"
     +"</div>"
     +"<div style=\"margin-bottom:16px;\">"
-    +"<label style=\"font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:6px;\">🧠 Tokens spent thinking (set by effort, not by you)</label>"
+    +"<label style=\"font-size:12px;font-weight:700;color:var(--ink);display:block;margin-bottom:6px;\">🧠 Tokens spent thinking (set by effort, not by you)</label>"
     +"<input id=\"tbThink\" type=\"range\" min=\"0\" max=\"64000\" value=\"0\" oninput=\"_tbUpdate()\" style=\"width:100%;\">"
     +"</div>"
     +"</div>"
@@ -2441,10 +2441,10 @@ function finopsCostCalculator(){
       const base=cost(m,0,false);
       const savings=base.monthly>0?Math.round((1-c.monthly/base.monthly)*100):0;
       return "<tr style=\"border-bottom:1px solid var(--border);\">"
-        +"<td style=\"padding:10px 8px;font-weight:600;color:var(--text);\">"+m.label+"</td>"
+        +"<td style=\"padding:10px 8px;font-weight:600;color:var(--ink);\">"+m.label+"</td>"
         +"<td style=\"padding:10px 8px;font-size:11px;color:var(--muted);\">"+m.speed+"</td>"
-        +"<td style=\"padding:10px 8px;font-family:monospace;color:var(--text);\">$"+c.perCall.toFixed(5)+"</td>"
-        +"<td style=\"padding:10px 8px;font-family:monospace;color:var(--text);\">$"+c.daily.toFixed(2)+"</td>"
+        +"<td style=\"padding:10px 8px;font-family:monospace;color:var(--ink);\">$"+c.perCall.toFixed(5)+"</td>"
+        +"<td style=\"padding:10px 8px;font-family:monospace;color:var(--ink);\">$"+c.daily.toFixed(2)+"</td>"
         +"<td style=\"padding:10px 8px;font-family:monospace;font-weight:700;color:var(--coral);\">$"+c.monthly.toFixed(2)+"</td>"
         +(savings>0?"<td style=\"padding:10px 8px;color:#5a9e6f;font-weight:700;\">-"+savings+"%</td>":"<td style=\"padding:10px 8px;color:var(--muted);\">list price</td>")
         +"</tr>";
@@ -2467,24 +2467,24 @@ function finopsCostCalculator(){
     +"<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:18px 0;\">"
     +"<div>"
     +"<div style=\"margin-bottom:14px;\">"
-    +"<label style=\"font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:5px;\">📊 Daily API Calls</label>"
-    +"<input id=\"foCalls\" type=\"number\" value=\"1000\" min=\"1\" oninput=\"_foCalc()\" style=\"width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;box-sizing:border-box;\">"
+    +"<label style=\"font-size:12px;font-weight:700;color:var(--ink);display:block;margin-bottom:5px;\">📊 Daily API Calls</label>"
+    +"<input id=\"foCalls\" type=\"number\" value=\"1000\" min=\"1\" oninput=\"_foCalc()\" style=\"width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--ink);font-size:13px;box-sizing:border-box;\">"
     +"</div>"
     +"<div style=\"margin-bottom:14px;\">"
-    +"<label style=\"font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:5px;\">📤 Avg Input Tokens per Call</label>"
-    +"<input id=\"foInput\" type=\"number\" value=\"2000\" min=\"1\" oninput=\"_foCalc()\" style=\"width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;box-sizing:border-box;\">"
+    +"<label style=\"font-size:12px;font-weight:700;color:var(--ink);display:block;margin-bottom:5px;\">📤 Avg Input Tokens per Call</label>"
+    +"<input id=\"foInput\" type=\"number\" value=\"2000\" min=\"1\" oninput=\"_foCalc()\" style=\"width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--ink);font-size:13px;box-sizing:border-box;\">"
     +"</div>"
     +"<div style=\"margin-bottom:14px;\">"
-    +"<label style=\"font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:5px;\">📥 Avg Output Tokens per Call</label>"
-    +"<input id=\"foOutput\" type=\"number\" value=\"500\" min=\"1\" oninput=\"_foCalc()\" style=\"width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;box-sizing:border-box;\">"
+    +"<label style=\"font-size:12px;font-weight:700;color:var(--ink);display:block;margin-bottom:5px;\">📥 Avg Output Tokens per Call</label>"
+    +"<input id=\"foOutput\" type=\"number\" value=\"500\" min=\"1\" oninput=\"_foCalc()\" style=\"width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--ink);font-size:13px;box-sizing:border-box;\">"
     +"</div>"
     +"<div style=\"margin-bottom:14px;\">"
-    +"<label style=\"font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:5px;\">💾 Cache Hit Rate (% of input tokens cached) — <span id=\"foCacheHitVal\">0%</span></label>"
+    +"<label style=\"font-size:12px;font-weight:700;color:var(--ink);display:block;margin-bottom:5px;\">💾 Cache Hit Rate (% of input tokens cached) — <span id=\"foCacheHitVal\">0%</span></label>"
     +"<input id=\"foCacheHit\" type=\"range\" min=\"0\" max=\"90\" value=\"0\" oninput=\"_foCalc()\" style=\"width:100%;\">"
     +"</div>"
     +"<div style=\"margin-bottom:14px;display:flex;align-items:center;gap:10px;\">"
     +"<input id=\"foBatch\" type=\"checkbox\" onchange=\"_foCalc()\">"
-    +"<label style=\"font-size:12px;font-weight:700;color:var(--text);\">📦 Apply Batch API (50% discount, async)</label>"
+    +"<label style=\"font-size:12px;font-weight:700;color:var(--ink);\">📦 Apply Batch API (50% discount, async)</label>"
     +"</div>"
     +"</div>"
     +"<div style=\"overflow-x:auto;\">"
@@ -2499,7 +2499,7 @@ function finopsCostCalculator(){
     +"</tr></thead>"
     +"<tbody id=\"foTable\"></tbody>"
     +"</table>"
-    +"<div id=\"foInsight\" style=\"margin-top:14px;font-size:12px;color:var(--text);background:var(--card);border-radius:8px;padding:12px;line-height:1.6;\"></div>"
+    +"<div id=\"foInsight\" style=\"margin-top:14px;font-size:12px;color:var(--ink);background:var(--card);border-radius:8px;padding:12px;line-height:1.6;\"></div>"
     +"</div>"
     +"</div>"
     +"</div>";
@@ -2563,24 +2563,24 @@ function securityVectorEncyclopedia(){
     d.style.display="block";
     d.innerHTML="<div style=\"display:flex;align-items:center;gap:10px;margin-bottom:14px;\">"
       +"<span style=\"font-size:28px;\">"+v.icon+"</span>"
-      +"<div><h3 style=\"margin:0;font-size:15px;color:var(--text);\">"+v.name+"</h3>"
+      +"<div><h3 style=\"margin:0;font-size:15px;color:var(--ink);\">"+v.name+"</h3>"
       +"<span style=\"font-size:11px;background:"+v.color+";color:#fff;border-radius:6px;padding:2px 8px;font-weight:700;\">"+v.severity+"</span>"
       +"</div></div>"
       +"<div style=\"margin-bottom:10px;\">"
       +"<div style=\"font-size:11px;font-weight:700;color:var(--coral);margin-bottom:4px;text-transform:uppercase;\">Attack Scenario</div>"
-      +"<p style=\"font-size:12.5px;color:var(--text);line-height:1.6;background:var(--bg);padding:10px;border-radius:8px;margin:0;\">"+v.scenario+"</p>"
+      +"<p style=\"font-size:12.5px;color:var(--ink);line-height:1.6;background:var(--bg);padding:10px;border-radius:8px;margin:0;\">"+v.scenario+"</p>"
       +"</div>"
       +"<div style=\"margin-bottom:10px;\">"
       +"<div style=\"font-size:11px;font-weight:700;color:#d97757;margin-bottom:4px;text-transform:uppercase;\">Vulnerability</div>"
-      +"<p style=\"font-size:12.5px;color:var(--text);line-height:1.6;margin:0;\">"+v.vulnerability+"</p>"
+      +"<p style=\"font-size:12.5px;color:var(--ink);line-height:1.6;margin:0;\">"+v.vulnerability+"</p>"
       +"</div>"
       +"<div style=\"background:#5a9e6f11;border-left:3px solid #5a9e6f;padding:10px 14px;border-radius:0 8px 8px 0;margin-bottom:10px;\">"
       +"<div style=\"font-size:11px;font-weight:700;color:#5a9e6f;margin-bottom:4px;text-transform:uppercase;\">Defense</div>"
-      +"<p style=\"font-size:12.5px;color:var(--text);line-height:1.6;margin:0;\">"+v.defense+"</p>"
+      +"<p style=\"font-size:12.5px;color:var(--ink);line-height:1.6;margin:0;\">"+v.defense+"</p>"
       +"</div>"
       +"<div style=\"background:#d9775711;border-left:3px solid var(--coral);padding:10px 14px;border-radius:0 8px 8px 0;\">"
       +"<div style=\"font-size:11px;font-weight:700;color:var(--coral);margin-bottom:4px;text-transform:uppercase;\">Exam Key Point</div>"
-      +"<p style=\"font-size:12.5px;color:var(--text);line-height:1.6;margin:0;\">"+v.exam+"</p>"
+      +"<p style=\"font-size:12.5px;color:var(--ink);line-height:1.6;margin:0;\">"+v.exam+"</p>"
       +"</div>"
       +"<button class=\"btn sm\" style=\"margin-top:12px;\" onclick=\"document.getElementById('svDetail').style.display='none'\">Close</button>";
     d.scrollIntoView({behavior:"smooth",block:"nearest"});
@@ -2588,7 +2588,7 @@ function securityVectorEncyclopedia(){
   const grid=VECTORS.map(function(v,i){
     return "<div onclick=\"_svSel("+i+")\" style=\"cursor:pointer;background:"+v.color+"11;border:2px solid "+v.color+"44;border-radius:12px;padding:14px;\">"
       +"<div style=\"font-size:22px;margin-bottom:6px;\">"+v.icon+"</div>"
-      +"<div style=\"font-size:12px;font-weight:700;color:var(--text);line-height:1.4;\">"+v.name+"</div>"
+      +"<div style=\"font-size:12px;font-weight:700;color:var(--ink);line-height:1.4;\">"+v.name+"</div>"
       +"<div style=\"font-size:10px;font-weight:700;color:"+v.color+";margin-top:4px;\">"+v.severity+"</div>"
       +"</div>";
   }).join("");
@@ -2665,7 +2665,7 @@ function modelCapabilityNavigator(){
       const stars=["","★","★★","★★★","★★★★","★★★★★"][r.score];
       return "<div style=\"margin-bottom:12px;\">"
         +"<div style=\"display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-bottom:4px;\">"
-        +"<span style=\"color:var(--text);\">"+r.model+"</span>"
+        +"<span style=\"color:var(--ink);\">"+r.model+"</span>"
         +"<span style=\"color:"+col+"\">"+stars+"</span>"
         +"</div>"
         +"<div style=\"background:var(--bg);border-radius:8px;height:14px;overflow:hidden;border:1px solid var(--border);margin-bottom:4px;\">"
@@ -2674,9 +2674,9 @@ function modelCapabilityNavigator(){
         +"<div style=\"font-size:11px;color:var(--muted);line-height:1.5;\">"+r.note+"</div>"
         +"</div>";
     }).join("");
-    document.getElementById("mcnDetail").innerHTML="<h3 style=\"margin:0 0 6px;font-size:15px;color:var(--text);\">"+t.task+"</h3>"
+    document.getElementById("mcnDetail").innerHTML="<h3 style=\"margin:0 0 6px;font-size:15px;color:var(--ink);\">"+t.task+"</h3>"
       +"<span style=\"font-size:11px;background:#5a9e6f;color:#fff;border-radius:6px;padding:2px 8px;font-weight:700;\">Recommended: "+t.winner+"</span>"
-      +"<p style=\"font-size:12.5px;color:var(--text);line-height:1.6;margin:12px 0;\">"+t.rationale+"</p>"
+      +"<p style=\"font-size:12.5px;color:var(--ink);line-height:1.6;margin:12px 0;\">"+t.rationale+"</p>"
       +bars;
   };
   const taskBtns=TASKS.map(function(t,i){
@@ -2747,11 +2747,11 @@ function lessonMarginNotes(){
     const rows=l.content.map(function(c,j){
       const nid="lmnNote"+j;
       return "<div style=\"display:grid;grid-template-columns:1fr 280px;gap:12px;margin-bottom:16px;align-items:start;\">"
-        +"<div style=\"background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:13px;color:var(--text);line-height:1.7;\">"+c.text
+        +"<div style=\"background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:13px;color:var(--ink);line-height:1.7;\">"+c.text
         +" <button onclick=\"var el=document.getElementById('"+nid+"');el.style.display=el.style.display==='none'?'block':'none'\" "
         +"style=\"margin-left:6px;font-size:10px;padding:2px 6px;border-radius:4px;background:var(--coral);color:#fff;border:none;cursor:pointer;\">📝 Note</button>"
         +"</div>"
-        +"<div id=\""+nid+"\" style=\"display:none;background:#d9775711;border:1px solid #d97757;border-radius:10px;padding:12px;font-size:11px;color:var(--text);line-height:1.6;\">"
+        +"<div id=\""+nid+"\" style=\"display:none;background:#d9775711;border:1px solid #d97757;border-radius:10px;padding:12px;font-size:11px;color:var(--ink);line-height:1.6;\">"
         +"<div style=\"font-weight:700;color:var(--coral);margin-bottom:8px;\">📝 Professor Note</div>"
         +"<div style=\"margin-bottom:8px;\">"
         +"<div style=\"font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:2px;\">Why it matters for the exam</div>"
@@ -2765,7 +2765,7 @@ function lessonMarginNotes(){
         +"</div>"
         +"</div>";
     }).join("");
-    document.getElementById("lmnBody").innerHTML="<h3 style=\"margin:0 0 14px;font-size:16px;color:var(--text);\">"+l.title+"</h3>"+rows;
+    document.getElementById("lmnBody").innerHTML="<h3 style=\"margin:0 0 14px;font-size:16px;color:var(--ink);\">"+l.title+"</h3>"+rows;
     toast("📖 Professor Mode: "+l.title);
   };
   $("app").innerHTML="<button class=\"back\" onclick=\"home()\">← Back</button>"
@@ -2835,14 +2835,14 @@ function examTopicPrioritizer(){
         +"<div style=\"display:flex;align-items:flex-start;gap:12px;\">"
         +"<div style=\"font-size:22px;font-weight:800;color:var(--coral);min-width:30px;\">#"+t.rank+"</div>"
         +"<div style=\"flex:1;\">"
-        +"<div style=\"font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;\">"+t.topic+"</div>"
+        +"<div style=\"font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px;\">"+t.topic+"</div>"
         +"<div style=\"display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px;\">"
         +"<span style=\"font-size:10px;background:var(--coral);color:#fff;border-radius:5px;padding:2px 7px;\">"+t.cert+"</span>"
         +"<span style=\"font-size:10px;background:var(--border);color:var(--muted);border-radius:5px;padding:2px 7px;\">"+t.domain+"</span>"
         +"<div style=\"display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);\"><span>Payoff:</span>"+dots(t.payoff,5,"#5a9e6f")+"</div>"
         +"<div style=\"display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);\"><span>Effort:</span>"+dots(t.effort,5,"#d97757")+"</div>"
         +"</div>"
-        +"<div style=\"font-size:11.5px;color:var(--text);line-height:1.6;margin-bottom:6px;\">"+t.why+"</div>"
+        +"<div style=\"font-size:11.5px;color:var(--ink);line-height:1.6;margin-bottom:6px;\">"+t.why+"</div>"
         +"<div style=\"font-size:10.5px;color:var(--muted);\">Lessons: "+t.lessons.join(" · ")+"</div>"
         +"</div></div></div>";
     }).join("");
@@ -2980,14 +2980,14 @@ function misconceptionDebunker(){
       +"<div id=\"mbCard"+i+"\" class=\"mbCard\" data-flipped=\"0\">"
       +"<div class=\"mbFront\" style=\"background:var(--card);border:2px solid #c94f4f44;border-radius:12px;padding:16px;\">"
       +"<div style=\"font-size:11px;font-weight:700;color:#c94f4f;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;\">MYTH #"+(i+1)+"</div>"
-      +"<p style=\"font-size:13px;font-weight:600;color:var(--text);line-height:1.6;margin:0 0 10px;\">"+m.myth+"</p>"
+      +"<p style=\"font-size:13px;font-weight:600;color:var(--ink);line-height:1.6;margin:0 0 10px;\">"+m.myth+"</p>"
       +"<p style=\"font-size:11.5px;color:var(--muted);line-height:1.5;margin:0 0 12px;\"><em>Why people believe it:</em> "+m.why+"</p>"
       +"<button class=\"btn\" onclick=\"_mbFlip("+i+")\">🔍 Reveal Reality</button>"
       +"</div>"
       +"<div class=\"mbBack\" style=\"display:none;background:var(--card);border:2px solid #5a9e6f;border-radius:12px;padding:16px;\">"
       +"<div style=\"font-size:11px;font-weight:700;color:#5a9e6f;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;\">✅ REALITY</div>"
-      +"<p style=\"font-size:13px;color:var(--text);line-height:1.6;margin:0 0 10px;\">"+m.truth+"</p>"
-      +"<div style=\"background:#5b7fa611;border-left:3px solid #5b7fa6;padding:8px 12px;border-radius:0 8px 8px 0;font-size:11.5px;color:var(--text);line-height:1.5;margin-bottom:10px;\">"
+      +"<p style=\"font-size:13px;color:var(--ink);line-height:1.6;margin:0 0 10px;\">"+m.truth+"</p>"
+      +"<div style=\"background:#5b7fa611;border-left:3px solid #5b7fa6;padding:8px 12px;border-radius:0 8px 8px 0;font-size:11.5px;color:var(--ink);line-height:1.5;margin-bottom:10px;\">"
       +"<strong>API Reference:</strong> "+m.field+"</div>"
       +"<button class=\"btn sm\" onclick=\"_mbFlip("+i+")\" >← Show Myth Again</button>"
       +"</div>"
@@ -3105,7 +3105,7 @@ function cheatSheetGenerator(){
         +"<table style=\"width:100%;border-collapse:collapse;\">";
       s.items.forEach(function(item){
         html+="<tr>"
-          +"<td style=\"padding:3px 8px 3px 0;font-weight:700;color:var(--text);white-space:nowrap;vertical-align:top;min-width:160px;\">"+item.k+"</td>"
+          +"<td style=\"padding:3px 8px 3px 0;font-weight:700;color:var(--ink);white-space:nowrap;vertical-align:top;min-width:160px;\">"+item.k+"</td>"
           +"<td style=\"padding:3px 0;color:var(--muted);\">"+item.v+"</td>"
           +"</tr>";
       });
@@ -3128,7 +3128,7 @@ function cheatSheetGenerator(){
     toast("🖨️ Print dialog opened!");
   };
   const checkboxes=allKeys.map(function(k){
-    return "<label style=\"display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text);cursor:pointer;\">"
+    return "<label style=\"display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink);cursor:pointer;\">"
       +"<input id=\"cs_"+k+"\" type=\"checkbox\" onchange=\"_csBuild()\" checked style=\"cursor:pointer;\">"
       +SECTIONS[k].label+"</label>";
   }).join("");
