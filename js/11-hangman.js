@@ -125,33 +125,33 @@ function hangGuessLetter(ch){
   ch = (ch || '').toLowerCase();
   if (!/^[a-z]$/.test(ch) || hangState.guessed.includes(ch)) return;
 
+  const prevMisses = hangState.misses;
   hangState.guessed.push(ch);
   const term = hangState.entry.term.toLowerCase();
-  if (term.includes(ch)) {
-    playSound('correct');
-  } else {
-    hangState.misses++;
-    playSound('wrong');
-  }
+  const correct = term.includes(ch);
+  playSound(correct ? 'correct' : 'wrong');
+  if (!correct) hangState.misses++;
 
   const solved = term.split('').every(c => c === ' ' || hangState.guessed.includes(c));
-  if (solved) { hangState.phase = "won"; finishHangmanRound(); return; }
-  if (hangState.misses >= HANGMAN_MAX_MISSES) { hangState.phase = "lost"; finishHangmanRound(); return; }
-  renderHangmanRound();
+  if (solved) { hangState.phase = "won"; finishHangmanRound(prevMisses); return; }
+  if (hangState.misses >= HANGMAN_MAX_MISSES) { hangState.phase = "lost"; finishHangmanRound(prevMisses); return; }
+  renderHangmanRound(prevMisses, correct ? ch : null);
 }
 
-function renderHangmanRound(){
+function renderHangmanRound(animateFromMisses, revealCh){
   const stage = document.getElementById("hgStage");
   if (!stage || !hangState.entry) return;
   const masked = hangMaskedWord();
   const alphabet = "abcdefghijklmnopqrstuvwxyz".split('');
   const term = hangState.entry.term.toLowerCase();
+  const from = animateFromMisses == null ? hangState.misses : animateFromMisses;
+  const missedThisTurn = from < hangState.misses;
 
-  stage.innerHTML = renderHangmanSvg(hangState.misses)
-    + '<div style="text-align:center; font-size:24px; font-weight:800; letter-spacing:4px; font-family:monospace; margin:12px 0; word-break:break-word;">'
+  stage.innerHTML = renderHangmanSvg(hangState.misses, from)
+    + '<div class="hg-word' + (missedThisTurn ? ' shake' : '') + '" style="text-align:center; font-size:24px; font-weight:800; letter-spacing:4px; font-family:monospace; margin:12px 0; word-break:break-word;">'
     + masked.split('').map(ch => ch === ' '
         ? '<span style="display:inline-block; width:14px;"></span>'
-        : '<span style="display:inline-block; min-width:18px;">' + esc(ch) + '</span>').join('')
+        : '<span class="hg-letter' + (revealCh && ch === revealCh ? ' reveal' : '') + '" style="display:inline-block; min-width:18px;">' + esc(ch) + '</span>').join('')
     + '</div>'
     + '<div style="text-align:center; font-size:12.5px; color:var(--muted); margin-bottom:12px;">Misses: ' + hangState.misses + ' / ' + HANGMAN_MAX_MISSES + '</div>'
     + '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(32px,1fr)); gap:6px; max-width:400px; margin:0 auto;">'
@@ -166,24 +166,29 @@ function renderHangmanRound(){
 
 /* Pure, theme-token-driven SVG (no hardcoded hex), following the same
    convention as renderReadinessRadarSvg in 03-home.js. The gallows is
-   always fully drawn; figure parts appear one per miss. */
-function renderHangmanSvg(misses){
+   always fully drawn; figure parts appear one per miss. animateFrom, when
+   lower than misses, marks only the newly-added part(s) with .hg-part so
+   they pop in -- parts already on screen from an earlier render don't
+   replay the animation just because the whole SVG string was rebuilt. */
+function renderHangmanSvg(misses, animateFrom){
   const m = Math.max(0, Math.min(HANGMAN_MAX_MISSES, misses | 0));
+  const from = animateFrom == null ? m : Math.max(0, Math.min(HANGMAN_MAX_MISSES, animateFrom | 0));
+  const cls = n => n > from ? ' class="hg-part"' : '';
   let parts = ''
     + '<line x1="10" y1="170" x2="110" y2="170" stroke="var(--border)" stroke-width="4" stroke-linecap="round"/>'
     + '<line x1="30" y1="170" x2="30" y2="20" stroke="var(--border)" stroke-width="4" stroke-linecap="round"/>'
     + '<line x1="30" y1="20" x2="90" y2="20" stroke="var(--border)" stroke-width="4" stroke-linecap="round"/>'
     + '<line x1="90" y1="20" x2="90" y2="35" stroke="var(--border)" stroke-width="3"/>';
-  if (m >= 1) parts += '<circle cx="90" cy="45" r="10" fill="none" stroke="var(--coral)" stroke-width="3"/>';
-  if (m >= 2) parts += '<line x1="90" y1="55" x2="90" y2="95" stroke="var(--coral)" stroke-width="3" stroke-linecap="round"/>';
-  if (m >= 3) parts += '<line x1="90" y1="65" x2="75" y2="80" stroke="var(--coral)" stroke-width="3" stroke-linecap="round"/>';
-  if (m >= 4) parts += '<line x1="90" y1="65" x2="105" y2="80" stroke="var(--coral)" stroke-width="3" stroke-linecap="round"/>';
-  if (m >= 5) parts += '<line x1="90" y1="95" x2="75" y2="115" stroke="var(--coral)" stroke-width="3" stroke-linecap="round"/>';
-  if (m >= 6) parts += '<line x1="90" y1="95" x2="105" y2="115" stroke="var(--coral)" stroke-width="3" stroke-linecap="round"/>';
+  if (m >= 1) parts += '<circle cx="90" cy="45" r="10" fill="none" stroke="var(--coral)" stroke-width="3"' + cls(1) + '/>';
+  if (m >= 2) parts += '<line x1="90" y1="55" x2="90" y2="95" stroke="var(--coral)" stroke-width="3" stroke-linecap="round"' + cls(2) + '/>';
+  if (m >= 3) parts += '<line x1="90" y1="65" x2="75" y2="80" stroke="var(--coral)" stroke-width="3" stroke-linecap="round"' + cls(3) + '/>';
+  if (m >= 4) parts += '<line x1="90" y1="65" x2="105" y2="80" stroke="var(--coral)" stroke-width="3" stroke-linecap="round"' + cls(4) + '/>';
+  if (m >= 5) parts += '<line x1="90" y1="95" x2="75" y2="115" stroke="var(--coral)" stroke-width="3" stroke-linecap="round"' + cls(5) + '/>';
+  if (m >= 6) parts += '<line x1="90" y1="95" x2="105" y2="115" stroke="var(--coral)" stroke-width="3" stroke-linecap="round"' + cls(6) + '/>';
   return '<div style="display:flex; justify-content:center;"><svg viewBox="0 0 160 180" width="160" height="180">' + parts + '</svg></div>';
 }
 
-function finishHangmanRound(){
+function finishHangmanRound(animateFromMisses){
   const stage = document.getElementById("hgStage");
   if (!stage || !hangState.entry) return;
 
@@ -202,11 +207,12 @@ function finishHangmanRound(){
     award("hangman_survivor");
     if (flawless) award("hangman_flawless");
     xpMsg = 'Earned <b>+' + xp + ' XP</b>' + (flawless ? ' (flawless bonus!)' : '') + '.';
+    confetti(); // every win, not just the first -- award() only confettis once per badge
   }
 
   const entry = hangState.entry;
-  stage.innerHTML = renderHangmanSvg(hangState.misses)
-    + '<div style="text-align:center; margin-top:8px;">'
+  stage.innerHTML = renderHangmanSvg(hangState.misses, animateFromMisses)
+    + '<div style="text-align:center; margin-top:8px; animation:pop .3s;">'
     + '<div style="font-size:34px;">' + (won ? '🎉' : '💀') + '</div>'
     + '<h3 style="font-size:17px; margin:4px 0;">' + (won ? 'Solved it!' : 'Out of guesses') + '</h3>'
     + '<div style="font-size:20px; font-weight:800; letter-spacing:1px; margin:8px 0;">' + esc(entry.term) + '</div>'

@@ -144,7 +144,7 @@ function sqResolveAnswer(pickIdx){
     }
     sqState.primaryMiss = true;
     sqState.answeringSeat = sqOtherMark(sqState.answeringSeat); // steal goes to the other seat, same question
-    renderSquaresRound();
+    renderSquaresRound(true); // shake the board -- a miss just put the steal live
     if (sqState.mode === "computer" && sqState.answeringSeat !== sqState.human) sqAiAnswerTimer();
     return;
   }
@@ -189,11 +189,12 @@ function sqEndGame(winner, line){
     stats.t++;
     addXP(10, "Hollywood Squares tie");
   } else if (sqState.mode === "computer") {
-    if (winner === sqState.human) { stats.w++; addXP(20, "Hollywood Squares win"); award("squares_ai_victor"); }
+    if (winner === sqState.human) { stats.w++; addXP(20, "Hollywood Squares win"); award("squares_ai_victor"); confetti(); }
     else stats.l++;
   } else {
     stats.w++;
     addXP(20, "Hollywood Squares win");
+    confetti(); // pass-and-play: either human winning is worth celebrating
   }
   save();
   renderSquaresRound();
@@ -229,8 +230,8 @@ function squaresView(){
 
   $("app").innerHTML = '<button class="back" onclick="stopSquaresGame(); home()">← Back</button>'
     + '<div class="panel center">'
-    + '<div style="font-size:38px;">🎬</div>'
-    + '<h2 style="font-size:20px; margin-top:6px;">Hollywood Squares</h2>'
+    + '<img src="images/games/movie-clapperboard.svg" alt="" width="56" height="56" style="display:block; margin:0 auto; filter:drop-shadow(0 2px 3px var(--shadow));">'
+    + '<h2 style="font-size:20px; margin-top:6px;">🎬 Hollywood Squares</h2>'
     + '<p class="subtext" style="margin-top:6px;">Answer correctly to claim a square. Miss it and your opponent can steal.</p>'
     + '<div style="font-size:12px; color:var(--muted); margin-bottom:10px;">vs Computer: ' + st.vsComputer.w + 'W-' + st.vsComputer.l + 'L-' + st.vsComputer.t + 'T · Pass &amp; Play: ' + st.vsLocal.w + 'W-' + st.vsLocal.t + 'T</div>'
     + '<div style="margin:10px 0 16px;">'
@@ -259,13 +260,14 @@ function renderSquaresStage(){
     + "</div>";
 }
 
-function renderSquaresRound(){
+function renderSquaresRound(shake){
   const stage = document.getElementById("sqStage");
   if (!stage) return;
 
-  const boardHtml = '<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; max-width:270px; margin:0 auto 14px;">'
+  const winSet = sqState.phase === "over" && sqState.winLine ? sqState.winLine : [];
+  const boardHtml = '<div class="sqboard' + (shake ? " shake" : "") + '" style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; max-width:270px; margin:0 auto 14px;">'
     + sqState.board.map((cell, i) => {
-        const cls = "sqcell" + (cell ? " " + (cell === "X" ? "sqx" : "sqo") : "") + (sqState.activeIdx === i ? " active" : "");
+        const cls = "sqcell" + (cell ? " " + (cell === "X" ? "sqx" : "sqo") : "") + (sqState.activeIdx === i ? " active" : "") + (winSet.includes(i) ? " winline" : "");
         const disabled = sqState.phase !== "picking" || cell !== null;
         return '<button class="' + cls + '" ' + (disabled ? "disabled" : "") + ' onclick="sqPickSquare(' + i + ')">' + (cell || "") + "</button>";
       }).join("")
@@ -276,7 +278,7 @@ function renderSquaresRound(){
     const who = sqState.mode === "computer"
       ? (sqState.turn === sqState.human ? "Your" : "Computer's")
       : ("Player " + sqState.turn + "'s");
-    statusHtml = '<div class="subtext">' + who + " turn to pick a square.</div>";
+    statusHtml = '<div class="subtext"><span class="sqturn">' + who + "</span> turn to pick a square.</div>";
   }
 
   let questionHtml = "";
