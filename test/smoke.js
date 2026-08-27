@@ -1063,7 +1063,27 @@ vm.createContext(sandbox);
   check(/Exam Countdown & Daily Pacing Planner/.test(els.app.innerHTML) && /targetExamDateInput/.test(els.app.innerHTML), "examCountdownPlannerView renders pacing planner");
 
   call("diagramSandboxView");
-  check(/Enterprise System Architecture Sandbox/.test(els.app.innerHTML) && /topologyCanvas/.test(els.app.innerHTML), "diagramSandboxView renders interactive topology canvas");
+  check(/Enterprise System Architecture Sandbox/.test(els.app.innerHTML) && /topologyCanvas/.test(els.app.innerHTML), "diagramSandboxView renders the topology canvas shell");
+  /* This tool used to claim "drag-and-drop" while selectedNodes was a fixed
+     array nothing ever mutated, and Validate returned an identical report
+     no matter what was "selected" -- checked directly against the two
+     nested elements the render functions actually write to (matching them
+     via els.app.innerHTML would silently pass regardless of correctness,
+     the same shim limitation documented on mkEl). */
+  evalIn(`clearTopology()`);
+  check(/Empty/.test(els.topologyCanvas.innerHTML), "clearing the pipeline actually empties the canvas, not just resets a label");
+  check(/Nothing to validate/.test(els.topologyAuditBox.innerHTML), "an empty pipeline reports nothing to validate rather than a generic pass");
+  evalIn(`addTopologyNode("mcp_server")`);
+  check(evalIn(`topologyState.selectedNodes`).length === 1, "adding a node actually mutates topologyState.selectedNodes");
+  check(/Tool Host/.test(els.topologyCanvas.innerHTML), "the added node appears in the rendered canvas");
+  check(/✗/.test(els.topologyAuditBox.innerHTML) && /MicroVM isolation/.test(els.topologyAuditBox.innerHTML), "an MCP tool host with no MicroVM is flagged, not silently passed");
+  evalIn(`addTopologyNode("microvm")`);
+  check(/Tool sandboxing.*isolated in a MicroVM|isolated in a MicroVM/.test(els.topologyAuditBox.innerHTML), "adding the isolation node changes the report from a failure to a pass -- the check reads the real sequence");
+  evalIn(`addTopologyNode("microvm")`);
+  check(/Duplicate/.test(els.topologyAuditBox.innerHTML), "placing the same node twice in a row is flagged as a likely mis-click");
+  const beforeRemove = evalIn(`topologyState.selectedNodes.length`);
+  evalIn(`removeTopologyNode(0)`);
+  check(evalIn(`topologyState.selectedNodes.length`) === beforeRemove - 1, "clicking a placed node actually removes it from the sequence");
 
   call("scheduleNotificationReminders");
   check(true, "scheduleNotificationReminders executes without throwing");
@@ -1182,7 +1202,18 @@ vm.createContext(sandbox);
 
   /* ---------- 41. Athena Suite ---------- */
   call("lessonMindMapper");
-  check(/Interactive Architecture Conceptual Mind Mapper/.test(els.app.innerHTML), "lessonMindMapper renders mind mapper graph");
+  check(/Architecture Conceptual Mind Mapper/.test(els.app.innerHTML), "lessonMindMapper renders the mind map shell");
+  /* Its only button used to call toast("Mind map node expanded!") and stop
+     there -- clicking a node now has to actually populate the detail panel
+     with that concept's real definition and its real relationships to the
+     other three, checked against the nested element the click handler
+     writes to (not els.app.innerHTML, per the same shim limitation
+     documented elsewhere in this file). */
+  evalIn(`mindMapSelect("cache")`);
+  check(/Prompt Caching/.test(els.mmDetail.innerHTML) && /cache_control breakpoint/.test(els.mmDetail.innerHTML), "clicking a node shows its real definition, not a toast");
+  check(/shares the token budget with/.test(els.mmDetail.innerHTML) && /Extended Thinking/.test(els.mmDetail.innerHTML), "the detail panel lists this node's actual relationship to another node");
+  evalIn(`mindMapSelect("compaction")`);
+  check(/Prompt Caching/.test(els.mmDetail.innerHTML) && /must never touch the prefix/.test(els.mmDetail.innerHTML), "a different node shows a different definition and relationship -- not the same fixed content every click");
 
   call("inlineLessonPlayground");
   check(/"Try It Live" Embedded Lesson Mini-Playground/.test(els.app.innerHTML) && /inlineSandboxText/.test(els.app.innerHTML), "inlineLessonPlayground renders live sandbox");

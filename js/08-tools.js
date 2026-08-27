@@ -790,61 +790,144 @@ function saveTargetExamDate(val){
 }
 
 /* ================= 2. DRAG-AND-DROP SYSTEM ARCHITECTURE SANDBOX ================= */
+/* Click-to-build, not drag-and-drop: this used to claim "drag-and-drop" in
+   its own copy while selectedNodes was a fixed array nothing ever mutated,
+   and Validate returned an identical report regardless of what was
+   "selected." Every click below actually changes topologyState, and
+   validateTopologyGraph() reads the real sequence and produces a report
+   that genuinely differs by what was built -- not a fixed script. */
 let topologyState = {
   selectedNodes: ["client", "haiku_router", "prompt_cache", "sonnet_specialist", "mcp_server", "microvm"]
 };
+const TOPOLOGY_NODES = [
+  { id: "client", name: "Client Query", cat: "Entry", icon: "🌐" },
+  { id: "haiku_router", name: "Haiku Classifier", cat: "Routing", icon: "⚡" },
+  { id: "prompt_cache", name: "Prompt Cache", cat: "Optimization", icon: "💾" },
+  { id: "sonnet_specialist", name: "Sonnet Synthesis", cat: "Model", icon: "🧠" },
+  { id: "mcp_server", name: "MCP Tool Host", cat: "Protocol", icon: "🔌" },
+  { id: "microvm", name: "Firecracker MicroVM", cat: "Security", icon: "🔒" },
+  { id: "circuit_breaker", name: "Circuit Breaker", cat: "Resilience", icon: "🛡️" }
+];
 
 function diagramSandboxView(){
   if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
   renderHeader();
-  
+
   award("topology_architect");
-  
-  const allNodes = [
-    { id: "client", name: "Client Query", cat: "Entry", icon: "🌐" },
-    { id: "haiku_router", name: "Haiku Classifier", cat: "Routing", icon: "⚡" },
-    { id: "prompt_cache", name: "Prompt Cache (per-model floor)", cat: "Optimization", icon: "💾" },
-    { id: "sonnet_specialist", name: "Sonnet Synthesis", cat: "Model", icon: "🧠" },
-    { id: "mcp_server", name: "MCP Tool Host", cat: "Protocol", icon: "🔌" },
-    { id: "microvm", name: "Firecracker MicroVM", cat: "Security", icon: "🔒" },
-    { id: "circuit_breaker", name: "Circuit Breaker", cat: "Resilience", icon: "🛡️" }
-  ];
-  
+
   $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
     + '<div class="panel">'
     + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">'
     + '<div><span class="ltag" style="background:var(--purple); color:#fff;">System Topology</span><h2 style="font-size:20px; margin-top:4px;">🧩 Enterprise System Architecture Sandbox</h2></div>'
-    + '<button class="btn sm" onclick="validateTopologyGraph()">✓ Validate Architecture Pipeline</button>'
+    + '<div class="rowbtns" style="margin-top:0;"><button class="btn sm" onclick="validateTopologyGraph()">✓ Validate Pipeline</button><button class="btn ghost sm" onclick="clearTopology()">🗑️ Clear</button></div>'
     + '</div>'
-    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">Assemble and validate production Claude multi-tier pipelines with routing, prompt caching, tool servers, and zero-trust sandboxes.</p>'
+    + '<p style="font-size:12.5px; color:var(--muted); margin-bottom:14px;">Click a component below to add it to the pipeline. Click a placed component to remove it. Validate checks the actual sequence you built, not a fixed script.</p>'
+    + '<div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">'
+    + TOPOLOGY_NODES.map(n => '<button class="btn ghost sm" onclick="addTopologyNode(\'' + n.id + '\')">' + n.icon + ' + ' + esc(n.name) + '</button>').join('')
+    + '</div>'
     + '<div style="border:2px dashed var(--border); border-radius:14px; padding:20px; background:var(--card); margin-bottom:16px;">'
-    + '<h4 style="font-size:13px; margin-bottom:10px; color:var(--muted);">Active Dataflow Topology (Left to Right):</h4>'
-    + '<div id="topologyCanvas" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-height:80px;">'
-    + topologyState.selectedNodes.map((nId, idx) => {
-        const n = allNodes.find(x => x.id === nId);
-        return '<div style="background:var(--bg); border:1.5px solid var(--border); border-radius:8px; padding:10px 12px; font-size:12px; display:flex; align-items:center; gap:6px;">'
-          + '<span>' + n.icon + '</span>'
-          + '<b>' + n.name + '</b>'
-          + '</div>'
-          + (idx < topologyState.selectedNodes.length - 1 ? '<span style="color:var(--coral); font-weight:900;">➔</span>' : '');
-      }).join('')
-    + '</div>'
+    + '<h4 style="font-size:13px; margin-bottom:10px; color:var(--muted);">Your Pipeline (left to right — click a node to remove it):</h4>'
+    + '<div id="topologyCanvas" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-height:80px;"></div>'
     + '</div>'
     + '<div id="topologyAuditBox" style="border:2px solid var(--border); border-radius:12px; padding:16px; background:var(--card);"></div>'
     + '</div>';
-    
+
+  renderTopologyCanvas();
   validateTopologyGraph();
 }
 
+function renderTopologyCanvas(){
+  const canvas = document.getElementById("topologyCanvas");
+  if (!canvas) return;
+  if (!topologyState.selectedNodes.length) {
+    canvas.innerHTML = '<div class="subtext" style="margin:0;">Empty — click a component above to start building.</div>';
+    return;
+  }
+  canvas.innerHTML = topologyState.selectedNodes.map((nId, idx) => {
+    const n = TOPOLOGY_NODES.find(x => x.id === nId);
+    return '<button onclick="removeTopologyNode(' + idx + ')" title="Click to remove" style="background:var(--bg); border:1.5px solid var(--border); border-radius:8px; padding:10px 12px; font-size:12px; display:flex; align-items:center; gap:6px; cursor:pointer; color:var(--ink); font-family:inherit;">'
+      + '<span>' + n.icon + '</span><b>' + esc(n.name) + '</b><span style="color:var(--muted); margin-left:4px;">✕</span>'
+      + '</button>'
+      + (idx < topologyState.selectedNodes.length - 1 ? '<span style="color:var(--coral); font-weight:900;">➔</span>' : '');
+  }).join('');
+}
+
+function addTopologyNode(id){
+  topologyState.selectedNodes.push(id);
+  renderTopologyCanvas();
+  validateTopologyGraph();
+}
+function removeTopologyNode(idx){
+  topologyState.selectedNodes.splice(idx, 1);
+  renderTopologyCanvas();
+  validateTopologyGraph();
+}
+function clearTopology(){
+  topologyState.selectedNodes = [];
+  renderTopologyCanvas();
+  validateTopologyGraph();
+}
+
+/* Real rules sourced from this app's own lessons, each independently
+   checkable against whatever sequence the user actually built:
+   - a client entry point should come first, if present at all
+   - a router only pays for itself with a specialist tier to dispatch to
+   - untrusted tool execution needs kernel-level isolation (zero-trust)
+   - a tool host with no circuit breaker has nothing stopping a cascade
+   - immediately-adjacent duplicates are almost always a mis-click */
 function validateTopologyGraph(){
   const box = document.getElementById("topologyAuditBox");
   if (!box) return;
-  
-  box.innerHTML = '<h4 style="font-size:14px; margin-bottom:8px; color:var(--green);">✓ Architectural Validation Report:</h4>'
+  const seq = topologyState.selectedNodes;
+  const has = id => seq.includes(id);
+  const idxOf = id => seq.indexOf(id);
+
+  if (!seq.length) {
+    box.innerHTML = '<h4 style="font-size:14px; margin-bottom:4px; color:var(--muted);">Nothing to validate</h4><p style="font-size:12.5px; color:var(--muted);">Add at least one component above.</p>';
+    return;
+  }
+
+  const rows = [];
+  if (has("client") && idxOf("client") !== 0) {
+    rows.push(["warn", "Entry point", "Client Query is present but not first — requests should originate the pipeline, not join partway through."]);
+  } else if (has("client")) {
+    rows.push(["ok", "Entry point", "Client Query starts the pipeline."]);
+  }
+  if (has("haiku_router") && !has("sonnet_specialist")) {
+    rows.push(["warn", "Routing", "A classifier with nothing to route to — add a specialist tier, or the routing step buys nothing."]);
+  } else if (has("haiku_router") && idxOf("haiku_router") > idxOf("sonnet_specialist")) {
+    rows.push(["fail", "Routing", "Sonnet Synthesis appears before the Haiku Classifier — routing has to happen before the specialist it dispatches to, not after."]);
+  } else if (has("haiku_router")) {
+    rows.push(["ok", "Routing", "Classifier dispatches to a specialist tier that comes after it."]);
+  }
+  if (has("mcp_server") && !has("microvm")) {
+    rows.push(["fail", "Tool sandboxing", "MCP Tool Host with no MicroVM isolation — untrusted tool execution needs kernel-level isolation (gVisor/Firecracker), not an honor system."]);
+  } else if (has("mcp_server")) {
+    rows.push(["ok", "Tool sandboxing", "Tool execution is isolated in a MicroVM."]);
+  }
+  if (has("mcp_server") && !has("circuit_breaker")) {
+    rows.push(["warn", "Resilience", "No circuit breaker protecting the tool host — a failing downstream dependency has nothing stopping it from cascading."]);
+  } else if (has("mcp_server") && has("circuit_breaker")) {
+    rows.push(["ok", "Resilience", "Circuit breaker protects the tool host from cascading failures."]);
+  }
+  if (has("prompt_cache") && !has("haiku_router") && !has("sonnet_specialist")) {
+    rows.push(["warn", "Prompt caching", "Cache configured but no model tier in the pipeline actually consumes it."]);
+  } else if (has("prompt_cache")) {
+    rows.push(["ok", "Prompt caching", "A model tier is present to benefit from the cached prefix."]);
+  }
+  for (let i = 1; i < seq.length; i++) {
+    if (seq[i] === seq[i - 1]) {
+      const n = TOPOLOGY_NODES.find(x => x.id === seq[i]);
+      rows.push(["warn", "Duplicate", esc(n.name) + " is placed twice in a row — likely a mis-click rather than an intentional repeat."]);
+    }
+  }
+  if (!rows.length) rows.push(["ok", "No rules triggered", "This combination doesn't trip any of the checks below — add more components to exercise routing, sandboxing, or caching rules."]);
+
+  const icon = { ok: "✓", warn: "⚠️", fail: "✗" };
+  const color = { ok: "var(--green)", warn: "var(--gold)", fail: "var(--red)" };
+  box.innerHTML = '<h4 style="font-size:14px; margin-bottom:8px;">Architectural Validation Report</h4>'
     + '<div style="display:flex; flex-direction:column; gap:6px; font-size:12.5px;">'
-    + '<div style="display:flex; justify-content:space-between; padding:8px 10px; background:var(--bg); border-radius:6px;"><span>Routing Tier:</span><b style="color:var(--green);">Haiku Classifier (Sub-400ms triage)</b></div>'
-    + '<div style="display:flex; justify-content:space-between; padding:8px 10px; background:var(--bg); border-radius:6px;"><span>Prompt Caching:</span><b style="color:var(--green);">Enabled on Static System Guidelines (reads at 0.1x input)</b></div>'
-    + '<div style="display:flex; justify-content:space-between; padding:8px 10px; background:var(--bg); border-radius:6px;"><span>Tool Sandboxing:</span><b style="color:var(--green);">Enforced via Ephemeral MicroVM Container</b></div>'
+    + rows.map(r => '<div style="padding:8px 10px; background:var(--bg); border-radius:6px; border-left:3px solid ' + color[r[0]] + ';"><b style="color:' + color[r[0]] + ';">' + icon[r[0]] + ' ' + r[1] + ':</b> ' + r[2] + '</div>').join('')
     + '</div>';
 }
 

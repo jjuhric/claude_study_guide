@@ -1440,28 +1440,87 @@ function toggleLessonAudioNarrator(){
 
 
 /* ================= 1. INTERACTIVE CONCEPTUAL MIND MAPS ================= */
+/* Its only button used to call toast("Mind map node expanded!") and do
+   nothing else -- meanwhile knowledgeGraphView already does real concept
+   mapping for 12 broader concepts. Rather than ship a worse duplicate of
+   that tool, this one stays small and does something the bigger graph
+   doesn't: a real, clickable 4-node cycle for the specific concepts named
+   in its own description, each edge a genuine relationship sourced from
+   this app's own lessons rather than a decorative line. */
+const MINDMAP_NODES = [
+  { id: "cache", label: "Prompt Caching", x: 25, y: 25, color: "var(--green)",
+    def: "Storing a stable prompt prefix server-side so repeated calls read it at a fraction of input cost -- requires a cache_control breakpoint and a per-model minimum block size (512-4,096 tokens depending on tier)." },
+  { id: "thinking", label: "Extended Thinking", x: 75, y: 25, color: "var(--purple)",
+    def: "Claude reasons in a hidden thinking block before responding. Depth is set with thinking:{type:\"adaptive\"} plus output_config.effort, not a fixed token budget -- thinking tokens are billed as standard output tokens." },
+  { id: "subagents", label: "Subagent Topologies", x: 75, y: 75, color: "var(--blue)",
+    def: "Delegating a subtask to a subagent with its own fresh, isolated context window. The benefit is isolation and parallelism, not extra capability -- it generally increases total token usage rather than reducing it." },
+  { id: "compaction", label: "Context Compaction", x: 25, y: 75, color: "var(--coral)",
+    def: "Periodically summarising decisions and state into a durable note re-injected as the working record, triggered proactively at a utilisation threshold -- not the same as truncation, which discards by position." },
+];
+const MINDMAP_EDGES = [
+  { from: "cache", to: "thinking", label: "shares the token budget with" },
+  { from: "thinking", to: "subagents", label: "an independent effort dial from" },
+  { from: "subagents", to: "compaction", label: "isolation reduces the need for" },
+  { from: "compaction", to: "cache", label: "must never touch the prefix" },
+];
+
 function lessonMindMapper(){
   if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') window.scrollTo(0, 0);
   renderHeader();
-  
+
   award("mind_mapper");
-  
+
+  const W = 420, H = 300;
+  const svgLines = MINDMAP_EDGES.map(e => {
+    const f = MINDMAP_NODES.find(n => n.id === e.from), t = MINDMAP_NODES.find(n => n.id === e.to);
+    const fx = f.x / 100 * W, fy = f.y / 100 * H, tx = t.x / 100 * W, ty = t.y / 100 * H;
+    const mx = (fx + tx) / 2, my = (fy + ty) / 2;
+    return '<line x1="' + fx + '" y1="' + fy + '" x2="' + tx + '" y2="' + ty + '" stroke="var(--border)" stroke-width="1.5" marker-end="url(#mmArrow)"/>'
+      + '<text x="' + mx + '" y="' + my + '" fill="var(--muted)" font-size="7.5" text-anchor="middle" dy="-4">' + esc(e.label) + '</text>';
+  }).join('');
+  const svgNodes = MINDMAP_NODES.map(n => {
+    const x = n.x / 100 * W, y = n.y / 100 * H;
+    const words = n.label.split(' ');
+    const lines = words.map((w, j) => '<tspan x="' + x + '" dy="' + (j === 0 ? -(words.length - 1) * 6 + 'px' : '12px') + '">' + w + '</tspan>').join('');
+    return '<g onclick="mindMapSelect(\'' + n.id + '\')" style="cursor:pointer;">'
+      + '<circle cx="' + x + '" cy="' + y + '" r="34" fill="' + n.color + '" fill-opacity="0.16" stroke="' + n.color + '" stroke-width="2"/>'
+      + '<text x="' + x + '" y="' + y + '" fill="var(--ink)" font-size="9" text-anchor="middle" dominant-baseline="middle" font-weight="700">' + lines + '</text>'
+      + '</g>';
+  }).join('');
+
   $("app").innerHTML = '<button class="back" onclick="home()">← Back</button>'
-    + '<div class="panel center">'
-    + '<div style="font-size:38px;">🧠</div>'
-    + '<h2 style="font-size:20px; margin-top:6px;">Interactive Architecture Conceptual Mind Mapper</h2>'
-    + '<p class="subtext" style="margin-top:6px;">Visual node graph mapping relationships between Prompt Caching, Extended Thinking, Context Compaction, and Subagent Topologies.</p>'
-    + '<div style="border:2px solid var(--border); border-radius:14px; padding:20px; background:var(--card); max-width:640px; margin:20px auto; text-align:left;">'
-    + '<b style="font-size:13.5px; color:var(--coral); display:block; margin-bottom:12px;">Claude Architectural Node Relationships:</b>'
-    + '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:12px; margin-bottom:14px;">'
-    + '<div style="background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:8px;"><b>Prompt Caching</b><br><span style="color:var(--muted);">Requires 1024t floor & prefix stability</span></div>'
-    + '<div style="background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:8px;"><b>Extended Thinking</b><br><span style="color:var(--muted);">Sonnet 5 &lt;thinking&gt; token allocation</span></div>'
-    + '<div style="background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:8px;"><b>Context Compaction</b><br><span style="color:var(--muted);">80% threshold &lt;rolling_state&gt;</span></div>'
-    + '<div style="background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:8px;"><b>Subagent Topologies</b><br><span style="color:var(--muted);">Blackboard memory & DAG delegation</span></div>'
+    + '<div class="panel">'
+    + '<div style="text-align:center;"><div style="font-size:36px;">🧠</div>'
+    + '<h2 style="font-size:20px; margin-top:6px;">Architecture Conceptual Mind Mapper</h2>'
+    + '<p class="subtext" style="margin-top:6px;">Click any concept to see how it genuinely relates to the other three.</p></div>'
+    + '<div style="overflow-x:auto; margin:16px 0;">'
+    + '<svg width="' + W + '" height="' + H + '" style="background:var(--bg); border:1px solid var(--border); border-radius:12px; display:block; margin:0 auto;">'
+    + '<defs><marker id="mmArrow" markerWidth="7" markerHeight="7" refX="5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 Z" fill="var(--muted)"/></marker></defs>'
+    + svgLines + svgNodes
+    + '</svg>'
     + '</div>'
-    + '<button class="btn sm" onclick="toast(&quot;🧠 Mind map node expanded!&quot;)" style="width:100%;">🧠 Expand Concept Relationships</button>'
-    + '</div>'
+    + '<div id="mmDetail" style="display:none; background:var(--card); border:2px solid var(--coral); border-radius:12px; padding:16px; margin-top:8px; text-align:left;"></div>'
     + '</div>';
+}
+
+function mindMapSelect(id){
+  const n = MINDMAP_NODES.find(x => x.id === id);
+  const related = MINDMAP_EDGES.filter(e => e.from === id || e.to === id).map(e => {
+    const otherId = e.from === id ? e.to : e.from;
+    const dir = e.from === id ? '→' : '←';
+    const other = MINDMAP_NODES.find(x => x.id === otherId);
+    return '<span style="display:inline-flex; align-items:center; gap:4px; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:3px 8px; font-size:11px; margin:2px;">' + dir + ' <em>' + esc(e.label) + '</em> ' + esc(other.label) + '</span>';
+  }).join('');
+  const d = document.getElementById("mmDetail");
+  if (!d) return;
+  d.style.display = "block";
+  d.innerHTML = '<div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">'
+    + '<div style="width:14px; height:14px; border-radius:50%; background:' + n.color + ';"></div>'
+    + '<strong style="font-size:15px; color:var(--ink);">' + esc(n.label) + '</strong></div>'
+    + '<p style="font-size:13px; color:var(--ink); line-height:1.6; margin-bottom:10px;">' + esc(n.def) + '</p>'
+    + '<div style="font-size:11px; font-weight:700; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:1px;">Relationships</div>'
+    + '<div style="display:flex; flex-wrap:wrap; gap:4px;">' + related + '</div>';
+  if (typeof d.scrollIntoView === 'function') d.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 /* ================= 2. EMBEDDED INLINE LESSON PLAYGROUND ================= */
