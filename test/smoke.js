@@ -459,6 +459,7 @@ vm.createContext(sandbox);
   check(/Weakest here/.test(res), "mock results name the weakest domain");
   check(/startDrill\('ccao',\d+\)/.test(res), "each domain in the mock results links into a drill");
   check(/lessonView\('ccao',\d+\)/.test(res), "each domain in the mock results links to its lesson");
+  check(/📖 Review in lesson/.test(res), "each individually-reviewed missed question also links to its own lesson, not just the domain summary above it");
 
   /* ---------- 14. per-option rationales ---------- */
   // Structure: a `why` array, when present, must be parallel to `opts`.
@@ -604,6 +605,22 @@ vm.createContext(sandbox);
   } else {
     check(false, "could not find a question with rationales to render");
   }
+
+  // A wrong answer previously ended there: domain tag shown, explanation
+  // shown, no path back to where it's actually taught. q.d already indexes
+  // the same domains array lessonForDomain() reads.
+  evalIn(`startQuiz("ccao")`);
+  const wrongQi = evalIn(`Q.idxs[Q.i]`);
+  const wrongDom = evalIn(`Q.cert.questions[${wrongQi}].d`);
+  const wrongLesson = evalIn(`lessonForDomain(Q.cert, ${wrongDom})`);
+  evalIn(`answer((Q.cert.questions[Q.idxs[Q.i]].a+1)%4)`); // deliberately wrong
+  check(new RegExp(`onclick="lessonView\\('ccao',${wrongLesson}\\)"`).test(els.exp.innerHTML),
+    "a wrong answer links to the specific lesson that teaches its domain");
+
+  evalIn(`startQuiz("ccao"); quizQ()`);
+  evalIn(`answer(Q.cert.questions[Q.idxs[Q.i]].a)`); // deliberately correct
+  check(!/Review in lesson/.test(els.exp.innerHTML),
+    "a correct answer doesn't show the review link -- it's for the reinforcement loop after a miss, not clutter on every question");
 
   /* ---------- 15. practice links back to the teaching material ---------- */
   // lessons are [foundation, ...one per domain in order], so domain d -> lesson d+1

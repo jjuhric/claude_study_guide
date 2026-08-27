@@ -454,7 +454,16 @@ function answer(j){
     });
     why+='</div>';
   }
-  e.innerHTML='<b>'+(ok?"✅ Correct!":"❌ Not quite.")+'</b> '+esc(q.exp)+why;
+  /* A wrong answer has always ended the loop right there -- domain tag
+     shown, explanation shown, no path back to where it's actually taught.
+     q.d already indexes the same domains array lessonForDomain() reads, so
+     this is a real link to the specific lesson, not a guess. */
+  let reviewLink='';
+  if(!ok){
+    const li=lessonForDomain(c,q.d);
+    if(li>=0) reviewLink='<div style="margin-top:10px;"><button class="btn ghost sm" onclick="lessonView(\''+c.id+'\','+li+')">📖 Review in lesson</button></div>';
+  }
+  e.innerHTML='<b>'+(ok?"✅ Correct!":"❌ Not quite.")+'</b> '+esc(q.exp)+why+reviewLink;
   e.classList.add("show");
   const nb=$("nextb");
   nb.style.display="inline-block";
@@ -783,7 +792,9 @@ function finishMock(){
     missHtml='<div style="text-align:left; margin-top:16px;"><h4 style="font-size:14px; margin-bottom:8px;">📝 Review your misses</h4>';
     missed.slice(0,8).forEach(qi=>{
       const q=c.questions[qi];
-      missHtml+='<div class="exp show" style="margin-bottom:10px;"><b>'+esc(q.q)+'</b><br>✅ '+esc(q.opts[q.a])+'<br><span style="color:var(--muted)">'+esc(q.exp)+'</span></div>';
+      const li=lessonForDomain(c,q.d);
+      const reviewLink=li>=0?'<div style="margin-top:8px;"><button class="btn ghost sm" onclick="lessonView(\''+c.id+'\','+li+')">📖 Review in lesson</button></div>':'';
+      missHtml+='<div class="exp show" style="margin-bottom:10px;"><b>'+esc(q.q)+'</b><br>✅ '+esc(q.opts[q.a])+'<br><span style="color:var(--muted)">'+esc(q.exp)+'</span>'+reviewLink+'</div>';
     });
     if(missed.length>8) missHtml+='<div class="subtext">…and '+(missed.length-8)+' more. Hit Quiz Battle to drill them.</div>';
     missHtml+='</div>';
