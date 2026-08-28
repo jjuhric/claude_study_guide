@@ -2113,53 +2113,113 @@ function promptTransformGallery(){
 }
 
 /* ── 4. KNOWLEDGE GRAPH VIEW ── */
+let kgState = { certId: "ccao" };
+
+/* Per-cert node/edge data, one graph per certification instead of one
+   generic graph shown regardless of which cert is active. Definitions are
+   condensed straight from that domain's own lesson opening paragraph
+   (already-verified prose, never invented for this); edges are genuine
+   curriculum relationships between that cert's own domains -- several
+   confirmed by the lesson text itself directly naming another domain
+   (e.g. ccao's Knowledge Management lesson names both "Prompting" and
+   "Model Selection"; ccdv's Security lesson and MCP lesson name each
+   other). Node count follows however many domains that cert actually has
+   (5 or 7) -- nothing is padded or trimmed to fit a fixed shape. */
+const KG_CERT_DATA = {
+  ccao: {
+    nodes: [
+      {id:"prompting",label:"Prompting",def:"A prompt is a specification — the model cannot read your intent, deadline, or audience, so everything that matters must be stated. Most disappointing results are specification failures, not capability failures."},
+      {id:"output_eval",label:"Output Evaluation",def:"The skill of knowing when to trust an output and when to check it. The defining risk of a language model is fluent, confident text that is still wrong."},
+      {id:"model_selection",label:"Model Selection",def:"Model families trade capability against speed and cost. Selection means matching the model to the difficulty of the task and the cost of getting it wrong — not finding \"the best\" model."},
+      {id:"workflow",label:"Workflow Integration",def:"Value appears when Claude sits inside a process people already run, with a defined input, output, and someone accountable for the result. A capable model with no process just produces demos."},
+      {id:"knowledge_mgmt",label:"Knowledge Management",def:"Left alone, a model answers from general training knowledge — broad and plausible, but not about your company. Grounding supplies your own material so answers are specific and current."},
+      {id:"governance",label:"Governance & Risk",def:"Using Claude well at work means using it responsibly, not just effectively. Most governance failures are ordinary: someone pasting the wrong data in, or sending unreviewed output onward."},
+      {id:"troubleshooting",label:"Troubleshooting",def:"Most problems have a small number of causes and are diagnosable from the symptom. The skill is recognizing which failure you're looking at before changing anything."}
+    ],
+    edges: [
+      {from:"prompting",to:"output_eval",label:"sets the bar for"},
+      {from:"prompting",to:"workflow",label:"feeds"},
+      {from:"prompting",to:"knowledge_mgmt",label:"grounded by"},
+      {from:"model_selection",to:"knowledge_mgmt",label:"budgeted by"},
+      {from:"model_selection",to:"workflow",label:"sized for"},
+      {from:"output_eval",to:"governance",label:"escalates to"},
+      {from:"workflow",to:"troubleshooting",label:"diagnosed via"},
+      {from:"governance",to:"troubleshooting",label:"shares causes with"}
+    ]
+  },
+  ccdv: {
+    nodes: [
+      {id:"api_mechanics",label:"API Mechanics",def:"The Messages API is the foundation everything else sits on. Every request requires model, max_tokens, and a messages array; system and tools are optional."},
+      {id:"tool_use",label:"Tool Use & Structured Output",def:"Structured outputs constrain generation to a JSON schema; tool use lets the model request actions your code performs. Both replace fragile prompt-and-parse patterns."},
+      {id:"agents_sdk",label:"Agents & SDK",def:"An integration becomes an agent when it runs a loop: the model chooses an action, your code executes it, the result returns, and the cycle repeats toward a goal."},
+      {id:"model_cost",label:"Model Selection & Cost",def:"Cost is an engineering property, not a billing accident. Three levers dominate: right-sizing the model per step, prompt caching, and batch processing for non-urgent work."},
+      {id:"prompt_context",label:"Prompt & Context Engineering",def:"Context is a budget, not a container. System prompt, tool definitions, retrieved documents, and history all compete for the same space, and what you put in determines cost and quality."},
+      {id:"security",label:"Security",def:"The central idea is a trust boundary: instructions come from your application and its user; everything else — web pages, files, tool responses, retrieved documents — is data."},
+      {id:"mcp",label:"MCP",def:"The Model Context Protocol is an open standard for connecting AI applications to external tools and data, solving the N-by-M integration problem so every client doesn't need a bespoke connector."}
+    ],
+    edges: [
+      {from:"api_mechanics",to:"tool_use",label:"defines"},
+      {from:"api_mechanics",to:"security",label:"bounded by"},
+      {from:"tool_use",to:"agents_sdk",label:"powers"},
+      {from:"tool_use",to:"mcp",label:"standardized by"},
+      {from:"agents_sdk",to:"model_cost",label:"priced per step by"},
+      {from:"prompt_context",to:"model_cost",label:"drives"},
+      {from:"prompt_context",to:"security",label:"guarded by"},
+      {from:"security",to:"mcp",label:"governs"}
+    ]
+  },
+  ccaf: {
+    nodes: [
+      {id:"agentic_arch",label:"Agentic Architecture & Orchestration",def:"Architecture means choosing the shape of the system. Anthropic's own guidance: use the simplest pattern that works, and escalate complexity only when the task demands it."},
+      {id:"claude_code",label:"Claude Code Workflows",def:"Agentic coding is structured work, not a single sweeping instruction. The architect's job is consistent, bounded, verifiable agent behavior across a team."},
+      {id:"prompt_eng",label:"Prompt Engineering & Structured Output",def:"At architect level, prompting is contract design — not how to phrase a request, but what interface each step exposes to the next, and how that interface is enforced."},
+      {id:"tool_design",label:"Tool Design & MCP Integration",def:"Tools are the agent's interface to the world. A tool an agent calls unsupervised must be easy to select correctly, hard to misuse, and clear when it fails."},
+      {id:"context_reliability",label:"Context, Retrieval & Reliability",def:"Context is the scarcest resource in a long-running agent, and reliability is mostly the discipline of deciding what survives it."}
+    ],
+    edges: [
+      {from:"agentic_arch",to:"claude_code",label:"constrains"},
+      {from:"agentic_arch",to:"tool_design",label:"requires"},
+      {from:"prompt_eng",to:"tool_design",label:"specifies interface for"},
+      {from:"tool_design",to:"context_reliability",label:"spends budget from"},
+      {from:"context_reliability",to:"agentic_arch",label:"bounds"},
+      {from:"claude_code",to:"context_reliability",label:"verified against"}
+    ]
+  },
+  ccap: {
+    nodes: [
+      {id:"multiagent_scale",label:"Multi-Agent Systems at Scale",def:"Multi-agent designs buy parallel breadth at a large token multiple. At production scale the question is never whether more agents are possible, but whether measured outcomes justify the cost."},
+      {id:"reliability_recovery",label:"Reliability & Error Recovery",def:"At production scale, failure is a design input, not an exception. The questions are what survives a failure, what resumes, and what becomes visible to a human."},
+      {id:"cost_latency",label:"Cost, Latency & Model Strategy",def:"Cost and latency are architectural properties decided step by step, not a bill that arrives afterward. Optimizing every step uniformly is how money gets wasted."},
+      {id:"eval_observability",label:"Evaluation & Observability",def:"You cannot improve what you cannot measure, and cannot debug what you cannot see. Evaluation tells you whether a change helped; observability tells you what actually happened."},
+      {id:"security_governance",label:"Security & Governance of Agents",def:"Agents act — that makes governance an engineering requirement, not a policy document. What an agent may do must be enforced where the action happens."}
+    ],
+    edges: [
+      {from:"multiagent_scale",to:"cost_latency",label:"multiplies"},
+      {from:"multiagent_scale",to:"reliability_recovery",label:"requires"},
+      {from:"reliability_recovery",to:"eval_observability",label:"surfaced by"},
+      {from:"cost_latency",to:"eval_observability",label:"measured by"},
+      {from:"security_governance",to:"multiagent_scale",label:"enforced across"},
+      {from:"eval_observability",to:"security_governance",label:"audits"}
+    ]
+  }
+};
+const KG_PALETTE=["#d97757","#5a9e6f","#8a6fae","#5b7fa6","#c94f4f"];
+
 function knowledgeGraphView(){
   if(typeof window!=='undefined'&&window.scrollTo)window.scrollTo(0,0);
   renderHeader();
   award("knowledge_mapper");
-  const nodes=[
-    {id:"api",label:"Messages API",x:50,y:50,color:"#d97757"},
-    {id:"cache",label:"Prompt Caching",x:20,y:30,color:"#5a9e6f"},
-    {id:"thinking",label:"Extended Thinking",x:80,y:30,color:"#8a6fae"},
-    {id:"tools",label:"Tool Use",x:75,y:65,color:"#5b7fa6"},
-    {id:"mcp",label:"MCP Protocol",x:90,y:48,color:"#d97757"},
-    {id:"agents",label:"Multi-Agent",x:50,y:78,color:"#5b7fa6"},
-    {id:"security",label:"Zero-Trust",x:28,y:72,color:"#c94f4f"},
-    {id:"microvm",label:"MicroVM",x:15,y:55,color:"#c94f4f"},
-    {id:"circuit",label:"Circuit Breaker",x:38,y:90,color:"#d97757"},
-    {id:"batch",label:"Batch API",x:65,y:90,color:"#5a9e6f"},
-    {id:"streaming",label:"Streaming",x:65,y:35,color:"#5b7fa6"},
-    {id:"context",label:"Context Window",x:35,y:15,color:"#8a6fae"}
-  ];
-  const edges=[
-    {from:"api",to:"cache",label:"enables"},
-    {from:"api",to:"thinking",label:"enables"},
-    {from:"api",to:"tools",label:"defines"},
-    {from:"api",to:"streaming",label:"supports"},
-    {from:"tools",to:"mcp",label:"standardized by"},
-    {from:"tools",to:"agents",label:"powers"},
-    {from:"agents",to:"security",label:"requires"},
-    {from:"security",to:"microvm",label:"enforced by"},
-    {from:"agents",to:"circuit",label:"resilience via"},
-    {from:"cache",to:"context",label:"reduces cost of"},
-    {from:"context",to:"agents",label:"limits"},
-    {from:"api",to:"batch",label:"async variant"}
-  ];
-  const DEFS={
-    api:"The Anthropic Messages API is the primary interface for all Claude interactions. Every feature — caching, tools, thinking, streaming — is a parameter within this API.",
-    cache:"Prompt Caching stores static prompt prefixes server-side for 5 minutes at 15% of full cost. Requires cache_control breakpoints at 1,024+ tokens.",
-    thinking:"Extended Thinking enables Claude to reason in a hidden thinking block before responding. Activated via thinking:{type:adaptive}; depth is set with output_config.effort, not a token budget.",
-    tools:"Tool Use allows Claude to call external functions. Claude returns tool_use content blocks; you execute the tool and return tool_result.",
-    mcp:"Model Context Protocol (MCP) is an open JSON-RPC 2.0 standard for connecting Claude to external tool servers via a standardized interface.",
-    agents:"Multi-Agent systems use an orchestrator subagent to manage multiple worker subagents. Enables parallelism and specialization beyond single-model limits.",
-    security:"Zero-Trust security treats every tool call, agent action, and retrieved document as potentially adversarial. Verify, isolate, and audit everything.",
-    microvm:"Firecracker MicroVMs provide kernel-level isolation for each tool execution. Prevents sandbox escape, lateral movement, and cross-call data persistence.",
-    circuit:"Circuit Breakers monitor failure rates to downstream tools and block calls after a threshold, preventing cascading failures across the agent graph.",
-    batch:"The Message Batches API processes up to 100,000 requests (or 256MB, whichever comes first) asynchronously at 50% cost reduction for evals, classification, and nightly pipelines.",
-    streaming:"Server-Sent Events deliver content_block_delta events token-by-token. Reduces perceived latency. Supports thinking block streaming.",
-    context:"The context window is a hard limit &mdash; up to 1M tokens on current Opus and Sonnet models, 200K on Haiku 4.5. At 80% capacity, trigger semantic compaction using structured tags instead of FIFO truncation."
-  };
-  const W=560,H=340;
+  const c=CERTS.find(function(x){return x.id===kgState.certId;})||CERTS[0];
+  kgState.certId=c.id;
+  const graphData=KG_CERT_DATA[c.id];
+  const W=560,H=340,cx=W/2,cy=H/2,rx=W*0.36,ry=H*0.34;
+  const nodes=graphData.nodes.map(function(n,i){
+    const angle=-Math.PI/2+i*(2*Math.PI/graphData.nodes.length);
+    return {id:n.id,label:n.label,color:KG_PALETTE[i%KG_PALETTE.length],x:cx+rx*Math.cos(angle),y:cy+ry*Math.sin(angle)};
+  });
+  const edges=graphData.edges;
+  const DEFS={};
+  graphData.nodes.forEach(function(n){DEFS[n.id]=n.def;});
   window._kgSel=function(id){
     const n=nodes.find(function(x){return x.id===id;});
     const related=edges.filter(function(e){return e.from===id||e.to===id;}).map(function(e){
@@ -2176,17 +2236,17 @@ function knowledgeGraphView(){
       +"<p style=\"font-size:13px;color:var(--ink);line-height:1.6;margin-bottom:10px;\">"+DEFS[id]+"</p>"
       +"<div style=\"font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;\">Relationships</div>"
       +"<div style=\"display:flex;flex-wrap:wrap;gap:4px;\">"+related+"</div>";
-    d.scrollIntoView({behavior:"smooth",block:"nearest"});
+    if(typeof d.scrollIntoView==='function')d.scrollIntoView({behavior:"smooth",block:"nearest"});
   };
   const svgLines=edges.map(function(e){
     const f=nodes.find(function(n){return n.id===e.from;}),t=nodes.find(function(n){return n.id===e.to;});
-    const fx=f.x/100*W,fy=f.y/100*H,tx=t.x/100*W,ty=t.y/100*H;
+    const fx=f.x,fy=f.y,tx=t.x,ty=t.y;
     const mx=(fx+tx)/2,my=(fy+ty)/2;
     return "<line x1='"+fx+"' y1='"+fy+"' x2='"+tx+"' y2='"+ty+"' stroke='var(--border)' stroke-width='1.5'/>"
       +"<text x='"+mx+"' y='"+my+"' fill='var(--muted)' font-size='7.5' text-anchor='middle' dy='-3'>"+e.label+"</text>";
   }).join("");
   const svgCircles=nodes.map(function(n){
-    const x=n.x/100*W,y=n.y/100*H;
+    const x=n.x,y=n.y;
     const words=n.label.split(" ");
     const lines=words.map(function(w,j){return "<tspan x='"+x+"' dy='"+(j===0?(-(words.length-1)*6)+"px":"12px")+"'>"+w+"</tspan>";}).join("");
     return "<g onclick='_kgSel(&quot;"+n.id+"&quot;)' style='cursor:pointer'>"
@@ -2198,7 +2258,12 @@ function knowledgeGraphView(){
     +"<div class=\"panel\">"
     +"<div style=\"text-align:center;\"><div style=\"font-size:36px;\">🧩</div>"
     +"<h2 style=\"font-size:20px;margin-top:6px;\">Concept Relationship Knowledge Graph</h2>"
-    +"<p class=\"subtext\" style=\"margin-top:6px;\">Click any node to see how concepts connect. Understanding relationships is the key to exam mastery.</p></div>"
+    +"<p class=\"subtext\" style=\"margin-top:6px;\">Click any node to see how concepts connect for <strong>"+c.code+"</strong>. Every certification gets its own graph, built from its own domains.</p></div>"
+    +"<div style=\"margin:10px 0 14px;\">"
+    +"<select id=\"kgCertSelect\" onchange=\"kgState.certId=this.value; knowledgeGraphView()\" style=\"width:100%;padding:8px 12px;font-size:13px;font-weight:700;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--ink);box-sizing:border-box;\">"
+    +CERTS.map(function(x){return "<option value=\""+x.id+"\" "+(x.id===c.id?"selected":"")+">"+x.code+" · "+x.name+"</option>";}).join("")
+    +"</select>"
+    +"</div>"
     +"<div style=\"overflow-x:auto;margin:16px 0;\">"
     +"<svg width='"+W+"' height='"+H+"' style='background:var(--bg);border:1px solid var(--border);border-radius:12px;display:block;margin:0 auto;'>"+svgLines+svgCircles+"</svg>"
     +"</div>"

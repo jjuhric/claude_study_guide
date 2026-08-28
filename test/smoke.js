@@ -1268,8 +1268,45 @@ vm.createContext(sandbox);
   call("promptTransformGallery");
   check(/Before \/ After Prompt Transformation Gallery/.test(els.app.innerHTML) && /ptgBody/.test(els.app.innerHTML), "promptTransformGallery renders transformation cards");
 
+  // Phase 8: knowledgeGraphView used to be one hardcoded 12-node graph
+  // (Messages API/caching/thinking/etc.) shown identically no matter which
+  // cert was active. Each cert now gets its own graph built from its own
+  // domains -- guard against that regression directly, not just presence.
+  evalIn(`kgState = {certId:"ccao"}`);
   call("knowledgeGraphView");
   check(/Concept Relationship Knowledge Graph/.test(els.app.innerHTML) && /kgDetail/.test(els.app.innerHTML), "knowledgeGraphView renders knowledge graph");
+  check(/kgCertSelect/.test(els.app.innerHTML) && CERTS.every(c => new RegExp('value="' + c.id + '"').test(els.app.innerHTML)), "knowledge graph offers a cert switcher listing all 4 certs");
+  // Node labels wrap onto separate <tspan> elements per word (no space
+  // survives between them in the markup), so assert on single-word
+  // fragments unique to each cert's own domain set rather than full labels.
+  check(/Prompting/.test(els.app.innerHTML) && !/Mechanics/.test(els.app.innerHTML), "ccao's graph shows its own domains, not another cert's");
+
+  evalIn(`kgState = {certId:"ccdv"}`);
+  call("knowledgeGraphView");
+  check(/Mechanics/.test(els.app.innerHTML) && !/Prompting</.test(els.app.innerHTML), "switching cert swaps in ccdv's own domain graph, not ccao's leftover nodes");
+
+  evalIn(`_kgSel("mcp")`);
+  check(/Model Context Protocol/.test(els.kgDetail.innerHTML) && /Relationships/.test(els.kgDetail.innerHTML), "clicking a node shows that cert's own definition and relationships");
+
+  evalIn(`kgState = {certId:"ccao"}; knowledgeGraphView(); _kgSel("prompting")`);
+  check(/specification/.test(els.kgDetail.innerHTML) && !/Model Context Protocol/.test(els.kgDetail.innerHTML), "switching cert back re-closures fresh node/def data instead of leaking the previous cert's definitions");
+
+  const kgIntegrity = evalIn(`(() => {
+    const results = {};
+    for (const certId of Object.keys(KG_CERT_DATA)) {
+      const g = KG_CERT_DATA[certId];
+      const ids = new Set(g.nodes.map(n => n.id));
+      const cert = CERTS.find(c => c.id === certId);
+      const domainCount = cert.domains.length;
+      const edgesValid = g.edges.every(e => ids.has(e.from) && ids.has(e.to));
+      const everyNodeConnected = g.nodes.every(n => g.edges.some(e => e.from === n.id || e.to === n.id));
+      results[certId] = { nodeCount: g.nodes.length, domainCount, edgesValid, everyNodeConnected };
+    }
+    return results;
+  })()`);
+  check(Object.values(kgIntegrity).every(r => r.nodeCount === r.domainCount), "each cert's graph has exactly one node per that cert's own domain count");
+  check(Object.values(kgIntegrity).every(r => r.edgesValid), "every edge references a node id that actually exists in that same cert's graph");
+  check(Object.values(kgIntegrity).every(r => r.everyNodeConnected), "no cert's graph has an isolated node with zero relationships");
 
   /* ---------- 44. Solaris Teaching Suite ---------- */
   call("apiErrorSimulator");
